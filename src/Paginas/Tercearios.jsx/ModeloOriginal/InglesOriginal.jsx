@@ -6,6 +6,12 @@ import { FaSignOutAlt } from "react-icons/fa";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
+// ✅ FUNCIONALIDADE DO FICHEIRO 1: Importações para certificados e vencedores
+import CertIngles from '../../../certificados/CertIngles';
+import useCertificado from '../../../hooks/useCertificado';
+import ModalVencedores from '../../../components/ModalVencedores';
+import useVencedores from '../../../hooks/useVencedores';
+
 const TEMPO_QUESTAO = 120;
 const DISCIPLINA = 'Inglês';
 
@@ -53,6 +59,20 @@ export default function InglesOriginal() {
   const [questoesTotais, setQuestoesTotais] = useState(0);
   const [contagemRegressiva, setContagemRegressiva] = useState(5);
   const [executando, setExecutando] = useState(false);
+
+  // ✅ FUNCIONALIDADE DO FICHEIRO 1: Hook para certificados
+  const { 
+    mostrarCertificado, 
+    certificadoData, 
+    fecharCertificado 
+  } = useCertificado('Inglês', participante, ranking);
+
+  // ✅ FUNCIONALIDADE DO FICHEIRO 1: Hook para vencedores
+  const { 
+    mostrarVencedores, 
+    vencedores, 
+    fecharVencedores 
+  } = useVencedores('Inglês', ranking, torneio, participante);
 
   // Função para calcular tempo restante baseado no banco de dados
   const calcularTempoRestante = (torneioData) => {
@@ -120,7 +140,7 @@ export default function InglesOriginal() {
     return () => clearInterval(intervalId);
   }, [torneio]);
 
-  // Filtrar questões por dificuldade - CORRIGIDO: scroll após mudar nível
+  // Filtrar questões por dificuldade
   useEffect(() => {
     if (questoes.length > 0) {
       const filtradas = questoes.filter(q => q.dificuldade === nivelSelecionado);
@@ -147,6 +167,7 @@ export default function InglesOriginal() {
       setQuestoesTotais(questoes.length);
     }
   }, [questoes]);
+  
   // Limpar timer de auto-avanço
   useEffect(() => {
     return () => {
@@ -156,7 +177,7 @@ export default function InglesOriginal() {
     };
   }, [autoAvancarTimer]);
 
-  // SCROLL AUTOMÁTICO QUANDO A QUESTÃO MUDA (próxima questão)
+  // SCROLL AUTOMÁTICO QUANDO A QUESTÃO MUDA
   useEffect(() => {
     if (questoesFiltradas.length > 0 && enunciadoRef.current) {
       setTimeout(() => {
@@ -179,8 +200,6 @@ export default function InglesOriginal() {
       }, 500);
     }
   }, [questoesFiltradas]);
-
-  // VERIFICAR TORNEIO ATIVO
 
   // VERIFICAR TORNEIO ATIVO
   useEffect(() => {
@@ -220,7 +239,7 @@ export default function InglesOriginal() {
     verificarTorneioAtivo();
   }, [user]);
 
-  // Conectar Socket.IO para atualizações em tempo real do ranking (usa singleton)
+  // Conectar Socket.IO para atualizações em tempo real do ranking
   useEffect(() => {
     if (!torneio) return;
 
@@ -326,7 +345,7 @@ export default function InglesOriginal() {
     }
   };
 
-  // Atualizar pontuação - CORREÇÃO: Sempre incrementa casos resolvidos, mesmo com 0 pontos
+  // ✅ FUNCIONALIDADE DO FICHEIRO 2: Atualizar pontuação (mais completa)
   const atualizarPontuacao = async (pontosAdicionados, casosAdicionados = 1) => {
     if (!participante?.usuario_id || !user?.id) return null;
     
@@ -406,6 +425,7 @@ export default function InglesOriginal() {
 
   const handleResposta = (value) => setResposta((prev) => prev + value + " ");
 
+  // ✅ ESTILIZAÇÃO DO FICHEIRO 2: Nome consistente da função
   const handleNextQuestao = () => {
     setResposta("");
     setResultado("");
@@ -737,7 +757,7 @@ export default function InglesOriginal() {
                 </div>
               </div>
 
-              {/* BOTÕES DE CONTROLE */}
+              {/* ✅ BOTÕES DE CONTROLE (estilização do Ficheiro 2) */}
               <div className="flex gap-3 w-full max-w-4xl">
                 <button 
                   onClick={handleNextQuestao}
@@ -1071,6 +1091,26 @@ export default function InglesOriginal() {
           </div>
         </div>
       )}
+
+      {/* ✅ FUNCIONALIDADE DO FICHEIRO 1: Modal de Certificado */}
+      {certificadoData && (
+        <CertIngles
+          isOpen={mostrarCertificado}
+          onClose={fecharCertificado}
+          participante={certificadoData.participante}
+          posicao={certificadoData.posicao}
+          torneio={certificadoData.torneio}
+        />
+      )}
+
+      {/* ✅ FUNCIONALIDADE DO FICHEIRO 1: Modal de Vencedores */}
+      <ModalVencedores
+        isOpen={mostrarVencedores}
+        onClose={fecharVencedores}
+        vencedores={vencedores}
+        disciplina="Inglês"
+        torneio={torneio}
+      />
     </div>
   );
 }

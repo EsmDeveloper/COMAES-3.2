@@ -6,6 +6,12 @@ import { FaSignOutAlt } from "react-icons/fa";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
+// ✅ FUNCIONALIDADE DO FICHEIRO 1: Importações para certificados e vencedores
+import CertMatematica from '../../../certificados/CertMatematica';
+import useCertificado from '../../../hooks/useCertificado';
+import ModalVencedores from '../../../components/ModalVencedores';
+import useVencedores from '../../../hooks/useVencedores';
+
 const TEMPO_QUESTAO = 90;
 const DISCIPLINA = 'Matemática';
 
@@ -43,6 +49,20 @@ export default function MatematicaOriginal() {
   const [questoesTotais, setQuestoesTotais] = useState(0);
   const [contagemRegressiva, setContagemRegressiva] = useState(5);
   const [executando, setExecutando] = useState(false);
+
+  // ✅ FUNCIONALIDADE DO FICHEIRO 1: Hook para certificados
+  const { 
+    mostrarCertificado, 
+    certificadoData, 
+    fecharCertificado 
+  } = useCertificado('Matemática', participante, ranking);
+
+  // ✅ FUNCIONALIDADE DO FICHEIRO 1: Hook para vencedores
+  const { 
+    mostrarVencedores, 
+    vencedores, 
+    fecharVencedores 
+  } = useVencedores('Matemática', ranking, torneio, participante);
 
   // Função para calcular tempo restante
   const calcularTempoRestante = (torneioData) => {
@@ -110,7 +130,7 @@ export default function MatematicaOriginal() {
     return () => clearInterval(intervalId);
   }, [torneio]);
 
-  // Filtrar questões por dificuldade - CORRIGIDO: scroll após mudar nível
+  // Filtrar questões por dificuldade
   useEffect(() => {
     if (questoes.length > 0) {
       const filtradas = questoes.filter(q => q.dificuldade === nivelSelecionado);
@@ -150,7 +170,7 @@ export default function MatematicaOriginal() {
     };
   }, [autoAvancarTimer]);
 
-  // SCROLL AUTOMÁTICO QUANDO A QUESTÃO MUDA (próxima questão)
+  // SCROLL AUTOMÁTICO QUANDO A QUESTÃO MUDA
   useEffect(() => {
     if (questoesFiltradas.length > 0 && enunciadoRef.current) {
       setTimeout(() => {
@@ -330,7 +350,7 @@ export default function MatematicaOriginal() {
     }
   };
 
-  // Atualizar pontuação - CORREÇÃO: Sempre incrementa casos resolvidos
+  // ✅ FUNCIONALIDADE DO FICHEIRO 2: Atualizar pontuação (mais completa)
   const atualizarPontuacao = async (pontosAdicionados, casosAdicionados = 1) => {
     if (!participante?.usuario_id || !user?.id) return null;
     
@@ -410,6 +430,7 @@ export default function MatematicaOriginal() {
 
   const handleResposta = (value) => setResposta((prev) => prev + value);
 
+  // ✅ ESTILIZAÇÃO DO FICHEIRO 2: Nome consistente da função
   const handleNextQuestao = () => {
     setResposta("");
     setResultado("");
@@ -494,7 +515,7 @@ export default function MatematicaOriginal() {
         setPontuacao(total);
         setResultado(detalhes[0]?.feedback || 'Avaliação concluída');
 
-        // Atualiza participante localmente (a API já salvou)
+        // Atualiza participante localmente
         if (data.data.participante) setParticipante(data.data.participante);
       }
     } catch (err) {
@@ -767,7 +788,7 @@ export default function MatematicaOriginal() {
                 </div>
               </div>
 
-              {/* BOTÕES DE CONTROLE */}
+              {/* ✅ BOTÕES DE CONTROLE (estilização do Ficheiro 2) */}
               <div className="flex gap-3 w-full max-w-4xl">
                 <button 
                   onClick={handleNextQuestao}
@@ -1080,6 +1101,26 @@ export default function MatematicaOriginal() {
           </div>
         </div>
       )}
+
+      {/* ✅ FUNCIONALIDADE DO FICHEIRO 1: Modal de Certificado */}
+      {certificadoData && (
+        <CertMatematica
+          isOpen={mostrarCertificado}
+          onClose={fecharCertificado}
+          participante={certificadoData.participante}
+          posicao={certificadoData.posicao}
+          torneio={certificadoData.torneio}
+        />
+      )}
+
+      {/* ✅ FUNCIONALIDADE DO FICHEIRO 1: Modal de Vencedores */}
+      <ModalVencedores
+        isOpen={mostrarVencedores}
+        onClose={fecharVencedores}
+        vencedores={vencedores}
+        disciplina="Matemática"
+        torneio={torneio}
+      />
     </div>
   );
 }

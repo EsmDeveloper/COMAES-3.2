@@ -25,6 +25,9 @@ import MatematicaOriginal from "./Paginas/Tercearios.jsx/ModeloOriginal/Matemati
 import ProgramacaoOriginal from "./Paginas/Tercearios.jsx/ModeloOriginal/ProgramacaoOriginal";
 import InglesOriginal from "./Paginas/Tercearios.jsx/ModeloOriginal/InglesOriginal";
 
+// ✅ DO FICHEIRO 1: Import da página de erro
+import Error from "./Paginas/Secundarias/Error";
+
 export default function App() {
   return (
     <AuthProvider>
@@ -50,6 +53,9 @@ export default function App() {
           <Route path="/matematica-original/:username" element={<MatematicaOriginal />} />
           <Route path="/programacao-original/:username" element={<ProgramacaoOriginal />} />
           <Route path="/Ingles-original/:username" element={<InglesOriginal />} />
+
+          {/* ✅ DO FICHEIRO 1: Rota de erro - captura todas as rotas não definidas */}
+          <Route path="*" element={<Error />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

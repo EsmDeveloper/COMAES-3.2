@@ -6,15 +6,17 @@ import { FaSignOutAlt, FaPlay, FaRedo, FaExpand, FaCompress } from "react-icons/
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
+// ✅ FUNCIONALIDADE DO FICHEIRO 1: Importações para certificados e vencedores
+import CertProgramacao from '../../../certificados/CertProgramacao';
+import useCertificado from '../../../hooks/useCertificado';
+import ModalVencedores from '../../../components/ModalVencedores';
+import useVencedores from '../../../hooks/useVencedores';
+
 const TEMPO_QUESTAO = 90;
 const DISCIPLINA = 'Programação';
 
 export default function ProgramacaoOriginal() {
   const navigate = useNavigate();
-
-
-
-  
   const { user, token } = useAuth();
   const editorRef = useRef(null);
   const avaliacaoRef = useRef(null);
@@ -53,6 +55,20 @@ export default function ProgramacaoOriginal() {
   const [executando, setExecutando] = useState(false);
   const [testesPassados, setTestesPassados] = useState(0);
   const [totalTestes, setTotalTestes] = useState(0);
+
+  // ✅ FUNCIONALIDADE DO FICHEIRO 1: Hook para certificados
+  const { 
+    mostrarCertificado, 
+    certificadoData, 
+    fecharCertificado 
+  } = useCertificado('Programação', participante, ranking);
+
+  // ✅ FUNCIONALIDADE DO FICHEIRO 1: Hook para vencedores
+  const { 
+    mostrarVencedores, 
+    vencedores, 
+    fecharVencedores 
+  } = useVencedores('Programação', ranking, torneio, participante);
 
   // Função para calcular tempo restante
   const calcularTempoRestante = (torneioData) => {
@@ -120,7 +136,7 @@ export default function ProgramacaoOriginal() {
     return () => clearInterval(intervalId);
   }, [torneio]);
 
-  // Filtrar questões por dificuldade - CORRIGIDO: scroll após mudar nível
+  // Filtrar questões por dificuldade
   useEffect(() => {
     if (questoes.length > 0) {
       const filtradas = questoes.filter(q => q.dificuldade === nivelSelecionado);
@@ -184,7 +200,7 @@ export default function ProgramacaoOriginal() {
     };
   }, [autoAvancarTimer]);
 
-  // SCROLL AUTOMÁTICO QUANDO A QUESTÃO MUDA (próxima questão)
+  // SCROLL AUTOMÁTICO QUANDO A QUESTÃO MUDA
   useEffect(() => {
     if (questoesFiltradas.length > 0 && enunciadoRef.current) {
       setTimeout(() => {
@@ -359,7 +375,7 @@ export default function ProgramacaoOriginal() {
     }
   };
 
-  // Atualizar pontuação - CORREÇÃO: Sempre incrementa casos resolvidos
+  // ✅ FUNCIONALIDADE DO FICHEIRO 2: Atualizar pontuação (mais completa)
   const atualizarPontuacao = async (pontosAdicionados, casosAdicionados = 1) => {
     if (!participante?.usuario_id || !user?.id) return null;
     
@@ -469,6 +485,7 @@ export default function ProgramacaoOriginal() {
     return interval;
   };
 
+  // ✅ ESTILIZAÇÃO DO FICHEIRO 2: Nome consistente da função
   const handleNextQuestao = () => {
     if (questoesFiltradas.length > 0) {
       setQuestaoIndex((prev) => (prev + 1 < questoesFiltradas.length ? prev + 1 : 0));
@@ -519,12 +536,8 @@ export default function ProgramacaoOriginal() {
 
         setAvaliacaoDetalhes(detalhe);
         setPontuacao(total);
-
-        // Resultado curto para o usuário
         setResultado(detalhe?.feedback || 'Avaliação concluída');
 
-        // Preencher a saída do compilador com possíveis dados retornados pela API
-        // A API pode devolver campos como `evidencias`, `output`, `stdout` ou `execOutput`.
         const execOutput = detalhe?.evidencias || detalhe?.output || detalhe?.stdout || data.data?.output || data.data?.execOutput || '';
         if (execOutput) {
           setSaida(typeof execOutput === 'string' ? execOutput : JSON.stringify(execOutput, null, 2));
@@ -532,7 +545,6 @@ export default function ProgramacaoOriginal() {
           setSaida('A API não retornou saída explícita para este código.');
         }
 
-        // Atualizar contagem de testes se a API fornecer
         const passed = detalhe?.testes_passados || detalhe?.casos_passados || detalhe?.tests_passed || 0;
         setTestesPassados(Number(passed));
 
@@ -853,7 +865,7 @@ export default function ProgramacaoOriginal() {
                 </div>
               </div>
 
-              {/* BOTÕES DE CONTROLE */}
+              {/* ✅ BOTÕES DE CONTROLE (estilização do Ficheiro 2) */}
               <div className="flex gap-3 w-full max-w-6xl">
                 <button 
                   onClick={handleNextQuestao}
@@ -1161,6 +1173,26 @@ export default function ProgramacaoOriginal() {
           </div>
         </div>
       )}
+
+      {/* ✅ FUNCIONALIDADE DO FICHEIRO 1: Modal de Certificado */}
+      {certificadoData && (
+        <CertProgramacao
+          isOpen={mostrarCertificado}
+          onClose={fecharCertificado}
+          participante={certificadoData.participante}
+          posicao={certificadoData.posicao}
+          torneio={certificadoData.torneio}
+        />
+      )}
+
+      {/* ✅ FUNCIONALIDADE DO FICHEIRO 1: Modal de Vencedores */}
+      <ModalVencedores
+        isOpen={mostrarVencedores}
+        onClose={fecharVencedores}
+        vencedores={vencedores}
+        disciplina="Programação"
+        torneio={torneio}
+      />
     </div>
   );
 }

@@ -4,15 +4,14 @@ import { useAuth } from '../../context/AuthContext';
 import Layout from './Layout';
 import { 
   Globe, Lock, Bell, Eye, Palette, 
-  Moon, Download, Key, Shield, User,
-  Mail, Smartphone, EyeOff, Volume2,
-  Trash2, LogOut, Save, X,
+  Shield, Trash2, Save, X,
   CheckCircle, ChevronRight, AlertCircle,
-  HelpCircle, ExternalLink
+  HelpCircle, ExternalLink, Settings
 } from 'lucide-react';
+import { FaSpinner } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function Settings() {
+export default function ConfigPage() {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
   
@@ -20,21 +19,17 @@ export default function Settings() {
   const [fetching, setFetching] = useState(true);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  // Settings State grouped similar to actual app needs
   const [settings, setSettings] = useState({
     privacy: {
       profilePublic: true,
       showEmail: false,
-      showActivity: true
     },
     notifications: {
       email: true,
       push: true,
-      reminders: true
     },
     appearance: {
       theme: 'light',
-      fontSize: 'medium',
       animations: true
     },
     security: {
@@ -43,7 +38,6 @@ export default function Settings() {
     }
   });
 
-  // Load settings from backend
   useEffect(() => {
     if (!user) {
       const timer = setTimeout(() => navigate('/login'), 2000);
@@ -57,7 +51,6 @@ export default function Settings() {
         });
         const data = await res.json();
         if (data.success && data.data?.preferencias) {
-          // Merge with defaults in case of new fields
           setSettings(prev => ({
             ...prev,
             ...data.data.preferencias
@@ -98,7 +91,7 @@ export default function Settings() {
       
       if (!res.ok) throw new Error('Erro ao salvar no servidor.');
       
-      setMessage({ type: 'success', text: 'Configurações sincronizadas com sucesso!' });
+      setMessage({ type: 'success', text: 'Preferências sincronizadas com sucesso!' });
       setTimeout(() => setMessage({ type: '', text: '' }), 4000);
     } catch (err) {
       setMessage({ type: 'error', text: err.message });
@@ -112,7 +105,7 @@ export default function Settings() {
       <Layout>
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent shadow-lg shadow-blue-100"></div>
-          <p className="mt-4 text-gray-500 font-bold animate-pulse">Carregando Preferências...</p>
+          <p className="mt-4 text-gray-500 font-bold animate-pulse">Iniciando Painel...</p>
         </div>
       </Layout>
     );
@@ -120,199 +113,229 @@ export default function Settings() {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
-              <Settings className="text-blue-600" size={32} />
-              Configurações
-            </h1>
-            <p className="text-gray-500 font-medium">Gerencie suas preferências e segurança no COMAES</p>
-          </div>
-          <button
-            onClick={saveSettings}
-            disabled={loading}
-            className="w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold shadow-xl shadow-blue-100 flex items-center justify-center gap-3 transition-all border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 disabled:opacity-50"
-          >
-            {loading ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div> : <Save size={20} />}
-            Salvar Alterações
-          </button>
-        </div>
+      <div className="relative min-h-screen bg-gray-50/50">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-100/30 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-100/30 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
-        <AnimatePresence>
-          {message.text && (
-            <motion.div 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className={`mb-6 p-4 rounded-2xl flex items-center gap-3 border shadow-sm ${message.type === 'success' ? 'bg-green-50 border-green-100 text-green-700' : 'bg-red-50 border-red-100 text-red-700'}`}
-            >
-              {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
-              <span className="font-bold text-sm tracking-tight">{message.text}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div className="space-y-8">
+        <div className="relative max-w-5xl mx-auto px-4 py-8 sm:py-12 pb-32">
           
-          {/* Link para Perfil */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100 flex items-center justify-between group cursor-pointer" onClick={() => navigate('/perfil')}>
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full border-2 border-white shadow-md overflow-hidden bg-white">
-                <img src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}`} alt="User" className="w-full h-full object-cover" />
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12"
+          >
+            <div className="space-y-1">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200 text-white leading-none">
+                  <Settings size={24} />
+                </div>
+                <h1 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
+                  Configurações
+                </h1>
               </div>
-              <div>
-                <h3 className="font-extrabold text-gray-800">Dados Pessoais</h3>
-                <p className="text-xs text-blue-600 font-bold uppercase tracking-widest mt-0.5">Nome, Email, Bio e Foto</p>
-              </div>
+              <p className="text-gray-500 font-medium md:ml-12">Personalize sua experiência e segurança no COMAES</p>
             </div>
-            <div className="flex items-center gap-2 text-blue-600 font-bold group-hover:translate-x-1 transition-transform">
-              Ir para Perfil <ChevronRight size={18} />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            
-            {/* Privacidade */}
-            <ConfigCard title="Privacidade" icon={<Eye className="text-blue-500" size={20} />}>
-              <ToggleItem 
-                label="Perfil Público" 
-                desc="Visível para outros estudantes" 
-                status={settings.privacy.profilePublic} 
-                onChange={(val) => handleUpdate('privacy', 'profilePublic', val)} 
-              />
-              <ToggleItem 
-                label="Mostrar Email" 
-                desc="Exibir seu contato no perfil" 
-                status={settings.privacy.showEmail} 
-                onChange={(val) => handleUpdate('privacy', 'showEmail', val)} 
-              />
-              <ToggleItem 
-                label="Compartilhar Atividade" 
-                desc="Mostrar conquistas no feed" 
-                status={settings.privacy.showActivity} 
-                onChange={(val) => handleUpdate('privacy', 'showActivity', val)} 
-              />
-            </ConfigCard>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={saveSettings}
+              disabled={loading}
+              className="group relative overflow-hidden w-full md:w-auto px-10 py-4 bg-gray-900 text-white rounded-2xl font-black shadow-2xl transition-all disabled:opacity-70 flex items-center justify-center gap-3"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <span className="relative flex items-center gap-3">
+                {loading ? <FaSpinner className="animate-spin" /> : <Save size={20} />}
+                {loading ? 'Sincronizando...' : 'Salvar Alterações'}
+              </span>
+            </motion.button>
+          </motion.div>
 
-            {/* Notificações */}
-            <ConfigCard title="Notificações" icon={<Bell className="text-amber-500" size={20} />}>
-              <ToggleItem 
-                label="Alertas por Email" 
-                desc="Resumo semanal e avisos" 
-                status={settings.notifications.email} 
-                onChange={(val) => handleUpdate('notifications', 'email', val)} 
-              />
-              <ToggleItem 
-                label="Push de Navegador" 
-                desc="Alertas de torneios em tempo real" 
-                status={settings.notifications.push} 
-                onChange={(val) => handleUpdate('notifications', 'push', val)} 
-              />
-              <ToggleItem 
-                label="Lembretes de Estudo" 
-                desc="Sugerir desafios diariamente" 
-                status={settings.notifications.reminders} 
-                onChange={(val) => handleUpdate('notifications', 'reminders', val)} 
-              />
-            </ConfigCard>
+          <AnimatePresence>
+            {message.text && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className={`mb-8 p-5 rounded-3xl flex items-center gap-4 border shadow-2xl backdrop-blur-md ${
+                  message.type === 'success' 
+                    ? 'bg-green-50/80 border-green-100 text-green-800' 
+                    : 'bg-red-50/80 border-red-100 text-red-800'
+                }`}
+              >
+                <div className={`p-2 rounded-xl ${message.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                  {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                </div>
+                <div className="flex-1">
+                  <p className="font-black text-sm uppercase tracking-wider">{message.type === 'success' ? 'Sucesso' : 'Erro'}</p>
+                  <p className="font-bold text-sm opacity-80">{message.text}</p>
+                </div>
+                <button onClick={() => setMessage({type:'', text:''})} className="opacity-40 hover:opacity-100 transition-opacity">
+                  <X size={18} />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-            {/* Aparência */}
-            <ConfigCard title="Plataforma" icon={<Palette className="text-purple-500" size={20} />}>
-              <SelectItem 
-                label="Tema Global" 
-                desc="Escolha a paleta de cores" 
-                value={settings.appearance.theme} 
-                options={[
-                  { label: '🌞 Modo Claro', value: 'light' },
-                  { label: '🌙 Modo Escuro', value: 'dark' },
-                  { label: '🖥️ Sistema', value: 'auto' }
-                ]}
-                onChange={(val) => handleUpdate('appearance', 'theme', val)} 
-              />
-              <ToggleItem 
-                label="Animações Fluídas" 
-                desc="Efeitos visuais na interface" 
-                status={settings.appearance.animations} 
-                onChange={(val) => handleUpdate('appearance', 'animations', val)} 
-              />
-            </ConfigCard>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-1 space-y-8">
+              <motion.div 
+                whileHover={{ y: -5 }}
+                className="bg-white rounded-[35px] p-8 shadow-xl border border-gray-100 relative overflow-hidden group cursor-pointer"
+                onClick={() => navigate('/perfil')}
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700 pointer-events-none" />
+                <div className="relative flex flex-col items-center text-center">
+                  <div className="relative mb-6">
+                    <div className="w-24 h-24 rounded-[30px] border-4 border-white shadow-2xl overflow-hidden bg-gray-100 rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                      <img src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=4F6EF7&color=fff`} alt="User" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="absolute -bottom-2 -right-2 bg-green-500 w-6 h-6 rounded-full border-4 border-white shadow-lg" />
+                  </div>
+                  <h3 className="text-xl font-black text-gray-900 mb-1">{user.fullName || "Usuário"}</h3>
+                  <p className="text-gray-400 font-bold text-xs uppercase tracking-widest mb-6">Membro Ativo</p>
+                  <div className="w-full py-4 px-6 bg-gray-50 rounded-2xl flex items-center justify-between group-hover:bg-blue-600 group-hover:text-white transition-all">
+                    <span className="text-sm font-black">Editar Perfil</span>
+                    <ChevronRight size={18} />
+                  </div>
+                </div>
+              </motion.div>
 
-            {/* Segurança */}
-            <ConfigCard title="Segurança" icon={<Shield className="text-red-500" size={20} />}>
-              <ToggleItem 
-                label="Verificação em 2 Passos" 
-                desc="SMS ou Aplicativo de Auth" 
-                status={settings.security.twoFactor} 
-                onChange={(val) => handleUpdate('security', 'twoFactor', val)} 
-              />
-              <ToggleItem 
-                label="Alertas de Login" 
-                desc="Avisar sobre novos acessos" 
-                status={settings.security.loginAlerts} 
-                onChange={(val) => handleUpdate('security', 'loginAlerts', val)} 
-              />
-              <div className="pt-2">
-                <button className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 text-gray-700 font-bold text-sm border border-gray-100 hover:border-red-200 transition-all">
-                  Redefinir Senha <ExternalLink size={16} />
+              <div className="bg-gradient-to-br from-indigo-600 to-blue-800 rounded-[35px] p-8 text-white shadow-2xl shadow-blue-200 relative overflow-hidden">
+                <HelpCircle size={150} className="absolute -right-10 -bottom-10 opacity-10 rotate-12" />
+                <h4 className="text-xl font-black mb-4">Central de Ajuda</h4>
+                <p className="text-blue-100 font-medium mb-8 leading-relaxed">Dúvidas sobre o funcionamento dos torneios ou sua conta?</p>
+                <button 
+                  onClick={() => navigate('/suporte')}
+                  className="w-full py-4 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl font-black text-sm border border-white/30 transition-all flex items-center justify-center gap-2"
+                >
+                  <ExternalLink size={18} />
+                  Contatar Suporte
                 </button>
               </div>
-            </ConfigCard>
+            </div>
 
-          </div>
+            <div className="lg:col-span-2 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <ConfigCard title="Privacidade" icon={<Eye className="text-blue-500" size={20} />}>
+                  <ToggleItem 
+                    label="Perfil Público" 
+                    desc="Visível para outros estudantes" 
+                    status={settings.privacy.profilePublic} 
+                    onChange={(val) => handleUpdate('privacy', 'profilePublic', val)} 
+                  />
+                  <ToggleItem 
+                    label="Mostrar Email" 
+                    desc="Exibir contato no seu perfil" 
+                    status={settings.privacy.showEmail} 
+                    onChange={(val) => handleUpdate('privacy', 'showEmail', val)} 
+                  />
+                </ConfigCard>
 
-          {/* Danger Zone */}
-          <div className="bg-red-50 rounded-3xl p-8 border border-red-100">
-            <h3 className="text-red-700 font-black flex items-center gap-2 mb-2">
-              <Trash2 size={24} />
-              ZONA DE PERIGO
-            </h3>
-            <p className="text-red-600 text-sm font-medium mb-6 italic opacity-80">Cuidado: estas ações são irreversíveis e apagam seu histórico educacional.</p>
-            
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button 
-                onClick={() => { if(window.confirm('Deseja realmente sair de todos os dispositivos?')) logout(); }}
-                className="flex-1 px-6 py-4 bg-white border-2 border-red-200 text-red-600 rounded-2xl font-black text-sm hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                <ConfigCard title="Notificações" icon={<Bell className="text-amber-500" size={20} />}>
+                  <ToggleItem 
+                    label="Push Real-time" 
+                    desc="Alertas de novos torneios" 
+                    status={settings.notifications.push} 
+                    onChange={(val) => handleUpdate('notifications', 'push', val)} 
+                  />
+                  <ToggleItem 
+                    label="Resumo por Email" 
+                    desc="Frequência semanal" 
+                    status={settings.notifications.email} 
+                    onChange={(val) => handleUpdate('notifications', 'email', val)} 
+                  />
+                </ConfigCard>
+
+                <ConfigCard title="Design" icon={<Palette className="text-purple-500" size={20} />}>
+                  <SelectItem 
+                    label="Tema Visual" 
+                    desc="Cores do ambiente" 
+                    value={settings.appearance.theme} 
+                    options={[
+                      { label: '🌞 Light', value: 'light' },
+                      { label: '🌙 Dark', value: 'dark' },
+                      { label: '🖥️ Auto', value: 'auto' }
+                    ]}
+                    onChange={(val) => handleUpdate('appearance', 'theme', val)} 
+                  />
+                  <ToggleItem 
+                    label="Animações" 
+                    desc="Fluidez na navegação" 
+                    status={settings.appearance.animations} 
+                    onChange={(val) => handleUpdate('appearance', 'animations', val)} 
+                  />
+                </ConfigCard>
+
+                <ConfigCard title="Segurança" icon={<Shield className="text-red-500" size={20} />}>
+                  <div className="flex flex-col gap-5">
+                    <ToggleItem 
+                      label="Alertas de Login" 
+                      desc="Avisar novos acessos" 
+                      status={settings.security.loginAlerts} 
+                      onChange={(val) => handleUpdate('security', 'loginAlerts', val)} 
+                    />
+                    <div className="p-4 bg-gray-50 rounded-2xl space-y-2">
+                       <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-gray-400">
+                          <span>Força da Senha</span>
+                          <span className="text-green-500">Elevada</span>
+                       </div>
+                       <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                          <div className="h-full w-4/5 bg-green-500 rounded-full" />
+                       </div>
+                    </div>
+                  </div>
+                </ConfigCard>
+              </div>
+
+              <motion.div 
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                className="bg-red-50/50 rounded-[35px] p-8 border border-red-100 relative overflow-hidden"
               >
-                TERMINAR TODAS AS SESSÕES
-              </button>
-              <button 
-                onClick={() => alert('Recurso em desenvolvimento')}
-                className="flex-1 px-6 py-4 bg-red-600 text-white rounded-2xl font-black text-sm hover:bg-red-700 transition-all shadow-lg shadow-red-100"
-              >
-                DELETAR MINHA CONTA COMAES
-              </button>
+                <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-red-100/50 rounded-full blur-3xl pointer-events-none" />
+                <div className="relative">
+                  <h3 className="text-red-700 font-black text-xl flex items-center gap-3 mb-2">
+                    <Trash2 size={24} />
+                    Zona Crítica
+                  </h3>
+                  <p className="text-red-900/60 font-bold text-sm mb-8 italic">Estas ações podem ser permanentes. Prossiga com cuidado.</p>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button 
+                      onClick={() => { if(window.confirm('Deslogar de todos os locais?')) logout(); }}
+                      className="px-6 py-4 bg-white border-2 border-red-100 text-red-600 rounded-2xl font-black text-sm hover:bg-black hover:text-white hover:border-black transition-all"
+                    >
+                      LOGOUT GLOBAL
+                    </button>
+                    <button 
+                      disabled
+                      className="px-6 py-4 bg-red-600 text-white rounded-2xl font-black text-sm opacity-50 cursor-not-allowed"
+                    >
+                      EXCLUIR CONTA
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </div>
-
-          <div className="text-center py-6 border-t border-gray-100 mt-20">
-            <div className="flex items-center justify-center gap-6 mb-4">
-              <HelpCircle className="text-blue-200" size={40} />
-            </div>
-            <h4 className="text-gray-800 font-bold mb-1">Dúvidas sobre sua conta?</h4>
-            <p className="text-gray-500 text-sm mb-4">Consulte nossa equipe de suporte disponível 24/7</p>
-            <button onClick={() => navigate('/suporte')} className="text-blue-600 font-black border-b-2 border-blue-100 hover:text-blue-800">Contatar Central de Ajuda →</button>
-          </div>
-
         </div>
       </div>
     </Layout>
   );
 }
 
-// Components
 function ConfigCard({ title, icon, children }) {
   return (
-    <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6 sm:p-8 flex flex-col h-full">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2.5 bg-gray-50 rounded-xl">
+    <div className="bg-white rounded-[35px] shadow-lg border border-gray-100 p-8 flex flex-col h-full">
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-2.5 bg-gray-50 rounded-xl text-gray-600">
           {icon}
         </div>
         <h2 className="text-xl font-black text-gray-800 tracking-tight">{title}</h2>
       </div>
-      <div className="space-y-6 flex-1">
+      <div className="space-y-7 flex-1">
         {children}
       </div>
     </div>
@@ -321,16 +344,20 @@ function ConfigCard({ title, icon, children }) {
 
 function ToggleItem({ label, desc, status, onChange }) {
   return (
-    <div className="flex items-center justify-between gap-4">
+    <div className="flex items-center justify-between gap-4 group">
       <div className="flex-1">
         <label className="text-sm font-black text-gray-700 block mb-0.5">{label}</label>
-        <p className="text-xs text-gray-400 font-medium">{desc}</p>
+        <p className="text-[11px] text-gray-400 font-bold leading-tight">{desc}</p>
       </div>
       <button 
         onClick={() => onChange(!status)}
-        className={`relative w-12 h-6 rounded-full transition-all duration-300 ${status ? 'bg-blue-600' : 'bg-gray-200'}`}
+        className={`relative w-12 h-6 rounded-full transition-all duration-300 ${status ? 'bg-blue-600 shadow-lg shadow-blue-100' : 'bg-gray-200'}`}
       >
-        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-sm ${status ? 'left-7' : 'left-1'}`}></div>
+        <motion.div 
+          animate={{ x: status ? 26 : 4 }}
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm"
+        />
       </button>
     </div>
   );
@@ -341,14 +368,14 @@ function SelectItem({ label, desc, value, options, onChange }) {
     <div className="flex flex-col gap-2">
       <div className="flex-1">
         <label className="text-sm font-black text-gray-700 block mb-0.5">{label}</label>
-        <p className="text-xs text-gray-400 font-medium mb-3">{desc}</p>
+        <p className="text-[11px] text-gray-400 font-bold mb-4">{desc}</p>
       </div>
-      <div className="flex gap-1.5 p-1 bg-gray-50 rounded-xl">
+      <div className="flex gap-1.5 p-1.5 bg-gray-100/50 rounded-2xl border border-gray-100">
         {options.map(opt => (
           <button 
             key={opt.value}
             onClick={() => onChange(opt.value)}
-            className={`flex-1 py-1.5 px-2 text-[10px] sm:text-xs font-black rounded-lg transition-all ${value === opt.value ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-500'}`}
+            className={`flex-1 py-2 px-3 text-[10px] font-black rounded-xl transition-all ${value === opt.value ? 'bg-white text-blue-600 shadow-md translate-y-[-1px]' : 'text-gray-400 hover:text-gray-500'}`}
           >
             {opt.label}
           </button>
