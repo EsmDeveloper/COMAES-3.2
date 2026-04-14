@@ -10,6 +10,7 @@ import { AuthProvider } from './context/AuthContext';
 import Layout from "./Paginas/Secundarias/Layout";
 import AdminDashboard from './Administrador/AdminDashboard';
 import ProtectedAdminRoute from './context/ProtectedAdminRoute';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 // module wrappers will be lazy-loaded via routes below
 import Home from "./Paginas/Secundarias/Home";
 import EntrarTorneio from "./Paginas/Secundarias/EntrarTorneio";
@@ -20,6 +21,7 @@ import Perfil from "./Paginas/Secundarias/Perfil";
 import Sobre from "./Paginas/Secundarias/Sobre";
 import Suporte from "./Paginas/Secundarias/Suporte";
 import Teste from "./Paginas/Secundarias/Teste";
+import Ranking from "./Paginas/Secundarias/Ranking";
 
 import MatematicaOriginal from "./Paginas/Tercearios.jsx/ModeloOriginal/MatematicaOriginal";
 import ProgramacaoOriginal from "./Paginas/Tercearios.jsx/ModeloOriginal/ProgramacaoOriginal";
@@ -36,6 +38,7 @@ export default function App() {
           <Route path="/login" element={<AuthContainer />} />
           <Route path="/cadastro" element={<AuthContainer initialMode="cadastro" />} />
           <Route path="/recuperar-senha" element={<Recuperar />} />
+          <Route path="/redefinir-senha" element={<ResetPasswordPage />} />
 
           <Route path="/layout" element={<Layout />} />
           <Route path="/" element={<Home />} />
@@ -48,6 +51,7 @@ export default function App() {
           <Route path="/sobre-nos" element={<Sobre />} />
           <Route path="/suporte" element={<Suporte />} />
           <Route path="/teste-seu-conhecimento" element={<Teste />} />
+          <Route path="/ranking" element={<Ranking />} />
 
           <Route path="/matematica-original/:username" element={<MatematicaOriginal />} />
           <Route path="/programacao-original/:username" element={<ProgramacaoOriginal />} />

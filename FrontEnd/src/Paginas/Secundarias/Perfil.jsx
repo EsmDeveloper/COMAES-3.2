@@ -1,640 +1,554 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Layout from './Layout';
 import {
   User, Mail, Calendar, Book, Edit, Shield, CheckCircle,
   Lock, LogOut, Camera, Sparkles, Save, X, AlertCircle,
-  Settings, BarChart2, Bell, ChevronRight, Phone, MapPin,
-  Trash2, Image as ImageIcon
+  Settings, BarChart2, Bell, ChevronRight
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
+/* ─── Design tokens ──────────────────────────────────────────── */
+const t = {
+  primary:     '#4F6EF7',
+  primarySoft: '#EEF1FE',
+  success:     '#10B981',
+  successSoft: '#ECFDF5',
+  red:         '#EF4444',
+  redSoft:     '#FEF2F2',
+  amber:       '#F59E0B',
+  amberSoft:   '#FFFBEB',
+  purple:      '#8B5CF6',
+  purpleSoft:  '#F5F3FF',
+  surface:     '#FFFFFF',
+  bg:          '#F7F8FC',
+  border:      '#E8EAEF',
+  text:        '#0F1117',
+  muted:       '#6B7280',
+  subtle:      '#9CA3AF',
+};
+
+const card = {
+  background: t.surface,
+  borderRadius: 20,
+  border: `1px solid ${t.border}`,
+  boxShadow: '0 2px 12px rgba(15,17,23,0.05)',
+};
+
+/* ─── Tab config ─────────────────────────────────────────────── */
+const TABS = [
+  { id: 'info',     label: 'Informações',  icon: User      },
+  { id: 'account',  label: 'Conta',        icon: Shield    },
+  { id: 'stats',    label: 'Estatísticas', icon: BarChart2 },
+  { id: 'security', label: 'Segurança',    icon: Lock      },
+];
+
+/* ─── Reusable small components ──────────────────────────────── */
+function FormField({ label, type = 'text', value, onChange, multiline = false }) {
+  const base = {
+    width: '100%', padding: '11px 14px',
+    border: `1.5px solid ${t.border}`, borderRadius: 12,
+    fontSize: 14, color: t.text, background: t.surface,
+    outline: 'none', transition: 'border-color 0.2s',
+    boxSizing: 'border-box', fontFamily: 'inherit',
+  };
+  return (
+    <div>
+      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: t.muted, marginBottom: 6 }}>
+        {label}
+      </label>
+      {multiline ? (
+        <textarea value={value} onChange={onChange} rows={3}
+          style={{ ...base, resize: 'vertical', lineHeight: 1.6 }}
+          onFocus={e => e.target.style.borderColor = t.primary}
+          onBlur={e  => e.target.style.borderColor = t.border} />
+      ) : (
+        <input type={type} value={value} onChange={onChange} style={base}
+          onFocus={e => e.target.style.borderColor = t.primary}
+          onBlur={e  => e.target.style.borderColor = t.border} />
+      )}
+    </div>
+  );
+}
+
+function StatusAlert({ status, message }) {
+  if (!status || !message) return null;
+  const ok = status === 'success';
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 10,
+      padding: '12px 16px', borderRadius: 12,
+      background: ok ? t.successSoft : t.redSoft,
+      border: `1px solid ${ok ? '#A7F3D0' : '#FECACA'}`,
+      fontSize: 13, fontWeight: 600,
+      color: ok ? '#065F46' : '#7F1D1D',
+    }}>
+      {ok ? <CheckCircle size={15} /> : <AlertCircle size={15} />}
+      {message}
+    </div>
+  );
+}
+
+function DataRow({ label, value }) {
+  return (
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      padding: '14px 0', borderBottom: `1px solid ${t.border}`,
+    }}>
+      <span style={{ fontSize: 13, color: t.muted }}>{label}</span>
+      <span style={{ fontSize: 13, fontWeight: 600, color: t.text }}>{value}</span>
+    </div>
+  );
+}
+
+function StatCard({ label, value, accent, soft }) {
+  return (
+    <div style={{
+      background: soft, borderRadius: 14, padding: '20px',
+      border: `1px solid ${accent}20`, textAlign: 'center',
+    }}>
+      <div style={{ fontSize: 28, fontWeight: 800, color: accent, marginBottom: 4 }}>{value}</div>
+      <div style={{ fontSize: 12, color: t.muted }}>{label}</div>
+    </div>
+  );
+}
+
+/* ─── Main Component ─────────────────────────────────────────── */
 export default function Profile() {
   const { user, logout, token, login } = useAuth();
   const navigate = useNavigate();
-  const fileInputRef = useRef(null);
 
-  // States
-  const [activeTab, setActiveTab] = useState('info');
-  const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
-  
-  // Edit States for independent fields
-  const [editFields, setEditFields] = useState({
-    nome: false,
-    email: false,
-    telefone: false,
-    biografia: false,
-    escola: false
+  const [isRedirecting, setIsRedirecting]   = useState(false);
+  const [activeTab, setActiveTab]           = useState('info');
+  const [isEditing, setIsEditing]           = useState(false);
+  const [editData, setEditData]             = useState({
+    name:  user?.fullName  || 'Usuário COMAES',
+    email: user?.email     || 'usuario@comaes.com',
+    bio:   user?.biografia || '',
   });
+  const [selectedFile, setSelectedFile]     = useState(null);
+  const [previewUrl, setPreviewUrl]         = useState(null);
+  const [isSaving, setIsSaving]             = useState(false);
+  const [isUploading, setIsUploading]       = useState(false);
+  const [profileStatus, setProfileStatus]   = useState(null);
+  const [profileMessage, setProfileMessage] = useState('');
+  const [avatarStatus, setAvatarStatus]     = useState(null);
 
-  const [formData, setFormData] = useState({
-    nome: '',
-    email: '',
-    telefone: '',
-    biografia: '',
-    escola: ''
-  });
-
-  const [avatarPreview, setAvatarPreview] = useState(null);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [isPhotoEditMode, setIsPhotoEditMode] = useState(false);
-
-  // Initialize data
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        nome: user.fullName || user.name || '',
-        email: user.email || '',
-        telefone: user.phone || user.telefone || '',
-        biografia: user.biografia || user.bio || '',
-        escola: user.escola || ''
-      });
-    } else {
+  React.useEffect(() => {
+    if (!user) {
+      setIsRedirecting(true);
       const timer = setTimeout(() => navigate('/login'), 2000);
       return () => clearTimeout(timer);
     }
   }, [user, navigate]);
 
+  React.useEffect(() => {
+    if (!user || isEditing) return;
+    setEditData(prev => ({
+      ...prev,
+      name:  user.fullName  || prev.name,
+      email: user.email     || prev.email,
+      bio:   user.biografia || prev.bio,
+    }));
+  }, [user, isEditing]);
+
+  const handleFileChange = (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setSelectedFile(f);
+    setPreviewUrl(URL.createObjectURL(f));
+  };
+
+  const handleToggleEdit = () => {
+    setProfileStatus(null); setProfileMessage('');
+    setAvatarStatus(null); setSelectedFile(null); setPreviewUrl(null);
+    setIsEditing(p => !p);
+  };
+
+  const handleSave = async () => {
+    if (!user) return;
+    setProfileStatus(null); setProfileMessage(''); setIsSaving(true);
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const res = await fetch(`http://localhost:3000/usuarios/${user.id}`, {
+        method: 'PUT', headers,
+        body: JSON.stringify({ nome: editData.name, email: editData.email, biografia: editData.bio }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || 'Não foi possível atualizar o perfil.');
+      login(body.data, token);
+      setProfileStatus('success');
+      setProfileMessage('Informações atualizadas com sucesso!');
+      if (selectedFile) await handleUpload();
+      else setTimeout(() => { setIsEditing(false); setProfileStatus(null); }, 2000);
+    } catch (err) {
+      setProfileStatus('error');
+      setProfileMessage(err.message || 'Erro ao atualizar o perfil.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) return;
+    setIsUploading(true); setAvatarStatus(null);
+    try {
+      const fd = new FormData();
+      fd.append('avatar', selectedFile);
+      const headers = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const res = await fetch(`http://localhost:3000/usuarios/${user.id}/avatar`, { method: 'POST', headers, body: fd });
+      const body = await res.json();
+      if (!res.ok) { setAvatarStatus('error'); }
+      else {
+        setAvatarStatus('success');
+        login(body.data, token);
+        setSelectedFile(null); setPreviewUrl(null);
+        setTimeout(() => { setIsEditing(false); setAvatarStatus(null); setProfileStatus(null); }, 2000);
+      }
+    } catch { setAvatarStatus('error'); }
+    finally { setIsUploading(false); }
+  };
+
+  const isProcessing = isSaving || isUploading;
+  const avatarSrc    = previewUrl || user?.avatar || null;
+  const initials     = (user?.fullName || user?.username || 'U').charAt(0).toUpperCase();
+
+  /* ── Unauthenticated ── */
   if (!user) {
     return (
       <Layout>
-        <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white p-8 rounded-2xl shadow-xl border border-red-100 text-center max-w-md w-full"
-          >
-            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 text-red-500">
-              <Lock size={40} />
+        <style>{`@keyframes spin { to { transform:rotate(360deg); } }`}</style>
+        <div style={{ maxWidth: 520, margin: '60px auto', padding: '0 24px' }}>
+          <div style={{ ...card, padding: 32, textAlign: 'center', background: 'linear-gradient(135deg,#FEF2F2 0%,#FFF7ED 100%)', border: `1px solid #FECACA` }}>
+            <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#FEE2E2', margin: '0 auto 24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <User size={32} color={t.red} />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Acesso Restrito</h2>
-            <p className="text-gray-600 mb-8">Você precisa estar autenticado para visualizar seu perfil.</p>
-            <div className="flex flex-col gap-3">
-              <button 
-                onClick={() => navigate('/login')}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all"
-              >
-                Fazer Login
-              </button>
-              <button 
-                onClick={() => navigate('/cadastro')}
-                className="w-full py-3 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl font-bold transition-all"
-              >
-                Criar Conta
-              </button>
-            </div>
-          </motion.div>
+            <h2 style={{ fontSize: 22, fontWeight: 700, color: t.text, marginBottom: 10 }}>Acesso Restrito ao Perfil</h2>
+            <p style={{ fontSize: 15, color: t.muted, lineHeight: 1.65, marginBottom: 28 }}>
+              Seu perfil COMAES está disponível apenas para usuários autenticados.
+            </p>
+            {isRedirecting ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+                <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${t.border}`, borderTopColor: t.primary, animation: 'spin 0.8s linear infinite' }} />
+                <span style={{ color: t.primary, fontSize: 14 }}>Redirecionando…</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                <button onClick={() => navigate('/login')} style={{ padding: '12px 28px', background: t.primary, color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>Fazer Login</button>
+                <button onClick={() => navigate('/cadastro')} style={{ padding: '12px 28px', background: 'transparent', color: t.primary, border: `1.5px solid ${t.primary}`, borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>Cadastrar-se</button>
+              </div>
+            )}
+          </div>
         </div>
       </Layout>
     );
   }
 
-  const handleFieldEdit = (field) => {
-    setEditFields(prev => ({ ...prev, [field]: !prev[field] }));
-    // Reset field value if canceling
-    if (editFields[field]) {
-      setFormData(prev => ({ ...prev, [field]: user[field] || '' }));
-    }
-  };
+  /* ── Tab content renderer ── */
+  const renderTab = () => {
+    switch (activeTab) {
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const saveField = async (field) => {
-    setLoading(true);
-    setMessage({ type: '', text: '' });
-    
-    try {
-      const body = {
-        [field === 'nome' ? 'nome' : field]: formData[field]
-      };
-
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/usuarios/${user.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(body)
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Erro ao atualizar campo.');
-
-      login(data.data, token);
-      setEditFields(prev => ({ ...prev, [field]: false }));
-      setMessage({ type: 'success', text: 'Informação atualizada com sucesso!' });
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-    } catch (err) {
-      setMessage({ type: 'error', text: err.message });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      setAvatarPreview(URL.createObjectURL(file));
-      setIsPhotoEditMode(true);
-    }
-  };
-
-  const savePhoto = async () => {
-    if (!selectedFile) return;
-    setLoading(true);
-    try {
-      const fd = new FormData();
-      fd.append('avatar', selectedFile);
-
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/usuarios/${user.id}/avatar`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: fd
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Erro ao subir foto.');
-
-      login(data.data, token);
-      setIsPhotoEditMode(false);
-      setSelectedFile(null);
-      setAvatarPreview(null);
-      setMessage({ type: 'success', text: 'Foto de perfil atualizada!' });
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-    } catch (err) {
-      setMessage({ type: 'error', text: err.message });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const cancelPhotoEdit = () => {
-    setIsPhotoEditMode(false);
-    setSelectedFile(null);
-    setAvatarPreview(null);
-  };
-
-  const tabs = [
-    { id: 'info', label: 'Sobre Mim', icon: User },
-    { id: 'stats', label: 'Desempenho', icon: BarChart2 },
-    { id: 'security', label: 'Conta', icon: Shield },
-  ];
-
-  return (
-    <Layout>
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        
-        {/* Header de Perfil */}
-        <div className="bg-white rounded-3xl shadow-xl overflow-hidden mb-8 border border-gray-100">
-          <div className="h-32 sm:h-48 bg-gradient-to-r from-blue-600 to-indigo-700 relative">
-            <div className="absolute top-4 right-4 text-white/50">
-              <Sparkles size={100} className="opacity-10 rotate-12" />
-            </div>
-          </div>
-          
-          <div className="px-6 pb-8 flex flex-col sm:flex-row items-center sm:items-end gap-6">
-            {/* Avatar Section */}
-            <div className="relative group -mt-16 sm:-mt-20">
-              <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-white">
-                <img 
-                  src={avatarPreview || user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=4F6EF7&color=fff`} 
-                  alt="Perfil" 
-                  className="w-full h-full object-cover"
-                />
+      case 'info':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ fontSize: 17, fontWeight: 700, color: t.text }}>Informações Pessoais</h3>
+                <p style={{ fontSize: 13, color: t.muted, marginTop: 2 }}>Atualize os seus dados de perfil</p>
               </div>
-              
-              {/* Botão de Câmera - Sempre visível mas discreto, ou conforme pedido do usuario */}
-              {/* Botão de Câmera - Visível apenas em modo de edição conforme solicitado */}
-              {isEditing && (
-                <button 
-                  onClick={() => fileInputRef.current.click()}
-                  className="absolute bottom-2 right-2 p-2.5 bg-blue-600 text-white rounded-full border-2 border-white shadow-lg hover:bg-blue-700 transition-all transform active:scale-95 animate-in zoom-in"
-                  title="Alterar foto"
-                >
-                  <Camera size={18} />
+              {!isEditing && (
+                <button onClick={handleToggleEdit} style={{
+                  display: 'flex', alignItems: 'center', gap: 7,
+                  padding: '9px 18px', background: t.primarySoft, color: t.primary,
+                  border: 'none', borderRadius: 11, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                }}>
+                  <Edit size={13} /> Editar
                 </button>
               )}
-              <input 
-                type="file" 
-                hidden 
-                ref={fileInputRef} 
-                onChange={handleFileChange}
-                accept="image/*"
-              />
             </div>
 
-            <div className="flex-1 text-center sm:text-left mb-2">
-              <div className="flex flex-col items-center sm:items-start">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 flex items-center gap-2 break-words max-w-full">
-                  {user.fullName || user.nome || user.name || 'Usuário'}
-                  {user.role === 'admin' && <Shield className="text-amber-500 flex-shrink-0" size={20} title="Administrador" />}
-                </h1>
-                <p className="text-gray-500 font-medium">@{user.username || 'estudante'}</p>
-              </div>
-              
-              <div className="mt-3 flex flex-wrap justify-center sm:justify-start gap-2">
-                <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold uppercase tracking-wider">
-                  Nível {user.level || 1}
-                </span>
-                <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-lg text-xs font-bold uppercase tracking-wider">
-                  {user.points || 0} Pontos
-                </span>
-                <span className="px-3 py-1 bg-green-50 text-green-600 rounded-lg text-xs font-bold uppercase tracking-wider">
-                  Conta Ativa
-                </span>
-              </div>
-            </div>
+            {isEditing ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <FormField label="Nome completo" value={editData.name}  onChange={e => setEditData(p => ({ ...p, name: e.target.value }))} />
+                <FormField label="Email" type="email" value={editData.email} onChange={e => setEditData(p => ({ ...p, email: e.target.value }))} />
+                <FormField label="Biografia" value={editData.bio} multiline onChange={e => setEditData(p => ({ ...p, bio: e.target.value }))} />
 
-            <div className="flex gap-3 mt-4 sm:mt-0">
-              {isPhotoEditMode ? (
-                <div className="flex gap-2">
-                  <button 
-                    onClick={savePhoto}
-                    disabled={loading}
-                    className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-green-100 transition-all border-b-4 border-green-800"
-                  >
-                    {loading ? <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div> : <Save size={18} />}
-                    Salvar Foto
+                {selectedFile && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, background: t.primarySoft, fontSize: 13, color: t.primary, fontWeight: 500 }}>
+                    <Camera size={14} /> {selectedFile.name}
+                  </div>
+                )}
+
+                <StatusAlert status={profileStatus} message={profileMessage} />
+                <StatusAlert status={avatarStatus}  message={avatarStatus === 'success' ? 'Imagem enviada!' : avatarStatus === 'error' ? 'Erro ao enviar imagem.' : ''} />
+
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button onClick={handleSave} disabled={isProcessing} style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '11px 22px', background: t.primary, color: '#fff',
+                    border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                    opacity: isProcessing ? 0.7 : 1,
+                  }}>
+                    {isProcessing
+                      ? <><div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', animation: 'spin 0.7s linear infinite' }} /> Salvando…</>
+                      : <><Save size={14} /> Salvar alterações</>}
                   </button>
-                  <button 
-                    onClick={cancelPhotoEdit}
-                    className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold transition-all"
-                  >
+                  <button onClick={handleToggleEdit} style={{ padding: '11px 22px', background: t.bg, border: `1.5px solid ${t.border}`, borderRadius: 12, fontSize: 14, fontWeight: 600, color: t.muted, cursor: 'pointer' }}>
                     Cancelar
                   </button>
                 </div>
-              ) : (
-                <button 
-                  onClick={() => setIsEditing(!isEditing)}
-                  className={`px-6 py-2.5 ${isEditing ? 'bg-amber-100 text-amber-700' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-100 border-blue-800'} rounded-xl font-bold flex items-center gap-2 shadow-lg transition-all border-b-4 active:border-b-0 active:translate-y-1`}
-                >
-                  <Edit size={18} />
-                  {isEditing ? 'Visualizar' : 'Editar Dados'}
+              </div>
+            ) : (
+              <div>
+                <DataRow label="Nome completo" value={editData.name} />
+                <DataRow label="Email"         value={user.email || editData.email} />
+                <DataRow label="Biografia"     value={editData.bio || '—'} />
+                <DataRow label="Nível"         value={`Nível ${user.level || 1}`} />
+                <DataRow label="Membro desde"  value={
+                  user.registrationDate
+                    ? new Date(user.registrationDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+                    : '—'
+                } />
+              </div>
+            )}
+          </div>
+        );
+
+      case 'account':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div>
+              <h3 style={{ fontSize: 17, fontWeight: 700, color: t.text }}>Dados da Conta</h3>
+              <p style={{ fontSize: 13, color: t.muted, marginTop: 2 }}>Informações da sua conta COMAES</p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px,1fr))', gap: 14 }}>
+              <StatCard label="ID do Usuário"   value={user.id ? `#${user.id.toString().slice(-6)}` : '—'} accent={t.primary} soft={t.primarySoft} />
+              <StatCard label="Tipo de Conta"   value={user.role === 'admin' ? 'Admin' : 'Estudante'}      accent={t.purple}  soft={t.purpleSoft} />
+              <StatCard label="Pontos Totais"   value={user.points || 0}                                    accent={t.amber}   soft={t.amberSoft} />
+            </div>
+
+            <div>
+              <DataRow label="Username"         value={user.username || '—'} />
+              <DataRow label="Data de Cadastro" value={user.registrationDate ? new Date(user.registrationDate).toLocaleDateString('pt-BR') : '—'} />
+              <DataRow label="Status"           value="✅ Conta ativa" />
+              <DataRow label="Plano"            value="Gratuito" />
+            </div>
+
+            <div style={{ padding: '20px 22px', borderRadius: 16, background: t.redSoft, border: `1px solid #FECACA` }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+                <div>
+                  <h4 style={{ fontSize: 14, fontWeight: 700, color: t.text, marginBottom: 3 }}>Terminar Sessão</h4>
+                  <p style={{ fontSize: 12, color: t.muted }}>Será redirecionado para a página de login</p>
+                </div>
+                <button onClick={() => { logout(); navigate('/login'); }} style={{
+                  display: 'flex', alignItems: 'center', gap: 7,
+                  padding: '10px 20px', background: t.red, color: '#fff',
+                  border: 'none', borderRadius: 11, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                }}>
+                  <LogOut size={13} /> Terminar Sessão
                 </button>
-              )}
+              </div>
             </div>
           </div>
-          
-          <AnimatePresence>
-            {message.text && (
-              <motion.div 
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className={`px-6 py-3 border-t flex items-center gap-3 ${message.type === 'success' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}
-              >
-                {message.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
-                <span className="text-sm font-medium">{message.text}</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+        );
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Menu Lateral / Tabs */}
-          <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-2">
-              {tabs.map(tab => {
+      case 'stats':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div>
+              <h3 style={{ fontSize: 17, fontWeight: 700, color: t.text }}>Estatísticas</h3>
+              <p style={{ fontSize: 13, color: t.muted, marginTop: 2 }}>O seu desempenho na plataforma</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px,1fr))', gap: 14 }}>
+              <StatCard label="Torneios"  value={user.tournamentsPlayed || 0} accent={t.primary} soft={t.primarySoft} />
+              <StatCard label="Vitórias"  value={user.tournamentsWon   || 0} accent={t.success} soft={t.successSoft} />
+              <StatCard label="Pontos"    value={user.points           || 0} accent={t.amber}   soft={t.amberSoft} />
+              <StatCard label="Prêmios"   value={user.prizesWon        || 0} accent={t.purple}  soft={t.purpleSoft} />
+            </div>
+            <div style={{ padding: '24px', borderRadius: 16, background: t.bg, border: `1px solid ${t.border}`, textAlign: 'center' }}>
+              <BarChart2 size={32} style={{ color: t.border, margin: '0 auto 10px' }} />
+              <p style={{ fontSize: 14, color: t.muted }}>Gráficos detalhados disponíveis no Dashboard</p>
+              <button onClick={() => navigate('/dashboard')} style={{
+                marginTop: 12, padding: '9px 20px', background: t.primarySoft,
+                color: t.primary, border: 'none', borderRadius: 10,
+                fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              }}>
+                Ver Dashboard →
+              </button>
+            </div>
+          </div>
+        );
+
+      case 'security':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div>
+              <h3 style={{ fontSize: 17, fontWeight: 700, color: t.text }}>Segurança</h3>
+              <p style={{ fontSize: 13, color: t.muted, marginTop: 2 }}>Gerencie a segurança da sua conta</p>
+            </div>
+            {[
+              { label: 'Alterar palavra-passe',    desc: 'Recomendamos mudar regularmente',             icon: Lock,   accent: t.primary },
+              { label: 'Verificação em 2 etapas',  desc: 'Adicione uma camada extra de segurança',      icon: Shield, accent: t.success },
+              { label: 'Notificações de login',    desc: 'Receba alertas de novos acessos',              icon: Bell,   accent: t.amber  },
+            ].map((item, i) => {
+              const Icon = item.icon;
+              return (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '16px 18px', borderRadius: 14, background: t.bg,
+                  border: `1px solid ${t.border}`, cursor: 'pointer',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = '#EDEEF5'}
+                onMouseLeave={e => e.currentTarget.style.background = t.bg}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <div style={{ width: 38, height: 38, borderRadius: 10, background: `${item.accent}18`, color: item.accent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Icon size={16} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: t.text }}>{item.label}</div>
+                      <div style={{ fontSize: 12, color: t.muted, marginTop: 2 }}>{item.desc}</div>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} color={t.subtle} />
+                </div>
+              );
+            })}
+          </div>
+        );
+
+      default: return null;
+    }
+  };
+
+  /* ── Authenticated layout ── */
+  return (
+    <Layout>
+      <style>{`
+        @keyframes spin   { to { transform: rotate(360deg); } }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+        .anim { animation: fadeUp 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+      `}</style>
+
+      <div style={{ maxWidth: 980, margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '268px 1fr', gap: 22, alignItems: 'start' }}>
+
+          {/* ══ SIDEBAR ══ */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 24 }}>
+
+            {/* Identity card */}
+            <div className="anim" style={{ ...card, padding: 0, overflow: 'hidden', animationDelay: '0ms' }}>
+              {/* Cover */}
+              <div style={{
+                height: 76,
+                background: `linear-gradient(135deg, ${t.primary} 0%, #6B8BF5 100%)`,
+                position: 'relative', overflow: 'hidden',
+              }}>
+                <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+                <div style={{ position: 'absolute', bottom: -30, left: -10, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
+              </div>
+
+              <div style={{ padding: '0 20px 22px', marginTop: -36 }}>
+                {/* Avatar + camera */}
+                <div style={{ position: 'relative', display: 'inline-block', marginBottom: 12 }}>
+                  {avatarSrc ? (
+                    <img src={avatarSrc} alt="Avatar" style={{
+                      width: 72, height: 72, borderRadius: '50%', objectFit: 'cover',
+                      border: `3px solid ${t.surface}`,
+                      boxShadow: `0 0 0 3px ${t.primary}30`,
+                    }} />
+                  ) : (
+                    <div style={{
+                      width: 72, height: 72, borderRadius: '50%',
+                      background: `linear-gradient(135deg, ${t.primary} 0%, ${t.purple} 100%)`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: '#fff', fontSize: 24, fontWeight: 800,
+                      border: `3px solid ${t.surface}`,
+                      boxShadow: `0 0 0 3px ${t.primary}30`,
+                    }}>
+                      {initials}
+                    </div>
+                  )}
+                  <label style={{
+                    position: 'absolute', bottom: 0, right: 0,
+                    width: 24, height: 24, borderRadius: '50%',
+                    background: t.primary, color: '#fff', border: `2px solid ${t.surface}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                  }}>
+                    <Camera size={10} />
+                    <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+                  </label>
+                </div>
+
+                <div style={{ fontSize: 16, fontWeight: 800, color: t.text, marginBottom: 2 }}>{editData.name}</div>
+                <div style={{ fontSize: 12, color: t.muted, marginBottom: 12 }}>{user.email}</div>
+
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                  padding: '3px 10px', borderRadius: 999,
+                  background: user.role === 'admin' ? t.amberSoft : t.primarySoft,
+                  color:      user.role === 'admin' ? '#92400E'   : t.primary,
+                  fontSize: 11, fontWeight: 700,
+                }}>
+                  {user.role === 'admin' ? '⚡ Admin' : '🎓 Estudante'}
+                </span>
+
+                {/* Mini stats */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 16 }}>
+                  {[
+                    { label: 'Pontos', value: user.points || 0, color: t.amber  },
+                    { label: 'Nível',  value: user.level  || 1, color: t.purple },
+                  ].map(s => (
+                    <div key={s.label} style={{
+                      background: t.bg, borderRadius: 10, padding: '10px 8px',
+                      textAlign: 'center', border: `1px solid ${t.border}`,
+                    }}>
+                      <div style={{ fontSize: 17, fontWeight: 800, color: s.color }}>{s.value}</div>
+                      <div style={{ fontSize: 10, color: t.muted, marginTop: 1 }}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Navigation */}
+            <div className="anim" style={{ ...card, padding: '8px', animationDelay: '60ms' }}>
+              {TABS.map(tab => {
                 const Icon = tab.icon;
                 const active = activeTab === tab.id;
                 return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center justify-between p-4 rounded-xl transition-all ${active ? 'bg-blue-50 text-blue-600 shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon size={20} className={active ? 'text-blue-600' : 'text-gray-400'} />
-                      <span className={`font-bold ${active ? 'text-blue-600' : 'text-gray-600'}`}>{tab.label}</span>
+                  <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    width: '100%', padding: '11px 13px', borderRadius: 12,
+                    background: active ? t.primarySoft : 'transparent',
+                    border: 'none', cursor: 'pointer',
+                    color: active ? t.primary : t.muted,
+                    marginBottom: 2, transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={e => { if (!active) e.currentTarget.style.background = t.bg; }}
+                  onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <Icon size={15} />
+                      <span style={{ fontSize: 13, fontWeight: active ? 700 : 500 }}>{tab.label}</span>
                     </div>
-                    {active && <ChevronRight size={18} />}
+                    {active && <ChevronRight size={13} />}
                   </button>
                 );
               })}
             </div>
 
-            {/* Card de Mini Bio */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Book size={18} className="text-blue-500" />
-                Biografia
-              </h3>
-              {editFields.biografia ? (
-                <div className="space-y-3">
-                  <textarea 
-                    name="biografia"
-                    value={formData.biografia}
-                    onChange={handleInputChange}
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm min-h-[120px]"
-                    placeholder="Conte um pouco sobre você..."
-                  />
-                  <div className="flex gap-2">
-                    <button onClick={() => saveField('biografia')} className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold">Salvar</button>
-                    <button onClick={() => handleFieldEdit('biografia')} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-bold">Cancelar</button>
-                  </div>
-                </div>
-              ) : (
-                <div className="group relative">
-                  <p className="text-gray-600 text-sm leading-relaxed italic">
-                    {user.biografia || 'Nenhuma biografia adicionada ainda.'}
-                  </p>
-                  {isEditing && (
-                    <button 
-                      onClick={() => handleFieldEdit('biografia')}
-                      className="absolute -top-1 -right-1 p-1.5 bg-amber-100 text-amber-600 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm"
-                    >
-                      <Edit size={14} />
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
           </div>
 
-          {/* Conteúdo Principal */}
-          <div className="lg:col-span-2">
-            <AnimatePresence mode="wait">
-              {activeTab === 'info' && (
-                <motion.div 
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-6"
-                >
-                  <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8">
-                    <h2 className="text-xl font-bold text-gray-800 mb-6">Informações Pessoais</h2>
-                    
-                    <div className="space-y-2">
-                      {/* Name Field */}
-                      <ProfileField 
-                        label="Nome Completo" 
-                        value={user.fullName || user.nome || user.name || '—'} 
-                        icon={<User size={18} />} 
-                        isEditing={isEditing}
-                        editMode={editFields.nome}
-                        onEdit={() => handleFieldEdit('nome')}
-                        onSave={() => saveField('nome')}
-                        name="nome"
-                        inputValue={formData.nome}
-                        onChange={handleInputChange}
-                      />
-                      
-                      {/* Email Field */}
-                      <ProfileField 
-                        label="Endereço de Email" 
-                        value={user.email} 
-                        icon={<Mail size={18} />} 
-                        isEditing={isEditing}
-                        editMode={editFields.email}
-                        onEdit={() => handleFieldEdit('email')}
-                        onSave={() => saveField('email')}
-                        name="email"
-                        type="email"
-                        inputValue={formData.email}
-                        onChange={handleInputChange}
-                      />
-
-                      {/* Phone Field */}
-                      <ProfileField 
-                        label="Telemóvel" 
-                        value={user.phone || '—'} 
-                        icon={<Phone size={18} />} 
-                        isEditing={isEditing}
-                        editMode={editFields.telefone}
-                        onEdit={() => handleFieldEdit('telefone')}
-                        onSave={() => saveField('telefone')}
-                        name="telefone"
-                        inputValue={formData.telefone}
-                        onChange={handleInputChange}
-                      />
-
-                      {/* School Field */}
-                      <ProfileField 
-                        label="Instituição de Ensino" 
-                        value={user.escola || '—'} 
-                        icon={<MapPin size={18} />} 
-                        isEditing={isEditing}
-                        editMode={editFields.escola}
-                        onEdit={() => handleFieldEdit('escola')}
-                        onSave={() => saveField('escola')}
-                        name="escola"
-                        inputValue={formData.escola}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Detalhes Adicionais */}
-                  <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8">
-                    <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                      <Settings size={20} className="text-blue-500" />
-                      Detalhes da Conta
-                    </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-                        <p className="text-xs font-bold text-gray-400 uppercase mb-1">ID do Usuário</p>
-                        <p className="text-gray-700 font-mono text-sm">{user.id ? `#${user.id.toString().padStart(6, '0')}` : '—'}</p>
-                      </div>
-                      <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-                        <p className="text-xs font-bold text-gray-400 uppercase mb-1">Membro Desde</p>
-                        <p className="text-gray-700 font-medium">{user.registrationDate ? new Date(user.registrationDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}</p>
-                      </div>
-                      <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-                        <p className="text-xs font-bold text-gray-400 uppercase mb-1">Tipo de Perfil</p>
-                        <p className="text-gray-700 font-medium capitalize">{user.role || 'Estudante'}</p>
-                      </div>
-                      <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-                        <p className="text-xs font-bold text-gray-400 uppercase mb-1">Status Global</p>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                          <p className="text-gray-700 font-medium">Verificado</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {activeTab === 'stats' && (
-                <motion.div 
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-6"
-                >
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <StatBox label="Torneios" value={user.tournamentsPlayed || 0} color="blue" />
-                    <StatBox label="Vitórias" value={user.tournamentsWon || 0} color="amber" />
-                    <StatBox label="Desafios" value={user.challengesSolved || 0} color="green" />
-                    <StatBox label="Ranking" value={user.rankPosition || '—'} color="purple" />
-                  </div>
-
-                  <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center py-16">
-                    <div className="w-20 h-20 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <BarChart2 size={40} />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">Desempenho Detalhado</h3>
-                    <p className="text-gray-500 max-w-sm mx-auto mb-8">Gráficos de evolução e histórico de competições estão sendo sincronizados via IA.</p>
-                    <button onClick={() => navigate('/painel')} className="px-8 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-100 active:translate-y-1 transition-all">
-                      Ir para Painel Completo
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-
-              {activeTab === 'security' && (
-                <motion.div 
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-6"
-                >
-                  <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                    <div className="p-6 sm:p-8 border-b border-gray-100">
-                      <h2 className="text-xl font-bold text-gray-800 mb-2">Segurança da Conta</h2>
-                      <p className="text-gray-500 text-sm">Proteja seu acesso e gerencie sua autenticação.</p>
-                    </div>
-                    
-                    <div className="divide-y divide-gray-50">
-                      <SecurityItem 
-                        icon={<Lock size={20} />} 
-                        title="Palavra-passe" 
-                        desc="Mudar minha senha atual" 
-                        onAction={() => navigate('/configuracoes')} 
-                      />
-                      <SecurityItem 
-                        icon={<Bell size={20} />} 
-                        title="Dupla Autenticação" 
-                        desc="Ativar verificação em dois passos" 
-                        status="Desativado"
-                      />
-                      <SecurityItem 
-                        icon={<Trash2 size={20} className="text-red-500" />} 
-                        title="Excluir Conta" 
-                        desc="Remover permanentemente meus dados" 
-                        danger 
-                      />
-                    </div>
-                  </div>
-
-                  <button 
-                    onClick={() => { logout(); navigate('/login'); }}
-                    className="w-full py-4 bg-red-50 text-red-600 rounded-2xl font-bold hover:bg-red-100 transition-all flex items-center justify-center gap-3 border border-red-100"
-                  >
-                    <LogOut size={20} />
-                    Terminar Sessão em COMAES
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+          {/* ══ MAIN CONTENT ══ */}
+          <div className="anim" style={{ ...card, padding: 28, animationDelay: '80ms', minHeight: 440 }}>
+            {renderTab()}
           </div>
+
         </div>
       </div>
     </Layout>
-  );
-}
-
-// Small Components
-function ProfileField({ label, value, icon, isEditing, editMode, onEdit, onSave, name, inputValue, onChange, type="text" }) {
-  return (
-    <div className="py-4 border-b border-gray-50 last:border-0 group">
-      <div className="flex justify-between items-start">
-        <div className="flex-1">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-2">
-            {icon}
-            {label}
-          </p>
-          
-          <div className="min-h-[40px] flex items-center">
-            {editMode ? (
-              <div className="flex gap-2 w-full animate-in fade-in slide-in-from-left-2 duration-200">
-                <input 
-                  type={type}
-                  name={name}
-                  value={inputValue}
-                  onChange={onChange}
-                  className="flex-1 w-full bg-blue-50/50 border-2 border-blue-200 outline-none p-2 rounded-xl font-bold text-gray-800 transition-all focus:border-blue-500 text-sm"
-                  autoFocus
-                />
-                <button 
-                  onClick={onSave}
-                  className="p-2 bg-blue-600 text-white rounded-xl shadow-md hover:bg-blue-700 transition-colors"
-                  title="Salvar"
-                >
-                  <Save size={18} />
-                </button>
-                <button 
-                  onClick={onEdit}
-                  className="p-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors"
-                  title="Cancelar"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3 group/field">
-                <p className="text-gray-800 font-bold text-lg break-words">{value}</p>
-                {isEditing && (
-                  <button 
-                    onClick={onEdit}
-                    className="p-1.5 opacity-0 group-hover/field:opacity-100 transition-all bg-amber-50 text-amber-600 rounded-lg shadow-sm hover:bg-amber-100"
-                    title="Editar campo"
-                  >
-                    <Edit size={14} />
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StatBox({ label, value, color }) {
-  const colors = {
-    blue: 'bg-blue-50 text-blue-600 border-blue-100',
-    amber: 'bg-amber-50 text-amber-600 border-amber-100',
-    green: 'bg-green-50 text-green-600 border-green-100',
-    purple: 'bg-purple-50 text-purple-600 border-purple-100',
-  };
-  
-  return (
-    <div className={`${colors[color]} border p-4 rounded-2xl text-center shadow-sm`}>
-      <p className="text-2xl font-black">{value}</p>
-      <p className="text-[10px] font-black uppercase tracking-[0.1em] opacity-80">{label}</p>
-    </div>
-  );
-}
-
-function SecurityItem({ icon, title, desc, onAction, status, danger }) {
-  return (
-    <div 
-      className={`flex items-center justify-between p-5 sm:p-6 transition-all cursor-pointer ${danger ? 'hover:bg-red-50' : 'hover:bg-gray-50'}`}
-      onClick={onAction}
-    >
-      <div className="flex items-center gap-4">
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${danger ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500'}`}>
-          {icon}
-        </div>
-        <div>
-          <p className={`font-bold ${danger ? 'text-red-600' : 'text-gray-800'}`}>{title}</p>
-          <p className="text-xs text-gray-500">{desc}</p>
-        </div>
-      </div>
-      {status ? (
-        <span className="text-xs font-bold text-gray-400 bg-gray-100 px-3 py-1 rounded-full">{status}</span>
-      ) : (
-        <ChevronRight size={18} className="text-gray-300" />
-      )}
-    </div>
   );
 }

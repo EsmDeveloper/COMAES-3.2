@@ -1,0 +1,120 @@
+--- src
++++ FrontEnd
+@@ -8,3 +8,3 @@
+ 
+-// ✅ FUNCIONALIDADE DO FICHEIRO 1: Importações para certificados e vencedores
++// Importações para certificados e vencedores
+ import CertIngles from '../../../certificados/CertIngles';
+@@ -62,3 +62,3 @@
+ 
+-  // ✅ FUNCIONALIDADE DO FICHEIRO 1: Hook para certificados
++  // Hook para certificados
+   const { 
+@@ -69,3 +69,3 @@
+ 
+-  // ✅ FUNCIONALIDADE DO FICHEIRO 1: Hook para vencedores
++  // Hook para vencedores
+   const { 
+@@ -347,49 +347,2 @@
+ 
+-  // ✅ FUNCIONALIDADE DO FICHEIRO 2: Atualizar pontuação (mais completa)
+-  const atualizarPontuacao = async (pontosAdicionados, casosAdicionados = 1) => {
+-    if (!participante?.usuario_id || !user?.id) return null;
+-    
+-    try {
+-      console.log('📈 Atualizando pontuação no banco:', { 
+-        usuario_id: user.id, 
+-        disciplina: DISCIPLINA,
+-        pontos: pontosAdicionados,
+-        casos: casosAdicionados 
+-      });
+-      
+-      const response = await fetch('http://localhost:3000/api/participantes/atualizar-pontuacao', {
+-        method: 'POST',
+-        headers: {
+-          'Content-Type': 'application/json',
+-          'Authorization': token ? `Bearer ${token}` : ''
+-        },
+-        body: JSON.stringify({
+-          usuario_id: user.id,
+-          disciplina_competida: DISCIPLINA,
+-          pontuacao_adicionada: pontosAdicionados,
+-          casos_adicionados: casosAdicionados
+-        })
+-      });
+-      
+-      const data = await response.json();
+-      
+-      if (data.success && data.data) {
+-        console.log('✅ Pontuação atualizada no banco:', data.data);
+-        setParticipante(data.data);
+-        
+-        if (torneio?.id) {
+-          await buscarRanking(torneio.id);
+-        }
+-        
+-        return data.data;
+-      } else {
+-        console.error('❌ Erro na resposta da API:', data);
+-        return null;
+-      }
+-    } catch (err) {
+-      console.error('❌ Erro ao atualizar pontuação:', err);
+-      return null;
+-    }
+-  };
+-
+   // Temporizador da questão
+@@ -401,3 +354,4 @@
+         if (prev <= 0) {
+-          handleNextQuestao();
++          // Quando o tempo acaba, avança automaticamente
++          handleProximaQuestaoAutomatica();
+           return TEMPO_QUESTAO;
+@@ -427,4 +381,3 @@
+ 
+-  // ✅ ESTILIZAÇÃO DO FICHEIRO 2: Nome consistente da função
+-  const handleNextQuestao = () => {
++  const handleProximaQuestaoAutomatica = () => {
+     setResposta("");
+@@ -440,2 +393,3 @@
+     if (questoesFiltradas.length > 0) {
++      // Avança para a próxima questão ou volta para a primeira se for a última
+       setQuestaoIndex((prev) => (prev + 1 < questoesFiltradas.length ? prev + 1 : 0));
+@@ -470,3 +424,3 @@
+         clearInterval(interval);
+-        handleNextQuestao();
++        handleProximaQuestaoAutomatica();
+       }
+@@ -522,3 +476,3 @@
+       const contagemInterval = iniciarContagemRegressiva();
+-      const timer = setTimeout(() => { clearInterval(contagemInterval); handleNextQuestao(); }, 6000);
++      const timer = setTimeout(() => { clearInterval(contagemInterval); handleProximaQuestaoAutomatica(); }, 6000);
+       setAutoAvancarTimer(timer);
+@@ -759,10 +713,4 @@
+ 
+-              {/* ✅ BOTÕES DE CONTROLE (estilização do Ficheiro 2) */}
++              {/* BOTÕES DE CONTROLE - APENAS SUBMIT ESSAY */}
+               <div className="flex gap-3 w-full max-w-4xl">
+-                <button 
+-                  onClick={handleNextQuestao}
+-                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2.5 rounded-lg font-medium transition-all"
+-                >
+-                  Próxima Questão
+-                </button>
+                 <button 
+@@ -770,3 +718,3 @@
+                   disabled={executando}
+-                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all duration-300 ${
++                  className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all duration-300 ${
+                     executando
+@@ -1094,3 +1042,3 @@
+ 
+-      {/* ✅ FUNCIONALIDADE DO FICHEIRO 1: Modal de Certificado */}
++      {/* Modal de Certificado */}
+       {certificadoData && (
+@@ -1105,3 +1053,3 @@
+ 
+-      {/* ✅ FUNCIONALIDADE DO FICHEIRO 1: Modal de Vencedores */}
++      {/* Modal de Vencedores */}
+       <ModalVencedores

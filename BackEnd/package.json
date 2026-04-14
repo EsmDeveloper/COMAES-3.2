@@ -19,9 +19,12 @@
     "jsonwebtoken": "^9.0.0",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.16.0",
-    "nodemon": "^3.1.11",
-    "sequelize": "^6.37.7",
     "node-fetch": "^3.3.1",
-    "socket.io": "^4.7.1"
+    "nodemailer": "^8.0.5",
+    "nodemon": "^3.1.11",
+    "puppeteer": "^24.40.0",
+    "sequelize": "^6.37.7",
+    "socket.io": "^4.7.1",
+    "uuid": "^13.0.0"
   }
 }

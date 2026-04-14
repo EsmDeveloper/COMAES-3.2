@@ -1,24 +1,31 @@
 import React, { useState, useEffect, useRef } from "react";
+window.TEST_MARKER = "MATEMATICA_LOADED_" + Date.now();
+console.log("MARKER SET:", window.TEST_MARKER);
 import socket from '../../../socket';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
-import Layout from "../../Secundarias/Layout";
-import { 
-  Trophy, Clock, LogOut, ChevronRight, 
-  Send, Sparkles, AlertCircle, CheckCircle,
-  BarChart2, Zap, Brain, BookOpen, Calculator
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { FaSignOutAlt } from "react-icons/fa";
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
+
+// Importações para certificados e vencedores
+import CertMatematica from '../../../certificados/CertMatematica';
+import useCertificado from '../../../hooks/useCertificado';
+import ModalVencedores from '../../../components/ModalVencedores';
+import useVencedores from '../../../hooks/useVencedores';
+import CertificateCheckButton from '../../../components/certificates/CertificateCheckButton';
+import TournamentFinishedModal from '../../../components/TournamentFinishedModal';
 
 const TEMPO_QUESTAO = 90;
 const DISCIPLINA = 'Matemática';
 
 export default function MatematicaOriginal() {
   const navigate = useNavigate();
-  const { user, token, login } = useAuth();
-  const containerRef = useRef(null);
-  const enunciadoRef = useRef(null);
+  const { user, token } = useAuth();
   const avaliacaoRef = useRef(null);
+  const containerRef = useRef(null);
+  const socketRef = useRef(null);
+  const enunciadoRef = useRef(null);
 
   // Estados do torneio
   const [torneio, setTorneio] = useState(null);
@@ -26,474 +33,1085 @@ export default function MatematicaOriginal() {
   const [ranking, setRanking] = useState([]);
   const [loading, setLoading] = useState(true);
   const [progresso, setProgresso] = useState(0);
-  const [tempoRestante, setTempoRestante] = useState({ dias: 0, horas: 0, min: 0, seg: 0 });
+  const [tempoRestante, setTempoRestante] = useState({ dias: 0, horas: 0, minutos: 0, segundos: 0 });
+  const [dentroDoPeriodo, setDentroDoPeriodo] = useState(false);
   const [error, setError] = useState(null);
 
-  // Estados locais da questão
+  // Estados locais
   const [questoes, setQuestoes] = useState([]);
   const [questoesFiltradas, setQuestoesFiltradas] = useState([]);
   const [questaoIndex, setQuestaoIndex] = useState(0);
   const [questaoTime, setQuestaoTime] = useState(TEMPO_QUESTAO);
   const [resposta, setResposta] = useState("");
   const [nivelSelecionado, setNivelSelecionado] = useState("facil");
-  const [executando, setExecutando] = useState(false);
+  const [resultado, setResultado] = useState("");
+  const [pontuacao, setPontuacao] = useState(null);
   const [avaliacaoDetalhes, setAvaliacaoDetalhes] = useState(null);
-  const [contagemRegressiva, setContagemRegressiva] = useState(null);
+  const [mostrarRanking, setMostrarRanking] = useState(false);
+  const [mostrarDados, setMostrarDados] = useState(false);
+  const [autoAvancarTimer, setAutoAvancarTimer] = useState(null);
+  const [questoesTotais, setQuestoesTotais] = useState(0);
+  const [contagemRegressiva, setContagemRegressiva] = useState(5);
+  const [executando, setExecutando] = useState(false);
 
-  // Inicialização e Busca de Dados
+  // Hook para certificados
+  const { 
+    mostrarCertificado, 
+    certificadoData, 
+    fecharCertificado,
+    abrirCertificado 
+  } = useCertificado('Matemática', participante, ranking);
+
+  // Hook para vencedores
+  const { 
+    mostrarVencedores, 
+    vencedores, 
+    fecharVencedores 
+  } = useVencedores('Matemática', ranking, torneio, participante);
+
+  const [torneioFinalizado, setTorneioFinalizado] = useState(false);
+  const calcularTempoRestante = (torneioData) => {
+    if (!torneioData?.termina_em) {
+      return { dias: 0, horas: 0, minutos: 0, segundos: 0 };
+    }
+    
+    const agora = new Date();
+    const fim = new Date(torneioData.termina_em);
+    
+    const diferencaMs = fim.getTime() - agora.getTime();
+    
+    if (diferencaMs <= 0) {
+      return { dias: 0, horas: 0, minutos: 0, segundos: 0 };
+    }
+    
+    const dias = Math.floor(diferencaMs / (1000 * 60 * 60 * 24));
+    const horas = Math.floor((diferencaMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutos = Math.floor((diferencaMs % (1000 * 60 * 60)) / (1000 * 60));
+    const segundos = Math.floor((diferencaMs % (1000 * 60)) / 1000);
+    
+    return { dias, horas, minutos, segundos };
+  };
+
+  // Função para calcular progresso
+  const calcularProgressoTemporal = (torneioData) => {
+    if (!torneioData?.inicia_em || !torneioData?.termina_em) return 100;
+    
+    const agora = new Date();
+    const inicio = new Date(torneioData.inicia_em);
+    const fim = new Date(torneioData.termina_em);
+    
+    if (agora < inicio) {
+      setDentroDoPeriodo(false);
+      return 100;
+    } else if (agora > fim) {
+      setDentroDoPeriodo(false);
+      setTorneioFinalizado(true);
+      return 0;
+    } else {
+      setDentroDoPeriodo(true);
+      setTorneioFinalizado(false);
+    }
+    
+    const duracaoTotal = fim.getTime() - inicio.getTime();
+    const tempoRestanteMs = fim.getTime() - agora.getTime();
+    const progressoPercentual = (tempoRestanteMs / duracaoTotal) * 100;
+    
+    return Math.min(100, Math.max(0, progressoPercentual));
+  };
+
+  // Atualizar timer do torneio
   useEffect(() => {
-    const carregarDados = async () => {
+    if (!torneio) return;
+    
+    const atualizarTimer = () => {
+      const tempo = calcularTempoRestante(torneio);
+      setTempoRestante(tempo);
+      
+      const progresso = calcularProgressoTemporal(torneio);
+      setProgresso(progresso);
+    };
+    
+    atualizarTimer();
+    const intervalId = setInterval(atualizarTimer, 1000);
+    
+    return () => clearInterval(intervalId);
+  }, [torneio]);
+
+  // Filtrar questões por dificuldade
+  useEffect(() => {
+    if (questoes.length > 0) {
+      const filtradas = questoes.filter(q => q.dificuldade === nivelSelecionado);
+      setQuestoesFiltradas(filtradas);
+      if (filtradas.length > 0) {
+        setQuestaoIndex(0);
+        setQuestaoTime(TEMPO_QUESTAO);
+        setResposta("");
+        setResultado("");
+        setPontuacao(null);
+        // Scroll para o enunciado após mudar de nível
+        setTimeout(() => {
+          if (enunciadoRef.current) {
+            enunciadoRef.current.scrollIntoView({ 
+              behavior: 'smooth',
+              block: 'center'
+            });
+          }
+        }, 200);
+      }
+    }
+  }, [nivelSelecionado, questoes]);
+
+  // Atualizar total de questões
+  useEffect(() => {
+    if (questoes.length > 0) {
+      setQuestoesTotais(questoes.length);
+    }
+  }, [questoes]);
+
+  // Limpar timer de auto-avanço
+  useEffect(() => {
+    return () => {
+      if (autoAvancarTimer) {
+        clearTimeout(autoAvancarTimer);
+      }
+    };
+  }, [autoAvancarTimer]);
+
+  // SCROLL AUTOMÁTICO QUANDO A QUESTÃO MUDA
+  useEffect(() => {
+    if (questoesFiltradas.length > 0 && enunciadoRef.current) {
+      setTimeout(() => {
+        enunciadoRef.current.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }, 200);
+    }
+  }, [questaoIndex]);
+
+  // SCROLL AUTOMÁTICO NO CARREGAMENTO INICIAL
+  useEffect(() => {
+    if (questoesFiltradas.length > 0 && enunciadoRef.current) {
+      setTimeout(() => {
+        enunciadoRef.current.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }, 500);
+    }
+  }, [questoesFiltradas]);
+
+  // VERIFICAR TORNEIO ATIVO
+  useEffect(() => {
+    const verificarTorneioAtivo = async () => {
       try {
-        const resAtivo = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/torneios/ativo`);
-        const dataAtivo = await resAtivo.json();
+        console.log('🔍 Verificando torneio ativo para Matemática...');
+        const response = await fetch('http://localhost:3000/api/torneios/ativo');
+        const data = await response.json();
         
-        if (dataAtivo.ativo && dataAtivo.torneio) {
-          setTorneio(dataAtivo.torneio);
-          const tId = dataAtivo.torneio.id;
+        if (data.ativo && data.torneio) {
+          setTorneio(data.torneio);
+          
+          const tempo = calcularTempoRestante(data.torneio);
+          setTempoRestante(tempo);
+          
+          const progresso = calcularProgressoTemporal(data.torneio);
+          setProgresso(progresso);
           
           if (user?.id) {
-            // Buscar ou Registrar Participante
-            const resPart = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/participantes/usuario/${user.id}/matematica`);
-            const dataPart = await resPart.json();
-            
-            if (dataPart.success) {
-              setParticipante(dataPart.data);
-            } else {
-              // Registrar se não existir
-              const resReg = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/participantes/registrar`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ id_usuario: user.id, disciplina_competida: DISCIPLINA })
-              });
-              const dataReg = await resReg.json();
-              if (dataReg.success) setParticipante(dataReg.data);
-            }
+            await buscarDadosUsuario(data.torneio.id, user.id);
           }
-
-          // Buscar Ranking e Questões
-          const [resRank, resQ] = await Promise.all([
-            fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/participantes/ranking/matematica`),
-            fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/torneios/${tId}/questoes/matematica`)
-          ]);
           
-          const dataRank = await resRank.json();
-          const dataQ = await resQ.json();
+          await buscarRanking(data.torneio.id);
+          await buscarQuestoes(data.torneio.id);
           
-          if (dataRank.success) setRanking(dataRank.data || []);
-          if (dataQ.success) setQuestoes(dataQ.data || []);
         } else {
-          setError("Não há torneio ativo no momento.");
+          setError(data.message || "Nenhum torneio ativo no momento.");
         }
       } catch (err) {
-        setError("Erro ao carregar dados do torneio.");
+        console.error('❌ Erro ao verificar torneio ativo:', err);
+        setError("Erro ao conectar com o servidor. Tente novamente.");
       } finally {
         setLoading(false);
       }
     };
-    carregarDados();
-  }, [user, token]);
 
-  // Real-time Ranking via Socket
+    verificarTorneioAtivo();
+  }, [user]);
+
+  // Conectar Socket.IO para atualizações em tempo real do ranking
   useEffect(() => {
     if (!torneio) return;
+
+    socketRef.current = socket;
+
     const handleRankingUpdate = (payload) => {
-      if (payload?.torneio_id === torneio.id && payload?.disciplina === DISCIPLINA) {
-        setRanking(payload.ranking || []);
+      console.debug('Matematica recebido ranking_update', payload);
+      try {
+        if (payload?.torneio_id === torneio.id && payload?.disciplina === 'Matemática') {
+          setRanking(payload.ranking || []);
+        }
+      } catch (e) {
+        console.warn('Erro ao processar evento ranking_update', e);
       }
     };
-    socket.on('ranking_update', handleRankingUpdate);
-    return () => socket.off('ranking_update', handleRankingUpdate);
-  }, [torneio]);
 
-  // Temporizador Global do Torneio
-  useEffect(() => {
-    if (!torneio) return;
-    const timer = setInterval(() => {
-      const agora = new Date();
-      const fim = new Date(torneio.termina_em);
-      const inicio = new Date(torneio.inicia_em);
-      const diff = fim.getTime() - agora.getTime();
-      
-      if (diff <= 0) {
-        setTempoRestante({ dias: 0, horas: 0, min: 0, seg: 0 });
-        setProgresso(0);
-      } else {
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((diff % (1000 * 60)) / 1000);
-        setTempoRestante({ dias: d, horas: h, min: m, seg: s });
-        
-        const total = fim.getTime() - inicio.getTime();
-        setProgresso(Math.max(0, (diff / total) * 100));
+    socketRef.current.on('ranking_update', handleRankingUpdate);
+
+    const handleTournamentFinished = (payload) => {
+      console.log('🏁 Torneio finalizado via socket:', payload);
+      if (payload?.id === torneio?.id) {
+        setTorneio(prev => ({ ...prev, status: 'finalizado' }));
+        setDentroDoPeriodo(false);
+        setTorneioFinalizado(true);
       }
-    }, 1000);
-    return () => clearInterval(timer);
+    };
+    socketRef.current.on('tournament_finished', handleTournamentFinished);
+
+    return () => {
+      try { if (socketRef.current) {
+        socketRef.current.off('ranking_update', handleRankingUpdate);
+        socketRef.current.off('tournament_finished', handleTournamentFinished);
+      } } catch (e) {}
+    };
   }, [torneio]);
 
-  // Filtragem e Navegação de Questões
-  useEffect(() => {
-    const filtradas = questoes.filter(q => q.dificuldade === nivelSelecionado);
-    setQuestoesFiltradas(filtradas);
-    setQuestaoIndex(0);
-    setQuestaoTime(TEMPO_QUESTAO);
-    setResposta("");
-    setAvaliacaoDetalhes(null);
-  }, [nivelSelecionado, questoes]);
-
-  useEffect(() => {
-    if (questoesFiltradas.length > 0) {
-      const timer = setInterval(() => {
-        setQuestaoTime(prev => {
-          if (prev <= 0) {
-            handleNextQuestao();
-            return TEMPO_QUESTAO;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      return () => clearInterval(timer);
-    }
-  }, [questaoIndex, questoesFiltradas]);
-
-  const handleNextQuestao = () => {
-    setQuestaoIndex(prev => (prev + 1 < questoesFiltradas.length ? prev + 1 : 0));
-    setQuestaoTime(TEMPO_QUESTAO);
-    setResposta("");
-    setAvaliacaoDetalhes(null);
-    setContagemRegressiva(null);
-    if (enunciadoRef.current) enunciadoRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  };
-
-  const enviarResposta = async () => {
-    if (executando || !resposta.trim()) return;
-    setExecutando(true);
+  // Buscar dados do usuário
+  const buscarDadosUsuario = async (torneioId, userId) => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/avaliar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({
-          usuario_id: user.id,
-          disciplina: DISCIPLINA,
-          respostas: [{
-            pergunta_id: questoesFiltradas[questaoIndex].id,
-            texto: questoesFiltradas[questaoIndex].descricao,
-            resposta: resposta,
-            nivel: nivelSelecionado
-          }]
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        const feedback = data.data.feedbacks?.[0] || {};
-        setAvaliacaoDetalhes(feedback);
-        if (data.data.participante) setParticipante(data.data.participante);
-        
-        // Timer para próxima questão
-        let count = 5;
-        setContagemRegressiva(count);
-        const interval = setInterval(() => {
-          count--;
-          setContagemRegressiva(count);
-          if (count <= 0) {
-            clearInterval(interval);
-            handleNextQuestao();
-          }
-        }, 1000);
+      const response = await fetch(
+        `http://localhost:3000/api/participantes/usuario/${userId}/matematica`
+      );
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        setParticipante(data.data);
+      } else if (response.status === 404) {
+        await registrarParticipante(userId);
       }
     } catch (err) {
-      console.error(err);
+      console.error('❌ Erro ao buscar dados do usuário:', err);
+    }
+  };
+
+  // Registrar participante
+  const registrarParticipante = async (userId) => {
+    try {
+      const response = await fetch('http://localhost:3000/api/participantes/registrar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
+        },
+        body: JSON.stringify({
+          id_usuario: userId,
+          disciplina_competida: DISCIPLINA
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        setParticipante(data.data);
+      }
+    } catch (err) {
+      console.error('❌ Erro ao registrar participante:', err);
+    }
+  };
+
+  // Buscar ranking
+  const buscarRanking = async (torneioId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/participantes/ranking/matematica`
+      );
+      const data = await response.json();
+      
+      if (data.success) {
+        setRanking(data.data || []);
+      }
+    } catch (err) {
+      console.error('❌ Erro ao buscar ranking:', err);
+    }
+  };
+
+  // Buscar questões do banco de dados
+  const buscarQuestoes = async (torneioId) => {
+    try {
+      console.log(`📚 Buscando questões de matemática para torneio ${torneioId}...`);
+      const response = await fetch(`http://localhost:3000/torneios/${torneioId}/questoes/matematica`);
+      const data = await response.json();
+      
+      console.log('📊 Dados recebidos das questões:', data);
+      
+      if (data.success && data.data.length > 0) {
+        const questoesFormatadas = data.data.map(questao => ({
+          ...questao,
+          enunciado: questao.descricao
+        }));
+        
+        console.log('✅ Questões formatadas:', questoesFormatadas);
+        setQuestoes(questoesFormatadas);
+        setQuestoesTotais(data.data.length);
+        
+        const filtradas = questoesFormatadas.filter(q => q.dificuldade === 'facil');
+        setQuestoesFiltradas(filtradas);
+        setNivelSelecionado('facil');
+        console.log(`✅ ${filtradas.length} questões fáceis carregadas`);
+      } else {
+        console.log('⚠️ Nenhuma questão encontrada');
+        setQuestoes([]);
+        setQuestoesFiltradas([]);
+      }
+    } catch (err) {
+      console.error('❌ Erro ao carregar questões:', err);
+      setQuestoes([]);
+      setQuestoesFiltradas([]);
+    }
+  };
+
+  // Temporizador da questão
+  useEffect(() => {
+    if (questoesFiltradas.length === 0) return;
+    
+    const interval = setInterval(() => {
+      setQuestaoTime((prev) => {
+        if (prev <= 0) {
+          // Quando o tempo acaba, avança automaticamente
+          handleProximaQuestaoAutomatica();
+          return TEMPO_QUESTAO;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [questaoIndex, questoesFiltradas]);
+
+  const formatTime = () => {
+    const { dias, horas, minutos, segundos } = tempoRestante;
+    if (dias > 0) {
+      return `${dias}d ${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+    }
+    return `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+  };
+
+  const formatSeconds = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
+
+  const handleResposta = (value) => setResposta((prev) => prev + value);
+
+  const handleProximaQuestaoAutomatica = () => {
+    setResposta("");
+    setResultado("");
+    setPontuacao(null);
+    setContagemRegressiva(5);
+    setExecutando(false);
+    if (autoAvancarTimer) {
+      clearTimeout(autoAvancarTimer);
+      setAutoAvancarTimer(null);
+    }
+    
+    if (questoesFiltradas.length > 0) {
+      // Avança para a próxima questão ou volta para a primeira se for a última
+      setQuestaoIndex((prev) => (prev + 1 < questoesFiltradas.length ? prev + 1 : 0));
+      setQuestaoTime(TEMPO_QUESTAO);
+    }
+  };
+
+  const scrollToAvaliacao = () => {
+    if (avaliacaoRef.current) {
+      setTimeout(() => {
+        avaliacaoRef.current.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'center'
+        });
+        
+        if (containerRef.current) {
+          containerRef.current.scrollTop = containerRef.current.scrollHeight;
+        }
+      }, 100);
+    }
+  };
+
+  const iniciarContagemRegressiva = () => {
+    let contador = 5;
+    setContagemRegressiva(contador);
+    
+    const interval = setInterval(() => {
+      contador -= 1;
+      setContagemRegressiva(contador);
+      
+      if (contador <= 0) {
+        clearInterval(interval);
+        handleProximaQuestaoAutomatica();
+      }
+    }, 1000);
+    
+    return interval;
+  };
+
+  const executarResposta = async () => {
+    if (executando) return;
+    setExecutando(true);
+
+    // Preparar payload para a API de avaliação
+    const payload = {
+      usuario_id: user?.id || participante?.usuario_id,
+      disciplina: DISCIPLINA,
+      respostas: [{
+        pergunta_id: questoesFiltradas[questaoIndex]?.id || (questaoIndex + 1),
+        texto: questoesFiltradas[questaoIndex]?.descricao || questoesFiltradas[questaoIndex]?.enunciado || '',
+        resposta: resposta,
+        nivel: nivelSelecionado
+      }]
+    };
+
+    try {
+      const resp = await fetch('http://localhost:3000/api/avaliar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await resp.json();
+      if (!data.success) {
+        setResultado('Erro ao avaliar: ' + (data.error || 'Resposta inválida'));
+        setPontuacao(0);
+        setAvaliacaoDetalhes(null);
+      } else {
+        const detalhes = data.data.feedbacks || [];
+        const total = Number(data.data.totalPontos || 0);
+        setAvaliacaoDetalhes(detalhes[0] ? detalhes[0] : detalhes);
+        setPontuacao(total);
+        setResultado(detalhes[0]?.feedback || 'Avaliação concluída');
+
+        // Atualiza participante localmente
+        if (data.data.participante) setParticipante(data.data.participante);
+      }
+    } catch (err) {
+      console.error('Erro ao chamar /api/avaliar', err);
+      setResultado('Erro de comunicação com o servidor');
+      setPontuacao(0);
+      setAvaliacaoDetalhes(null);
     } finally {
       setExecutando(false);
-      if (avaliacaoRef.current) avaliacaoRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      scrollToAvaliacao();
+
+      if (autoAvancarTimer) clearTimeout(autoAvancarTimer);
+      const contagemInterval = iniciarContagemRegressiva();
+      const timer = setTimeout(() => { clearInterval(contagemInterval); handleProximaQuestaoAutomatica(); }, 6000);
+      setAutoAvancarTimer(timer);
     }
   };
 
   if (loading) {
     return (
-      <Layout>
-        <div className="flex flex-col items-center justify-center min-h-[60vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mb-4"></div>
-          <p className="text-gray-500 font-bold">Iniciando Ambiente de Competição...</p>
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Carregando torneio de Matemática...</p>
         </div>
-      </Layout>
+      </div>
     );
   }
 
   if (error || !torneio) {
     return (
-      <Layout>
-        <div className="max-w-md mx-auto mt-20 p-8 bg-white rounded-3xl shadow-xl text-center border border-red-100">
-          <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-            <AlertCircle size={40} />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Torneio Indisponível</h2>
-          <p className="text-gray-600 mb-8">{error || "Não há competições ativas de Matemática."}</p>
-          <button onClick={() => navigate('/entrar-no-torneio')} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all">
-            Voltar para Inscrições
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-md">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Torneio Indisponível</h2>
+          <p className="text-gray-600 mb-6">
+            {error || "Não há torneio de Matemática ativo no momento."}
+          </p>
+          <button 
+            onClick={() => navigate("/entrar-no-torneio")}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Ok, Entendi!
           </button>
         </div>
-      </Layout>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        
-        {/* Tournament Dashboard Header */}
-        <div className="bg-white rounded-3xl shadow-lg border border-gray-100 mb-8 overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md">
-                <Calculator size={32} />
-              </div>
-              <div>
-                <h1 className="text-xl md:text-2xl font-black tracking-tight">{torneio.titulo}</h1>
-                <div className="flex items-center gap-2 text-blue-100 text-sm font-medium">
-                  <span className="px-2 py-0.5 bg-white/10 rounded-md">Matemática</span>
-                  <span>•</span>
-                  <span>Competição Oficial COMAES</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-8">
-              <div className="text-center">
-                <p className="text-xs font-bold text-blue-200 uppercase tracking-widest mb-1">Tempo Restante</p>
-                <div className="flex gap-2 items-end">
-                  <div className="text-2xl font-black tabular-nums">
-                    {tempoRestante.horas.toString().padStart(2, '0')}:{tempoRestante.min.toString().padStart(2, '0')}:{tempoRestante.seg.toString().padStart(2, '0')}
-                  </div>
-                  {tempoRestante.dias > 0 && <span className="text-sm font-bold pb-1">{tempoRestante.dias}d</span>}
-                </div>
-              </div>
-              <div className="h-10 w-px bg-white/20 hidden md:block"></div>
-              <div className="text-center group cursor-help" title="Sua pontuação nesta disciplina">
-                <p className="text-xs font-bold text-blue-200 uppercase tracking-widest mb-1">Seus Pontos</p>
-                <div className="text-2xl font-black text-amber-300 flex items-center justify-center gap-2">
-                  <Zap size={20} className="fill-current" />
-                  {participante?.pontuacao || 0}
-                </div>
-              </div>
-            </div>
-
-            <button 
-              onClick={() => navigate('/entrar-no-torneio')}
-              className="px-5 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl font-bold flex items-center gap-2 transition-all border border-white/20"
-            >
-              <LogOut size={18} />
-              Sair
-            </button>
-          </div>
+    <div className="flex flex-col h-screen bg-gray-100">
+      {/* HEADER */}
+      <div className="bg-blue-600 text-white shadow-md">
+        <div className="flex items-center justify-between p-4">
           
-          <div className="h-1.5 w-full bg-gray-100 relative">
-            <motion.div 
-              className="absolute left-0 top-0 h-full bg-amber-400"
-              initial={{ width: 0 }}
-              animate={{ width: `${progresso}%` }}
-              transition={{ duration: 1 }}
-            />
+          <button 
+            onClick={() => navigate("/entrar-no-torneio")} 
+            className="flex items-center gap-1 border border-white px-2 py-1 text-[10px] sm:px-3 sm:py-1.5 sm:text-xs md:px-4 md:py-2 md:text-sm rounded hover:bg-white hover:text-blue-600 transition"
+          >
+            <FaSignOutAlt className="text-xs sm:text-sm md:text-base" />
+            Sair do Torneio
+          </button>
+
+          <div className="flex flex-col items-center" translate="no">
+            <p className="text-xs md:text-xs lg:text-sm">Tempo restante do torneio</p>
+            <h2 className="text-lg md:text-base lg:text-xl font-bold">{formatTime()}</h2>
+            <p className="text-xs opacity-75">
+              {progresso.toFixed(1)}% restante
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={abrirCertificado}
+              className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-full shadow-lg transition-all text-[10px] sm:text-xs md:text-sm"
+              title="Verificar Certificado"
+            >
+              🏆 <span className="hidden sm:inline">Certificado</span>
+            </button>
+            <div className="bg-white text-blue-600 font-bold px-2 py-1 text-[10px] sm:px-3 sm:py-1.5 sm:text-xs md:px-4 md:py-2 md:text-sm rounded-full flex items-center gap-1 shadow-md">
+              Mathematics Tournament
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          
-          {/* Sidebar: Ranking & Info */}
-          <div className="lg:col-span-1 space-y-8">
-            <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
-              <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-                <h3 className="font-black text-gray-800 flex items-center gap-2">
-                  <Trophy size={18} className="text-amber-500" />
-                  Top Classificados
-                </h3>
-                <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold uppercase">Live</span>
-              </div>
-              <div className="p-2 space-y-1 max-h-[400px] overflow-y-auto">
-                {ranking.length > 0 ? ranking.map((rank, i) => (
-                  <div key={rank.id} className={`flex items-center justify-between p-3 rounded-2xl transition-all ${rank.usuario_id === user.id ? 'bg-blue-50 border-blue-100' : 'hover:bg-gray-50'}`}>
-                    <div className="flex items-center gap-3">
-                      <span className={`w-6 text-center font-black text-xs ${i === 0 ? 'text-amber-500' : i === 1 ? 'text-gray-400' : i === 2 ? 'text-orange-500' : 'text-gray-300'}`}>
-                        {i + 1}
-                      </span>
-                      <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden border border-white shadow-sm">
-                        <img src={rank.usuario?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(rank.usuario?.nome || 'U')}&background=random`} alt="Avatar" className="w-full h-full object-cover" />
+        <div className="w-full h-3 bg-white/30">
+          <div 
+            className="h-3 transition-all duration-1000 bg-gradient-to-r bg-green-100"
+            style={{ width: `${progresso}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* SIDEBAR ESQUERDA - RANKING */}
+        <div className="hidden lg:block w-80 bg-white text-gray-800 shadow-lg p-3 overflow-y-auto" translate="no">
+          <h2 className="text-xl font-bold mb-4 text-center border-b border-gray-300 pb-1">Ranking de Matemática</h2>
+          <table className="w-full table-auto text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="w-1/6 px-2 py-2 text-left">Pos</th>
+                <th className="px-2 py-2 text-left">Nome</th>
+                <th className="w-1/6 px-2 py-2 text-left">Pts</th>
+              </tr>
+            </thead>
+            <tbody className="text-gray-800">
+              {ranking.length > 0 ? (
+                ranking.map((participanteRank) => (
+                  <tr key={participanteRank.id} className="border-b border-gray-200 hover:bg-gray-50">
+                    <td className="px-2 py-2 font-semibold">
+                      {participanteRank.posicao === 1 ? '🥇' : 
+                       participanteRank.posicao === 2 ? '🥈' : 
+                       participanteRank.posicao === 3 ? '🥉' : 
+                       participanteRank.posicao}
+                    </td>
+                    <td className="px-2 py-2">
+                      <div className="flex items-center gap-2">
+                        {participanteRank.usuario?.imagem ? (
+                          <img 
+                            src={participanteRank.usuario.imagem} 
+                            alt={participanteRank.usuario.nome}
+                            className="w-7 h-6 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-7 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs">
+                            {participanteRank.usuario?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'U'}
+                          </div>
+                        )}
+                        <span className="truncate">{participanteRank.usuario?.nome || 'Usuário'}</span>
                       </div>
-                      <span className={`text-sm font-bold truncate max-w-[100px] ${rank.usuario_id === user.id ? 'text-blue-700' : 'text-gray-700'}`}>
-                        {rank.usuario?.nome || 'Usuário'}
-                      </span>
-                    </div>
-                    <span className="text-xs font-black text-blue-600">{rank.pontuacao} pts</span>
-                  </div>
-                )) : (
-                  <div className="p-8 text-center text-gray-400 text-sm">Aguardando participantes...</div>
-                )}
-              </div>
-              {participante && ranking.findIndex(r => r.usuario_id === user.id) === -1 && (
-                <div className="bg-gray-50 p-4 border-t border-gray-100">
-                  <div className="flex items-center justify-between text-xs font-bold text-gray-500 italic">
-                    <span>Sua Posição</span>
-                    <span>Fora do Top 10</span>
-                  </div>
-                </div>
+                    </td>
+                    <td className="px-2 py-2 text-blue-600 font-semibold">{participanteRank.pontuacao || 0}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="3" className="px-2 py-4 text-center text-gray-500">
+                    Nenhum participante ainda
+                  </td>
+                </tr>
               )}
-            </div>
+            </tbody>
+          </table>
+        </div>
 
-            <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-3xl p-6 text-white shadow-lg overflow-hidden relative">
-              <Brain size={120} className="absolute -right-8 -bottom-8 opacity-10 rotate-12" />
-              <h4 className="font-black text-lg mb-2">Dica Pro</h4>
-              <p className="text-sm text-blue-100 italic leading-relaxed">
-                "Problemas difíceis valem 4x mais pontos. Tente resolver pelo menos um para subir no ranking rápido!"
-              </p>
-            </div>
-          </div>
-
-          {/* Main Area: Exercise & Interactive UI */}
-          <div className="lg:col-span-3 space-y-6">
-            
-            {/* Seletor de Dificuldade */}
-            <div className="bg-white p-2 rounded-2xl shadow-md border border-gray-100 flex gap-2 overflow-x-auto no-scrollbar">
-              {[
-                { id: 'facil', label: 'Básico', pts: 5, color: 'text-green-600 bg-green-50' },
-                { id: 'medio', label: 'Intermédio', pts: 10, color: 'text-amber-600 bg-amber-50' },
-                { id: 'dificil', label: 'Avançado', pts: 20, color: 'text-red-600 bg-red-50' },
-              ].map(lvl => (
-                <button
-                  key={lvl.id}
-                  onClick={() => setNivelSelecionado(lvl.id)}
-                  className={`flex-1 min-w-[120px] py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex flex-col items-center gap-1 ${nivelSelecionado === lvl.id ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-50'}`}
-                >
-                  {lvl.label}
-                  <span className={`px-2 py-0.5 rounded-full ${nivelSelecionado === lvl.id ? 'bg-white/20' : lvl.color}`}>+{lvl.pts} pts</span>
-                </button>
-              ))}
-            </div>
-
-            {questoesFiltradas.length > 0 && questoesFiltradas[questaoIndex] ? (
-              <motion.div 
-                key={`${nivelSelecionado}-${questaoIndex}`}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="space-y-6"
-              >
-                {/* Card de Questão */}
-                <div ref={enunciadoRef} className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
-                  <div className="p-6 sm:p-8 bg-gray-50/50">
-                    <div className="flex justify-between items-start mb-4">
-                      <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-wider">
-                        Questão {questaoIndex + 1} de {questoesFiltradas.length}
+        <div 
+          ref={containerRef}
+          className="flex-1 flex flex-col items-center p-4 overflow-auto space-y-4" 
+          translate="no"
+          style={{ scrollBehavior: 'smooth' }}
+        >
+          {torneioFinalizado || torneio?.status === 'finalizado' ? (
+            <TournamentFinishedModal
+              isOpen={torneioFinalizado || torneio?.status === 'finalizado'}
+              onClose={() => navigate("/entrar-no-torneio")}
+              tournament={torneio}
+              userParticipation={participante}
+              onCertificateGenerated={abrirCertificado}
+            />
+          ) : (
+            <>
+              {/* HEADER */}
+              <div className="w-full max-w-4xl bg-white rounded-xl shadow-md p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <h1 className="text-lg md:text-xl lg:text-2xl font-normal text-gray-800 text-center">
+                  {torneio?.titulo || 'Torneio de Matemática'}
+                </h1>
+                
+                {/* BOTÕES DE NÍVEL */}
+                <div className="flex gap-2 flex-wrap justify-center">
+                  {[
+                    { nivel: "facil", label: "Fácil", pts: 5 },
+                    { nivel: "medio", label: "Médio", pts: 10 },
+                    { nivel: "dificil", label: "Difícil", pts: 20 }
+                  ].map((item) => (
+                    <button 
+                      key={item.nivel} 
+                      onClick={() => setNivelSelecionado(item.nivel)}
+                      className={`px-3 py-1.5 text-xs md:text-sm rounded-full font-semibold transition-all ${
+                        nivelSelecionado === item.nivel
+                          ? "bg-blue-600 text-white shadow"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      {item.label} • {item.pts} pts
+                      <span className="ml-1 text-xs">
+                        ({questoes.filter(q => q.dificuldade === item.nivel).length})
                       </span>
-                      <div className="flex items-center gap-2 text-gray-500 font-bold text-xs uppercase tracking-widest">
-                        <Clock size={16} className={questaoTime < 20 ? 'text-red-500 animate-pulse' : ''} />
-                        <span className={questaoTime < 20 ? 'text-red-600' : ''}>{Math.floor(questaoTime / 60)}:{ (questaoTime % 60).toString().padStart(2, '0')}</span>
-                      </div>
-                    </div>
-                    <h2 className="text-xl md:text-2xl font-extrabold text-gray-900 leading-tight mb-4">
-                      {questoesFiltradas[questaoIndex].titulo || "Desafio de Lógica"}
-                    </h2>
-                    <p className="text-gray-600 text-lg leading-relaxed font-medium">
-                      {questoesFiltradas[questaoIndex].descricao}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* MENSAGEM SE NÃO HÁ QUESTÕES */}
+              {questoesFiltradas.length === 0 ? (
+                <div className="w-full max-w-4xl bg-yellow-50 border border-yellow-200 rounded-xl shadow p-6 text-center">
+                  <h3 className="text-lg font-semibold text-yellow-800 mb-2">Nenhuma questão disponível</h3>
+                  <p className="text-yellow-700">
+                    Não há questões de {nivelSelecionado === 'facil' ? 'fácil' : nivelSelecionado === 'medio' ? 'médio' : 'difícil'} 
+                    disponíveis no momento.
+                  </p>
+                  <p className="text-sm text-yellow-600 mt-2">
+                    Selecione outro nível de dificuldade.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* ENUNCIADO - COM REF PARA SCROLL */}
+                  <div 
+                    ref={enunciadoRef}
+                    className="w-full max-w-4xl bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-600 rounded-xl shadow p-4"
+                  >
+                    <h3 className="text-lg font-bold text-blue-700 mb-2">
+                      {questoesFiltradas[questaoIndex]?.titulo || `Problema ${questaoIndex + 1}`}
+                    </h3>
+                    <p className="text-sm md:text-base font-medium text-gray-800">
+                      {questoesFiltradas[questaoIndex]?.enunciado || questoesFiltradas[questaoIndex]?.descricao}
                     </p>
+                    <div className="mt-2 text-xs text-gray-500">
+                      <span>Questão {questaoIndex + 1} de {questoesFiltradas.length}</span>
+                      <span className="ml-4 capitalize font-semibold">
+                        Dificuldade: {questoesFiltradas[questaoIndex]?.dificuldade || 'N/A'}
+                      </span>
+                      <span className="ml-4 font-semibold text-blue-600">
+                        Pontos: {questoesFiltradas[questaoIndex]?.pontos || 'N/A'}
+                      </span>
+                    </div>
                   </div>
 
-                  {/* Math Interactive Input */}
-                  <div className="p-6 sm:p-8 border-t border-gray-100">
-                    <div className="flex gap-2 mb-4 flex-wrap">
-                      {["+", "-", "×", "÷", "√", "=", "(", ")", "π", "²", "³"].map(sym => (
+                  {/* AVALIAÇÃO / FEEDBACK */}
+                  <div ref={avaliacaoRef} className="w-full max-w-4xl bg-white rounded-xl shadow-md p-4 mt-4">
+                    <h4 className="font-semibold text-gray-800 mb-2">Feedback da IA</h4>
+                    {avaliacaoDetalhes ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{avaliacaoDetalhes.score >= 0.9 ? '✅' : avaliacaoDetalhes.score >= 0.6 ? '⚠️' : '❌'}</span>
+                          <div>
+                            <div className="font-semibold">{avaliacaoDetalhes.feedback || 'Nenhum feedback curto fornecido'}</div>
+                            <div className="text-xs text-gray-500">Pontos atribuídos: <span className="font-bold text-blue-600">{avaliacaoDetalhes.pontos}</span></div>
+                          </div>
+                        </div>
+                        {avaliacaoDetalhes.evidencias && (
+                          <div className="mt-2 p-3 bg-gray-50 rounded">{avaliacaoDetalhes.evidencias}</div>
+                        )}
+                        <div className="mt-2 text-sm text-gray-600">Total nesta avaliação: <span className="font-bold text-green-600">{pontuacao || 0}</span></div>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-500">Nenhum feedback disponível. Execute a resolução para receber feedback IA.</div>
+                    )}
+                  </div>
+
+                  {/* EDITOR */}
+                  <div className="w-full max-w-4xl bg-white rounded-xl shadow-md p-4 space-y-3">
+                    {/* SÍMBOLOS MATEMÁTICOS */}
+                    <div className="flex gap-1 md:gap-2 flex-wrap justify-center border-b pb-3 overflow-x-auto">
+                      {["+", "-", "×", "÷", "√", "(", ")", "²", "³", "=", "π", "°", "≤", "≥", "≠", "≈", "∫", "∑", "∞"].map((op) => (
                         <button 
-                          key={sym} 
-                          onClick={() => setResposta(prev => prev + sym)}
-                          className="w-10 h-10 bg-gray-50 hover:bg-blue-50 text-gray-700 font-bold rounded-xl border border-gray-100 transition-all active:scale-95"
+                          key={op} 
+                          onClick={() => handleResposta(op)}
+                          className="px-2 py-1 text-xs md:text-sm bg-gray-100 hover:bg-blue-100 text-gray-800 rounded-md transition"
                         >
-                          {sym}
+                          {op}
                         </button>
                       ))}
                     </div>
+
+                    {/* TEXTAREA */}
                     <textarea 
-                      value={resposta}
+                      value={resposta} 
                       onChange={(e) => setResposta(e.target.value)}
-                      placeholder="Resolva o problema passo a passo para ganhar pontuação máxima pela lógica..."
-                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-3xl p-6 font-mono text-gray-800 text-lg min-h-[300px] outline-none focus:border-blue-500 transition-colors"
+                      className="w-full h-80 resize-none p-3 text-sm md:text-base bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Digite aqui sua resolução passo a passo. Use os símbolos acima para facilitar a notação matemática..."
+                      spellCheck="false"
                     />
                   </div>
 
-                  <div className="bg-gray-50 px-8 py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <div className="text-gray-400 text-xs font-medium flex items-center gap-2">
-                       <Sparkles size={14} className="text-amber-400" />
-                       Avaliado por COMAES AI Engine v2.0
+                  {/* TEMPORIZADOR */}
+                  <div className="w-full max-w-4xl bg-white rounded-xl shadow-md p-4">
+                    <div className="flex justify-between items-center mb-2 text-sm md:text-base font-semibold text-gray-700">
+                      <span>Tempo restante para esta questão</span>
+                      <span className="px-2 py-0.5 rounded bg-gray-100">{formatSeconds(questaoTime)}</span>
                     </div>
-                    <div className="flex gap-4 w-full sm:w-auto">
-                      <button 
-                         onClick={handleNextQuestao}
-                         className="flex-1 py-4 px-6 text-gray-500 font-bold hover:bg-gray-100 rounded-2xl transition-all"
-                      >
-                        Pular
-                      </button>
-                      <button 
-                        onClick={enviarResposta}
-                        disabled={executando || !resposta.trim()}
-                        className="flex-[2] py-4 px-10 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black shadow-xl shadow-blue-100 transition-all border-b-4 border-blue-800 active:translate-y-1 active:border-b-0 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
-                      >
-                        {executando ? <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" /> : <Send size={20} />}
-                        Submeter Resolução
-                      </button>
+                    <div className="w-full h-3 rounded-full bg-gray-200 overflow-hidden">
+                      <div 
+                        className={`h-full transition-all duration-300 ${questaoTime < 10 ? "bg-red-500" : "bg-blue-600"}`}
+                        style={{ width: `${(questaoTime / TEMPO_QUESTAO) * 100}%` }} 
+                      />
                     </div>
                   </div>
-                </div>
 
-                {/* AI Feedback Section */}
-                <AnimatePresence>
-                  {avaliacaoDetalhes && (
-                    <motion.div 
-                      ref={avaliacaoRef}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="bg-white rounded-3xl shadow-xl border border-blue-100 overflow-hidden"
+                  {/* BOTÕES DE CONTROLE - APENAS EXECUTAR RESOLUÇÃO */}
+                  <div className="flex gap-3 w-full max-w-4xl">
+                    <button 
+                      onClick={executarResposta}
+                      disabled={executando}
+                      className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all duration-300 ${
+                        executando
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md hover:shadow-lg"
+                      }`}
                     >
-                      <div className={`p-6 flex items-center justify-between ${avaliacaoDetalhes.score >= 0.8 ? 'bg-green-50' : 'bg-amber-50'}`}>
-                        <div className="flex items-center gap-4">
-                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${avaliacaoDetalhes.score >= 0.8 ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'}`}>
-                            {avaliacaoDetalhes.score >= 0.8 ? <CheckCircle size={24} /> : <AlertCircle size={24} />}
-                          </div>
-                          <div>
-                            <h3 className="font-black text-gray-800">Resultado da Avaliação</h3>
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Feedback instantâneo da IA</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-3xl font-black text-blue-600">+{avaliacaoDetalhes.pontos || 0}</p>
-                          <p className="text-xs font-bold text-gray-400 uppercase">Pontos ganhos</p>
-                        </div>
-                      </div>
-                      <div className="p-8">
-                        <div className="bg-gray-50 rounded-2xl p-6 italic text-gray-600 leading-relaxed font-medium mb-6">
-                           "{avaliacaoDetalhes.feedback}"
-                        </div>
-                        {contagemRegressiva !== null && (
-                          <div className="flex items-center justify-center gap-3 py-2 bg-blue-50 rounded-xl text-blue-600 font-bold text-sm">
-                            <Zap size={16} className="animate-pulse" />
-                            Avançando em {contagemRegressiva} segundos...
-                            <button onClick={handleNextQuestao} className="ml-4 underline hover:text-blue-800">Ir agora</button>
-                          </div>
-                        )}
-                      </div>
-                    </motion.div>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-sm md:text-base">
+                        {executando ? "Processando..." : "Executar Resolução"}
+                      </span>
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* BOTÕES MOBILE */}
+              <div className="flex flex-col sm:flex-row w-full max-w-5xl justify-between gap-3 mt-4 lg:hidden">
+                <button 
+                  onClick={() => setMostrarRanking(true)} 
+                  className="flex-1 bg-gray-800 hover:bg-gray-900 text-white px-4 py-3 rounded-lg shadow-md text-sm transition-colors flex items-center justify-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  Ver Ranking
+                </button>
+                <button 
+                  onClick={() => setMostrarDados(true)} 
+                  className="flex-1 border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-4 py-3 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  Ver seus Dados
+                </button>
+              </div>
+
+              {/* RESULTADO / AVALIAÇÃO */}
+              {resultado && (
+                <div className="w-full max-w-4xl bg-white rounded-xl shadow-md p-4 border-l-4 border-blue-600">
+                  <h3 className="text-gray-700 font-semibold mb-2">Avaliação da Resolução</h3>
+                  <p className="text-gray-800 mb-2">{resultado}</p>
+                  {pontuacao !== null && (
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-gray-700">Pontuação:</span>
+                      <span className={`font-bold px-2 py-1 rounded ${
+                        pontuacao >= 15 ? "bg-blue-200 text-blue-800" :
+                        pontuacao >= 8 ? "bg-yellow-200 text-yellow-800" :
+                        "bg-red-200 text-red-800"
+                      }`}>
+                        {pontuacao} pts
+                      </span>
+                    </div>
                   )}
-                </AnimatePresence>
-              </motion.div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* SIDEBAR DIREITA - INFO USUÁRIO */}
+        <div className="hidden lg:flex w-64 bg-white text-gray-800 shadow-lg p-4 overflow-y-auto flex-col items-center space-y-3">
+          <div className="flex flex-col items-center mb-3">
+            {participante?.usuario?.imagem ? (
+              <img 
+                src={participante.usuario.imagem} 
+                alt={participante.usuario.nome}
+                className="w-20 h-20 rounded-full object-cover border-2 border-blue-400 mb-2"
+              />
             ) : (
-              <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-20 text-center">
-                 <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Brain size={40} className="text-gray-300" />
-                 </div>
-                 <h3 className="text-xl font-bold text-gray-800 mb-2">Sem Questões Disponíveis</h3>
-                 <p className="text-gray-500 italic">No momento não existem desafios para o nível {nivelSelecionado}. Tente outro nível!</p>
+              <div className="w-20 h-20 rounded-full mb-2 border-2 border-blue-400 bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center text-white text-2xl font-bold">
+                {participante?.usuario?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || user?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'U'}
               </div>
             )}
-            
+            <h3 className="text-lg font-bold mt-2">{participante?.usuario?.nome || user?.nome || "Usuário"}</h3>
+            <p className="text-sm text-gray-500">Participante do Torneio</p>
           </div>
+
+          {participante ? (
+            <div className="w-full flex flex-col gap-2 items-center">
+              {/* PONTUAÇÃO */}
+              <div className="bg-white rounded-3xl border border-blue-200 p-2 flex flex-col items-center gap-1 w-40">
+                <div className="w-14 h-14">
+                  <CircularProgressbar 
+                    value={participante.pontuacao || 0} 
+                    maxValue={10000} 
+                    text={`${participante.pontuacao || 0}`} 
+                    styles={buildStyles({ 
+                      textSize: '16px', 
+                      textColor: '#333', 
+                      pathColor: "#3b82f6", 
+                      trailColor: '#e5e5e5' 
+                    })} 
+                  />
+                </div>
+                <span className="text-xs font-semibold text-center">Pontuação</span>
+              </div>
+              
+              {/* POSIÇÃO */}
+              <div className="bg-white rounded-3xl border border-blue-200 p-2 flex flex-col items-center gap-1 w-40">
+                <div className="w-14 h-14">
+                  <CircularProgressbar 
+                    value={participante.posicao || 0} 
+                    maxValue={100} 
+                    text={`#${participante.posicao || 0}`} 
+                    styles={buildStyles({ 
+                      textSize: '16px', 
+                      textColor: '#333', 
+                      pathColor: "#3b82f6", 
+                      trailColor: '#e5e5e5' 
+                    })} 
+                  />
+                </div>
+                <span className="text-xs font-semibold text-center">Posição</span>
+              </div>
+              
+              {/* CASOS RESOLVIDOS */}
+              <div className="bg-white rounded-3xl border border-blue-200 p-2 flex flex-col items-center gap-1 w-40">
+                <div className="w-14 h-14">
+                  <CircularProgressbar 
+                    value={participante.casos_resolvidos || 0} 
+                    maxValue={questoesTotais || 100} 
+                    text={`${participante.casos_resolvidos || 0}/${questoesTotais || 100}`} 
+                    styles={buildStyles({ 
+                      textSize: '12px', 
+                      textColor: '#333', 
+                      pathColor: "#3b82f6", 
+                      trailColor: '#e5e5e5' 
+                    })} 
+                  />
+                </div>
+                <span className="text-xs font-semibold text-center">Casos Resolvidos</span>
+              </div>
+
+              {/* Botão de Verificação de Certificado */}
+              <div className="mt-4 w-full">
+                <CertificateCheckButton 
+                  onClick={abrirCertificado}
+                  isLoading={loading}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="text-center p-4">
+              <p className="text-gray-600 mb-3">Você ainda não está participando deste torneio</p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              >
+                Entrar no Torneio
+              </button>
+            </div>
+          )}
         </div>
       </div>
-    </Layout>
+
+      {/* OVERLAY RANKING MOBILE */}
+      {mostrarRanking && (
+        <div className="fixed inset-0 z-50 flex lg:hidden">
+          <div className="absolute inset-0 bg-black/60 transition-opacity duration-300" onClick={() => setMostrarRanking(false)} />
+          <div className="relative w-80 bg-white text-gray-800 p-4 overflow-y-auto transform transition-transform duration-300 ease-out translate-x-0">
+            <button onClick={() => setMostrarRanking(false)} className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl transition-colors">✕</button>
+            <h2 className="text-xl font-bold mb-4 text-center border-b border-gray-300 pb-1">Ranking de Matemática</h2>
+            <table className="w-full table-auto text-sm">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="w-1/6 px-2 py-2 text-left">Pos</th>
+                  <th className="px-2 py-2 text-left">Nome</th>
+                  <th className="w-1/6 px-2 py-2 text-left">Pts</th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-800">
+                {ranking.length > 0 ? (
+                  ranking.map((participanteRank) => (
+                    <tr key={participanteRank.id} className="border-b border-gray-200 hover:bg-gray-50">
+                      <td className="px-2 py-2 font-semibold">
+                        {participanteRank.posicao === 1 ? '🥇' : 
+                         participanteRank.posicao === 2 ? '🥈' : 
+                         participanteRank.posicao === 3 ? '🥉' : 
+                         participanteRank.posicao}
+                      </td>
+                      <td className="px-2 py-2">
+                        <div className="flex items-center gap-2">
+                          {participanteRank.usuario?.imagem ? (
+                            <img 
+                              src={participanteRank.usuario.imagem} 
+                              alt={participanteRank.usuario.nome}
+                              className="w-7 h-6 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-7 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs">
+                              {participanteRank.usuario?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'U'}
+                            </div>
+                          )}
+                          <span className="truncate">{participanteRank.usuario?.nome || 'Usuário'}</span>
+                        </div>
+                      </td>
+                      <td className="px-2 py-2 text-blue-600 font-semibold">{participanteRank.pontuacao || 0}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="3" className="px-2 py-4 text-center text-gray-500">
+                      Nenhum participante ainda
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* OVERLAY DADOS MOBILE */}
+      {mostrarDados && (
+        <div className="fixed inset-0 z-50 flex justify-end lg:hidden">
+          <div className="absolute inset-0 bg-black/60 transition-opacity duration-300" onClick={() => setMostrarDados(false)} />
+          <div className="relative w-72 bg-white text-gray-800 p-4 overflow-y-auto transform transition-transform duration-300 ease-out translate-x-0">
+            <button onClick={() => setMostrarDados(false)} className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl transition-colors">✕</button>
+            <div className="flex flex-col items-center mb-3">
+              {participante?.usuario?.imagem ? (
+                <img 
+                  src={participante.usuario.imagem} 
+                  alt={participante.usuario.nome}
+                  className="w-20 h-20 rounded-full object-cover border-2 border-blue-400 mb-2"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-full mb-2 border-2 border-blue-400 bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center text-white text-2xl font-bold">
+                  {participante?.usuario?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || user?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'U'}
+                </div>
+              )}
+              <h3 className="text-lg font-bold mt-2">{participante?.usuario?.nome || user?.nome || "Usuário"}</h3>
+            </div>
+            
+            {participante ? (
+              <div className="w-full flex flex-col mt-4 gap-4 items-center">
+                {/* PONTUAÇÃO */}
+                <div className="bg-white rounded-3xl border border-blue-200 p-2 flex flex-col items-center gap-1 w-40">
+                  <div className="w-14 h-14">
+                    <CircularProgressbar 
+                      value={participante.pontuacao || 0} 
+                      maxValue={10000} 
+                      text={`${participante.pontuacao || 0}`} 
+                      styles={buildStyles({ 
+                        textSize: '16px', 
+                        textColor: '#333', 
+                        pathColor: "#3b82f6", 
+                        trailColor: '#e5e5e5' 
+                      })} 
+                    />
+                  </div>
+                  <span className="text-xs font-semibold text-center">Pontuação</span>
+                </div>
+                
+                {/* POSIÇÃO */}
+                <div className="bg-white rounded-3xl border border-blue-200 p-2 flex flex-col items-center gap-1 w-40">
+                  <div className="w-14 h-14">
+                    <CircularProgressbar 
+                      value={participante.posicao || 0} 
+                      maxValue={100} 
+                      text={`#${participante.posicao || 0}`} 
+                      styles={buildStyles({ 
+                        textSize: '16px', 
+                        textColor: '#333', 
+                        pathColor: "#3b82f6", 
+                        trailColor: '#e5e5e5' 
+                      })} 
+                    />
+                  </div>
+                  <span className="text-xs font-semibold text-center">Posição</span>
+                </div>
+                
+                {/* CASOS RESOLVIDOS */}
+                <div className="bg-white rounded-3xl border border-blue-200 p-2 flex flex-col items-center gap-1 w-40">
+                  <div className="w-14 h-14">
+                    <CircularProgressbar 
+                      value={participante.casos_resolvidos || 0} 
+                      maxValue={questoesTotais || 100} 
+                      text={`${participante.casos_resolvidos || 0}/${questoesTotais || 100}`} 
+                      styles={buildStyles({ 
+                        textSize: '12px', 
+                        textColor: '#333', 
+                        pathColor: "#3b82f6", 
+                        trailColor: '#e5e5e5' 
+                      })} 
+                    />
+                  </div>
+                  <span className="text-xs font-semibold text-center">Casos Resolvidos</span>
+                </div>
+                
+                {/* Botão de Verificação de Certificado Mobile */}
+                <div className="mt-4 w-full px-4">
+                  <CertificateCheckButton 
+                    onClick={abrirCertificado}
+                    isLoading={loading}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="text-center p-4">
+                <p className="text-gray-600">Você ainda não está participando</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Certificado */}
+      {certificadoData && (
+        <CertMatematica
+          isOpen={mostrarCertificado}
+          onClose={fecharCertificado}
+          participante={certificadoData.participante}
+          posicao={certificadoData.posicao}
+          torneio={certificadoData.torneio}
+        />
+      )}
+
+      {/* Modal de Vencedores */}
+      <ModalVencedores
+        isOpen={mostrarVencedores}
+        onClose={fecharVencedores}
+        vencedores={vencedores}
+        disciplina="Matemática"
+        torneio={torneio}
+      />
+    </div>
   );
 }

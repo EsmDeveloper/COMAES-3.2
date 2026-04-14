@@ -29,6 +29,8 @@ import Conquista from "./models/Conquista.js";
 import ConquistaUsuario from "./models/ConquistaUsuario.js";
 import iaEvaluators from './services/iaEvaluators.js';
 import adminPanelRoutes from './routes/adminPanelRoutes.js';
+import certificatesRoutes from './routes/certificatesRoutes.js';
+import { sendResetEmail, sendWelcomeEmail } from './services/emailService.js';
 
 dotenv.config();
 
@@ -162,6 +164,9 @@ app.get("/", async (req, res) => {
 // Registrar rotas administrativas do painel (CRUD genérico + rotas específicas)
 app.use('/api/admin', adminPanelRoutes);
 
+// Registrar rotas de certificados
+app.use('/api/certificates', certificatesRoutes);
+
 app.get("/health", async (req, res) => {
   try {
     await sequelize.authenticate();
@@ -174,6 +179,52 @@ app.get("/health", async (req, res) => {
     res.status(503).json({
       status: "unhealthy",
       database: "disconnected",
+      error: error.message
+    });
+  }
+});
+
+// Endpoint para testar email (apenas para debug)
+app.get("/api/test-email", async (req, res) => {
+  try {
+    console.log('🧪 Testando configuração de email...');
+    
+    // Verificar variáveis de ambiente
+    const config = {
+      EMAIL_HOST: process.env.EMAIL_HOST || 'não configurado',
+      EMAIL_PORT: process.env.EMAIL_PORT || 'não configurado',
+      EMAIL_USER: process.env.EMAIL_USER ? '***' : 'não configurado',
+      EMAIL_PASS: process.env.EMAIL_PASS ? '***' : 'não configurado',
+      FRONTEND_URL: process.env.FRONTEND_URL || 'não configurado'
+    };
+
+    console.log('📋 Configuração de email:', config);
+
+    // Tentar enviar email de teste
+    try {
+      const { sendResetEmail } = await import('./services/emailService.js');
+      const testToken = 'test-token-12345';
+      await sendResetEmail(process.env.EMAIL_USER, testToken);
+      
+      res.json({
+        success: true,
+        message: 'Email de teste enviado com sucesso',
+        config
+      });
+    } catch (sendError) {
+      console.error('❌ Erro ao enviar email de teste:', sendError);
+      
+      res.json({
+        success: false,
+        message: 'Erro ao enviar email de teste',
+        error: sendError.message,
+        code: sendError.code,
+        config
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
       error: error.message
     });
   }
@@ -244,6 +295,16 @@ app.post('/auth/login', async (req, res) => {
       io.emit('stats_update', { totalUsuarios });
       io.emit('login_update', { userId: user.id, username: user.nome });
     }
+
+    // Enviar e-mail de boas-vindas de forma assíncrona (não bloqueia o login)
+    setImmediate(async () => {
+      try {
+        await sendWelcomeEmail(user.email, user.nome);
+        console.log('📧 Email de boas-vindas enviado para:', user.email);
+      } catch (emailError) {
+        console.error('⚠️ Erro ao enviar email de boas-vindas (não afeta login):', emailError.message);
+      }
+    });
 
     res.json({
       success: true,
@@ -347,6 +408,201 @@ app.post('/auth/registro', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Erro interno no servidor.'
+    });
+  }
+});
+
+// ===== RECUPERAÇÃO DE SENHA =====
+
+// Iniciar recuperação de senha
+app.post('/auth/recover', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    console.log('🔄 Solicitação de recuperação recebida para:', email);
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email é obrigatório.'
+      });
+    }
+
+    // Procurar usuário
+    const user = await Usuario.findOne({ where: { email } });
+    if (!user) {
+      console.log('❌ Usuário não encontrado:', email);
+      return res.status(404).json({
+        success: false,
+        error: 'Conta não encontrada.'
+      });
+    }
+
+    console.log('✅ Usuário encontrado:', user.email, '| ID:', user.id);
+
+    // Gerar token de reset
+    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const hashedToken = await bcrypt.hash(token, 10);
+    const expiresAt = new Date(Date.now() + 3600000); // 1 hora
+
+    // Salvar token no banco
+    await RedefinicaoSenha.create({
+      usuario_id: user.id,
+      hash_token: hashedToken,
+      expira_em: expiresAt
+    });
+
+    console.log('✅ Token de reset criado e salvo no banco');
+
+    // Enviar email com token
+    try {
+      console.log('📧 Iniciando envio de email...');
+      const result = await sendResetEmail(email, token);
+      console.log('✅ Email de recuperação enviado para:', email, '| Result:', result);
+    } catch (emailError) {
+      console.error('❌ Erro ao enviar email:', {
+        message: emailError.message,
+        code: emailError.code,
+        command: emailError.command,
+        stack: emailError.stack
+      });
+      
+      // Retornar erro detalhado apenas em desenvolvimento
+      const isDev = process.env.NODE_ENV !== 'production';
+      return res.status(500).json({
+        success: false,
+        error: 'Erro ao enviar email de recuperação.',
+        ...(isDev && { details: emailError.message })
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Enviámos um código de confirmação para o seu email.'
+    });
+  } catch (error) {
+    console.error('❌ Erro na recuperação:', {
+      message: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao processar recuperação. Tente novamente.'
+    });
+  }
+});
+
+// Verificar token de reset
+app.get('/auth/verify-reset-token/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        error: 'Token é obrigatório.'
+      });
+    }
+
+    // Procurar tokens válidos (não expirados, não usados)
+    const resetTokens = await RedefinicaoSenha.findAll({
+      where: {
+        expira_em: { [Op.gt]: new Date() },
+        usado_em: null
+      }
+    });
+
+    // Verificar contra cada token
+    let validToken = null;
+    for (const rt of resetTokens) {
+      const isMatch = await bcrypt.compare(token, rt.hash_token);
+      if (isMatch) {
+        validToken = rt;
+        break;
+      }
+    }
+
+    if (!validToken) {
+      console.log('❌ Token inválido ou expirado:', token.substring(0, 10) + '...');
+      return res.status(401).json({
+        success: false,
+        error: 'Token inválido ou expirado.'
+      });
+    }
+
+    console.log('✅ Token válido para usuário ID:', validToken.usuario_id);
+    res.json({
+      success: true,
+      message: 'Token válido'
+    });
+  } catch (error) {
+    console.error('❌ Erro ao verificar token:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao verificar token.'
+    });
+  }
+});
+
+// Redefinir senha
+app.post('/auth/reset-password', async (req, res) => {
+  try {
+    const { token, novaSenha } = req.body;
+
+    if (!token || !novaSenha) {
+      return res.status(400).json({
+        success: false,
+        error: 'Token e nova senha são obrigatórios.'
+      });
+    }
+
+    // Procurar tokens válidos
+    const resetTokens = await RedefinicaoSenha.findAll({
+      where: {
+        expira_em: { [Op.gt]: new Date() },
+        usado_em: null
+      }
+    });
+
+    // Verificar contra cada token
+    let validToken = null;
+    for (const rt of resetTokens) {
+      const isMatch = await bcrypt.compare(token, rt.hash_token);
+      if (isMatch) {
+        validToken = rt;
+        break;
+      }
+    }
+
+    if (!validToken) {
+      console.log('❌ Token inválido ou expirado para reset');
+      return res.status(401).json({
+        success: false,
+        error: 'Token inválido ou expirado.'
+      });
+    }
+
+    // Atualizar senha do usuário
+    const hashedPassword = await bcrypt.hash(novaSenha, 10);
+    await Usuario.update(
+      { password: hashedPassword },
+      { where: { id: validToken.usuario_id } }
+    );
+
+    // Marcar token como usado
+    await validToken.update({ usado_em: new Date() });
+
+    console.log('✅ Senha redefinida para usuário ID:', validToken.usuario_id);
+
+    res.json({
+      success: true,
+      message: 'Senha redefinida com sucesso.'
+    });
+  } catch (error) {
+    console.error('❌ Erro ao redefinir senha:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao redefinir senha.'
     });
   }
 });
@@ -1234,6 +1490,49 @@ app.get('/torneios/:id/questoes/ingles', async (req, res) => {
     });
     res.json({ success: true, data: questoes });
   } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Obter top 3 vencedores de uma disciplina específica
+app.get('/torneios/:id/top3/:disciplina', async (req, res) => {
+  try {
+    const { id, disciplina } = req.params;
+
+    const top3 = await ParticipanteTorneio.findAll({
+      where: {
+        torneio_id: id,
+        disciplina_competida: disciplina,
+        status: 'confirmado'
+      },
+      include: [
+        {
+          model: Usuario,
+          as: 'usuario',
+          attributes: ['id', 'nome', 'imagem', 'email']
+        }
+      ],
+      order: [
+        ['pontuacao', 'DESC'],
+        ['tempo_total', 'ASC']
+      ],
+      limit: 3
+    });
+
+    const vencedores = top3.map((p, index) => ({
+      posicao: index + 1,
+      usuario_id: p.usuario_id,
+      nome: p.usuario?.nome || 'Participante',
+      imagem: p.usuario?.imagem,
+      pontuacao: p.pontuacao,
+      tempo: p.tempo_total,
+      disciplina: disciplina,
+      medal: ['🥇', '🥈', '🥉'][index]
+    }));
+
+    res.json({ success: true, data: vencedores });
+  } catch (error) {
+    console.error('❌ Erro ao buscar top 3:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

@@ -36,9 +36,14 @@ const TentativaTeste = sequelize.define('TentativaTeste', {
     type: DataTypes.INTEGER,
     allowNull: true,
   },
+  deletedAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
 }, {
   tableName: 'tentativas_teste',
-  timestamps: false,
+  timestamps: true,
+  paranoid: true,
   indexes: [
     { fields: ['usuario_id'] },
   ],

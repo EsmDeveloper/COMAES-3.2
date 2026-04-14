@@ -177,9 +177,8 @@ function NewsCard({ id, category, title, excerpt, author, date, readTime, views,
             <button style={{ 
               display: 'flex', alignItems: 'center', gap: 5,
               fontSize: 13, fontWeight: 600, color: t.primary,
-              background: 'none', border: 'none', cursor: 'pointer',
+              background: t.primarySoft, border: 'none', cursor: 'pointer',
               padding: '4px 10px', borderRadius: 8,
-              background: t.primarySoft,
               transition: 'opacity 0.15s',
              }}>
               Ler <ExternalLink size={12}/>

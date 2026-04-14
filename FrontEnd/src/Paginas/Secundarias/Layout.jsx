@@ -174,12 +174,12 @@ export default function Layout({ children }) {
                     ? <img src={user.avatar} alt="avatar" className="w-8 h-8 rounded-full object-cover ring-1 ring-white/20" />
                     : (
                       <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                        {(user.username || user.name || "U")[0].toUpperCase()}
+                        {(user.name || user.username || "U")[0].toUpperCase()}
                       </div>
                     )
                   }
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{user.username || user.name || "Usuário"}</p>
+                    <p className="text-sm font-medium text-white truncate">{user.name || user.username || "Usuário"}</p>
                     <p className="text-xs text-gray-400 truncate">{user.email || ""}</p>
                   </div>
                   <button
@@ -287,7 +287,7 @@ export default function Layout({ children }) {
                   className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-blue-500 text-white hover:bg-blue-400 transition-all duration-150"
                 >
                   <span className="hidden sm:block text-sm font-medium">
-                    {user.username || user.name || "Usuário"}
+                    {user.name || user.username || "Usuário"}
                   </span>
                   {user.avatar
                     ? <img src={user.avatar} alt="avatar" className="w-7 h-7 rounded-full object-cover" />
@@ -307,7 +307,7 @@ export default function Layout({ children }) {
                     >
                       <div className="px-4 py-3 border-b border-gray-200">
                         <p className="text-sm font-semibold text-gray-800 truncate">
-                          {user.fullName || user.name || user.username}
+                          {user.name || user.fullName || user.username}
                         </p>
                         <p className="text-xs text-gray-600 truncate mt-0.5">{user.email || ""}</p>
                       </div>
