@@ -2,31 +2,98 @@ import fetch from 'node-fetch';
 
 const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
 
+/**
+ * Mapeia o nível de dificuldade para pontuação máxima
+ * Fácil: 5 pontos, Médio: 10 pontos, Difícil: 20 pontos
+ */
 const nivelMax = (nivel) => {
   if (!nivel) return 0;
-  const n = nivel.toLowerCase();
+  const n = nivel.toLowerCase().trim();
   if (n === 'facil' || n === 'fácil') return 5;
-  if (n === 'medio' || n === 'médio' || n === 'medio') return 10;
+  if (n === 'medio' || n === 'médio') return 10;
   if (n === 'dificil' || n === 'difícil') return 20;
   return 0;
 };
 
+/**
+ * Constrói o prompt do sistema específico para cada disciplina
+ * com os critérios rigorosos definidos nas regras
+ */
 const buildSystemPrompt = (disciplina) => {
-  if (disciplina === 'Matemática' || disciplina === 'matematica' || disciplina === 'matemática') {
-    return `Você é um Professor de Matemática que avalia respostas passo-a-passo. Para cada par pergunta/resposta devolva um objeto JSON com: {pergunta_id, score, pontos, feedback, evidencias}. score entre 0 e 1. Pontos são calculados em função do nível: fácil até 5, médio até 10, difícil até 20. Só conceda pontuação máxima quando a resolução estiver completa, com passos, fórmulas e cálculos corretos.`;
+  const normDisciplina = (disciplina || '').toLowerCase();
+
+  if (/matem/i.test(normDisciplina)) {
+    return `Você é um avaliador RIGOROSO de Matemática. Suas regras de avaliação OBRIGATÓRIAS são:
+
+1. RESPOSTA TOTALMENTE CORRETA: score 1.0 APENAS se:
+   - O resultado final estiver 100% correto
+   - TODOS os passos intermediários estiverem corretos
+   - Todos os cálculos, fórmulas e lógica estão claros
+
+2. RESPOSTA COM ERRO: score parcial APENAS se:
+   - Houver PELO MENOS um passo intermediário correto que demonstre compreensão
+   - Identifique precisamente quais passos estão certos e quais errados
+   - Calcule score proporcional aos passos corretos
+
+3. RESPOSTA TOTALMENTE ERRADA OU FORA DE CONTEXTO: score 0.0
+
+IMPORTANTE: NUNCA base sua avaliação no tamanho do texto. Ignore completamente o comprimento.
+Retorne APENAS um JSON válido com: {pergunta_id, score, pontos, feedback, passos_corretos, passos_totais, evidencias}.
+score entre 0 e 1. feedback deve explicar quais passos estão certos/errados.`;
   }
-  if (disciplina === 'Programação' || disciplina === 'programacao' || disciplina === 'programação') {
-    return `Você é um Professor de Programação que avalia soluções em JavaScript/Python. Avalie correção, clareza, eficiência e proibição de hard-coded. Retorne JSON com: {pergunta_id, score, pontos, feedback, evidencias}. score entre 0 e 1. Máximo somente com algoritmo completo, testes descritos e sem respostas hard-coded.`;
+
+  if (/programa/i.test(normDisciplina)) {
+    return `Você é um avaliador RIGOROSO de Programação. Suas regras de avaliação OBRIGATÓRIAS são:
+
+1. RESPOSTA TOTALMENTE CORRETA: score 1.0 APENAS se:
+   - O algoritmo resolve CORRETAMENTE o problema proposto
+   - Todos os passos da lógica (entrada, processamento, saída) estão corretos
+   - Estruturas de controle estão bem formuladas
+   - NUNCA há hard-coded ou respostas pré-definidas
+   - A solução é geral, não específica para um caso
+
+2. RESPOSTA COM ERRO: score parcial APENAS se:
+   - Houver PELO MENOS um passo lógico correto (ex: leitura correta de dados, loop bem estruturado)
+   - A lógica final esteja incorreta
+   - Identifique precisamente quais componentes funcionam e quais falham
+
+3. RESPOSTA TOTALMENTE ERRADA OU FORA DE CONTEXTO: score 0.0
+
+IMPORTANTE: NUNCA base sua avaliação no tamanho do código. Ignore completamente o comprimento.
+Retorne APENAS um JSON válido com: {pergunta_id, score, pontos, feedback, componentes_corretos, componentes_totais, evidencias}.
+score entre 0 e 1. feedback deve explicar quais componentes funcionam/falham.`;
   }
+
   // Inglês
-  return `Você é um Professor de Inglês. Avalie gramática, ortografia, coesão, vocabulário e coerência do texto. Retorne JSON: {pergunta_id, score, pontos, feedback, evidencias}. score entre 0 e 1. Pontos baseados no nível (fácil 5 / médio 10 / difícil 20).`;
+  return `Você é um avaliador RIGOROSO de Inglês. Suas regras de avaliação OBRIGATÓRIAS são:
+
+1. RESPOSTA TOTALMENTE CORRETA: score 1.0 APENAS se:
+   - Redação gramaticalmente correta
+   - Atende perfeitamente ao solicitado (tema, estrutura, coesão)
+   - Todos os argumentos/passos estão corretos e claros
+   - Vocabulário apropriado
+
+2. RESPOSTA COM ERRO: score parcial APENAS se:
+   - Apresenta PELO MENOS um trecho coerente e relevante
+   - Demonstra compreensão do tema
+   - Tem erros gramaticais/estruturais mas com conteúdo válido
+   - Identifique precisamente quais partes estão corretas
+
+3. RESPOSTA TOTALMENTE ERRADA OU FORA DE CONTEXTO: score 0.0
+
+IMPORTANTE: NUNCA base sua avaliação no número de palavras. Ignore completamente o tamanho da resposta.
+Retorne APENAS um JSON válido com: {pergunta_id, score, pontos, feedback, trechos_corretos, total_trechos, evidencias}.
+score entre 0 e 1. feedback deve explicar quais partes funcionam/falham.`;
 };
 
-async function callOpenAI(messages, model = 'gpt-3.5-turbo') {
+/**
+ * Chama a API do OpenAI com retry
+ */
+async function callOpenAI(messages, model = 'gpt-4-turbo') {
   const key = process.env.OPENAI_API_KEY;
   if (!key) throw new Error('OPENAI_API_KEY não definido');
 
-  const body = { model, messages, temperature: 0 };
+  const body = { model, messages, temperature: 0, max_tokens: 1000 };
 
   const resp = await fetch(OPENAI_URL, {
     method: 'POST',
@@ -48,72 +115,80 @@ async function callOpenAI(messages, model = 'gpt-3.5-turbo') {
 export async function evaluate(disciplina, items) {
   // items: [{ pergunta_id, texto, resposta, nivel }]
   if (!items || items.length === 0) return [];
-  // Fallback rápido quando não há chave OpenAI: heurística local
+
+  // Fallback rápido quando não há chave OpenAI: retornar zeros
   if (!process.env.OPENAI_API_KEY) {
+    console.warn('OPENAI_API_KEY não definido. Retornando zeros (sem IA disponível)');
     return items.map(it => {
-      const text = (it.resposta || '').toString();
-      const len = text.length;
       const nivel = it.nivel || 'facil';
       const maxP = nivelMax(nivel);
-
-      let score = 0;
-      if (/matem/i.test(disciplina)) {
-        // procura por passos ou símbolos matemáticos
-        const passos = /passo|\+|\-|\*|\/|=|\d+/i.test(text) ? 1 : 0;
-        score = Math.min(1, Math.max(0, (len / 300) + passos * 0.3));
-      } else if (/programa/i.test(disciplina)) {
-        const keywords = /(for|while|return|function|def|if|else|console\.log|print)\b/i.test(text) ? 1 : 0;
-        score = Math.min(1, Math.max(0, (len / 500) + keywords * 0.4));
-      } else {
-        // inglês
-        const words = (text.split(/\s+/).filter(Boolean) || []).length;
-        score = Math.min(1, Math.max(0, (words / 200)));
-      }
-
-      const pontos = Math.round(score * maxP * 100) / 100;
-      return { pergunta_id: it.pergunta_id, score, pontos, feedback: 'Avaliação heurística (sem chave OpenAI)', evidencias: '' };
+      return {
+        pergunta_id: it.pergunta_id,
+        score: 0,
+        pontos: 0,
+        feedback: 'Sem chave OpenAI configurada - avaliação não disponível',
+        evidencias: ''
+      };
     });
   }
 
   const system = buildSystemPrompt(disciplina);
-  const userContent = items.map(it => `ID:${it.pergunta_id}\nNIVEL:${it.nivel}\nQ:${it.texto}\nR:${it.resposta}`).join('\n---\n');
+  
+  // Construir conteúdo do usuário com informações detalhadas
+  const userContent = items
+    .map(it => {
+      return `ID:${it.pergunta_id}\nDificuldade:${it.nivel || 'facil'}\nEnunciado:\n${it.texto}\n\nResposta do aluno:\n${it.resposta}`;
+    })
+    .join('\n\n---\n\n');
 
   const messages = [
     { role: 'system', content: system },
-    { role: 'user', content: `Avalie os pares abaixo e responda SOMENTE com um JSON válido — um array de objetos — contendo para cada item: pergunta_id (número), score (0..1), pontos (número), feedback (string curta), evidencias (string opcional).\nRegras de pontuação: fácil até 5; médio até 10; difícil até 20. Pontuação máxima somente quando houver resolução passo-a-passo (Matemática) ou implementação completa sem hard-coded (Programação) ou texto completamente correto (Inglês).\nDados:\n${userContent}` }
+    {
+      role: 'user',
+      content: `Avalie rigorosamente as respostas abaixo. Responda SOMENTE com um JSON array válido contendo para cada resposta:
+{
+  "pergunta_id": <número>,
+  "score": <0-1>,
+  "pontos": <calculado>,
+  "feedback": <string explicativa>,
+  "evidencias": <detalhes técnicos>
+}
+
+Pontuação por nível: fácil até 5; médio até 10; difícil até 20.
+REGRA CRÍTICA: Resposta completamente correta com todos os passos = 100%. Resposta errada mas com passos corretos = parcial. Resposta totalmente errada = 0.
+NÃO avalie baseado no tamanho. Avalie APENAS qualidade e correção.
+
+Dados a avaliar:
+${userContent}`
+    }
   ];
 
   let text = null;
   try {
-    text = await callOpenAI(messages, process.env.OPENAI_MODEL || 'gpt-3.5-turbo');
+    text = await callOpenAI(messages, process.env.OPENAI_MODEL || 'gpt-4-turbo');
   } catch (err) {
-    // Tentar com fallback
-    try { text = await callOpenAI(messages, 'gpt-3.5-turbo'); } catch (e) { throw err; }
+    console.error('Erro ao chamar OpenAI:', err.message);
+    // Fallback para modelo mais barato se gpt-4 falhar
+    try {
+      text = await callOpenAI(messages, 'gpt-3.5-turbo');
+    } catch (e) {
+      throw new Error(`Erro ao avaliar com IA: ${err.message}`);
+    }
   }
 
-  // Se text for null/undefined, usar heurística local para evitar erro ao chamar match
+  // Se text for null/undefined, usar fallback
   if (!text) {
-    console.warn('Resposta vazia da OpenAI — usando heurística local (fallback)');
+    console.warn('Resposta vazia da OpenAI — retornando zeros');
     return items.map(it => {
-      const t = (it.resposta || '').toString();
-      const len = t.length;
       const nivel = it.nivel || 'facil';
       const maxP = nivelMax(nivel);
-
-      let score = 0;
-      if (/matem/i.test(disciplina)) {
-        const passos = /passo|\+|\-|\*|\/|=|\d+/i.test(t) ? 1 : 0;
-        score = Math.min(1, Math.max(0, (len / 300) + passos * 0.3));
-      } else if (/programa/i.test(disciplina)) {
-        const keywords = /(for|while|return|function|def|if|else|console\.log|print)\b/i.test(t) ? 1 : 0;
-        score = Math.min(1, Math.max(0, (len / 500) + keywords * 0.4));
-      } else {
-        const words = (t.split(/\s+/).filter(Boolean) || []).length;
-        score = Math.min(1, Math.max(0, (words / 200)));
-      }
-
-      const pontos = Math.round(score * maxP * 100) / 100;
-      return { pergunta_id: it.pergunta_id, score, pontos, feedback: 'Avaliação heurística (fallback)', evidencias: '' };
+      return {
+        pergunta_id: it.pergunta_id,
+        score: 0,
+        pontos: 0,
+        feedback: 'Erro ao conectar com IA - sem avaliação disponível',
+        evidencias: ''
+      };
     });
   }
 
@@ -128,8 +203,14 @@ export async function evaluate(disciplina, items) {
     const lastBracket = text.lastIndexOf(']');
     if (firstBracket >= 0 && lastBracket > firstBracket) {
       const substr = text.slice(firstBracket, lastBracket + 1);
-      parsed = JSON.parse(substr);
+      try {
+        parsed = JSON.parse(substr);
+      } catch (e) {
+        console.error('Erro ao parsear JSON da IA:', e.message, 'Texto:', text.substring(0, 200));
+        throw new Error('Não foi possível parsear JSON da resposta da IA');
+      }
     } else {
+      console.error('Erro ao encontrar JSON na resposta:', text.substring(0, 200));
       throw new Error('Não foi possível parsear JSON da resposta da IA');
     }
   }
@@ -137,16 +218,17 @@ export async function evaluate(disciplina, items) {
   // Garantir estrutura e calcular pontos se necessário
   return (parsed || []).map(it => {
     const pid = it.pergunta_id || it.id || null;
-    const score = Number(it.score || 0);
+    const score = Math.max(0, Math.min(1, Number(it.score || 0)));
     const nivel = (items.find(x => Number(x.pergunta_id) === Number(pid)) || {}).nivel || 'facil';
     const maxP = nivelMax(nivel);
     const pontos = typeof it.pontos === 'number' ? it.pontos : Math.round(score * maxP * 100) / 100;
+    
     return {
       pergunta_id: pid,
-      score: Math.max(0, Math.min(1, score)),
-      pontos,
-      feedback: it.feedback || it.comentario || '',
-      evidencias: it.evidencias || ''
+      score: score,
+      pontos: Math.round(pontos * 100) / 100,
+      feedback: (it.feedback || it.comentario || '').toString(),
+      evidencias: (it.evidencias || '').toString()
     };
   });
 }

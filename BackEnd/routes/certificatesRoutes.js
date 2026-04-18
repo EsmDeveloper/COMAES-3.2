@@ -35,13 +35,20 @@ router.get('/preview/:tournamentId', async (req, res) => {
     const { tournamentId } = req.params;
     const { userId, disciplina } = req.query;
 
+    console.log('📥 Requisição de preview recebida:', { tournamentId, userId, disciplina });
+
     if (!userId || !disciplina) {
+      console.warn('❌ Parâmetros faltando:', { userId, disciplina });
       return res.status(400).json({ success: false, error: 'User ID and disciplina are required' });
     }
 
+    console.log('🔄 Chamando generateCertificate...');
     const result = await generateCertificate({ userId, tournamentId, disciplina });
 
+    console.log('📊 Resultado:', result);
+
     if (result.success) {
+      console.log('✅ Certificado gerado com sucesso');
       res.json({
         success: true,
         certificateURL: result.certificateURL,
@@ -50,10 +57,11 @@ router.get('/preview/:tournamentId', async (req, res) => {
         disciplina
       });
     } else {
+      console.warn('⚠️  Falha ao gerar certificado:', result.error);
       res.status(400).json(result);
     }
   } catch (error) {
-    console.error('Error getting certificate preview:', error);
+    console.error('❌ Erro na rota preview:', error.message, error.stack);
     res.status(500).json({ success: false, error: error.message });
   }
 });

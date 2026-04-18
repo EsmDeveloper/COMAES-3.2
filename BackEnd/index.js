@@ -27,9 +27,12 @@ import TicketSuporte from "./models/TicketSuporte.js";
 import Notificacao from "./models/Notificacao.js";
 import Conquista from "./models/Conquista.js";
 import ConquistaUsuario from "./models/ConquistaUsuario.js";
+import Certificate from "./models/Certificate.js";
+import Certificado from "./models/Certificado.js";
 import iaEvaluators from './services/iaEvaluators.js';
 import adminPanelRoutes from './routes/adminPanelRoutes.js';
 import certificatesRoutes from './routes/certificatesRoutes.js';
+import certificadosRoutes from './routes/certificadosRoutes.js';
 import { sendResetEmail, sendWelcomeEmail } from './services/emailService.js';
 
 dotenv.config();
@@ -148,6 +151,14 @@ const setupAssociations = () => {
   // ConquistaUsuario <-> Usuario (concedido_por)
   Usuario.hasMany(ConquistaUsuario, { foreignKey: 'concedido_por', as: 'conquistasConcedidas' });
   ConquistaUsuario.belongsTo(Usuario, { foreignKey: 'concedido_por', as: 'concedidoPor', onDelete: 'SET NULL' });
+
+  // Certificate <-> Usuario
+  Usuario.hasMany(Certificate, { foreignKey: 'user_id', as: 'certificates' });
+  Certificate.belongsTo(Usuario, { foreignKey: 'user_id', as: 'user' });
+
+  // Certificate <-> Torneio
+  Torneio.hasMany(Certificate, { foreignKey: 'tournament_id', as: 'certificates' });
+  Certificate.belongsTo(Torneio, { foreignKey: 'tournament_id', as: 'tournament' });
 };
 
 // ===== ROTAS PÚBLICAS =====
@@ -166,6 +177,9 @@ app.use('/api/admin', adminPanelRoutes);
 
 // Registrar rotas de certificados
 app.use('/api/certificates', certificatesRoutes);
+
+// Registrar rotas de certificados novos
+app.use('/api/certificados', certificadosRoutes);
 
 app.get("/health", async (req, res) => {
   try {
@@ -1361,6 +1375,49 @@ app.put('/usuarios/:id/configuracao', async (req, res) => {
   }
 });
 
+// Alterar senha do usuário logado
+app.post('/auth/alterar-senha', async (req, res) => {
+  try {
+    const auth = req.headers.authorization || '';
+    const token = auth.split(' ')[1];
+
+    if (!token) return res.status(401).json({ success: false, error: 'Token ausente.' });
+
+    let payload;
+    try {
+      payload = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    } catch (err) {
+      return res.status(401).json({ success: false, error: 'Token inválido.' });
+    }
+
+    const { senhaAtual, novaSenha } = req.body;
+
+    if (!senhaAtual || !novaSenha) {
+      return res.status(400).json({ success: false, error: 'Senha atual e nova senha são obrigatórias.' });
+    }
+
+    if (novaSenha.length < 6) {
+      return res.status(400).json({ success: false, error: 'A nova senha deve ter pelo menos 6 caracteres.' });
+    }
+
+    const usuario = await Usuario.findByPk(payload.id);
+    if (!usuario) return res.status(404).json({ success: false, error: 'Usuário não encontrado.' });
+
+    const match = await bcrypt.compare(senhaAtual, usuario.password);
+    if (!match) {
+      return res.status(400).json({ success: false, error: 'Senha atual incorreta.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(novaSenha, 10);
+    await Usuario.update({ password: hashedPassword }, { where: { id: payload.id } });
+
+    res.json({ success: true, message: 'Senha alterada com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao alterar senha:', error);
+    res.status(500).json({ success: false, error: 'Erro ao alterar senha.' });
+  }
+});
+
 // Participações do usuário em torneios
 app.get('/usuarios/:id/participacoes', async (req, res) => {
   try {
@@ -1570,6 +1627,54 @@ app.get('/noticias', async (req, res) => {
   }
 });
 
+// ===== ROTAS DE FINALIZAÇÃO DE TORNEIO E GERAÇÃO DE CERTIFICADOS =====
+app.post('/api/torneios/:id/finalizar', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { disciplinas } = req.body; // Array de disciplinas a finalizar
+
+    const torneio = await Torneio.findByPk(id);
+    if (!torneio) {
+      return res.status(404).json({ success: false, error: 'Torneio não encontrado' });
+    }
+
+    // Marcar torneio como finalizado
+    torneio.status = 'finalizado';
+    torneio.ativo = false;
+    await torneio.save();
+
+    console.log(`🏆 Torneio ${torneio.titulo} (ID: ${id}) marcado como finalizado`);
+
+    // Gerar certificados para cada disciplina
+    const certificados = [];
+    const { generateCertificatesForTournament } = await import('./certificates/generator/generateCertificado.js');
+
+    if (disciplinas && Array.isArray(disciplinas)) {
+      for (const disciplina of disciplinas) {
+        try {
+          const result = await generateCertificatesForTournament(id, disciplina);
+          if (result.success) {
+            certificados.push(...result.data);
+            console.log(`✅ Certificados gerados para ${disciplina}: ${result.data.length} certificados`);
+          }
+        } catch (err) {
+          console.error(`❌ Erro ao gerar certificados para ${disciplina}:`, err.message);
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Torneio finalizado com sucesso',
+      torneio: torneio.toJSON(),
+      certificados: certificados
+    });
+  } catch (error) {
+    console.error('Erro ao finalizar torneio:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // ===== INICIALIZAÇÃO =====
 async function startServer() {
   try {
@@ -1585,7 +1690,7 @@ async function startServer() {
         setupAssociations();
 
         // Sincronizar modelos
-        await sequelize.sync({ alter: true });
+        await sequelize.sync({ alter: false });
         console.log("✅ Modelos sincronizados!");
       } else {
         console.warn('⚠️ Banco de dados indisponível — iniciando em modo degradado (sem sincronização)');
