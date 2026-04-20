@@ -1,58 +1,10 @@
-// BackEnd/certificates/generator/generateCertificado.js
-import puppeteer from 'puppeteer';
-import path from 'path';
-import fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
-import Certificado from '../../models/Certificado.js';
-import Usuario from '../../models/User.js';
-import Torneio from '../../models/Torneio.js';
-import { fileURLToPath } from 'url';
-import QRCode from 'qrcode';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Função para gerar QR Code
-async function generateQRCode(text) {
-  try {
-    return await QRCode.toDataURL(text);
-  } catch (err) {
-    console.error('Erro ao gerar QR code:', err);
-    return null;
-  }
-}
-
-/// Retorna sufixo para posição
-function getRankSuffix(pos) {
-  return pos + "º LUGAR";
-}
-
-// Template HTML do novo certificado
-async function getCertificateHTML(data) {
-  const {
-    userName,
-    position,
-    score,
-    disciplina,
-    certificateCode,
-    date,
-    qrCode,
-    totalParticipantes,
-    percentil,
-    tournamentName
-  } = data;
-
-  const rankText = getRankSuffix(position);
-  // Repeating COMAES text for watermark
-  const watermarkText = Array(400).fill('COMAES').join(' &nbsp; ');
-
-  return `
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Certificado COMAES - ${userName}</title>
+    <title>Certificado COMAES - ESMÊNIO MANUEL</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&display=swap');
 
@@ -365,7 +317,7 @@ async function getCertificateHTML(data) {
 <body>
     <div class="certificate">
         <div class="cert-watermark">
-            ${watermarkText}
+            COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES &nbsp; COMAES
         </div>
 
         <div class="cert-outer-border"></div>
@@ -385,24 +337,24 @@ async function getCertificateHTML(data) {
             
             <div class="cert-body">
                 <div class="cert-intro">A Plataforma COMAES certifica que, em Luanda,</div>
-                <div class="cert-name">${userName}</div>
+                <div class="cert-name">ESMÊNIO MANUEL</div>
                 <div class="cert-achievement">
-                    Alcançou o <strong>${rankText}</strong> no ${tournamentName}.
+                    Alcançou o <strong>1º LUGAR</strong> no Torneio Académico COMAES 2026.
                 </div>
                 
                 <div class="cert-divider"></div>
                 
                 <div class="cert-stats">
-                    <p>Total de Participantes: ${totalParticipantes}</p>
-                    <p>Pontuação Final: ${score}%</p>
-                    <p>Percentil: ${percentil}º (Melhor Desempenho)</p>
+                    <p>Total de Participantes: 187</p>
+                    <p>Pontuação Final: 96%</p>
+                    <p>Percentil: 99,5º (Melhor Desempenho)</p>
                 </div>
                 
-                <div class="cert-date">Emitido aos ${date}.</div>
+                <div class="cert-date">Emitido aos 17 de abril de 2026.</div>
             </div>
 
             <div class="cert-signature-block">
-                <img src="${qrCode}" alt="QR Code" class="cert-qr" />
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="QR Code" class="cert-qr" />
                 
                 <div class="cert-signature">
                     <div class="cert-signature-line"></div>
@@ -413,220 +365,9 @@ async function getCertificateHTML(data) {
         </div>
 
         <div class="cert-footer-bar">
-            <p>Código de Verificação: <strong>${certificateCode}</strong> | Validar em: <em>plataformacomaes.com/validar</em></p>
+            <p>Código de Verificação: <strong>CERT-7F3A-92D1-1234</strong> | Validar em: <em>plataformacomaes.com/validar</em></p>
         </div>
     </div>
 </body>
 </html>
-  `;
-}
-
-/**
- * Gera um certificado para um participante
- */
-export async function generateCertificate(torneioId, usuarioId, disciplina, posicao, pontuacao, totalParticipantesProp = null) {
-  try {
-    console.log(`[CERTIFICADO] Iniciando geração para: ${usuarioId}, Posição: ${posicao}`);
-
-    // Buscar dados
-    const usuario = await Usuario.findByPk(usuarioId);
-    const torneio = await Torneio.findByPk(torneioId);
-
-    if (!usuario || !torneio) {
-      throw new Error('Utilizador ou torneio não encontrado');
-    }
-
-    let totalParticipants = totalParticipantesProp;
-
-    // Calcular o total de participantes se não for fornecido
-    if (!totalParticipants) {
-      if (typeof sequelize !== 'undefined' && sequelize.query) {
-        try {
-            const [{ total }] = await sequelize.query(`
-              SELECT COUNT(*) as total 
-              FROM participante_torneios 
-              WHERE torneio_id = :torneioId 
-              AND disciplina_competida = :disciplina 
-              AND status = 'confirmado'
-            `, { 
-              replacements: { torneioId, disciplina },
-              type: sequelize.QueryTypes.SELECT 
-            });
-            totalParticipants = total || 1;
-        } catch(e) {
-            totalParticipants = 1;
-        }
-      } else {
-        totalParticipants = 1;
-      }
-    }
-
-    // Calcular o percentil
-    const numBetterOrEqual = posicao;
-    const numLower = totalParticipants - numBetterOrEqual;
-    let percentileCalc = 100;
-    
-    if (totalParticipants > 1) {
-       percentileCalc = (numLower / (totalParticipants - 1)) * 100;
-    }
-    const percentilStr = percentileCalc.toLocaleString('pt-PT', { maximumFractionDigits: 1 });
-
-    // Gerar código único
-    const codigoCertificado = 'CERT-' + torneioId + '-' + usuarioId + '-' + Date.now().toString().slice(-4) + '-' + uuidv4().substring(0, 4).toUpperCase();
-
-    // Gerar QR code com link de validação
-    const qrData = 'https://comaes.pt/validar-certificado/' + codigoCertificado;
-    const qrCode = await generateQRCode(qrData);
-
-    // Preparar dados
-    const meses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-    const d = new Date();
-    const dataFormatada = `${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
-
-    const htmlData = {
-      userName: usuario.nome || 'Participante',
-      tournamentName: torneio.titulo || 'Torneio COMAES',
-      position: posicao,
-      score: Math.round(pontuacao),
-      disciplina: disciplina,
-      certificateCode: codigoCertificado,
-      date: dataFormatada,
-      qrCode: qrCode,
-      totalParticipantes: totalParticipants,
-      percentil: percentilStr
-    };
-
-    // Gerar HTML
-    const htmlContent = await getCertificateHTML(htmlData);
-
-    // Criar pasta se não existir
-    const uploadsDir = path.join(__dirname, '../../uploads/certificados');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-
-    // Gerar PDF com Puppeteer
-    const browser = await puppeteer.launch({
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-
-    const page = await browser.newPage();
-    // clean duplicates
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-    await page.setViewport({ width: 1123, height: 794 });
-
-    const fileName = 'certificado_' + usuarioId + '_' + posicao + '_' + Date.now() + '.pdf';
-    const filePath = path.join(uploadsDir, fileName);
-
-    await page.pdf({
-      path: filePath,
-      format: 'A4',
-      landscape: true,
-      printBackground: true,
-      margin: { top: 0, right: 0, bottom: 0, left: 0 }
-    });
-
-    await browser.close();
-
-    // Salvar no banco de dados
-    const medalTipo = posicao === 1 ? 'Ouro' : (posicao === 2 ? 'Prata' : 'Bronze');
-    const certificado = await Certificado.create({
-      torneio_id: torneioId,
-      usuario_id: usuarioId,
-      disciplina: disciplina,
-      posicao: posicao,
-      pontuacao: pontuacao,
-      codigo_certificado: codigoCertificado,
-      url_certificado: '/uploads/certificados/' + fileName,
-      tipo_medalha: medalTipo,
-      status: 'gerado',
-      metadata: {
-        qrData: qrData,
-        generatedAt: new Date().toISOString()
-      }
-    });
-
-    console.log('[CERTIFICADO] ✅ Certificado gerado com sucesso: ' + codigoCertificado);
-
-    return {
-      success: true,
-      certificado: certificado.toJSON(),
-      url: '/uploads/certificados/' + fileName,
-      code: codigoCertificado
-    };
-
-  } catch (error) {
-    console.error('[CERTIFICADO] ❌ Erro ao gerar certificado:', error.message);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
-
-/**
- * Gera certificados para os 3 primeiros colocados de um torneio
- */
-export async function generateCertificatesForTournament(torneioId, disciplina) {
-  try {
-    console.log('[CERTIFICADOS] Gerando certificados para torneio ' + torneioId + ', disciplina: ' + disciplina);
-
-    // Buscar os 3 primeiros colocados
-    const topParticipants = await sequelize.query('SELECT pt.id, pt.usuario_id, pt.pontuacao, pt.casos_resolvidos FROM participante_torneios pt WHERE pt.torneio_id = ' + torneioId + ' AND pt.disciplina_competida = \'' + disciplina + '\' AND pt.status = \'confirmado\' ORDER BY pt.pontuacao DESC LIMIT 3', { type: sequelize.QueryTypes.SELECT });
-
-    if (topParticipants.length === 0) {
-      console.warn('[CERTIFICADOS] ⚠️ Nenhum participante encontrado');
-      return { success: false, message: 'Nenhum participante encontrado' };
-    }
-
-    const [{ total }] = await sequelize.query(`
-      SELECT COUNT(*) as total 
-      FROM participante_torneios 
-      WHERE torneio_id = :torneioId 
-      AND disciplina_competida = :disciplina 
-      AND status = 'confirmado'
-    `, { 
-      replacements: { torneioId, disciplina },
-      type: sequelize.QueryTypes.SELECT 
-    });
-
-    const results = [];
-    for (let i = 0; i < topParticipants.length; i++) {
-      const participant = topParticipants[i];
-      const position = i + 1;
-
-      const result = await generateCertificate(
-        torneioId,
-        participant.usuario_id,
-        disciplina,
-        position,
-        participant.pontuacao,
-        total // pass count
-      );
-
-      results.push(result);
-    }
-
-    console.log('[CERTIFICADOS] ✅ Gerados ' + results.length + ' certificados com sucesso');
-
-    return {
-      success: true,
-      certificatesGenerated: results.length,
-      details: results
-    };
-
-  } catch (error) {
-    console.error('[CERTIFICADOS] ❌ Erro ao gerar certificados:', error.message);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
-
-export default {
-  generateCertificate,
-  generateCertificatesForTournament,
-  getCertificateHTML
-};
+  

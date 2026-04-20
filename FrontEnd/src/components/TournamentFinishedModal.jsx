@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaTrophy, FaMedal, FaAward, FaTimes, FaCrown, FaEye, FaDownload, FaChevronRight } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import CertificateViewer from './certificates/CertificateViewer';
+import { useAuth } from '../context/AuthContext';
 import logotipo from '../assets/logotipo.png';
 
 export default function TournamentFinishedModal({
@@ -13,12 +13,11 @@ export default function TournamentFinishedModal({
   onCertificateGenerated
 }) {
   const [showModal, setShowModal] = useState(isOpen);
-  const [showCertificate, setShowCertificate] = useState(false);
-  const [certificateData, setCertificateData] = useState(null);
   const [isGeneratingCertificate, setIsGeneratingCertificate] = useState(false);
   const [top3Winners, setTop3Winners] = useState([]);
   const [loadingWinners, setLoadingWinners] = useState(false);
   const navigate = useNavigate();
+  const { token } = useAuth();
 
   useEffect(() => {
     setShowModal(isOpen);
@@ -72,39 +71,58 @@ export default function TournamentFinishedModal({
 
     setIsGeneratingCertificate(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/certificates/preview/${tournament.id}?userId=${userParticipation.usuario_id}&disciplina=${userParticipation.disciplina_competida}`);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/certificates/generate`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: token ? `Bearer ${token}` : ''
+          },
+          body: JSON.stringify({
+            tournamentId: tournament.id,
+            disciplina: userParticipation.disciplina_competida,
+          }),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
-        setCertificateData({
-          certificateURL: data.certificateURL,
-          certificateCode: data.certificateCode,
-          userName: userParticipation.usuario?.nome || 'Participante',
-          tournamentName: tournament.titulo,
-          disciplina: userParticipation.disciplina_competida,
-          position: userParticipation.posicao,
-          score: userParticipation.pontuacao
-        });
-        setShowCertificate(true);
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        const pdfUrl = data?.certificateURL?.startsWith('http')
+          ? data.certificateURL
+          : `${baseUrl}${data.certificateURL}`;
+        if (!pdfUrl) {
+          alert('PDF do certificado nao retornado pelo servidor.');
+          return;
+        }
+
+        const link = document.createElement('a');
+        link.href = pdfUrl;
+        link.download = `certificado-${userParticipation.disciplina_competida}-${userParticipation.usuario?.nome || 'participante'}.pdf`;
+        link.target = '_blank';
+        link.click();
 
         if (onCertificateGenerated) {
           onCertificateGenerated(data);
         }
       } else {
-        console.error('Erro ao gerar certificado:', response.statusText);
-        alert('Erro ao gerar certificado. Tente novamente.');
+        let errorData = null;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = null;
+        }
+        const message = errorData?.error || `Erro ao gerar certificado (HTTP ${response.status})`;
+        console.error('Erro ao gerar certificado:', message);
+        alert(message);
       }
     } catch (error) {
       console.error('Erro ao gerar certificado:', error);
-      alert('Erro ao gerar certificado. Tente novamente.');
+      alert(error?.message || 'Falha de conexao ao gerar certificado.');
     } finally {
       setIsGeneratingCertificate(false);
     }
-  };
-
-  const handleCloseCertificate = () => {
-    setShowCertificate(false);
-    setCertificateData(null);
   };
 
   // Renderizar modal para vencedores (top 3)
@@ -113,13 +131,13 @@ export default function TournamentFinishedModal({
   return (
     <>
       <AnimatePresence>
-        {showModal && !showCertificate && (
+        {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
-              className="relative max-w-2xl w-full"
+              className="relative max-w-xl w-full"
             >
               {/* Botão fechar */}
               <button
@@ -131,38 +149,38 @@ export default function TournamentFinishedModal({
 
               {/* Modal PARA VENCEDORES (TOP 3) */}
               {isWinner ? (
-                <div className="bg-gradient-to-br from-white to-yellow-50 rounded-3xl shadow-2xl overflow-hidden border-4 border-yellow-500">
+                <div className="bg-gradient-to-br from-white to-yellow-50 rounded-2xl shadow-2xl overflow-hidden border-2 border-yellow-500 max-h-[86vh] overflow-y-auto">
                   {/* Cabeçalho para Vencedores */}
-                  <div className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white p-8 text-center relative overflow-hidden">
+                  <div className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white p-4 md:p-5 text-center relative overflow-hidden">
                     {/* Elementos decorativos */}
-                    <div className="absolute top-0 left-0 w-full h-full opacity-20">
-                      <div className="absolute top-4 left-4 text-8xl">🏆</div>
-                      <div className="absolute top-4 right-4 text-8xl">🎉</div>
-                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-6xl">✨</div>
+                    <div className="absolute top-0 left-0 w-full h-full opacity-15">
+                      <div className="absolute top-3 left-3 text-5xl">🏆</div>
+                      <div className="absolute top-3 right-3 text-5xl">🎉</div>
+                      <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 text-4xl">✨</div>
                     </div>
 
-                    <div className="flex justify-center mb-4 relative z-10 text-6xl">
+                    <div className="flex justify-center mb-2 relative z-10 text-4xl">
                       {userParticipation.posicao === 1 && '🥇'}
                       {userParticipation.posicao === 2 && '🥈'}
                       {userParticipation.posicao === 3 && '🥉'}
                     </div>
 
-                    <h1 className="text-5xl font-bold mb-3 relative z-10">
+                    <h1 className="text-2xl md:text-3xl font-bold mb-2 relative z-10">
                       {userParticipation.posicao === 1 && 'VOCÊ É CAMPEÃO!'}
                       {userParticipation.posicao === 2 && 'VICE-CAMPEÃO!'}
                       {userParticipation.posicao === 3 && 'TOP 3 - MEDALHISTA!'}
                     </h1>
-                    <p className="text-yellow-100 text-lg mb-2">{tournament.titulo}</p>
+                    <p className="text-yellow-100 text-sm md:text-base mb-1">{tournament.titulo}</p>
                     <p className="text-sm text-yellow-200">
                       Finalizado em {formatarData(tournament.termina_em || new Date())}
                     </p>
                   </div>
 
                   {/* Conteúdo para Vencedores */}
-                  <div className="p-8">
+                  <div className="p-4 md:p-5">
                     {/* Resumo dos Resultados */}
-                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-6 mb-8 border-2 border-yellow-300">
-                      <h3 className="text-2xl font-bold text-center text-gray-800 mb-6">
+                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-4 mb-4 border border-yellow-300">
+                      <h3 className="text-lg font-bold text-center text-gray-800 mb-4">
                         {userParticipation.posicao === 1 && '🏅 Você conquistou o 1º lugar!'}
                         {userParticipation.posicao === 2 && '🎖️ Você conquistou o 2º lugar!'}
                         {userParticipation.posicao === 3 && '🏵️ Você conquistou o 3º lugar!'}
@@ -172,13 +190,13 @@ export default function TournamentFinishedModal({
                         <div className="text-center space-y-3">
                           <p className="text-gray-700 text-lg">
                             <span className="font-bold">Sua posição:</span>
-                            <span className="text-3xl font-bold text-orange-600 ml-3">
+                            <span className="text-2xl font-bold text-orange-600 ml-2">
                               {userParticipation.posicao}º lugar
                             </span>
                           </p>
                           <p className="text-gray-700 text-lg">
                             <span className="font-bold">Pontuação final:</span>
-                            <span className="text-2xl font-bold text-green-600 ml-3">
+                            <span className="text-xl font-bold text-green-600 ml-2">
                               {userParticipation.pontuacao} pontos
                             </span>
                           </p>
@@ -191,7 +209,7 @@ export default function TournamentFinishedModal({
                         </div>
                       )}
 
-                      <div className="mt-6 p-4 bg-white rounded-lg border-2 border-yellow-200">
+                      <div className="mt-4 p-3 bg-white rounded-lg border border-yellow-200">
                         <p className="text-center text-gray-700 font-semibold"></p>
                         {userParticipation.posicao === 1 && (
                           <p className="text-center text-lg">
@@ -215,13 +233,13 @@ export default function TournamentFinishedModal({
                     </div>
 
                     {/* Botões de Ação para Vencedores */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={handleViewCertificate}
                         disabled={isGeneratingCertificate}
-                        className="flex items-center justify-center gap-3 bg-gradient-to-r from-yellow-500 to-orange-600 text-white py-4 px-6 rounded-xl font-semibold hover:from-yellow-600 hover:to-orange-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-yellow-600 hover:to-orange-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isGeneratingCertificate ? (
                           <>
@@ -230,7 +248,7 @@ export default function TournamentFinishedModal({
                           </>
                         ) : (
                           <>
-                            <FaDownload className="text-xl" />
+                            <FaDownload className="text-base" />
                             Meu Certificado
                           </>
                         )}
@@ -240,9 +258,9 @@ export default function TournamentFinishedModal({
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={handleViewRanking}
-                        className="flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl"
+                        className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl"
                       >
-                        <FaTrophy className="text-xl" />
+                            <FaTrophy className="text-base" />
                         Ver Ranking
                       </motion.button>
                     </div>
@@ -255,39 +273,39 @@ export default function TournamentFinishedModal({
                 </div>
               ) : (
                 /* Modal PARA NÃO-CLASSIFICADOS */
-                <div className="bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-2xl overflow-hidden border-4 border-blue-600">
+                <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-2xl overflow-hidden border-2 border-blue-600 max-h-[86vh] overflow-y-auto">
                   {/* Cabeçalho para Não-Classificados */}
-                  <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-8 text-center relative overflow-hidden">
+                  <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4 md:p-5 text-center relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-full opacity-10">
                       <div className="absolute top-4 left-4 text-6xl">🏆</div>
                       <div className="absolute top-4 right-4 text-6xl">🎯</div>
                       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-4xl">⚡</div>
                     </div>
 
-                    <h1 className="text-4xl font-bold mb-3 relative z-10">TORNEIO FINALIZADO</h1>
-                    <p className="text-blue-100 text-lg mb-2">{tournament.titulo}</p>
+                    <h1 className="text-2xl md:text-3xl font-bold mb-2 relative z-10">TORNEIO FINALIZADO</h1>
+                    <p className="text-blue-100 text-sm md:text-base mb-1">{tournament.titulo}</p>
                     <p className="text-sm text-blue-200">
                       Finalizado em {formatarData(tournament.termina_em || new Date())}
                     </p>
                   </div>
 
                   {/* Conteúdo para Não-Classificados */}
-                  <div className="p-8">
+                  <div className="p-4 md:p-5">
                     {/* Resumo da Posição */}
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 mb-8 border border-blue-200">
-                      <h3 className="text-2xl font-bold text-center text-gray-800 mb-4">Obrigado por Participar!</h3>
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-4 border border-blue-200">
+                      <h3 className="text-lg font-bold text-center text-gray-800 mb-3">Obrigado por Participar!</h3>
 
                       {userParticipation && (
                         <div className="text-center space-y-4">
                           <p className="text-gray-700 text-lg">
                             <span className="font-semibold">Sua posição final:</span>
-                            <span className="text-3xl font-bold text-blue-600 ml-3 block">
+                            <span className="text-2xl font-bold text-blue-600 ml-2 block">
                               {userParticipation.posicao}º lugar
                             </span>
                           </p>
                           <p className="text-gray-700 text-lg">
                             <span className="font-semibold">Pontos conquistados:</span>
-                            <span className="text-2xl font-bold text-green-600 ml-3">
+                            <span className="text-xl font-bold text-green-600 ml-2">
                               {userParticipation.pontuacao}
                             </span>
                           </p>
@@ -299,8 +317,8 @@ export default function TournamentFinishedModal({
                     </div>
 
                     {/* Vencedores */}
-                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-6 mb-8 border-2 border-yellow-300">
-                      <h3 className="text-2xl font-bold text-center text-gray-800 mb-6">
+                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-4 mb-4 border border-yellow-300">
+                      <h3 className="text-lg font-bold text-center text-gray-800 mb-4">
                         🏆 Nossos Vencedores 🏆
                       </h3>
 
@@ -345,12 +363,12 @@ export default function TournamentFinishedModal({
                     </div>
 
                     {/* Botões de Ação para Não-Classificados */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={handleViewRanking}
-                        className="flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl"
+                        className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl"
                       >
                         <FaTrophy className="text-xl" />
                         Ver Ranking Completo
@@ -360,7 +378,7 @@ export default function TournamentFinishedModal({
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={onClose}
-                        className="flex items-center justify-center gap-3 bg-gradient-to-r from-gray-400 to-gray-500 text-white py-4 px-6 rounded-xl font-semibold hover:from-gray-500 hover:to-gray-600 transition-all shadow-lg hover:shadow-xl"
+                        className="flex items-center justify-center gap-2 bg-gradient-to-r from-gray-400 to-gray-500 text-white py-3 px-4 rounded-lg font-semibold hover:from-gray-500 hover:to-gray-600 transition-all shadow-lg hover:shadow-xl"
                       >
                         <FaTimes className="text-xl" />
                         Voltar ao Menu
@@ -382,52 +400,6 @@ export default function TournamentFinishedModal({
         )}
       </AnimatePresence>
 
-      {/* Modal do Certificado com preview angular */}
-      <AnimatePresence>
-        {showCertificate && certificateData && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, rotateY: -15 }}
-              animate={{ scale: 1, opacity: 1, rotateY: 0 }}
-              exit={{ scale: 0.9, opacity: 0, rotateY: -15 }}
-              className="relative max-w-4xl w-full"
-              style={{
-                perspective: '1000px',
-                transformStyle: 'preserve-3d'
-              }}
-            >
-              {/* Botão fechar */}
-              <button
-                onClick={handleCloseCertificate}
-                className="absolute -top-12 right-0 text-white hover:text-blue-300 transition-colors flex items-center gap-2 z-10"
-              >
-                <FaTimes /> Fechar
-              </button>
-
-              {/* Container do certificado com leve ângulo */}
-              <div
-                className="bg-white rounded-2xl shadow-2xl overflow-hidden"
-                style={{
-                  transform: 'rotateY(-5deg) rotateX(2deg)',
-                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)'
-                }}
-              >
-                <CertificateViewer
-                  certificateURL={certificateData.certificateURL}
-                  certificateCode={certificateData.certificateCode}
-                  userName={certificateData.userName}
-                  tournamentName={certificateData.tournamentName}
-                  disciplina={certificateData.disciplina}
-                  position={certificateData.position}
-                  score={certificateData.score}
-                  onClose={handleCloseCertificate}
-                  modalMode={true}
-                />
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </>
   );
 }

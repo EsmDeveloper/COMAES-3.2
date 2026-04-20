@@ -32,7 +32,6 @@ import Certificado from "./models/Certificado.js";
 import iaEvaluators from './services/iaEvaluators.js';
 import adminPanelRoutes from './routes/adminPanelRoutes.js';
 import certificatesRoutes from './routes/certificatesRoutes.js';
-import certificadosRoutes from './routes/certificadosRoutes.js';
 import { sendResetEmail, sendWelcomeEmail } from './services/emailService.js';
 
 dotenv.config();
@@ -177,9 +176,6 @@ app.use('/api/admin', adminPanelRoutes);
 
 // Registrar rotas de certificados
 app.use('/api/certificates', certificatesRoutes);
-
-// Registrar rotas de certificados novos
-app.use('/api/certificados', certificadosRoutes);
 
 app.get("/health", async (req, res) => {
   try {
@@ -1647,16 +1643,26 @@ app.post('/api/torneios/:id/finalizar', async (req, res) => {
 
     // Gerar certificados para cada disciplina
     const certificados = [];
-    const { generateCertificatesForTournament } = await import('./certificates/generator/generateCertificado.js');
+    const { generateCertificate } = await import('./certificates/generator/index.js');
 
     if (disciplinas && Array.isArray(disciplinas)) {
       for (const disciplina of disciplinas) {
         try {
-          const result = await generateCertificatesForTournament(id, disciplina);
-          if (result.success) {
-            certificados.push(...result.data);
-            console.log(`✅ Certificados gerados para ${disciplina}: ${result.data.length} certificados`);
+          const top3 = await ParticipanteTorneio.findAll({
+            where: { torneio_id: id, disciplina_competida: disciplina, status: 'confirmado' },
+            order: [['pontuacao', 'DESC'], ['tempo_total', 'ASC']],
+            limit: 3,
+          });
+
+          for (const p of top3) {
+            const cert = await generateCertificate({
+              userId: p.usuario_id,
+              tournamentId: id,
+              disciplina,
+            });
+            certificados.push(cert);
           }
+          console.log(`✅ Certificados gerados para ${disciplina}: ${top3.length} certificados`);
         } catch (err) {
           console.error(`❌ Erro ao gerar certificados para ${disciplina}:`, err.message);
         }

@@ -1,21 +1,28 @@
 import express from 'express';
 import { generateCertificate, generateCertificateRoute } from '../certificates/generator/index.js';
+import auth from '../middlewares/auth.js';
 
 const router = express.Router();
+
+router.use(auth);
 
 router.post('/generate', generateCertificateRoute);
 
 // Rota para download de certificado
 router.get('/download/:tournamentId', async (req, res) => {
   try {
-    const { tournamentId } = req.params;
-    const { userId, disciplina } = req.query;
-
-    if (!userId || !disciplina) {
-      return res.status(400).json({ success: false, error: 'User ID and disciplina are required' });
+    if (!req.user) {
+      return res.status(401).json({ success: false, error: 'Usuário não autenticado' });
     }
 
-    const result = await generateCertificate({ userId, tournamentId, disciplina });
+    const { tournamentId } = req.params;
+    const { disciplina } = req.query;
+
+    if (!disciplina) {
+      return res.status(400).json({ success: false, error: 'Disciplina é obrigatória' });
+    }
+
+    const result = await generateCertificate({ userId: req.user.id, tournamentId, disciplina });
 
     if (result.success) {
       const filePath = result.certificateURL.replace('/uploads/certificates/', 'uploads/certificates/');
@@ -32,18 +39,22 @@ router.get('/download/:tournamentId', async (req, res) => {
 // Rota para preview de certificado
 router.get('/preview/:tournamentId', async (req, res) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ success: false, error: 'Usuário não autenticado' });
+    }
+
     const { tournamentId } = req.params;
-    const { userId, disciplina } = req.query;
+    const { disciplina } = req.query;
 
-    console.log('📥 Requisição de preview recebida:', { tournamentId, userId, disciplina });
+    console.log('📥 Requisição de preview recebida:', { tournamentId, userId: req.user.id, disciplina });
 
-    if (!userId || !disciplina) {
-      console.warn('❌ Parâmetros faltando:', { userId, disciplina });
-      return res.status(400).json({ success: false, error: 'User ID and disciplina are required' });
+    if (!disciplina) {
+      console.warn('❌ Parâmetro disciplina faltando');
+      return res.status(400).json({ success: false, error: 'Disciplina é obrigatória' });
     }
 
     console.log('🔄 Chamando generateCertificate...');
-    const result = await generateCertificate({ userId, tournamentId, disciplina });
+    const result = await generateCertificate({ userId: req.user.id, tournamentId, disciplina });
 
     console.log('📊 Resultado:', result);
 

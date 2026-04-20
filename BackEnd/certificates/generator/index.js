@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Certificate from '../../models/Certificate.js';
 import Usuario from '../../models/User.js';
 import Torneio from '../../models/Torneio.js';
+import ParticipanteTorneio from '../../models/ParticipanteTorneio.js';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -13,442 +14,276 @@ const __dirname = path.dirname(__filename);
 
 // Template HTML do certificado
 const getCertificateHTML = (data) => {
-  const { userName, tournamentName, position, score, disciplina, certificateCode, date } = data;
+  const {
+    userName,
+    tournamentName,
+    position,
+    scorePercent,
+    disciplina,
+    certificateCode,
+    date,
+    totalParticipants,
+    percentile,
+    logoDataUri,
+  } = data;
 
-  // Determinar medalha e mensagem baseada na posição
-  const getMedalInfo = (pos) => {
-    switch(pos) {
-      case 1:
-        return {
-          medal: '🥇',
-          color: '#D9A900',
-          text: 'OURO',
-          positionText: '1ª posição',
-          achievementTitle: 'Campeão Absoluto'
-        };
-      case 2:
-        return {
-          medal: '🥈',
-          color: '#B1B5BB',
-          text: 'PRATA',
-          positionText: '2ª posição',
-          achievementTitle: 'Vice-Campeão'
-        };
-      case 3:
-        return {
-          medal: '🥉',
-          color: '#A06A3C',
-          text: 'BRONZE',
-          positionText: '3ª posição',
-          achievementTitle: 'Terceiro Lugar'
-        };
-      default:
-        return {
-          medal: '🏅',
-          color: '#2563EB',
-          text: 'PARTICIPAÇÃO',
-          positionText: `${pos}ª posição`,
-          achievementTitle: 'Participante de Elite'
-        };
-    }
+  const getRankText = (pos) => {
+    return pos + "º LUGAR";
   };
-
-  const medalInfo = getMedalInfo(position);
 
   return `
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Certificado Oficial COMAES</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;600;700&family=Libre+Baskerville:ital@1&display=swap');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificado COMAES - ${userName}</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+        @page {
+            size: A4 landscape;
+            margin: 0;
+        }
 
-    body {
-      min-height: 100vh;
-      background: #e2e8f0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Inter', sans-serif;
-      color: #0f172a;
-      padding: 0;
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            background: #f6f4ee;
+            width: 297mm;
+            height: 210mm;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-    .certificate-sheet {
-      width: 297mm;
-      height: 210mm;
-      padding: 12mm;
-      background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
-      position: relative;
-    }
+        .certificate {
+            font-family: Georgia, 'Times New Roman', serif;
+            background: #f7f5ef;
+            position: relative;
+            width: 297mm;
+            height: 210mm;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            color: #1a1a1a;
+            border: 1px solid #d5d1c8;
+        }
 
-    .certificate-frame {
-      width: 100%;
-      height: 100%;
-      border: 12px solid #111827;
-      padding: 14px;
-      background: #fff;
-      position: relative;
-      overflow: hidden;
-    }
+        .watermark {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            padding: 10px;
+            z-index: 0;
+            pointer-events: none;
+            color: #2055a8;
+            opacity: 0.085;
+            font-weight: 600;
+            font-size: 11px;
+            letter-spacing: 0.2em;
+            line-height: 2.8;
+        }
 
-    .certificate-inner {
-      width: 100%;
-      height: 100%;
-      border: 2px solid rgba(15, 23, 42, 0.08);
-      padding: 36px 48px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%);
-      position: relative;
-      z-index: 1;
-    }
+        .border-outer {
+            position: absolute;
+            inset: 0;
+            border: 7mm solid #1e3a8a;
+            z-index: 5;
+        }
 
-    .certificate-accent {
-      position: absolute;
-      top: 32px;
-      left: 32px;
-      width: 140px;
-      height: 140px;
-      border-radius: 50%;
-      background: rgba(59,130,246,0.08);
-      z-index: 0;
-    }
+        .border-inner {
+            position: absolute;
+            inset: 8mm;
+            border: 0.6mm solid #7cb4dd;
+            z-index: 5;
+        }
 
-    .certificate-accent.secondary {
-      right: 32px;
-      left: auto;
-      top: 80px;
-      width: 180px;
-      height: 180px;
-      background: rgba(15,23,42,0.06);
-    }
+        .corner {
+            position: absolute;
+            width: 25mm;
+            height: 25mm;
+            background: linear-gradient(135deg, #2a73d5 0%, #7ec3ea 100%);
+            z-index: 6;
+        }
 
-    .certificate-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 24px;
-      position: relative;
-      z-index: 2;
-    }
+        .corner-tl { top: 0; left: 0; clip-path: polygon(0 0, 100% 0, 100% 24%, 24% 24%, 24% 100%, 0 100%); }
+        .corner-tr { top: 0; right: 0; clip-path: polygon(0 0, 100% 0, 100% 100%, 76% 100%, 76% 24%, 0 24%); }
+        .corner-bl { bottom: 0; left: 0; clip-path: polygon(0 0, 24% 0, 24% 76%, 100% 76%, 100% 100%, 0 100%); }
+        .corner-br { bottom: 0; right: 0; clip-path: polygon(76% 0, 100% 0, 100% 100%, 0 100%, 0 76%, 76% 76%); }
 
-    .brand {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
+        .layout {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 14mm 26mm 0;
+        }
 
-    .brand-name {
-      font-family: 'Cinzel', serif;
-      font-size: 34px;
-      letter-spacing: -1px;
-      font-weight: 900;
-      color: #111827;
-    }
+        .header { display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .dots { color: #87b8dd; letter-spacing: 0.25em; font-size: 10px; margin-bottom: 3.5mm; }
+        
+        .seal {
+            width: 24mm;
+            height: 24mm;
+            background: white;
+            border-radius: 50%;
+            border: 2px solid #1a3a6b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 4mm;
+            font-size: 36px;
+        }
 
-    .brand-tagline {
-      font-size: 9px;
-      letter-spacing: 0.26em;
-      text-transform: uppercase;
-      color: #475569;
-      font-weight: 700;
-    }
+        .title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1a3a6b;
+            text-transform: uppercase;
+            line-height: 1.2;
+        }
 
-    .certificate-label {
-      align-self: flex-end;
-      font-size: 10px;
-      color: #64748b;
-      letter-spacing: 0.35em;
-      text-transform: uppercase;
-      font-weight: 700;
-    }
+        .subtitle {
+            font-size: 10.5mm;
+            font-weight: 600;
+            color: #1a3a6b;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-top: 1.2mm;
+        }
 
-    .certificate-title {
-      margin-top: 18px;
-      font-family: 'Cinzel', serif;
-      font-size: 24px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: #1e293b;
-      font-weight: 700;
-      text-align: center;
-    }
+        .body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 5mm 0;
+        }
 
-    .certificate-subtitle {
-      margin-top: 10px;
-      text-align: center;
-      font-size: 14px;
-      color: #475569;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      font-weight: 600;
-    }
+        .intro { font-size: 7.2mm; color: #222; }
+        .userName { 
+            font-size: 16mm; 
+            font-weight: 800; 
+            color: #1a3a6b; 
+            text-transform: uppercase;
+            margin: 2.5mm 0;
+        }
+        .achievement { font-size: 9mm; color: #222; }
+        
+        .divider { 
+            width: 140mm; 
+            height: 0.5mm; 
+            background: #1a3a6b; 
+            margin: 4mm 0; 
+            opacity: 0.6;
+        }
 
-    .certificate-body {
-      margin-top: 36px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 24px;
-      position: relative;
-      z-index: 2;
-    }
+        .metrics { font-size: 8.4mm; line-height: 1.45; }
+        .date { font-size: 8.6mm; margin-top: 5mm; color: #222; }
 
-    .intro-text {
-      font-family: 'Libre Baskerville', serif;
-      font-style: italic;
-      font-size: 18px;
-      color: #475569;
-      max-width: 720px;
-    }
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-bottom: 8mm;
+        }
 
-    .recipient-name {
-      font-family: 'Cinzel', serif;
-      font-size: 52px;
-      line-height: 1;
-      color: #0f172a;
-      font-weight: 900;
-    }
+        .qr-placeholder {
+            width: 21mm;
+            height: 21mm;
+            border: 1px solid #1a3a6b;
+            padding: 2mm;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 7px;
+            color: #999;
+             text-align: center;
+        }
 
-    .achievement-description {
-      max-width: 760px;
-      font-size: 16px;
-      line-height: 1.8;
-      color: #334155;
-    }
+        .signature { text-align: center; width: 88mm; }
+        .sig-line { height: 0.4mm; background: #333; margin-bottom: 3mm; }
+        .sig-name { font-size: 9mm; font-weight: 700; color: #1a3a6b; text-transform: uppercase; }
+        .sig-title { font-size: 7mm; color: #222; }
 
-    .achievement-description strong {
-      color: #111827;
-      font-weight: 700;
-    }
-
-    .details-grid {
-      margin-top: 36px;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 18px;
-      width: 100%;
-      position: relative;
-      z-index: 2;
-    }
-
-    .detail-card {
-      background: #f8fafc;
-      border: 1px solid rgba(15, 23, 42, 0.08);
-      border-radius: 18px;
-      padding: 18px 20px;
-      min-height: 100px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .detail-label {
-      font-size: 9px;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      color: #64748b;
-      font-weight: 700;
-      margin-bottom: 12px;
-    }
-
-    .detail-value {
-      font-size: 18px;
-      color: #0f172a;
-      font-weight: 700;
-      line-height: 1.2;
-    }
-
-    .detail-highlight {
-      background: rgba(59,130,246,0.09);
-      border-color: rgba(59,130,246,0.2);
-    }
-
-    .footer-row {
-      margin-top: 42px;
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr 1fr;
-      gap: 18px;
-      align-items: end;
-      position: relative;
-      z-index: 2;
-    }
-
-    .signature-block {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .signature-label {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.25em;
-      color: #64748b;
-      font-weight: 700;
-    }
-
-    .signature-line {
-      width: 100%;
-      height: 1px;
-      background: linear-gradient(90deg, rgba(15,23,42,0.1), rgba(15,23,42,0.5), rgba(15,23,42,0.1));
-    }
-
-    .seal-block {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .seal {
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      border: 5px solid ${medalInfo.color};
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 36px;
-      background: rgba(255,255,255,0.88);
-      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
-    }
-
-    .seal-text {
-      font-size: 9px;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: #475569;
-      font-weight: 700;
-    }
-
-    .meta-block {
-      display: grid;
-      gap: 12px;
-      background: #fff;
-      border-radius: 18px;
-      border: 1px solid rgba(15, 23, 42, 0.08);
-      padding: 18px 20px;
-    }
-
-    .meta-label {
-      font-size: 9px;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      color: #64748b;
-      font-weight: 700;
-    }
-
-    .meta-value {
-      font-size: 14px;
-      color: #0f172a;
-      font-weight: 700;
-      line-height: 1.4;
-    }
-
-    .meta-value.mono {
-      font-family: monospace;
-    }
-
-    .watermark {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) rotate(-30deg);
-      font-family: 'Cinzel', serif;
-      font-size: 120px;
-      color: #0f172a;
-      opacity: 0.04;
-      pointer-events: none;
-      white-space: nowrap;
-      z-index: 0;
-    }
-
-    @media print {
-      body { background: #fff; }
-      .certificate-sheet, .certificate-frame { box-shadow: none; }
-    }
-  </style>
+        .bottom-bar {
+            background: transparent;
+            width: 100%;
+            padding: 2.5mm 0;
+            text-align: center;
+            color: #222;
+            font-size: 6.2mm;
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            border-top: 0.4mm solid #1e3a8a;
+        }
+    </style>
 </head>
 <body>
-  <div class="certificate-sheet">
-    <div class="certificate-frame">
-      <div class="certificate-accent"></div>
-      <div class="certificate-accent secondary"></div>
-      <div class="certificate-inner">
-        <div class="certificate-header">
-          <div class="brand">
-            <span class="brand-name">COMAES</span>
-            <span class="brand-tagline">Elite Educacional</span>
-          </div>
-          <span class="certificate-label">Certificado de Excelência</span>
+    <div class="certificate">
+        <div class="watermark">
+            ${Array(400).fill('COMAES ').join(' ')}
         </div>
+        
+        <div class="border-outer"></div>
+        <div class="border-inner"></div>
+        <div class="corner corner-tl"></div>
+        <div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div>
+        <div class="corner corner-br"></div>
 
-        <div>
-          <h1 class="certificate-title">Certificamos que</h1>
-          <p class="certificate-subtitle">Reconhecimento oficial de desempenho de alto nível</p>
-        </div>
-
-        <div class="certificate-body">
-          <div class="intro-text">Foi comprovado que</div>
-          <div class="recipient-name">${userName}</div>
-          <div class="achievement-description">
-            Obteve um desempenho excepcional no torneio <strong>${tournamentName}</strong>, alcançando a <strong>${medalInfo.positionText}</strong> na disciplina de <strong>${disciplina}</strong> com uma pontuação total de <strong>${score} pontos</strong>.
-          </div>
-        </div>
-
-        <div class="details-grid">
-          <div class="detail-card">
-            <span class="detail-label">Disciplina</span>
-            <span class="detail-value">${disciplina}</span>
-          </div>
-          <div class="detail-card detail-highlight">
-            <span class="detail-label">Conquista</span>
-            <span class="detail-value">${medalInfo.achievementTitle}</span>
-          </div>
-          <div class="detail-card">
-            <span class="detail-label">Competição</span>
-            <span class="detail-value">${tournamentName}</span>
-          </div>
-        </div>
-
-        <div class="footer-row">
-          <div class="signature-block">
-            <span class="signature-label">Assinatura Autorizada</span>
-            <div class="signature-line"></div>
-          </div>
-
-          <div class="seal-block">
-            <div class="seal">${medalInfo.medal}</div>
-            <span class="seal-text">${medalInfo.text}</span>
-          </div>
-
-          <div class="meta-block">
-            <div>
-              <span class="meta-label">Data de Emissão</span>
-              <span class="meta-value">${date}</span>
+        <div class="layout">
+            <div class="header">
+                <div class="dots">................................................................................................</div>
+                <div class="seal">
+                  ${logoDataUri ? `<img src="${logoDataUri}" alt="COMAES" style="width:100%;height:100%;object-fit:contain;" />` : '🏆'}
+                </div>
+                <h1 class="title">CERTIFICADO DE RECONHECIMENTO ACADÉMICO</h1>
+                <p class="subtitle">PLATAFORMA COMAES</p>
             </div>
-            <div>
-              <span class="meta-label">Código de Verificação</span>
-              <span class="meta-value mono">${certificateCode}</span>
+
+            <div class="body">
+                <p class="intro">A Plataforma COMAES certifica que, em Luanda,</p>
+                <h2 class="userName">${userName}</h2>
+                <p class="achievement">
+                    Alcançou o <strong>${getRankText(position)}</strong> no Torneio Académico COMAES 2026.
+                </p>
+                
+                <div class="divider"></div>
+                
+                <div class="metrics">
+                    <p>Total de Participantes: <strong>${totalParticipants}</strong></p>
+                    <p>Pontuação Final: <strong>${scorePercent}%</strong></p>
+                    <p>Percentil: <strong>${percentile}%</strong></p>
+                </div>
+                
+                <p class="date">Emitido aos ${date}.</p>
             </div>
-          </div>
+
+            <div class="footer">
+                <div class="qr-placeholder">
+                    CÓDIGO QR<br>DE VALIDAÇÃO
+                </div>
+                
+                <div class="signature">
+                    <div class="sig-line"></div>
+                    <p class="sig-name">PROF. DR. ANTÓNIO SILVA</p>
+                    <p class="sig-title">Diretor de Avaliação e Desempenho</p>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="watermark">COMAES</div>
+
+        <div class="bottom-bar">
+            Código de Verificação: <span style="font-weight: bold;">${certificateCode}</span> | Validar em: <span style="font-style: italic;">plataformacomaes.com/validar</span>
+        </div>
     </div>
-  </div>
 </body>
 </html>`;
 };
@@ -480,9 +315,6 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
     const disciplinaNormalizada = normalizeDisciplina(disciplina);
     console.log('📝 Disciplina normalizada:', disciplinaNormalizada);
 
-    // Buscar participação no torneio
-    const ParticipanteTorneio = (await import('../../models/ParticipanteTorneio.js')).default;
-    
     // GARANTIR QUE AS ASSOCIAÇÕES ESTEJAM CONFIGURADAS
     // Se por algum motivo o setupAssociations() não foi chamado ainda (ex: script standalone ou import prematuro)
     if (!ParticipanteTorneio.associations.usuario) {
@@ -499,7 +331,7 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
       console.warn('⚠️ Erro ao atualizar posições (não crítico):', rankErr.message);
     }
 
-    const participation = await ParticipanteTorneio.findOne({
+    let participation = await ParticipanteTorneio.findOne({
       where: {
         usuario_id: userId,
         torneio_id: tournamentId,
@@ -511,18 +343,57 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
       ]
     });
 
+    // Fallback defensivo: aceita participação existente com outro status,
+    // retornando erro mais claro caso não esteja confirmada.
+    if (!participation) {
+      const fallbackParticipation = await ParticipanteTorneio.findOne({
+        where: {
+          usuario_id: userId,
+          torneio_id: tournamentId,
+          disciplina_competida: disciplinaNormalizada,
+        },
+        include: [{ model: Usuario, as: 'usuario' }],
+      });
+
+      if (fallbackParticipation) {
+        return {
+          success: false,
+          statusCode: 403,
+          error: `Participacao encontrada, mas com status "${fallbackParticipation.status}". Necessario status "confirmado" para gerar certificado.`,
+        };
+      }
+    }
+
     if (!participation) {
       console.warn('❌ Participação não encontrada:', { userId, tournamentId, disciplinaNormalizada });
-      return { success: false, error: 'Participação não encontrada. Certifique-se de que terminou o torneio.' };
+      return { success: false, statusCode: 404, error: 'Participação não encontrada para este torneio/disciplina.' };
     }
 
     console.log('✅ Participação encontrada:', { posicao: participation.posicao, pontuacao: participation.pontuacao });
 
     // Verificar se está no top 3
-    if (participation.posicao > 3) {
+    if (Number(participation.posicao) > 3) {
       console.warn('❌ Posição fora do top 3:', participation.posicao);
-      return { success: false, error: `Certificado disponível apenas para os 3 primeiros colocados. Sua posição: ${participation.posicao}` };
+      return {
+        success: false,
+        statusCode: 403,
+        error: `Certificado disponível apenas para os 3 primeiros colocados. Sua posição: ${participation.posicao}`,
+      };
     }
+
+    const totalParticipants = await ParticipanteTorneio.count({
+      where: {
+        torneio_id: tournamentId,
+        disciplina_competida: disciplinaNormalizada,
+        status: 'confirmado',
+      },
+    });
+
+    const safeTotalParticipants = Math.max(1, Number(totalParticipants) || 1);
+    const safePosition = Math.max(1, Number(participation.posicao) || 1);
+    const percentile = Number(((1 - (safePosition - 1) / safeTotalParticipants) * 100).toFixed(1));
+    const scoreRaw = Number(participation.pontuacao) || 0;
+    const scorePercent = Number(Math.max(0, Math.min(100, scoreRaw)).toFixed(1));
 
     // Criar/Atualizar registro do certificado
     const certificateCode = `CERT-${uuidv4().substring(0, 8).toUpperCase()}`;
@@ -561,7 +432,20 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
     });
 
     if (!certificate) {
-      return { success: false, error: 'Certificado não encontrado após criação' };
+      return { success: false, statusCode: 500, error: 'Certificado não encontrado após criação' };
+    }
+
+    const logoCandidates = [
+      path.join(__dirname, '../../../FrontEnd/src/assets/vite1.png'),
+      path.join(__dirname, '../../../frontend/src/assets/vite1.png'),
+    ];
+    let logoDataUri = '';
+    for (const candidate of logoCandidates) {
+      if (fs.existsSync(candidate)) {
+        const logoBuffer = fs.readFileSync(candidate);
+        logoDataUri = `data:image/png;base64,${logoBuffer.toString('base64')}`;
+        break;
+      }
     }
 
     // Preparar dados para o template
@@ -569,9 +453,13 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
       userName: certificate.user?.nome || 'Participante',
       tournamentName: certificate.tournament?.titulo || 'Torneio COMAES',
       position: certificate.ranking_position,
-      score: certificate.score,
+      scorePercent,
+      scoreRaw,
       disciplina: certificate.disciplina,
       certificateCode: certificate.certificate_code,
+      totalParticipants: safeTotalParticipants,
+      percentile,
+      logoDataUri,
       date: new Date().toLocaleDateString('pt-BR', {
         day: '2-digit',
         month: 'long',
@@ -598,12 +486,18 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
       });
 
       const page = await browser.newPage();
+      page.setDefaultNavigationTimeout(120000);
+      page.setDefaultTimeout(120000);
       console.log('📄 Página criada, carregando conteúdo HTML...');
       
-      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      // Evita timeout em produção quando recursos externos atrasam.
+      await page.setContent(htmlContent, {
+        waitUntil: 'domcontentloaded',
+        timeout: 120000,
+      });
       
-      // Configurar página para formato A4
-      await page.setViewport({ width: 794, height: 1123 });
+      // Configurar página para formato A4 Landscape
+      await page.setViewport({ width: 1123, height: 794 });
 
       const fileName = `certificado-${certificate.id}-${Date.now()}.pdf`;
       const filePath = path.join(uploadsDir, fileName);
@@ -613,13 +507,8 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
       await page.pdf({
         path: filePath,
         format: 'A4',
+        landscape: true,
         printBackground: true,
-        margin: {
-          top: '20px',
-          right: '20px',
-          bottom: '20px',
-          left: '20px'
-        }
       });
 
       await browser.close();
@@ -641,7 +530,12 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
         certificateURL,
         certificateCode: certificate.certificate_code,
         fileName,
-        position: certificate.ranking_position
+        position: certificate.ranking_position,
+        totalParticipants: safeTotalParticipants,
+        percentile,
+        scoreRaw,
+        scorePercent,
+        disciplina: disciplinaNormalizada,
       };
     } catch (pdfError) {
       console.error('❌ Erro ao gerar PDF:', pdfError.message);
@@ -656,25 +550,26 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
       stack: error.stack,
       code: error.code
     });
-    return { success: false, error: error.message || 'Erro ao gerar certificado' };
+    return { success: false, statusCode: 500, error: error.message || 'Erro ao gerar certificado' };
   }
 };
 export const generateCertificateRoute = async (req, res) => {
   try {
-    const { userId, tournamentId, disciplina } = req.body;
-
-    if (!userId || !tournamentId || !disciplina) {
-      return res.status(400).json({
-        success: false,
-        error: 'User ID, Tournament ID e disciplina são obrigatórios'
-      });
-    }
-
     // Verificar se usuário está autenticado
-    if (!req.user && !req.body.token) {
+    if (!req.user) {
       return res.status(401).json({
         success: false,
         error: 'Usuário não autenticado'
+      });
+    }
+
+    const userId = req.user.id;
+    const { tournamentId, disciplina } = req.body;
+
+    if (!tournamentId || !disciplina) {
+      return res.status(400).json({
+        success: false,
+        error: 'Tournament ID e disciplina são obrigatórios'
       });
     }
 
@@ -685,10 +580,18 @@ export const generateCertificateRoute = async (req, res) => {
         success: true,
         certificateURL: result.certificateURL,
         certificateCode: result.certificateCode,
-        position: result.position
+        position: result.position,
+        totalParticipants: result.totalParticipants,
+        percentile: result.percentile,
+        scoreRaw: result.scoreRaw,
+        scorePercent: result.scorePercent,
+        disciplina: result.disciplina,
       });
     } else {
-      res.status(400).json(result);
+      res.status(result.statusCode || 400).json({
+        success: false,
+        error: result.error || 'Erro ao gerar certificado',
+      });
     }
 
   } catch (error) {
