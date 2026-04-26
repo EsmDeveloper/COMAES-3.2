@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@google/generative-ai": "^0.11.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -27,5 +28,8 @@
     "sequelize": "^6.37.7",
     "socket.io": "^4.7.1",
     "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "sequelize-cli": "^6.6.5"
   }
 }

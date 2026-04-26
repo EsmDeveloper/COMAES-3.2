@@ -22,11 +22,10 @@ npm run lint  # Se tiver eslint configurado
 
 ```bash
 # Adicionar ao ficheiro .env (BackEnd/.env)
-OPENAI_API_KEY=sk-YOUR_API_KEY_HERE
-OPENAI_MODEL=gpt-4-turbo  # Recomendado
+GEMINI_API_KEY=AIza...  # Chave do Google Generative AI (Gemini)
 
 # Verificar se está configurado
-echo $OPENAI_API_KEY
+echo $GEMINI_API_KEY
 ```
 
 ### 3. Validação de Compatibilidade

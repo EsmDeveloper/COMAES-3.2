@@ -1111,7 +1111,9 @@ app.get('/api/torneios/dashboard', async (req, res) => {
       const inicioMs = inicio.getTime();
       const fimMs = fim.getTime();
       const agoraMs = agora.getTime();
-      progresso = Math.min(100, Math.max(0, ((agoraMs - inicioMs) / (fimMs - inicioMs)) * 100));
+      const duracaoTotal = fimMs - inicioMs;
+      const tempoRestanteMs = fimMs - agoraMs;
+      progresso = Math.min(100, Math.max(0, (tempoRestanteMs / duracaoTotal) * 100));
     }
 
     res.json({

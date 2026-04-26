@@ -1,12 +1,13 @@
-import fetch from 'node-fetch';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 /**
  * Mapeia o nível de dificuldade para pontuação máxima
  * Fácil: 5 pontos, Médio: 10 pontos, Difícil: 20 pontos
  */
-const nivelMax = (nivel) => {
+const getMaxPontos = (nivel) => {
   if (!nivel) return 0;
   const n = nivel.toLowerCase().trim();
   if (n === 'facil' || n === 'fácil') return 5;
@@ -23,214 +24,166 @@ const buildSystemPrompt = (disciplina) => {
   const normDisciplina = (disciplina || '').toLowerCase();
 
   if (/matem/i.test(normDisciplina)) {
-    return `Você é um avaliador RIGOROSO de Matemática. Suas regras de avaliação OBRIGATÓRIAS são:
+    return `Você é um avaliador especializado em Matemática para fins educacionais.
+Sua tarefa é avaliar respostas estudantis com foco em CLAREZA e LÓGICA do raciocínio.
 
-1. RESPOSTA TOTALMENTE CORRETA: score 1.0 APENAS se:
-   - O resultado final estiver 100% correto
-   - TODOS os passos intermediários estiverem corretos
-   - Todos os cálculos, fórmulas e lógica estão claros
+CRITÉRIOS DE AVALIAÇÃO:
+1. **Resposta Totalmente Correta (1.0)**: Resultado correto + todos os passos claros
+2. **Resposta Parcial (0.1 a 0.9)**: Demonstra compreensão com alguns erros
+3. **Resposta Incorreta (0.0)**: Sem lógica correta
 
-2. RESPOSTA COM ERRO: score parcial APENAS se:
-   - Houver PELO MENOS um passo intermediário correto que demonstre compreensão
-   - Identifique precisamente quais passos estão certos e quais errados
-   - Calcule score proporcional aos passos corretos
+IMPORTANTE: Avalie a CLAREZA e LÓGICA, não o tamanho do texto.
 
-3. RESPOSTA TOTALMENTE ERRADA OU FORA DE CONTEXTO: score 0.0
-
-IMPORTANTE: NUNCA base sua avaliação no tamanho do texto. Ignore completamente o comprimento.
-Retorne APENAS um JSON válido com: {pergunta_id, score, pontos, feedback, passos_corretos, passos_totais, evidencias}.
-score entre 0 e 1. feedback deve explicar quais passos estão certos/errados.`;
+RETORNE um array JSON VÁLIDO com este formato EXATO para CADA resposta:
+[{
+  "pergunta_id": <número>,
+  "score": <0.0 a 1.0>,
+  "pontos": <número>,
+  "feedback": "<explicação>",
+  "evidencias": "<detalhes>"
+}]`;
   }
 
   if (/programa/i.test(normDisciplina)) {
-    return `Você é um avaliador RIGOROSO de Programação. Suas regras de avaliação OBRIGATÓRIAS são:
+    return `Você é um avaliador especializado em Programação para fins educacionais.
+Sua tarefa é avaliar respostas estudantis com foco em CLAREZA e LÓGICA do algoritmo.
 
-1. RESPOSTA TOTALMENTE CORRETA: score 1.0 APENAS se:
-   - O algoritmo resolve CORRETAMENTE o problema proposto
-   - Todos os passos da lógica (entrada, processamento, saída) estão corretos
-   - Estruturas de controle estão bem formuladas
-   - NUNCA há hard-coded ou respostas pré-definidas
-   - A solução é geral, não específica para um caso
+CRITÉRIOS DE AVALIAÇÃO:
+1. **Resposta Totalmente Correta (1.0)**: Algoritmo correto + lógica clara + sem hard-coding
+2. **Resposta Parcial (0.1 a 0.9)**: Demonstra compreensão com alguns componentes errados
+3. **Resposta Incorreta (0.0)**: Lógica fundamentalmente errada
 
-2. RESPOSTA COM ERRO: score parcial APENAS se:
-   - Houver PELO MENOS um passo lógico correto (ex: leitura correta de dados, loop bem estruturado)
-   - A lógica final esteja incorreta
-   - Identifique precisamente quais componentes funcionam e quais falham
+IMPORTANTE: Avalie a CLAREZA e LÓGICA, não o tamanho do código. Detecte hard-coding.
 
-3. RESPOSTA TOTALMENTE ERRADA OU FORA DE CONTEXTO: score 0.0
-
-IMPORTANTE: NUNCA base sua avaliação no tamanho do código. Ignore completamente o comprimento.
-Retorne APENAS um JSON válido com: {pergunta_id, score, pontos, feedback, componentes_corretos, componentes_totais, evidencias}.
-score entre 0 e 1. feedback deve explicar quais componentes funcionam/falham.`;
+RETORNE um array JSON VÁLIDO com este formato EXATO para CADA resposta:
+[{
+  "pergunta_id": <número>,
+  "score": <0.0 a 1.0>,
+  "pontos": <número>,
+  "feedback": "<explicação>",
+  "evidencias": "<detalhes>"
+}]`;
   }
 
-  // Inglês
-  return `Você é um avaliador RIGOROSO de Inglês. Suas regras de avaliação OBRIGATÓRIAS são:
+  return `Você é um avaliador especializado em Inglês para fins educacionais.
+Sua tarefa é avaliar respostas estudantis com foco em CLAREZA, COESÃO e LÓGICA.
 
-1. RESPOSTA TOTALMENTE CORRETA: score 1.0 APENAS se:
-   - Redação gramaticalmente correta
-   - Atende perfeitamente ao solicitado (tema, estrutura, coesão)
-   - Todos os argumentos/passos estão corretos e claros
-   - Vocabulário apropriado
+CRITÉRIOS DE AVALIAÇÃO:
+1. **Resposta Totalmente Correta (1.0)**: Texto correto + coeso + atende ao solicitado
+2. **Resposta Parcial (0.1 a 0.9)**: Demonstra compreensão com alguns erros
+3. **Resposta Incorreta (0.0)**: Sem coerência ou fora de contexto
 
-2. RESPOSTA COM ERRO: score parcial APENAS se:
-   - Apresenta PELO MENOS um trecho coerente e relevante
-   - Demonstra compreensão do tema
-   - Tem erros gramaticais/estruturais mas com conteúdo válido
-   - Identifique precisamente quais partes estão corretas
+IMPORTANTE: Avalie a CLAREZA e COESÃO, não o número de palavras.
 
-3. RESPOSTA TOTALMENTE ERRADA OU FORA DE CONTEXTO: score 0.0
-
-IMPORTANTE: NUNCA base sua avaliação no número de palavras. Ignore completamente o tamanho da resposta.
-Retorne APENAS um JSON válido com: {pergunta_id, score, pontos, feedback, trechos_corretos, total_trechos, evidencias}.
-score entre 0 e 1. feedback deve explicar quais partes funcionam/falham.`;
+RETORNE um array JSON VÁLIDO com este formato EXATO para CADA resposta:
+[{
+  "pergunta_id": <número>,
+  "score": <0.0 a 1.0>,
+  "pontos": <número>,
+  "feedback": "<explicação>",
+  "evidencias": "<detalhes>"
+}]`;
 };
 
 /**
- * Chama a API do OpenAI com retry
+ * Avalia respostas usando Google Gemini
  */
-async function callOpenAI(messages, model = 'gpt-4-turbo') {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) throw new Error('OPENAI_API_KEY não definido');
-
-  const body = { model, messages, temperature: 0, max_tokens: 1000 };
-
-  const resp = await fetch(OPENAI_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-    body: JSON.stringify(body)
-  });
-
-  const data = await resp.json();
-  const text = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.text || null;
-
-  if (!text) {
-    console.error('OpenAI retornou payload sem conteúdo. status=', resp.status, 'body=', JSON.stringify(data));
-    return null;
-  }
-
-  return text;
-}
 
 export async function evaluate(disciplina, items) {
-  // items: [{ pergunta_id, texto, resposta, nivel }]
   if (!items || items.length === 0) return [];
 
-  // Fallback rápido quando não há chave OpenAI: retornar zeros
-  if (!process.env.OPENAI_API_KEY) {
-    console.warn('OPENAI_API_KEY não definido. Retornando zeros (sem IA disponível)');
-    return items.map(it => {
-      const nivel = it.nivel || 'facil';
-      const maxP = nivelMax(nivel);
-      return {
-        pergunta_id: it.pergunta_id,
-        score: 0,
-        pontos: 0,
-        feedback: 'Sem chave OpenAI configurada - avaliação não disponível',
-        evidencias: ''
-      };
-    });
+  if (!GEMINI_API_KEY) {
+    throw new Error('❌ GEMINI_API_KEY não definido. Configure a variável de ambiente antes de usar o sistema de avaliação.');
   }
 
-  const system = buildSystemPrompt(disciplina);
-  
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  const systemPrompt = buildSystemPrompt(disciplina);
+
   // Construir conteúdo do usuário com informações detalhadas
   const userContent = items
     .map(it => {
-      return `ID:${it.pergunta_id}\nDificuldade:${it.nivel || 'facil'}\nEnunciado:\n${it.texto}\n\nResposta do aluno:\n${it.resposta}`;
+      return `ID: ${it.pergunta_id}
+Dificuldade: ${it.nivel || 'fácil'}
+Enunciado:
+${it.texto}
+
+Resposta do aluno:
+${it.resposta}`;
     })
     .join('\n\n---\n\n');
 
-  const messages = [
-    { role: 'system', content: system },
-    {
-      role: 'user',
-      content: `Avalie rigorosamente as respostas abaixo. Responda SOMENTE com um JSON array válido contendo para cada resposta:
-{
-  "pergunta_id": <número>,
-  "score": <0-1>,
-  "pontos": <calculado>,
-  "feedback": <string explicativa>,
-  "evidencias": <detalhes técnicos>
-}
+  const evaluationPrompt = `${systemPrompt}
 
-Pontuação por nível: fácil até 5; médio até 10; difícil até 20.
-REGRA CRÍTICA: Resposta completamente correta com todos os passos = 100%. Resposta errada mas com passos corretos = parcial. Resposta totalmente errada = 0.
-NÃO avalie baseado no tamanho. Avalie APENAS qualidade e correção.
+Avalie rigorosamente as seguintes respostas estudantis.
 
-Dados a avaliar:
-${userContent}`
-    }
-  ];
+Pontuação por nível: fácil (até 5 pontos), médio (até 10 pontos), difícil (até 20 pontos).
 
-  let text = null;
+Para CADA resposta, retorne um JSON válido com score entre 0.0 e 1.0 e os pontos calculados proporcionalmente.
+
+Respostas a avaliar:
+
+${userContent}
+
+Retorne um array JSON VÁLIDO com todas as avaliações.`;
+
   try {
-    text = await callOpenAI(messages, process.env.OPENAI_MODEL || 'gpt-4-turbo');
-  } catch (err) {
-    console.error('Erro ao chamar OpenAI:', err.message);
-    // Fallback para modelo mais barato se gpt-4 falhar
-    try {
-      text = await callOpenAI(messages, 'gpt-3.5-turbo');
-    } catch (e) {
-      throw new Error(`Erro ao avaliar com IA: ${err.message}`);
-    }
-  }
+    console.log('📤 Enviando para Google Gemini...');
+    const result = await model.generateContent({
+      systemInstruction: systemPrompt,
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: evaluationPrompt }]
+        }
+      ],
+      generationConfig: {
+        temperature: 0,
+        maxOutputTokens: 2048,
+      }
+    });
 
-  // Se text for null/undefined, usar fallback
-  if (!text) {
-    console.warn('Resposta vazia da OpenAI — retornando zeros');
-    return items.map(it => {
-      const nivel = it.nivel || 'facil';
-      const maxP = nivelMax(nivel);
+    const responseText = result.response.text();
+
+    if (!responseText) {
+      console.error('Resposta do Gemini sem texto válido:', JSON.stringify(result.response, null, 2));
+      throw new Error('Resposta vazia do Gemini');
+    }
+
+    console.log('📥 Resposta recebida do Gemini');
+
+    // Extrair JSON do texto
+    const match = responseText.match(/\[\s*\{[\s\S]*\}\s*\]/);
+    let parsed = null;
+
+    try {
+      parsed = match ? JSON.parse(match[0]) : JSON.parse(responseText);
+    } catch (err) {
+      console.error('❌ Erro ao parsear JSON:', err.message);
+      console.error('Resposta do Gemini:', responseText.substring(0, 500));
+      throw new Error(`Falha ao parsear resposta do Gemini: ${err.message}`);
+    }
+
+    // Processar e validar respostas
+    return (parsed || []).map(it => {
+      const pergunta_id = it.pergunta_id || it.id;
+      const score = Math.max(0, Math.min(1, Number(it.score || 0)));
+      const item = items.find(x => Number(x.pergunta_id) === Number(pergunta_id));
+      const nivel = item?.nivel || 'facil';
+      const maxPontos = getMaxPontos(nivel);
+      const pontos = typeof it.pontos === 'number' ? it.pontos : Math.round(score * maxPontos * 100) / 100;
+
       return {
-        pergunta_id: it.pergunta_id,
-        score: 0,
-        pontos: 0,
-        feedback: 'Erro ao conectar com IA - sem avaliação disponível',
-        evidencias: ''
+        pergunta_id,
+        score,
+        pontos: Math.round(pontos * 100) / 100,
+        feedback: (it.feedback || '').toString(),
+        evidencias: (it.evidencias || '').toString()
       };
     });
+  } catch (error) {
+    console.error('❌ Erro na avaliação com Gemini:', error.message);
+    throw error;
   }
-
-  // Extrair JSON do texto
-  const match = text.match(/\[.*\]/s);
-  let parsed = null;
-  try {
-    parsed = match ? JSON.parse(match[0]) : JSON.parse(text);
-  } catch (err) {
-    // Tentar reparar respostas comuns (remover comentários antes/after)
-    const firstBracket = text.indexOf('[');
-    const lastBracket = text.lastIndexOf(']');
-    if (firstBracket >= 0 && lastBracket > firstBracket) {
-      const substr = text.slice(firstBracket, lastBracket + 1);
-      try {
-        parsed = JSON.parse(substr);
-      } catch (e) {
-        console.error('Erro ao parsear JSON da IA:', e.message, 'Texto:', text.substring(0, 200));
-        throw new Error('Não foi possível parsear JSON da resposta da IA');
-      }
-    } else {
-      console.error('Erro ao encontrar JSON na resposta:', text.substring(0, 200));
-      throw new Error('Não foi possível parsear JSON da resposta da IA');
-    }
-  }
-
-  // Garantir estrutura e calcular pontos se necessário
-  return (parsed || []).map(it => {
-    const pid = it.pergunta_id || it.id || null;
-    const score = Math.max(0, Math.min(1, Number(it.score || 0)));
-    const nivel = (items.find(x => Number(x.pergunta_id) === Number(pid)) || {}).nivel || 'facil';
-    const maxP = nivelMax(nivel);
-    const pontos = typeof it.pontos === 'number' ? it.pontos : Math.round(score * maxP * 100) / 100;
-    
-    return {
-      pergunta_id: pid,
-      score: score,
-      pontos: Math.round(pontos * 100) / 100,
-      feedback: (it.feedback || it.comentario || '').toString(),
-      evidencias: (it.evidencias || '').toString()
-    };
-  });
 }
 
 export default { evaluate };
