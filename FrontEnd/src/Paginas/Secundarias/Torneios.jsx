@@ -1,16 +1,18 @@
 // Torneios.jsx - VERSÃO ATUALIZADA
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
-import { ChevronDown, Users, Trophy, Clock, AlertCircle, Play, BookOpen, Code, Calculator } from 'lucide-react';
+import { Users, Trophy, Clock, AlertCircle, Play, BookOpen, Code, Calculator } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import torneioService from '../../../../BackEnd/services/torneioService';
+import socket from '../../socket';
+
+const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
 
 const Torneios = () => {
   const navigate = useNavigate();
   const { user, token } = useAuth();
-  const [activeDiscipline, setActiveDiscipline] = useState('matemática');
+  const [activeDiscipline, setActiveDiscipline] = useState('Matemática');
   const [torneios, setTorneios] = useState([]);
   const [ranking, setRanking] = useState([]);
   const [userStats, setUserStats] = useState(null);
@@ -18,77 +20,98 @@ const Torneios = () => {
   const [selectedTorneio, setSelectedTorneio] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
-  const [modalType, setModalType] = useState('info'); // 'info', 'success', 'error'
-  const [joining, setJoining] = useState(false);
+  const [modalType, setModalType] = useState('info');
+
+  // Refs para socket listener sem closures stale
+  const selectedTorneioRef = useRef(null);
+  const activeDisciplineRef = useRef(activeDiscipline);
+  useEffect(() => { activeDisciplineRef.current = activeDiscipline; }, [activeDiscipline]);
+  useEffect(() => { selectedTorneioRef.current = selectedTorneio; }, [selectedTorneio]);
 
   const disciplinas = [
-    { 
-      id: 'matemática', 
-      label: 'Matemática', 
-      color: 'bg-blue-500',
-      icon: <Calculator className="w-5 h-5" />
-    },
-    { 
-      id: 'inglês', 
-      label: 'Inglês', 
-      color: 'bg-green-500',
-      icon: <BookOpen className="w-5 h-5" />
-    },
-    { 
-      id: 'programação', 
-      label: 'Programação', 
-      color: 'bg-purple-500',
-      icon: <Code className="w-5 h-5" />
-    }
+    { id: 'Matemática',  label: 'Matemática',  color: 'bg-blue-500',   icon: <Calculator className="w-5 h-5" /> },
+    { id: 'Inglês',      label: 'Inglês',      color: 'bg-green-500',  icon: <BookOpen className="w-5 h-5" /> },
+    { id: 'Programação', label: 'Programação', color: 'bg-purple-500', icon: <Code className="w-5 h-5" /> },
   ];
 
-  useEffect(() => {
-    const fetchTorneos = async () => {
-      if (!user?.id) return;
-      setLoading(true);
+  /* ── Carregar torneio activo e ranking ── */
+  const fetchTorneos = async (disciplina, silent = false) => {
+    if (!user?.id) return;
+    if (!silent) setLoading(true);
+    try {
+      // 1. Torneio activo
+      const torneioRes  = await fetch(`${API_BASE}/api/torneios/ativo`);
+      const torneioData = await torneioRes.json();
+
+      if (!torneioData.ativo || !torneioData.torneio) {
+        setTorneios([]);
+        setSelectedTorneio(null);
+        setRanking([]);
+        setUserStats(null);
+        return;
+      }
+
+      const torneioAtivo = torneioData.torneio;
+      setTorneios([torneioAtivo]);
+      setSelectedTorneio(torneioAtivo);
+
+      // 2. Ranking da disciplina
+      const rankingRes  = await fetch(`${API_BASE}/api/participantes/ranking/${encodeURIComponent(disciplina)}`);
+      const rankingData = await rankingRes.json();
+      setRanking(rankingData.data || []);
+
+      // 3. Participação do utilizador
       try {
-        // 1. Verificar torneios ativos para a disciplina selecionada
-        const torneioData = await torneioService.verificarTorneioAtivo(
-          activeDiscipline.charAt(0).toUpperCase() + activeDiscipline.slice(1)
-        );
-        
-        if (!torneioData) {
-          setTorneios([]);
-          setSelectedTorneio(null);
-          setRanking([]);
-          setUserStats(null);
-          setLoading(false);
-          return;
-        }
-
-        // 2. Configurar dados do torneio
-        const torneioAtivo = torneioData.torneio;
-        setTorneios([torneioAtivo]);
-        setSelectedTorneio(torneioAtivo);
-
-        // 3. Buscar ranking e participação do usuário
-        const rankingData = await torneioService.obterRanking(torneioAtivo.id, activeDiscipline.charAt(0).toUpperCase() + activeDiscipline.slice(1));
-        setRanking(rankingData);
-
-        const participacao = await torneioService.obterMinhaParticipacao(torneioAtivo.id, user.id, activeDiscipline.charAt(0).toUpperCase() + activeDiscipline.slice(1));
-        setUserStats(participacao);
-
-      } catch (error) {
-        console.error('Erro ao buscar torneios:', error);
+        const partRes  = await fetch(`${API_BASE}/api/participantes/usuario/${user.id}/${encodeURIComponent(disciplina)}`);
+        const partData = await partRes.json();
+        setUserStats(partData.success ? partData.data : null);
+      } catch {
+        setUserStats(null);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar torneios:', error);
+      if (!silent) {
         setModalMessage('Erro ao carregar dados do torneio. Tente novamente.');
         setModalType('error');
         setShowModal(true);
-      } finally {
-        setLoading(false);
+      }
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTorneos(activeDiscipline);
+  }, [activeDiscipline, user?.id]);
+
+  /* ── Socket.io — ranking em tempo real ── */
+  useEffect(() => {
+    const handleRankingUpdate = (data) => {
+      const torneio = selectedTorneioRef.current;
+      if (!torneio || String(data.torneio_id) !== String(torneio.id)) return;
+      if (data.disciplina && data.disciplina !== activeDisciplineRef.current) return;
+
+      if (data.ranking && Array.isArray(data.ranking)) {
+        setRanking(data.ranking);
+      } else {
+        fetchTorneos(activeDisciplineRef.current, true);
       }
     };
 
-    fetchTorneos();
-  }, [activeDiscipline, user?.id]);
+    const handleParticipantUpdate = (data) => {
+      if (!data.participante) return;
+      if (data.participante.usuario_id === user?.id) {
+        setUserStats(prev => prev ? { ...prev, ...data.participante } : data.participante);
+      }
+    };
 
-  const calculateProgress = () => {
-    return 0;
-  };
+    socket.on('ranking_update', handleRankingUpdate);
+    socket.on('participant_update', handleParticipantUpdate);
+    return () => {
+      socket.off('ranking_update', handleRankingUpdate);
+      socket.off('participant_update', handleParticipantUpdate);
+    };
+  }, [user?.id]);
 
   const getDisciplinaColor = (disciplina) => {
     switch(disciplina) {
@@ -123,10 +146,10 @@ const Torneios = () => {
         <p className="text-gray-300">Participe de torneios e compete com outros usuários</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar de Disciplinas */}
-        <div className="lg:col-span-1">
-          <div className="bg-gray-800 rounded-lg p-6 sticky top-8">
+        <div className="w-full lg:w-64 flex-shrink-0">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 lg:sticky lg:top-24">
             <h2 className="text-xl font-semibold mb-4">Disciplinas</h2>
             <div className="space-y-3">
               {disciplinas.map(disciplina => (
@@ -148,7 +171,7 @@ const Torneios = () => {
         </div>
 
         {/* Main Content */}
-        <div className="lg:col-span-3 space-y-6">
+        <div className="flex-1 space-y-6 min-w-0">
           {/* Torneio Info */}
           {selectedTorneio ? (
             <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg p-6">
@@ -160,8 +183,8 @@ const Torneios = () => {
                 <Trophy className="w-12 h-12 text-yellow-400" />
               </div>
 
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-gray-900 rounded p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div className="bg-gray-900 rounded p-3 sm:p-4">
                   <Clock className="w-5 h-5 mb-2 text-blue-400" />
                   <p className="text-sm text-gray-400">Início</p>
                   <p className="font-semibold">{formatDate(selectedTorneio.inicia_em)}</p>
@@ -227,7 +250,9 @@ const Torneios = () => {
                     </div>
                     <div className="flex justify-between items-center bg-gray-900 p-3 rounded">
                       <span className="text-gray-400 text-sm">Sua Posição</span>
-                      <span className="text-xl font-bold text-yellow-400">#{userStats.posicao || '---'}</span>
+                      <span className="text-xl font-bold text-yellow-400">
+                        {userStats.posicao != null ? `#${userStats.posicao}` : '---'}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center bg-gray-900 p-3 rounded">
                       <span className="text-gray-400 text-sm">Nível Atual</span>
@@ -254,17 +279,40 @@ const Torneios = () => {
                 </h3>
                 <div className="space-y-2">
                   {ranking && ranking.length > 0 ? (
-                    ranking.slice(0, 5).map((item, index) => (
-                      <div key={index} className={`flex items-center justify-between p-3 rounded ${item.usuario_id === user?.id ? 'bg-blue-900/40 border border-blue-700' : 'bg-gray-900'}`}>
+                    ranking.slice(0, 5).map((item, index) => {
+                      const isMe = item.usuario_id === user?.id || item.usuario?.id === user?.id;
+                      return (
+                      <div key={item.id || index}
+                        className={`flex items-center justify-between p-3 rounded-lg transition-all ${
+                          isMe
+                            ? 'bg-blue-600/30 border-l-4 border-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.25)]'
+                            : 'bg-gray-900 border-l-4 border-transparent'
+                        }`}
+                      >
                         <div className="flex items-center gap-3">
-                          <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-orange-600' : 'bg-gray-700'}`}>
+                          <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
+                            index === 0 ? 'bg-yellow-500 text-black' :
+                            index === 1 ? 'bg-gray-400 text-black' :
+                            index === 2 ? 'bg-orange-600 text-white' :
+                            'bg-gray-700 text-white'
+                          }`}>
                             {index + 1}
                           </span>
-                          <span className="font-medium">{item.usuario?.nome || 'Anônimo'}</span>
+                          <div className="flex flex-col">
+                            <span className={`font-medium ${isMe ? 'text-blue-300 font-bold' : ''}`}>
+                              {item.usuario?.nome || 'Anônimo'}
+                            </span>
+                            {isMe && (
+                              <span className="text-[10px] text-blue-400 font-bold leading-none">● você</span>
+                            )}
+                          </div>
                         </div>
-                        <span className="font-bold text-blue-400">{item.pontuacao} pts</span>
+                        <span className={`font-bold ${isMe ? 'text-blue-300' : 'text-blue-400'}`}>
+                          {item.pontuacao} pts
+                        </span>
                       </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <p className="text-center py-8 text-gray-500">Nenhum competidor ainda.</p>
                   )}

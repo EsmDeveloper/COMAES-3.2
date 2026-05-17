@@ -141,7 +141,7 @@ export default function Home() {
                 {/* Botão Entrar no Torneio */}
                 <button 
                   onClick={() => navigate('/entrar-no-torneio')}
-                  className="bg-blue-600 hover:bg-blue-800 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 md:px-8 rounded-full text-sm sm:text-base md:text-lg transition-all duration-300 transform hover:scale-105 shadow-2xl flex items-center gap-2 w-full sm:w-auto justify-center"
+                  className="bg-blue-600 hover:bg-blue-800 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 md:px-8 rounded-full text-sm sm:text-base md:text-lg transition-all duration-300 transform hover:scale-105 shadow-2xl flex items-center gap-2 w-auto justify-center"
                 >
                   <span>Entrar no Torneio</span>
                   <svg
@@ -163,7 +163,7 @@ export default function Home() {
                 {/* Botão Teste Básico */}
                 <button 
                   onClick={() => navigate('/teste-seu-conhecimento')}
-                  className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 md:px-8 rounded-full text-sm sm:text-base md:text-lg transition-all duration-300 transform hover:scale-105 shadow-2xl flex items-center gap-2 w-full sm:w-auto justify-center"
+                  className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 md:px-8 rounded-full text-sm sm:text-base md:text-lg transition-all duration-300 transform hover:scale-105 shadow-2xl flex items-center gap-2 w-auto justify-center"
                 >
                   <span>Teste Básico</span>
                   <svg

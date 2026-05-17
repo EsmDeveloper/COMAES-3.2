@@ -22,6 +22,8 @@ router.get('/users', isAdmin, UserController.getAllUsers);
 router.post('/users', isAdmin, UserController.createUser);
 router.put('/users/:id', isAdmin, UserController.updateUser);
 router.delete('/users/:id', isAdmin, UserController.deleteUser);
+router.patch('/users/:id/toggle-admin', isAdmin, UserController.toggleAdmin);
+router.patch('/users/:id/reset-password', isAdmin, UserController.resetPassword);
 
 router.get('/torneos', isAdmin, TorneoController.getAllTorneos);
 router.post('/torneos', isAdmin, TorneoController.createTorneo);

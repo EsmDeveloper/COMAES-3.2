@@ -32,7 +32,13 @@ import Certificado from "./models/Certificado.js";
 import iaEvaluators from './services/iaEvaluators.js';
 import adminPanelRoutes from './routes/adminPanelRoutes.js';
 import certificatesRoutes from './routes/certificatesRoutes.js';
+import tournamentsRoutes from './routes/tournamentsRoutes.js';
 import { sendResetEmail, sendWelcomeEmail } from './services/emailService.js';
+import auth from './middlewares/auth.js';
+import isAdmin from './middlewares/isAdmin.js';
+import { baseSanitizer } from './middlewares/security/sanitizer.js';
+import validate, { rules } from './middlewares/validate.js';
+import { startTorneioCron } from './services/torneioCron.js';
 
 dotenv.config();
 
@@ -44,7 +50,10 @@ let io = null; // inicializado no startServer
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configuração CORS completa para permitir requisições do frontend
+// Global sanitizer � strips NoSQL injection keys and normalizes strings
+app.use(baseSanitizer);
+
+// Configura��o CORS completa para permitir requisi��es do frontend
 app.use(cors({
   origin: true, // Permitir todas as origens na rede local
   credentials: true,
@@ -59,15 +68,13 @@ app.use('/uploads', express.static(uploadDir));
 
 // Helper para normalizar nome da disciplina (URL/Parâmetro -> Banco de Dados)
 const normalizeDisciplina = (name) => {
-  if (!name) return "";
+  if (!name) return '';
   const normalized = name.toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove acentos
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .trim();
-  
-  if (normalized === "matematica") return "Matemática";
-  if (normalized === "programacao") return "Programação";
-  if (normalized === "ingles" || normalized === "lingua inglesa") return "Inglês";
-  
+  if (normalized === 'matematica') return 'Matem\u00e1tica';
+  if (normalized === 'programacao') return 'Programa\u00e7\u00e3o';
+  if (normalized === 'ingles' || normalized === 'lingua inglesa') return 'Ingl\u00eas';
   return name.charAt(0).toUpperCase() + name.slice(1);
 };
 
@@ -81,7 +88,175 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
-// ===== ASSOCIAÇÕES DO SEQUELIZE =====
+const NAME_REGEX = /^[\p{L} ]+$/u;
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/;
+const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+const ANGOLA_PHONE_LOCAL_REGEX = /^9[1-9]\d{7}$/;
+
+const validateRegistrationPayload = ({ nome, telefone, email, nascimento, sexo, password }) => {
+  const fieldErrors = {};
+
+  if (!nome || !nome.trim()) {
+    fieldErrors.nome = 'O nome é obrigatório.';
+  } else {
+    const trimmedName = nome.trim();
+    if (trimmedName.length < 2) {
+      fieldErrors.nome = 'O nome deve ter pelo menos 2 caracteres.';
+    } else if (!NAME_REGEX.test(trimmedName)) {
+      fieldErrors.nome = 'O nome deve conter apenas letras e espaços.';
+    }
+  }
+
+  if (!telefone || !telefone.trim()) {
+    fieldErrors.telefone = 'O telefone é obrigatório.';
+  } else if (!ANGOLA_PHONE_LOCAL_REGEX.test(telefone.trim())) {
+    fieldErrors.telefone = 'O telefone deve ter 9 dígitos válidos e começar com 9.';
+  }
+
+  if (!email || !email.trim()) {
+    fieldErrors.email = 'O email é obrigatório.';
+  } else {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!EMAIL_REGEX.test(normalizedEmail) || /@{2,}|^@|@$/.test(normalizedEmail)) {
+      fieldErrors.email = 'Digite um email válido.';
+    }
+  }
+
+  if (!nascimento) {
+    fieldErrors.nascimento = 'A data de nascimento é obrigatória.';
+  } else {
+    const birthDate = new Date(nascimento);
+    const today = new Date();
+    if (Number.isNaN(birthDate.getTime())) {
+      fieldErrors.nascimento = 'Data de nascimento inválida.';
+    } else if (birthDate > today) {
+      fieldErrors.nascimento = 'A data de nascimento não pode estar no futuro.';
+    }
+  }
+
+  if (!sexo) {
+    fieldErrors.sexo = 'O sexo é obrigatório.';
+  }
+
+  if (!password) {
+    fieldErrors.senha = 'A senha é obrigatória.';
+  } else if (!STRONG_PASSWORD_REGEX.test(password)) {
+    fieldErrors.senha = 'A senha deve ter no mínimo 8 caracteres, com maiúscula, minúscula, número e símbolo.';
+  }
+
+  return fieldErrors;
+};
+
+
+const DEFAULT_QUIZ_QUESTIONS = {
+  matematica: [
+    { texto_pergunta: 'Quanto � 2 + 2?', opcao_a: '3', opcao_b: '4', opcao_c: '5', opcao_d: '6', resposta_correta: 'b' },
+    { texto_pergunta: 'Qual � o resultado de 9 x 3?', opcao_a: '18', opcao_b: '21', opcao_c: '27', opcao_d: '36', resposta_correta: 'c' },
+    { texto_pergunta: 'Quanto � 15 - 7?', opcao_a: '6', opcao_b: '7', opcao_c: '8', opcao_d: '9', resposta_correta: 'c' },
+    { texto_pergunta: 'Qual � a metade de 20?', opcao_a: '8', opcao_b: '10', opcao_c: '12', opcao_d: '14', resposta_correta: 'b' },
+    { texto_pergunta: 'Quanto � 6 + 5?', opcao_a: '10', opcao_b: '11', opcao_c: '12', opcao_d: '13', resposta_correta: 'b' }
+  ],
+  programacao: [
+    { texto_pergunta: 'Qual linguagem � mais usada para p�ginas web no navegador?', opcao_a: 'JavaScript', opcao_b: 'C', opcao_c: 'Rust', opcao_d: 'SQL', resposta_correta: 'a' },
+    { texto_pergunta: 'Qual s�mbolo inicia um coment�rio de uma linha em JavaScript?', opcao_a: '/*', opcao_b: '#', opcao_c: '//', opcao_d: '<!--', resposta_correta: 'c' },
+    { texto_pergunta: 'HTML � usado para:', opcao_a: 'Estilizar p�ginas', opcao_b: 'Estruturar conte�do', opcao_c: 'Gerir banco de dados', opcao_d: 'Compilar c�digo', resposta_correta: 'b' },
+    { texto_pergunta: 'CSS serve principalmente para:', opcao_a: 'Criar tabelas no banco', opcao_b: 'Estilizar interfaces', opcao_c: 'Autenticar usu�rios', opcao_d: 'Enviar emails', resposta_correta: 'b' },
+    { texto_pergunta: 'Qual destas op��es representa uma vari�vel v�lida em JavaScript?', opcao_a: '2nome', opcao_b: 'meuNome', opcao_c: 'var-1', opcao_d: 'nome completo', resposta_correta: 'b' }
+  ],
+  ingles: [
+    { texto_pergunta: 'Qual � a tradu��o de "book"?', opcao_a: 'Mesa', opcao_b: 'Livro', opcao_c: 'Caneta', opcao_d: 'Caderno', resposta_correta: 'b' },
+    { texto_pergunta: 'Complete: She ___ my friend.', opcao_a: 'are', opcao_b: 'is', opcao_c: 'am', opcao_d: 'be', resposta_correta: 'b' },
+    { texto_pergunta: 'Qual palavra significa "�gua" em ingl�s?', opcao_a: 'Water', opcao_b: 'Fire', opcao_c: 'Earth', opcao_d: 'Wind', resposta_correta: 'a' },
+    { texto_pergunta: 'Choose the correct word: I ___ to school every day.', opcao_a: 'go', opcao_b: 'goes', opcao_c: 'going', opcao_d: 'gone', resposta_correta: 'a' },
+    { texto_pergunta: 'Qual � o plural de "child"?', opcao_a: 'childs', opcao_b: 'childes', opcao_c: 'children', opcao_d: 'childrens', resposta_correta: 'c' }
+  ],
+  cultura_geral: [
+    { texto_pergunta: 'Qual � a capital de Angola?', opcao_a: 'Benguela', opcao_b: 'Huambo', opcao_c: 'Luanda', opcao_d: 'Lobito', resposta_correta: 'c' },
+    { texto_pergunta: 'Quantos dias tem uma semana?', opcao_a: '5', opcao_b: '6', opcao_c: '7', opcao_d: '8', resposta_correta: 'c' },
+    { texto_pergunta: 'Qual planeta conhecemos como Planeta Vermelho?', opcao_a: 'Marte', opcao_b: 'V�nus', opcao_c: 'J�piter', opcao_d: 'Saturno', resposta_correta: 'a' },
+    { texto_pergunta: 'Qual oceano banha a costa ocidental de �frica?', opcao_a: '�ndico', opcao_b: 'Atl�ntico', opcao_c: '�rtico', opcao_d: 'Pac�fico', resposta_correta: 'b' },
+    { texto_pergunta: 'Qual destes � um mam�fero?', opcao_a: '�guia', opcao_b: 'Tubar�o', opcao_c: 'Golfinho', opcao_d: 'Cobra', resposta_correta: 'c' }
+  ]
+};
+
+const QUIZ_AREA_MAP = {
+  matematica: 'matematica',
+  programacao: 'programacao',
+  ingles: 'ingles',
+  'cultura-geral': 'cultura_geral',
+  cultura_geral: 'cultura_geral',
+  culturaGeral: 'cultura_geral'
+};
+
+const resolveQuizArea = (rawArea) => QUIZ_AREA_MAP[rawArea] || null;
+
+const buildSlug = (value = '') => value
+  .toString()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/^-+|-+$/g, '')
+  .slice(0, 120);
+
+const createNotificationForUser = async ({ usuarioId, tipo = 'geral', titulo, mensagem, extras = {} }) => {
+  if (!usuarioId) return null;
+
+  return Notificacao.create({
+    usuario_id: usuarioId,
+    tipo,
+    conteudo: {
+      titulo,
+      mensagem,
+      ...extras
+    },
+    lido: false
+  });
+};
+
+const createNotificationForAllUsers = async ({ tipo = 'geral', titulo, mensagem, extras = {} }) => {
+  const users = await Usuario.findAll({ attributes: ['id'] });
+  if (!users.length) return 0;
+
+  const payload = users.map((user) => ({
+    usuario_id: user.id,
+    tipo,
+    conteudo: { titulo, mensagem, ...extras },
+    lido: false
+  }));
+
+  await Notificacao.bulkCreate(payload);
+  return payload.length;
+};
+
+const ensureQuizQuestions = async (area) => {
+  const normalizedArea = resolveQuizArea(area);
+  if (!normalizedArea) {
+    throw new Error('�rea de perguntas inv�lida.');
+  }
+
+  const tipo = normalizedArea === 'cultura_geral' ? 'multipla_escolha' : normalizedArea;
+  const existingCount = await Pergunta.count({ where: { tipo } });
+  if (existingCount > 0) return;
+
+  const defaults = DEFAULT_QUIZ_QUESTIONS[normalizedArea] || [];
+  if (!defaults.length) return;
+
+  await Pergunta.bulkCreate(defaults.map((question, index) => ({
+    ordem_indice: index + 1,
+    tipo,
+    texto_pergunta: question.texto_pergunta,
+    opcao_a: question.opcao_a,
+    opcao_b: question.opcao_b,
+    opcao_c: question.opcao_c,
+    opcao_d: question.opcao_d,
+    resposta_correta: question.resposta_correta,
+    pontos: 10,
+    midia: null
+  })));
+};
+
+// ===== ASSOCIA��ES DO SEQUELIZE =====
 const setupAssociations = () => {
   // Usuario <-> Funcao
   Funcao.hasMany(Usuario, { foreignKey: 'funcao_id', as: 'usuarios' });
@@ -177,6 +352,9 @@ app.use('/api/admin', adminPanelRoutes);
 // Registrar rotas de certificados
 app.use('/api/certificates', certificatesRoutes);
 
+// Registrar rotas de torneios e ranking
+app.use('/api/tournaments', tournamentsRoutes);
+
 app.get("/health", async (req, res) => {
   try {
     await sequelize.authenticate();
@@ -242,8 +420,8 @@ app.get("/api/test-email", async (req, res) => {
 
 // ===== AUTENTICAÇÃO CORRIGIDA =====
 
-// LOGIN CORRIGIDO
-app.post('/auth/login', async (req, res) => {
+// LOGIN
+app.post('/auth/login', validate(rules.login), async (req, res) => {
   try {
     const { usuario, senha } = req.body;
 
@@ -330,26 +508,25 @@ app.post('/auth/login', async (req, res) => {
   }
 });
 
-// REGISTRO CORRIGIDO
-app.post('/auth/registro', async (req, res) => {
+// REGISTRO
+app.post('/auth/registro', validate(rules.register), async (req, res) => {
   try {
-    const { nome, telefone, email, nascimento, sexo, escola, password } = req.body;
+    const nome = typeof req.body.nome === 'string' ? req.body.nome.trim() : '';
+    const telefone = typeof req.body.telefone === 'string' ? req.body.telefone.trim() : '';
+    const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    const nascimento = req.body.nascimento;
+    const sexo = req.body.sexo;
+    const escola = typeof req.body.escola === 'string' ? req.body.escola.trim() : '';
+    const password = req.body.password;
 
     console.log('📝 Tentativa de registro:', { nome, email, telefone });
 
-    // Validação mais detalhada
-    const camposFaltantes = [];
-    if (!nome) camposFaltantes.push('nome');
-    if (!telefone) camposFaltantes.push('telefone');
-    if (!email) camposFaltantes.push('email');
-    if (!nascimento) camposFaltantes.push('nascimento');
-    if (!sexo) camposFaltantes.push('sexo');
-    if (!password) camposFaltantes.push('password');
-
-    if (camposFaltantes.length > 0) {
-      return res.status(400).json({
+    const fieldErrors = validateRegistrationPayload({ nome, telefone, email, nascimento, sexo, password });
+    if (Object.keys(fieldErrors).length > 0) {
+      return res.status(422).json({
         success: false,
-        error: `Campos obrigatórios em falta: ${camposFaltantes.join(', ')}`
+        error: 'Verifique os campos do cadastro.',
+        fieldErrors
       });
     }
 
@@ -364,9 +541,14 @@ app.post('/auth/registro', async (req, res) => {
     });
 
     if (exists) {
+      const duplicateFieldErrors = {};
+      if (exists.email === email) duplicateFieldErrors.email = 'Este email j� est� registado.';
+      if (exists.telefone === telefone) duplicateFieldErrors.telefone = 'Este telefone j� est� registado.';
+
       return res.status(409).json({
         success: false,
-        error: 'Email ou telefone já registado.'
+        error: 'Email ou telefone j� registado.',
+        fieldErrors: duplicateFieldErrors
       });
     }
 
@@ -424,8 +606,8 @@ app.post('/auth/registro', async (req, res) => {
 
 // ===== RECUPERAÇÃO DE SENHA =====
 
-// Iniciar recuperação de senha
-app.post('/auth/recover', async (req, res) => {
+// Iniciar recupera��o de senha
+app.post('/auth/recover', validate(rules.passwordRecover), async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -555,7 +737,7 @@ app.get('/auth/verify-reset-token/:token', async (req, res) => {
 });
 
 // Redefinir senha
-app.post('/auth/reset-password', async (req, res) => {
+app.post('/auth/reset-password', validate(rules.passwordReset), async (req, res) => {
   try {
     const { token, novaSenha } = req.body;
 
@@ -671,40 +853,42 @@ app.post('/api/participantes/registrar', async (req, res) => {
   try {
     const { id_usuario, disciplina_competida } = req.body;
 
-    console.log('👤 Registrando participante:', { id_usuario, disciplina_competida });
-
-    const torneio = await Torneio.findOne({
-      where: {
-        status: 'ativo'
-      }
-    });
-
-    if (!torneio) {
-      return res.status(404).json({
-        success: false,
-        error: 'Nenhum torneio ativo encontrado'
-      });
+    if (!id_usuario || !disciplina_competida) {
+      return res.status(400).json({ success: false, error: 'id_usuario e disciplina_competida sao obrigatorios' });
     }
 
-    const disciplinaFormatada = disciplina_competida.charAt(0).toUpperCase() + disciplina_competida.slice(1);
+    const torneio = await Torneio.findOne({ where: { status: 'ativo' } });
+    if (!torneio) {
+      return res.status(404).json({ success: false, error: 'Nenhum torneio ativo encontrado' });
+    }
 
-    const existente = await ParticipanteTorneio.findOne({
-      where: {
-        usuario_id: id_usuario,
-        torneio_id: torneio.id,
-        disciplina_competida: disciplinaFormatada
-      }
+    // Normalizar disciplina de forma robusta (suporta acentos e variantes)
+    const disciplinaFormatada = normalizeDisciplina(disciplina_competida);
+
+    // Helper: buscar participante com dados do usuario incluidos
+    const buscarComUsuario = (where) => ParticipanteTorneio.findOne({
+      where,
+      include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'imagem', 'email'] }]
     });
 
-    if (existente) {
+    // Verificar se ja existe
+    let participante = await buscarComUsuario({
+      usuario_id: id_usuario,
+      torneio_id: torneio.id,
+      disciplina_competida: disciplinaFormatada
+    });
+
+    if (participante) {
+      // Ja registado � devolver com dados do usuario para o frontend poder mostrar no ranking
       return res.json({
         success: true,
-        data: existente,
-        message: 'Participante já registrado nesta disciplina'
+        data: participante.toJSON(),
+        message: 'Participante ja registado nesta disciplina'
       });
     }
 
-    const novoParticipante = await ParticipanteTorneio.create({
+    // Criar novo participante
+    await ParticipanteTorneio.create({
       torneio_id: torneio.id,
       usuario_id: id_usuario,
       disciplina_competida: disciplinaFormatada,
@@ -714,25 +898,51 @@ app.post('/api/participantes/registrar', async (req, res) => {
       casos_resolvidos: 0
     });
 
-    // Emitir atualização de participantes
+    // Recalcular ranking (atribui posicoes a todos, incluindo o novo com 0 pontos)
+    await ParticipanteTorneio.calcularRanking(torneio.id, disciplinaFormatada);
+
+    // Buscar o participante recem criado com dados do usuario
+    participante = await buscarComUsuario({
+      usuario_id: id_usuario,
+      torneio_id: torneio.id,
+      disciplina_competida: disciplinaFormatada
+    });
+
+    // Emitir ranking completo atualizado via socket
     if (io) {
+      const rankingAtualizado = await ParticipanteTorneio.findAll({
+        where: { torneio_id: torneio.id, disciplina_competida: disciplinaFormatada, status: 'confirmado' },
+        include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'imagem', 'email'] }],
+        order: [['pontuacao', 'DESC'], ['entrou_em', 'ASC']]
+      });
+      io.emit('ranking_update', {
+        torneio_id: torneio.id,
+        disciplina: disciplinaFormatada,
+        ranking: rankingAtualizado.map(p => p.toJSON())
+      });
+
+      // Atualizar contagens de participantes
       const counts = await ParticipanteTorneio.findAll({
         where: { torneio_id: torneio.id, status: 'confirmado' },
         attributes: ['disciplina_competida', [sequelize.fn('COUNT', sequelize.col('id')), 'total']],
         group: ['disciplina_competida']
       });
-      const stats = { 'Matemática': 0, 'Inglês': 0, 'Programação': 0 };
-      counts.forEach(c => { stats[c.getDataValue('disciplina_competida')] = parseInt(c.getDataValue('total')) || 0; });
+      const stats = { 'Matematica': 0, 'Ingles': 0, 'Programacao': 0 };
+      counts.forEach(c => {
+        const d = c.getDataValue('disciplina_competida');
+        const n = parseInt(c.getDataValue('total')) || 0;
+        if (d) stats[d] = n;
+      });
       io.emit('tournament_stats_update', { stats, totalParticipants: Object.values(stats).reduce((a, b) => a + b, 0) });
     }
 
     res.status(201).json({
       success: true,
-      data: novoParticipante,
-      message: 'Participante registrado com sucesso'
+      data: participante ? participante.toJSON() : { usuario_id: id_usuario, torneio_id: torneio.id, disciplina_competida: disciplinaFormatada, pontuacao: 0, status: 'confirmado' },
+      message: 'Participante registado com sucesso'
     });
   } catch (error) {
-    console.error('❌ Erro ao registrar participante:', error);
+    console.error('Erro ao registar participante:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -753,6 +963,7 @@ app.get('/api/participantes/ranking/:disciplina', async (req, res) => {
       return res.json({ success: true, data: [] });
     }
 
+    // Inclui TODOS os participantes confirmados, mesmo com pontuacao zero
     const participantes = await ParticipanteTorneio.findAll({
       where: {
         torneio_id: torneio.id,
@@ -764,36 +975,69 @@ app.get('/api/participantes/ranking/:disciplina', async (req, res) => {
         as: 'usuario',
         attributes: ['id', 'nome', 'imagem']
       }],
-      order: [['pontuacao', 'DESC']],
-      limit: 20
+      order: [
+        ['pontuacao', 'DESC'],
+        ['entrou_em', 'ASC']
+      ]
     });
 
-    const ranking = participantes.map((p, index) => ({
-      ...p.toJSON(),
-      posicao: index + 1
-    }));
+    // Se algum participante n�o tem posi��o calculada, recalcular o ranking
+    const temPosicaoNula = participantes.some(p => p.posicao === null || p.posicao === undefined);
+    if (temPosicaoNula) {
+      console.log('⚠️ Detectadas posi��es nulas, recalculando ranking...');
+      await ParticipanteTorneio.calcularRanking(torneio.id, disciplinaFormatada);
+      
+      // Buscar novamente com posi��es atualizadas
+      const participantesAtualizados = await ParticipanteTorneio.findAll({
+        where: {
+          torneio_id: torneio.id,
+          disciplina_competida: disciplinaFormatada,
+          status: 'confirmado'
+        },
+        include: [{
+          model: Usuario,
+          as: 'usuario',
+          attributes: ['id', 'nome', 'imagem']
+        }],
+        order: [
+          ['pontuacao', 'DESC'],
+          ['entrou_em', 'ASC']
+        ]
+      });
+      
+      return res.json({ success: true, data: participantesAtualizados.map(p => p.toJSON()) });
+    }
 
-    res.json({ success: true, data: ranking });
+    // Usar posi��es j� calculadas e persistidas
+    res.json({ success: true, data: participantes.map(p => p.toJSON()) });
   } catch (error) {
-    console.error('❌ Erro ao buscar ranking:', error);
+    console.error('Erro ao buscar ranking:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// 4. Buscar dados do usuário no torneio por disciplina
+
+// 4. Buscar dados do usuario no torneio por disciplina
+// Suporta torneios 'ativo' e 'finalizado' para exibir posicao correta no modal de encerramento
 app.get('/api/participantes/usuario/:userId/:disciplina', async (req, res) => {
   try {
     const { userId, disciplina } = req.params;
     const disciplinaFormatada = normalizeDisciplina(disciplina);
 
-    const torneio = await Torneio.findOne({
-      where: {
-        status: 'ativo'
-      }
-    });
+    // Procurar primeiro torneio ativo; se nao existir, procurar o mais recente finalizado
+    let torneio = await Torneio.findOne({ where: { status: 'ativo' } });
+    let torneioFinalizado = false;
 
     if (!torneio) {
-      return res.status(404).json({ success: false, error: 'Torneio não encontrado' });
+      torneio = await Torneio.findOne({
+        where: { status: 'finalizado' },
+        order: [['termina_em', 'DESC']]
+      });
+      if (torneio) torneioFinalizado = true;
+    }
+
+    if (!torneio) {
+      return res.status(404).json({ success: false, error: 'Nenhum torneio encontrado' });
     }
 
     const participante = await ParticipanteTorneio.findOne({
@@ -810,29 +1054,101 @@ app.get('/api/participantes/usuario/:userId/:disciplina', async (req, res) => {
     });
 
     if (!participante) {
-      return res.status(404).json({ success: false, error: 'Participante não encontrado' });
+      return res.status(404).json({ success: false, error: 'Participante nao encontrado' });
     }
 
+    // Buscar todos os participantes confirmados ordenados por pontuacao
     const todosParticipantes = await ParticipanteTorneio.findAll({
       where: {
         torneio_id: torneio.id,
         disciplina_competida: disciplinaFormatada,
         status: 'confirmado'
       },
-      order: [['pontuacao', 'DESC']]
+      order: [['pontuacao', 'DESC'], ['entrou_em', 'ASC']]
     });
 
-    const posicao = todosParticipantes.findIndex(p => p.usuario_id == userId) + 1;
+    const totalParticipantes = todosParticipantes.length;
+
+    // Determinar se o utilizador entrou depois do torneio ter terminado
+    let entrouDepoisDoFim = false;
+    if (torneioFinalizado && torneio.termina_em) {
+      const entrou = new Date(participante.entrou_em);
+      const fim = new Date(torneio.termina_em);
+      entrouDepoisDoFim = entrou > fim;
+    }
+
+    // Se entrou depois do fim, nao tem posicao competitiva
+    if (entrouDepoisDoFim) {
+      return res.json({
+        success: true,
+        data: {
+          ...participante.toJSON(),
+          posicao: null,
+          total_participantes: totalParticipantes,
+          entrou_depois_do_fim: true
+        }
+      });
+    }
+
+    // Torneio sem participantes que competiram
+    if (totalParticipantes === 0) {
+      return res.json({
+        success: true,
+        data: {
+          ...participante.toJSON(),
+          posicao: null,
+          total_participantes: 0,
+          torneio_vazio: true
+        }
+      });
+    }
+
+    // Para torneio finalizado: usar posicao_congelada persistida se disponivel
+    if (torneioFinalizado && participante.posicao_congelada && participante.posicao) {
+      const todosComZeroFrozen = todosParticipantes.every(p => parseFloat(p.pontuacao || 0) === 0);
+      const semRespostasValidasFrozen = todosComZeroFrozen && todosParticipantes.every(p => (p.casos_resolvidos || 0) === 0);
+      const participanteSemPontuacaoFrozen =
+        parseFloat(participante.pontuacao || 0) === 0 &&
+        (participante.casos_resolvidos || 0) === 0;
+
+      return res.json({
+        success: true,
+        data: {
+          ...participante.toJSON(),
+          total_participantes: totalParticipantes,
+          sem_pontuacao_valida: semRespostasValidasFrozen,
+          participante_sem_pontuacao: participanteSemPontuacaoFrozen
+        }
+      });
+    }
+
+    // Calcular posicao real pelo ranking em tempo real
+    const posicaoReal = todosParticipantes.findIndex(p => p.usuario_id == userId) + 1;
+    // posicaoReal === 0 significa que o participante nao esta na lista de confirmados
+    const posicaoFinal = posicaoReal > 0 ? posicaoReal : null;
+
+    // Verificar se todos os participantes t�m pontua��o zero (torneio sem atividade real)
+    const todosComZero = todosParticipantes.every(p => parseFloat(p.pontuacao || 0) === 0);
+    const semRespostasValidas = todosComZero && todosParticipantes.every(p => (p.casos_resolvidos || 0) === 0);
+
+    // Verificar se este participante espec�fico n�o pontuou
+    const participanteSemPontuacao =
+      parseFloat(participante.pontuacao || 0) === 0 &&
+      (participante.casos_resolvidos || 0) === 0;
 
     res.json({
       success: true,
       data: {
         ...participante.toJSON(),
-        posicao: posicao || todosParticipantes.length + 1
+        posicao: posicaoFinal,
+        total_participantes: totalParticipantes,
+        // Flags de cen�rio para o frontend
+        sem_pontuacao_valida: semRespostasValidas,   // ningu�m pontuou no torneio
+        participante_sem_pontuacao: participanteSemPontuacao  // este user n�o pontuou
       }
     });
   } catch (error) {
-    console.error('❌ Erro ao buscar dados do usuário:', error);
+    console.error('Erro ao buscar dados do usuario:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -914,9 +1230,9 @@ app.get('/api/torneios/estatisticas', async (req, res) => {
       return res.json({
         success: true,
         stats: {
-          'Matemática': 0,
-          'Inglês': 0,
-          'Programação': 0
+          'Matem\u00e1tica': 0,
+          'Ingl\u00eas': 0,
+          'Programa\u00e7\u00e3o': 0
         }
       });
     }
@@ -934,9 +1250,9 @@ app.get('/api/torneios/estatisticas', async (req, res) => {
     });
 
     const stats = {
-      'Matemática': 0,
-      'Inglês': 0,
-      'Programação': 0
+      'Matem\u00e1tica': 0,
+      'Ingl\u00eas': 0,
+      'Programa\u00e7\u00e3o': 0
     };
 
     counts.forEach(c => {
@@ -1085,7 +1401,7 @@ app.get('/api/torneios/dashboard', async (req, res) => {
     const participantesMatematica = await ParticipanteTorneio.count({
       where: {
         torneio_id: torneioAtivo.id,
-        disciplina_competida: 'Matemática',
+        disciplina_competida: 'Matem\u00e1tica',
         status: 'confirmado'
       }
     });
@@ -1093,7 +1409,7 @@ app.get('/api/torneios/dashboard', async (req, res) => {
     const participantesIngles = await ParticipanteTorneio.count({
       where: {
         torneio_id: torneioAtivo.id,
-        disciplina_competida: 'Inglês',
+        disciplina_competida: 'Ingl\u00eas',
         status: 'confirmado'
       }
     });
@@ -1101,7 +1417,7 @@ app.get('/api/torneios/dashboard', async (req, res) => {
     const participantesProgramacao = await ParticipanteTorneio.count({
       where: {
         torneio_id: torneioAtivo.id,
-        disciplina_competida: 'Programação',
+        disciplina_competida: 'Programa\u00e7\u00e3o',
         status: 'confirmado'
       }
     });
@@ -1291,9 +1607,13 @@ app.get('/usuarios/:id', async (req, res) => {
 });
 
 // Notificações do usuário
-app.get('/usuarios/:id/notificacoes', async (req, res) => {
+app.get('/usuarios/:id/notificacoes', auth, async (req, res) => {
   try {
-    const usuarioId = req.params.id;
+    const usuarioId = String(req.params.id);
+    if (String(req.user.id) !== usuarioId) {
+      return res.status(403).json({ success: false, error: 'Acesso negado.' });
+    }
+
     const notificacoes = await Notificacao.findAll({
       where: { usuario_id: usuarioId },
       order: [['criado_em', 'DESC']],
@@ -1305,35 +1625,48 @@ app.get('/usuarios/:id/notificacoes', async (req, res) => {
   }
 });
 
-app.patch('/notificacoes/:id/lido', async (req, res) => {
+app.patch('/notificacoes/:id/lido', auth, async (req, res) => {
   try {
     const { id } = req.params;
-    await Notificacao.update(
-      { lido: true, lido_em: new Date() },
-      { where: { id } }
-    );
-    res.json({ success: true, message: 'Notificação marcada como lida.' });
+    const notificacao = await Notificacao.findByPk(id);
+    if (!notificacao) {
+      return res.status(404).json({ success: false, error: 'Notifica��o n�o encontrada.' });
+    }
+    if (String(notificacao.usuario_id) !== String(req.user.id)) {
+      return res.status(403).json({ success: false, error: 'Acesso negado.' });
+    }
+
+    await notificacao.update({ lido: true, lido_em: new Date() });
+    res.json({ success: true, message: 'Notifica��o marcada como lida.' });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
-app.patch('/usuarios/:id/notificacoes/lido-todas', async (req, res) => {
+app.patch('/usuarios/:id/notificacoes/lido-todas', auth, async (req, res) => {
   try {
-    const usuarioId = req.params.id;
+    const usuarioId = String(req.params.id);
+    if (String(req.user.id) !== usuarioId) {
+      return res.status(403).json({ success: false, error: 'Acesso negado.' });
+    }
+
     await Notificacao.update(
       { lido: true, lido_em: new Date() },
       { where: { usuario_id: usuarioId, lido: false } }
     );
-    res.json({ success: true, message: 'Todas as notificações marcadas como lidas.' });
+    res.json({ success: true, message: 'Todas as notifica��es foram marcadas como lidas.' });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
-app.get('/usuarios/:id/notificacoes/nao-lidas/count', async (req, res) => {
+app.get('/usuarios/:id/notificacoes/nao-lidas/count', auth, async (req, res) => {
   try {
-    const usuarioId = req.params.id;
+    const usuarioId = String(req.params.id);
+    if (String(req.user.id) !== usuarioId) {
+      return res.status(403).json({ success: false, error: 'Acesso negado.' });
+    }
+
     const count = await Notificacao.count({
       where: { usuario_id: usuarioId, lido: false }
     });
@@ -1612,12 +1945,187 @@ app.get('/torneios/:id/ranking', async (req, res) => {
   }
 });
 
+
+app.get('/perguntas/:area', async (req, res) => {
+  try {
+    const normalizedArea = resolveQuizArea(req.params.area);
+    if (!normalizedArea) {
+      return res.status(400).json({ success: false, error: '�rea inv�lida.' });
+    }
+
+    await ensureQuizQuestions(normalizedArea);
+
+    const tipo = normalizedArea === 'cultura_geral' ? 'multipla_escolha' : normalizedArea;
+    const perguntas = await Pergunta.findAll({
+      where: { tipo },
+      order: [['ordem_indice', 'ASC']],
+      limit: 20
+    });
+
+    res.json({ success: true, area: normalizedArea, total: perguntas.length, data: perguntas });
+  } catch (error) {
+    console.error('Erro ao carregar perguntas:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Novo endpoint para quiz com quest�es ordenadas por dificuldade e aleat�rias
+app.get('/api/quiz/:area', async (req, res) => {
+  try {
+    const { area } = req.params;
+    const { limit = 10 } = req.query;
+
+    // Mapear �rea
+    const areaMap = {
+      'matematica': 'matematica',
+      'ingles': 'ingles',
+      'programacao': 'programacao'
+    };
+
+    const tipo = areaMap[area.toLowerCase()];
+    if (!tipo) {
+      return res.status(400).json({ success: false, error: '�rea inv�lida. Use: matematica, ingles ou programacao' });
+    }
+
+    // Buscar quest�es ordenadas por dificuldade (f�cil -> m�dio -> dif�cil)
+    const questoes = await Pergunta.findAll({
+      where: { tipo },
+      order: [
+        [sequelize.literal("CASE WHEN dificuldade = 'facil' THEN 1 WHEN dificuldade = 'medio' THEN 2 ELSE 3 END"), 'ASC'],
+        [sequelize.fn('RAND')]
+      ],
+      limit: Math.min(parseInt(limit), 20),
+      attributes: ['id', 'texto_pergunta', 'opcao_a', 'opcao_b', 'opcao_c', 'opcao_d', 'resposta_correta', 'dificuldade']
+    });
+
+    if (questoes.length === 0) {
+      return res.status(404).json({ success: false, error: 'Nenhuma quest�o encontrada para esta �rea' });
+    }
+
+    // Embaralhar op��es de cada quest�o
+    const questoesProcessadas = questoes.map(q => {
+      const opcoes = [
+        { texto: q.opcao_a, correta: q.resposta_correta === 'a' },
+        { texto: q.opcao_b, correta: q.resposta_correta === 'b' },
+        { texto: q.opcao_c, correta: q.resposta_correta === 'c' },
+        { texto: q.opcao_d, correta: q.resposta_correta === 'd' }
+      ];
+
+      // Fisher-Yates shuffle
+      for (let i = opcoes.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [opcoes[i], opcoes[j]] = [opcoes[j], opcoes[i]];
+      }
+
+      return {
+        id: q.id,
+        questao: q.texto_pergunta,
+        opcoes: opcoes.map(o => o.texto),
+        respostaCorreta: opcoes.findIndex(o => o.correta),
+        dificuldade: q.dificuldade
+      };
+    });
+
+    res.json({
+      success: true,
+      area: tipo,
+      total: questoesProcessadas.length,
+      data: questoesProcessadas
+    });
+  } catch (error) {
+    console.error('Erro ao carregar quiz:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/noticias', auth, isAdmin, async (req, res) => {
+  try {
+    const { titulo, resumo, conteudo, tags, url_capa, publicado = true } = req.body;
+
+    if (!titulo || !conteudo) {
+      return res.status(400).json({ success: false, error: 'T�tulo e conte�do s�o obrigat�rios.' });
+    }
+
+    let slug = buildSlug(req.body.slug || titulo);
+    if (!slug) slug = `noticia-${Date.now()}`;
+
+    const existingSlug = await Noticia.findOne({ where: { slug } });
+    if (existingSlug) {
+      slug = `${slug}-${Date.now()}`;
+    }
+
+    const noticia = await Noticia.create({
+      titulo: titulo.trim(),
+      slug,
+      resumo: resumo?.trim() || null,
+      conteudo: conteudo.trim(),
+      autor_id: req.user.id,
+      tags: Array.isArray(tags) ? tags : (typeof tags === 'string' && tags.trim() ? tags.split(',').map((tag) => tag.trim()).filter(Boolean) : []),
+      url_capa: url_capa?.trim() || null,
+      publicado: Boolean(publicado),
+      publicado_em: publicado ? new Date() : null,
+      criado_em: new Date(),
+      atualizado_em: new Date()
+    });
+
+    const noticiaCompleta = await Noticia.findByPk(noticia.id, {
+      include: [{ model: Usuario, as: 'autor', attributes: ['id', 'nome', 'imagem'] }]
+    });
+
+    if (noticia.publicado) {
+      await createNotificationForAllUsers({
+        tipo: 'noticia',
+        titulo: 'Nova not�cia publicada',
+        mensagem: noticia.titulo,
+        extras: { noticiaId: noticia.id, slug: noticia.slug }
+      });
+    }
+
+    if (io) {
+      io.emit('news_created', noticiaCompleta);
+    }
+
+    res.status(201).json({ success: true, data: noticiaCompleta });
+  } catch (error) {
+    console.error('Erro ao criar not�cia:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/notificacoes', auth, isAdmin, async (req, res) => {
+  try {
+    const { usuario_id, tipo = 'geral', titulo, mensagem, todos = false, extras = {} } = req.body;
+
+    if (!titulo || !mensagem) {
+      return res.status(400).json({ success: false, error: 'T�tulo e mensagem s�o obrigat�rios.' });
+    }
+
+    if (todos) {
+      const total = await createNotificationForAllUsers({ tipo, titulo, mensagem, extras });
+      return res.status(201).json({ success: true, message: `${total} notifica��es criadas.` });
+    }
+
+    if (!usuario_id) {
+      return res.status(400).json({ success: false, error: 'usuario_id � obrigat�rio quando todos=false.' });
+    }
+
+    const notificacao = await createNotificationForUser({ usuarioId: usuario_id, tipo, titulo, mensagem, extras });
+    res.status(201).json({ success: true, data: notificacao });
+  } catch (error) {
+    console.error('Erro ao criar notifica��o:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 // ===== NOTICIAS =====
 app.get('/noticias', async (req, res) => {
   try {
+    const isPreview = String(req.query.preview || '').toLowerCase() === 'true';
+    const where = isPreview ? {} : { publicado: true };
+
     const noticias = await Noticia.findAll({
+      where,
       include: [{ model: Usuario, as: 'autor', attributes: ['id', 'nome', 'imagem'] }],
-      order: [['createdAt', 'DESC']]
+      order: [['publicado_em', 'DESC'], ['criado_em', 'DESC']]
     });
     res.json({ success: true, data: noticias });
   } catch (error) {
@@ -1749,3 +2257,12 @@ async function startServer() {
 }
 
 startServer();
+
+
+
+
+
+
+
+
+

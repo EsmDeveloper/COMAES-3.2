@@ -67,7 +67,7 @@ function Login() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className="w-full h-screen grid grid-cols-1 md:grid-cols-2 bg-white text-black"
     >
       {/* LEFT SECTION - IMAGE/CARTZ BACKGROUND */}
@@ -84,7 +84,7 @@ function Login() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-gray-200"
         >
           {/* Logo no formulário */}
@@ -131,7 +131,7 @@ function Login() {
                 placeholder="Nome, Telefone ou Email"
                 value={form.usuario}
                 onChange={handleChange}
-                className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-[border-color,box-shadow] duration-fast ease-out-fluid hover:border-gray-400"
                 disabled={isLoading}
               />
               {errors.usuario && (
@@ -147,7 +147,7 @@ function Login() {
                 placeholder="Senha"
                 value={form.senha}
                 onChange={handleChange}
-                className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-[border-color,box-shadow] duration-fast ease-out-fluid hover:border-gray-400"
                 disabled={isLoading}
               />
               {errors.senha && (
@@ -157,11 +157,11 @@ function Login() {
 
             {/* BOTÃO ENTRAR */}
             <motion.button
-              whileHover={{ scale: isLoading ? 1 : 1.05 }}
-              whileTap={{ scale: isLoading ? 1 : 0.97 }}
+              whileHover={{ scale: isLoading ? 1 : 1.02 }}
+              whileTap={{ scale: isLoading ? 1 : 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="w-full mt-6 p-3 bg-blue-600 text-white rounded-xl text-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full mt-6 p-3 bg-blue-600 text-white rounded-xl text-lg font-semibold transition-[colors,transform,box-shadow] duration-fast ease-out-fluid hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed will-change-transform-opacity"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2">

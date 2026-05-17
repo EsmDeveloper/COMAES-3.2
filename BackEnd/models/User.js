@@ -10,6 +10,17 @@ const Usuario = sequelize.define('Usuario', {
   nome: {
     type: DataTypes.STRING(100),
     allowNull: false,
+    validate: {
+      is: {
+        args: [/^[A-Za-zÀ-ÖØ-öø-ÿ'\s]+$/],
+        msg: 'O nome deve conter apenas letras e espaços.'
+      },
+      notNumeric(value) {
+        if (/^\d+$/.test(value)) {
+          throw new Error('O nome não pode ser apenas números.');
+        }
+      }
+    }
   },
   telefone: {
     type: DataTypes.STRING(20),
@@ -21,7 +32,20 @@ const Usuario = sequelize.define('Usuario', {
     allowNull: false,
     unique: 'usuarios_email_unique',
     validate: {
-      isEmail: true,
+      isEmail: {
+        args: true,
+        msg: 'Formato de email inválido.'
+      },
+      isValidDomain(value) {
+        // Aceita apenas domínios comuns e rejeita domínios inválidos
+        if (!/^[^@]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(value)) {
+          throw new Error('Email deve conter um domínio válido.');
+        }
+        // Bloqueia domínios comuns digitados errado
+        if (/@(gmai|gmal|gmial|gmaill|hotmal|hotmial|outlok|yaho|yhoo)\.com$/i.test(value)) {
+          throw new Error('Domínio de email inválido. Verifique o domínio.');
+        }
+      }
     },
   },
   nascimento: {
@@ -35,6 +59,14 @@ const Usuario = sequelize.define('Usuario', {
   password: {
     type: DataTypes.STRING(255),
     allowNull: false,
+    validate: {
+      isStrong(value) {
+        // Mínimo 8 caracteres, pelo menos uma maiúscula, uma minúscula, um número e um caractere especial
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(value)) {
+          throw new Error('A senha deve ter no mínimo 8 caracteres, incluindo maiúscula, minúscula, número e caractere especial.');
+        }
+      }
+    }
   },
   escola: {
     type: DataTypes.STRING(255),

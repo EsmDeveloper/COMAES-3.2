@@ -1,4 +1,5 @@
 import { getModel } from '../utils/modelMapper.js';
+import { validateNome, validateEmail, validatePassword, validateUserData } from '../utils/validators.js';
 
 // Middleware to get the model for the route
 export const getModelByName = (req, res, next) => {
@@ -61,9 +62,34 @@ export const getById = async (req, res) => {
 export const create = async (req, res) => {
     try {
         const { Model } = req;
+        
+        // Validação centralizada para o modelo Usuario
+        if (Model.name === 'Usuario') {
+            const { nome, email, password } = req.body;
+            const validation = validateUserData({ nome, email, password });
+            
+            if (!validation.valid) {
+                return res.status(400).json({ 
+                    message: 'Dados inválidos.',
+                    errors: validation.errors 
+                });
+            }
+        }
+        
         const newRecord = await Model.create(req.body);
         res.status(201).json(newRecord);
     } catch (error) {
+        // Tratamento de erros de validação do Sequelize
+        if (error.name === 'SequelizeValidationError') {
+            const errors = {};
+            error.errors.forEach(err => {
+                errors[err.path] = err.message;
+            });
+            return res.status(400).json({ 
+                message: 'Erro de validação.',
+                errors 
+            });
+        }
         res.status(500).json({ message: `Erro ao criar ${req.params.model}`, error: error.message });
     }
 };
@@ -84,10 +110,29 @@ const getPkField = (Model) => {
 export const update = async (req, res) => {
     try {
         const { Model } = req;
-        const { id } = req.params; // still named id in URL but value may correspond to another column
+        const { id } = req.params;
         const pk = getPkField(Model);
         const where = {};
         where[pk] = id;
+        
+        // Validação centralizada para o modelo Usuario
+        if (Model.name === 'Usuario') {
+            const { nome, email, password } = req.body;
+            const fieldsToValidate = {};
+            if (nome !== undefined) fieldsToValidate.nome = nome;
+            if (email !== undefined) fieldsToValidate.email = email;
+            if (password !== undefined) fieldsToValidate.password = password;
+            
+            const validation = validateUserData(fieldsToValidate);
+            
+            if (!validation.valid) {
+                return res.status(400).json({ 
+                    message: 'Dados inválidos.',
+                    errors: validation.errors 
+                });
+            }
+        }
+        
         // ensure updated timestamp is refreshed when field exists
         if (Model.rawAttributes && Model.rawAttributes.atualizado_em) {
             req.body = { ...req.body, atualizado_em: new Date() };

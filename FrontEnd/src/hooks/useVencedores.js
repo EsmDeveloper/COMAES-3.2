@@ -2,65 +2,57 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
+/**
+ * Exibe o modal de vencedores apenas quando o torneio terminou
+ * E pelo menos um participante tem pontuação real (> 0).
+ */
 export default function useVencedores(disciplina, ranking, torneio, participante) {
   const { user } = useAuth();
-  const [mostrarVencedores, setMostrarVencedores] = useState(false);
-  const [vencedores, setVencedores] = useState([]);
+  const [mostrarVencedores, setMostrarVencedores]   = useState(false);
+  const [vencedores, setVencedores]                 = useState([]);
   const [jaExibidoVencedores, setJaExibidoVencedores] = useState(false);
 
   useEffect(() => {
     const verificarVencedores = async () => {
       if (!torneio || jaExibidoVencedores) return;
 
-      try {
-        const agora = new Date();
-        const fim = new Date(torneio.termina_em);
+      const agora = new Date();
+      const fim   = new Date(torneio.termina_em);
+      if (agora <= fim) return; // torneio ainda em andamento
 
-        // Se o torneio terminou
-        if (agora > fim) {
-          // Verificar se já exibiu o modal de vencedores para este torneio
-          const vencedoresKey = `vencedores_${disciplina}_${torneio.id}`;
-          const vencedoresExibido = localStorage.getItem(vencedoresKey);
+      const vencedoresKey  = `vencedores_${disciplina}_${torneio.id}`;
+      const jaExibido      = localStorage.getItem(vencedoresKey);
+      if (jaExibido) return;
 
-          if (!vencedoresExibido && ranking.length >= 3) {
-            // Pegar os 3 primeiros colocados
-            const top3 = ranking.slice(0, 3).map((p, index) => ({
-              ...p,
-              posicao: index + 1
-            }));
+      // Precisa de pelo menos 3 participantes no ranking
+      if (!ranking || ranking.length < 3) return;
 
-            // Adicionar total de participantes
-            const vencedoresComTotal = top3.map(v => ({
-              ...v,
-              total_participantes: ranking.length
-            }));
+      // Verificar se há pontuação real — pelo menos um participante com pts > 0
+      const algumPontuou = ranking.some(p => parseFloat(p.pontuacao || 0) > 0);
+      if (!algumPontuou) return; // torneio sem pontuação válida — não exibir modal de vencedores
 
-            setVencedores(vencedoresComTotal);
-            setMostrarVencedores(true);
-            setJaExibidoVencedores(true);
-            
-            // Marcar como já exibido (expira em 7 dias)
-            localStorage.setItem(vencedoresKey, JSON.stringify({
-              exibido: true,
-              timestamp: new Date().toISOString()
-            }));
-          }
-        }
-      } catch (error) {
-        console.error('Erro ao verificar vencedores:', error);
-      }
+      const top3 = ranking.slice(0, 3).map((p, index) => ({
+        ...p,
+        posicao: index + 1,
+        total_participantes: ranking.length,
+      }));
+
+      setVencedores(top3);
+      setMostrarVencedores(true);
+      setJaExibidoVencedores(true);
+
+      localStorage.setItem(vencedoresKey, JSON.stringify({
+        exibido: true,
+        timestamp: new Date().toISOString(),
+      }));
     };
 
     verificarVencedores();
   }, [torneio, ranking, disciplina, jaExibidoVencedores]);
 
-  const fecharVencedores = () => {
-    setMostrarVencedores(false);
-  };
-
   return {
     mostrarVencedores,
     vencedores,
-    fecharVencedores
+    fecharVencedores: () => setMostrarVencedores(false),
   };
 }

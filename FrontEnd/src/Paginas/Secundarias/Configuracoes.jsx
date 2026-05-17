@@ -1,386 +1,689 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Layout from './Layout';
-import { 
-  Globe, Lock, Bell, Eye, Palette, 
-  Shield, Trash2, Save, X,
-  CheckCircle, ChevronRight, AlertCircle,
-  HelpCircle, ExternalLink, Settings
+import {
+  User, Mail, Phone, Lock, Globe, Shield, Bell,
+  Monitor, Moon, Sun, ChevronRight, Check, X,
+  LogOut, Smartphone, Eye, EyeOff, AlertCircle,
+  CheckCircle, Laptop, Clock,
 } from 'lucide-react';
-import { FaSpinner } from 'react-icons/fa';
-import { motion, AnimatePresence } from 'framer-motion';
+import {
+  validateEmail, validatePhone, validatePassword, validatePasswordConfirm,
+} from '../../utils/validators';
 
-export default function ConfigPage() {
-  const { user, token, logout } = useAuth();
-  const navigate = useNavigate();
-  
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
-  const [message, setMessage] = useState({ type: '', text: '' });
+/* ─── Tokens ─────────────────────────────────────────────────── */
+const c = {
+  primary:     '#4F6EF7',
+  primaryHover:'#3B5BDB',
+  primarySoft: '#EEF1FE',
+  surface:     '#FFFFFF',
+  bg:          '#F7F8FC',
+  border:      '#E8EAEF',
+  borderFocus: '#A5B4FC',
+  text:        '#0F1117',
+  muted:       '#6B7280',
+  subtle:      '#9CA3AF',
+  success:     '#10B981',
+  successSoft: '#ECFDF5',
+  red:         '#EF4444',
+  redSoft:     '#FEF2F2',
+  redBorder:   '#FECACA',
+};
 
-  const [settings, setSettings] = useState({
-    privacy: {
-      profilePublic: true,
-      showEmail: false,
-    },
-    notifications: {
-      email: true,
-      push: true,
-    },
-    appearance: {
-      theme: 'light',
-      animations: true
-    },
-    security: {
-      twoFactor: false,
-      loginAlerts: true
-    }
-  });
+/* ─── Micro components ───────────────────────────────────────── */
 
+function Toast({ type, message, onClose }) {
   useEffect(() => {
-    if (!user) {
-      const timer = setTimeout(() => navigate('/login'), 2000);
-      return () => clearTimeout(timer);
-    }
-
-    const fetchSettings = async () => {
-      try {
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/usuarios/${user.id}/configuracao`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await res.json();
-        if (data.success && data.data?.preferencias) {
-          setSettings(prev => ({
-            ...prev,
-            ...data.data.preferencias
-          }));
-        }
-      } catch (err) {
-        console.error("Erro ao carregar configurações:", err);
-      } finally {
-        setFetching(false);
-      }
-    };
-
-    fetchSettings();
-  }, [user, navigate, token]);
-
-  const handleUpdate = (section, field, value) => {
-    setSettings(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value
-      }
-    }));
-  };
-
-  const saveSettings = async () => {
-    setLoading(true);
-    setMessage({ type: '', text: '' });
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/usuarios/${user.id}/configuracao`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ preferencias: settings })
-      });
-      
-      if (!res.ok) throw new Error('Erro ao salvar no servidor.');
-      
-      setMessage({ type: 'success', text: 'Preferências sincronizadas com sucesso!' });
-      setTimeout(() => setMessage({ type: '', text: '' }), 4000);
-    } catch (err) {
-      setMessage({ type: 'error', text: err.message });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!user || fetching) {
-    return (
-      <Layout>
-        <div className="flex flex-col items-center justify-center min-h-[60vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent shadow-lg shadow-blue-100"></div>
-          <p className="mt-4 text-gray-500 font-bold animate-pulse">Iniciando Painel...</p>
-        </div>
-      </Layout>
-    );
-  }
-
+    if (!message) return;
+    const id = setTimeout(onClose, 4000);
+    return () => clearTimeout(id);
+  }, [message, onClose]);
+  if (!message) return null;
+  const ok = type === 'success';
   return (
-    <Layout>
-      <div className="relative min-h-screen bg-gray-50/50">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-100/30 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-100/30 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2 pointer-events-none" />
-
-        <div className="relative max-w-5xl mx-auto px-4 py-8 sm:py-12 pb-32">
-          
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12"
-          >
-            <div className="space-y-1">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200 text-white leading-none">
-                  <Settings size={24} />
-                </div>
-                <h1 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
-                  Configurações
-                </h1>
-              </div>
-              <p className="text-gray-500 font-medium md:ml-12">Personalize sua experiência e segurança no COMAES</p>
-            </div>
-
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={saveSettings}
-              disabled={loading}
-              className="group relative overflow-hidden w-full md:w-auto px-10 py-4 bg-gray-900 text-white rounded-2xl font-black shadow-2xl transition-all disabled:opacity-70 flex items-center justify-center gap-3"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <span className="relative flex items-center gap-3">
-                {loading ? <FaSpinner className="animate-spin" /> : <Save size={20} />}
-                {loading ? 'Sincronizando...' : 'Salvar Alterações'}
-              </span>
-            </motion.button>
-          </motion.div>
-
-          <AnimatePresence>
-            {message.text && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className={`mb-8 p-5 rounded-3xl flex items-center gap-4 border shadow-2xl backdrop-blur-md ${
-                  message.type === 'success' 
-                    ? 'bg-green-50/80 border-green-100 text-green-800' 
-                    : 'bg-red-50/80 border-red-100 text-red-800'
-                }`}
-              >
-                <div className={`p-2 rounded-xl ${message.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
-                  {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
-                </div>
-                <div className="flex-1">
-                  <p className="font-black text-sm uppercase tracking-wider">{message.type === 'success' ? 'Sucesso' : 'Erro'}</p>
-                  <p className="font-bold text-sm opacity-80">{message.text}</p>
-                </div>
-                <button onClick={() => setMessage({type:'', text:''})} className="opacity-40 hover:opacity-100 transition-opacity">
-                  <X size={18} />
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-1 space-y-8">
-              <motion.div 
-                whileHover={{ y: -5 }}
-                className="bg-white rounded-[35px] p-8 shadow-xl border border-gray-100 relative overflow-hidden group cursor-pointer"
-                onClick={() => navigate('/perfil')}
-              >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700 pointer-events-none" />
-                <div className="relative flex flex-col items-center text-center">
-                  <div className="relative mb-6">
-                    <div className="w-24 h-24 rounded-[30px] border-4 border-white shadow-2xl overflow-hidden bg-gray-100 rotate-3 group-hover:rotate-0 transition-transform duration-500">
-                      <img src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=4F6EF7&color=fff`} alt="User" className="w-full h-full object-cover" />
-                    </div>
-                    <div className="absolute -bottom-2 -right-2 bg-green-500 w-6 h-6 rounded-full border-4 border-white shadow-lg" />
-                  </div>
-                  <h3 className="text-xl font-black text-gray-900 mb-1">{user.fullName || "Usuário"}</h3>
-                  <p className="text-gray-400 font-bold text-xs uppercase tracking-widest mb-6">Membro Ativo</p>
-                  <div className="w-full py-4 px-6 bg-gray-50 rounded-2xl flex items-center justify-between group-hover:bg-blue-600 group-hover:text-white transition-all">
-                    <span className="text-sm font-black">Editar Perfil</span>
-                    <ChevronRight size={18} />
-                  </div>
-                </div>
-              </motion.div>
-
-              <div className="bg-gradient-to-br from-indigo-600 to-blue-800 rounded-[35px] p-8 text-white shadow-2xl shadow-blue-200 relative overflow-hidden">
-                <HelpCircle size={150} className="absolute -right-10 -bottom-10 opacity-10 rotate-12" />
-                <h4 className="text-xl font-black mb-4">Central de Ajuda</h4>
-                <p className="text-blue-100 font-medium mb-8 leading-relaxed">Dúvidas sobre o funcionamento dos torneios ou sua conta?</p>
-                <button 
-                  onClick={() => navigate('/suporte')}
-                  className="w-full py-4 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl font-black text-sm border border-white/30 transition-all flex items-center justify-center gap-2"
-                >
-                  <ExternalLink size={18} />
-                  Contatar Suporte
-                </button>
-              </div>
-            </div>
-
-            <div className="lg:col-span-2 space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <ConfigCard title="Privacidade" icon={<Eye className="text-blue-500" size={20} />}>
-                  <ToggleItem 
-                    label="Perfil Público" 
-                    desc="Visível para outros estudantes" 
-                    status={settings.privacy.profilePublic} 
-                    onChange={(val) => handleUpdate('privacy', 'profilePublic', val)} 
-                  />
-                  <ToggleItem 
-                    label="Mostrar Email" 
-                    desc="Exibir contato no seu perfil" 
-                    status={settings.privacy.showEmail} 
-                    onChange={(val) => handleUpdate('privacy', 'showEmail', val)} 
-                  />
-                </ConfigCard>
-
-                <ConfigCard title="Notificações" icon={<Bell className="text-amber-500" size={20} />}>
-                  <ToggleItem 
-                    label="Push Real-time" 
-                    desc="Alertas de novos torneios" 
-                    status={settings.notifications.push} 
-                    onChange={(val) => handleUpdate('notifications', 'push', val)} 
-                  />
-                  <ToggleItem 
-                    label="Resumo por Email" 
-                    desc="Frequência semanal" 
-                    status={settings.notifications.email} 
-                    onChange={(val) => handleUpdate('notifications', 'email', val)} 
-                  />
-                </ConfigCard>
-
-                <ConfigCard title="Design" icon={<Palette className="text-purple-500" size={20} />}>
-                  <SelectItem 
-                    label="Tema Visual" 
-                    desc="Cores do ambiente" 
-                    value={settings.appearance.theme} 
-                    options={[
-                      { label: '🌞 Light', value: 'light' },
-                      { label: '🌙 Dark', value: 'dark' },
-                      { label: '🖥️ Auto', value: 'auto' }
-                    ]}
-                    onChange={(val) => handleUpdate('appearance', 'theme', val)} 
-                  />
-                  <ToggleItem 
-                    label="Animações" 
-                    desc="Fluidez na navegação" 
-                    status={settings.appearance.animations} 
-                    onChange={(val) => handleUpdate('appearance', 'animations', val)} 
-                  />
-                </ConfigCard>
-
-                <ConfigCard title="Segurança" icon={<Shield className="text-red-500" size={20} />}>
-                  <div className="flex flex-col gap-5">
-                    <ToggleItem 
-                      label="Alertas de Login" 
-                      desc="Avisar novos acessos" 
-                      status={settings.security.loginAlerts} 
-                      onChange={(val) => handleUpdate('security', 'loginAlerts', val)} 
-                    />
-                    <div className="p-4 bg-gray-50 rounded-2xl space-y-2">
-                       <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-gray-400">
-                          <span>Força da Senha</span>
-                          <span className="text-green-500">Elevada</span>
-                       </div>
-                       <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-                          <div className="h-full w-4/5 bg-green-500 rounded-full" />
-                       </div>
-                    </div>
-                  </div>
-                </ConfigCard>
-              </div>
-
-              <motion.div 
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                className="bg-red-50/50 rounded-[35px] p-8 border border-red-100 relative overflow-hidden"
-              >
-                <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-red-100/50 rounded-full blur-3xl pointer-events-none" />
-                <div className="relative">
-                  <h3 className="text-red-700 font-black text-xl flex items-center gap-3 mb-2">
-                    <Trash2 size={24} />
-                    Zona Crítica
-                  </h3>
-                  <p className="text-red-900/60 font-bold text-sm mb-8 italic">Estas ações podem ser permanentes. Prossiga com cuidado.</p>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <button 
-                      onClick={() => { if(window.confirm('Deslogar de todos os locais?')) logout(); }}
-                      className="px-6 py-4 bg-white border-2 border-red-100 text-red-600 rounded-2xl font-black text-sm hover:bg-black hover:text-white hover:border-black transition-all"
-                    >
-                      LOGOUT GLOBAL
-                    </button>
-                    <button 
-                      disabled
-                      className="px-6 py-4 bg-red-600 text-white rounded-2xl font-black text-sm opacity-50 cursor-not-allowed"
-                    >
-                      EXCLUIR CONTA
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Layout>
+    <div style={{
+      position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
+      display: 'flex', alignItems: 'center', gap: 10,
+      padding: '12px 18px', borderRadius: 12,
+      background: ok ? c.successSoft : c.redSoft,
+      border: `1px solid ${ok ? '#A7F3D0' : c.redBorder}`,
+      color: ok ? '#065F46' : '#991B1B',
+      fontSize: 14, fontWeight: 500,
+      boxShadow: '0 4px 20px rgba(0,0,0,0.10)',
+      maxWidth: 340,
+    }}>
+      {ok ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+      <span style={{ flex: 1 }}>{message}</span>
+      <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', display: 'flex', padding: 0 }}>
+        <X size={15} />
+      </button>
+    </div>
   );
 }
 
-function ConfigCard({ title, icon, children }) {
+function Toggle({ active, onChange, disabled }) {
   return (
-    <div className="bg-white rounded-[35px] shadow-lg border border-gray-100 p-8 flex flex-col h-full">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="p-2.5 bg-gray-50 rounded-xl text-gray-600">
-          {icon}
+    <button
+      type="button"
+      onClick={() => !disabled && onChange(!active)}
+      aria-checked={active}
+      role="switch"
+      style={{
+        width: 40, height: 22, borderRadius: 999,
+        border: 'none', padding: 2, cursor: disabled ? 'default' : 'pointer',
+        background: active ? c.primary : c.border,
+        position: 'relative', transition: 'background 0.2s',
+        flexShrink: 0, opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      <span style={{
+        display: 'block', width: 18, height: 18, borderRadius: '50%',
+        background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.18)',
+        transform: active ? 'translateX(18px)' : 'translateX(0)',
+        transition: 'transform 0.2s',
+      }} />
+    </button>
+  );
+}
+
+/* Inline editable row — shows value + "Alterar" link; expands to input on click */
+function EditableRow({ label, value, type = 'text', placeholder, onSave, hint, sensitive }) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [show, setShow] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef(null);
+
+  const open_ = () => { setDraft(''); setOpen(true); setTimeout(() => inputRef.current?.focus(), 50); };
+  const close = () => { setOpen(false); setDraft(''); };
+
+  const save = async () => {
+    if (!draft.trim()) { close(); return; }
+    setSaving(true);
+    await onSave(draft.trim());
+    setSaving(false);
+    close();
+  };
+
+  const displayValue = sensitive
+    ? (value ? '••••••••' : '—')
+    : (value || '—');
+
+  return (
+    <div style={{ padding: '16px 0', borderBottom: `1px solid ${c.border}` }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ fontSize: 13, color: c.muted, margin: 0, marginBottom: 2 }}>{label}</p>
+          {!open && (
+            <p style={{ fontSize: 14, fontWeight: 500, color: c.text, margin: 0, wordBreak: 'break-all' }}>
+              {displayValue}
+            </p>
+          )}
         </div>
-        <h2 className="text-xl font-black text-gray-800 tracking-tight">{title}</h2>
+        {!open && (
+          <button onClick={open_} style={{
+            fontSize: 13, fontWeight: 600, color: c.primary,
+            background: 'none', border: 'none', cursor: 'pointer',
+            padding: '4px 8px', borderRadius: 6, flexShrink: 0,
+            transition: 'background 0.15s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.background = c.primarySoft}
+            onMouseLeave={e => e.currentTarget.style.background = 'none'}
+          >
+            Alterar
+          </button>
+        )}
       </div>
-      <div className="space-y-7 flex-1">
+
+      {open && (
+        <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {hint && <p style={{ fontSize: 12, color: c.muted, margin: 0 }}>{hint}</p>}
+          <div style={{ position: 'relative' }}>
+            <input
+              ref={inputRef}
+              type={sensitive && !show ? 'password' : type}
+              value={draft}
+              onChange={e => setDraft(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') close(); }}
+              placeholder={placeholder || `Novo ${label.toLowerCase()}`}
+              style={{
+                width: '100%', padding: '10px 14px',
+                paddingRight: sensitive ? 44 : 14,
+                borderRadius: 10, border: `1px solid ${c.borderFocus}`,
+                background: c.surface, color: c.text, fontSize: 14,
+                outline: 'none', boxSizing: 'border-box',
+              }}
+            />
+            {sensitive && (
+              <button
+                type="button"
+                onClick={() => setShow(s => !s)}
+                style={{
+                  position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer', color: c.muted, display: 'flex',
+                }}
+              >
+                {show ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={save}
+              disabled={saving || !draft.trim()}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '8px 16px', borderRadius: 8,
+                background: c.primary, color: '#fff',
+                border: 'none', fontSize: 13, fontWeight: 600,
+                cursor: saving || !draft.trim() ? 'not-allowed' : 'pointer',
+                opacity: saving || !draft.trim() ? 0.6 : 1,
+              }}
+            >
+              <Check size={14} /> {saving ? 'Salvando…' : 'Salvar'}
+            </button>
+            <button
+              onClick={close}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '8px 14px', borderRadius: 8,
+                background: 'none', color: c.muted,
+                border: `1px solid ${c.border}`, fontSize: 13, fontWeight: 500,
+                cursor: 'pointer',
+              }}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* Toggle row with label + description */
+function ToggleRow({ label, description, active, onChange }) {
+  return (
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      gap: 16, padding: '14px 0', borderBottom: `1px solid ${c.border}`,
+    }}>
+      <div style={{ minWidth: 0 }}>
+        <p style={{ fontSize: 14, fontWeight: 500, color: c.text, margin: 0 }}>{label}</p>
+        {description && <p style={{ fontSize: 13, color: c.muted, margin: '2px 0 0', lineHeight: 1.5 }}>{description}</p>}
+      </div>
+      <Toggle active={active} onChange={onChange} />
+    </div>
+  );
+}
+
+/* Section wrapper */
+function Section({ title, description, children }) {
+  return (
+    <div style={{
+      background: c.surface, borderRadius: 14,
+      border: `1px solid ${c.border}`,
+      boxShadow: '0 1px 3px rgba(15,17,23,0.05)',
+      overflow: 'hidden',
+    }}>
+      <div style={{ padding: '20px 24px', borderBottom: `1px solid ${c.border}` }}>
+        <h2 style={{ fontSize: 15, fontWeight: 700, color: c.text, margin: 0 }}>{title}</h2>
+        {description && <p style={{ fontSize: 13, color: c.muted, margin: '3px 0 0' }}>{description}</p>}
+      </div>
+      <div style={{ padding: '0 24px' }}>
         {children}
       </div>
     </div>
   );
 }
 
-function ToggleItem({ label, desc, status, onChange }) {
+/* Pill selector */
+function PillGroup({ options, value, onChange }) {
   return (
-    <div className="flex items-center justify-between gap-4 group">
-      <div className="flex-1">
-        <label className="text-sm font-black text-gray-700 block mb-0.5">{label}</label>
-        <p className="text-[11px] text-gray-400 font-bold leading-tight">{desc}</p>
-      </div>
-      <button 
-        onClick={() => onChange(!status)}
-        className={`relative w-12 h-6 rounded-full transition-all duration-300 ${status ? 'bg-blue-600 shadow-lg shadow-blue-100' : 'bg-gray-200'}`}
-      >
-        <motion.div 
-          animate={{ x: status ? 26 : 4 }}
-          transition={{ type: "spring", stiffness: 500, damping: 30 }}
-          className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm"
-        />
-      </button>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '14px 0', borderBottom: `1px solid ${c.border}` }}>
+      {options.map(opt => {
+        const active = value === opt.value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => onChange(opt.value)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '7px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500,
+              cursor: 'pointer',
+              border: `1px solid ${active ? c.primary : c.border}`,
+              background: active ? c.primarySoft : c.surface,
+              color: active ? c.primary : c.muted,
+              transition: 'all 0.15s',
+            }}
+          >
+            {opt.icon && opt.icon}
+            {opt.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
 
-function SelectItem({ label, desc, value, options, onChange }) {
+/* Sidebar nav item */
+function NavItem({ icon, label, active, onClick, badge }) {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex-1">
-        <label className="text-sm font-black text-gray-700 block mb-0.5">{label}</label>
-        <p className="text-[11px] text-gray-400 font-bold mb-4">{desc}</p>
-      </div>
-      <div className="flex gap-1.5 p-1.5 bg-gray-100/50 rounded-2xl border border-gray-100">
-        {options.map(opt => (
-          <button 
-            key={opt.value}
-            onClick={() => onChange(opt.value)}
-            className={`flex-1 py-2 px-3 text-[10px] font-black rounded-xl transition-all ${value === opt.value ? 'bg-white text-blue-600 shadow-md translate-y-[-1px]' : 'text-gray-400 hover:text-gray-500'}`}
+    <button
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        width: '100%', padding: '9px 14px',
+        background: active ? c.primarySoft : 'transparent',
+        border: 'none', borderRadius: 8,
+        color: active ? c.primary : c.muted,
+        fontSize: 14, fontWeight: active ? 600 : 400,
+        cursor: 'pointer', textAlign: 'left',
+        transition: 'background 0.15s, color 0.15s',
+      }}
+    >
+      <span style={{ flexShrink: 0 }}>{icon}</span>
+      <span style={{ flex: 1 }}>{label}</span>
+      {badge && (
+        <span style={{
+          fontSize: 11, fontWeight: 700, padding: '2px 7px',
+          borderRadius: 999, background: c.red, color: '#fff',
+        }}>{badge}</span>
+      )}
+    </button>
+  );
+}
+
+/* ─── Sections config ────────────────────────────────────────── */
+const SECTIONS = [
+  { id: 'conta',        label: 'Conta',         icon: <User size={15} /> },
+  { id: 'seguranca',    label: 'Segurança',      icon: <Lock size={15} /> },
+  { id: 'preferencias', label: 'Preferências',   icon: <Globe size={15} /> },
+  { id: 'privacidade',  label: 'Privacidade',    icon: <Shield size={15} /> },
+  { id: 'notificacoes', label: 'Notificações',   icon: <Bell size={15} /> },
+];
+
+/* ─── Main ───────────────────────────────────────────────────── */
+export default function Configuracoes() {
+  const { user, token, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const [active, setActive]   = useState('conta');
+  const [toast, setToast]     = useState({ type: '', message: '' });
+  const [fetching, setFetching] = useState(true);
+
+  /* Settings state */
+  const [conta, setConta]     = useState({ email: '', telefone: '' });
+  const [seg, setSeg]         = useState({ twoFactor: false, loginAlerts: true });
+  const [pref, setPref]       = useState({ tema: 'light', idioma: 'pt-BR' });
+  const [priv, setPriv]       = useState({ perfilPublico: true, mostrarRanking: true, mostrarCertificados: true, mostrarAtividade: true });
+  const [notif, setNotif]     = useState({ email: true, competicoes: true, certificados: true, novidades: false });
+
+  const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+
+  const showToast = (type, message) => setToast({ type, message });
+  const clearToast = () => setToast({ type: '', message: '' });
+
+  /* Redirect */
+  useEffect(() => {
+    if (!user) { setTimeout(() => navigate('/login'), 1200); }
+  }, [user, navigate]);
+
+  /* Load */
+  useEffect(() => {
+    if (!user) return;
+    const load = async () => {
+      try {
+        const res  = await fetch(`${apiBase}/usuarios/${user.id}/configuracao`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const body = await res.json();
+        if (res.ok && body.data) {
+          const d = body.data;
+          setConta({ email: user.email || d.conta?.email || '', telefone: d.conta?.telefone || '' });
+          if (d.seguranca)    setSeg(s  => ({ ...s, ...d.seguranca }));
+          if (d.preferencias) setPref(s => ({ ...s, ...d.preferencias }));
+          if (d.privacidade)  setPriv(s => ({ ...s, ...d.privacidade }));
+          if (d.notificacoes) setNotif(s => ({ ...s, ...d.notificacoes }));
+        } else {
+          setConta({ email: user.email || '', telefone: '' });
+        }
+      } catch { /* silent */ }
+      finally { setFetching(false); }
+    };
+    load();
+  }, [user, token, apiBase]);
+
+  /* Persist helper */
+  const persist = async (patch) => {
+    try {
+      const res = await fetch(`${apiBase}/usuarios/${user.id}/configuracao`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(patch),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || 'Erro ao salvar.');
+      showToast('success', 'Alteração salva.');
+    } catch (err) {
+      showToast('error', err.message || 'Erro ao salvar.');
+    }
+  };
+
+  /* Field savers — validate before persisting */
+  const saveEmail = async (v) => {
+    const r = validateEmail(v);
+    if (!r.valid) { showToast('error', r.error); return; }
+    setConta(s => ({ ...s, email: v }));
+    await persist({ conta: { ...conta, email: v } });
+  };
+
+  const saveTelefone = async (v) => {
+    const r = validatePhone(v);
+    if (!r.valid) { showToast('error', r.error); return; }
+    setConta(s => ({ ...s, telefone: v }));
+    await persist({ conta: { ...conta, telefone: v } });
+  };
+
+  const saveSenha = async (v) => {
+    const r = validatePassword(v);
+    if (!r.valid) { showToast('error', r.error); return; }
+    await persist({ conta: { novaSenha: v } });
+  };
+
+  const saveToggle = (section, setter, key) => async (val) => {
+    setter(s => { const next = { ...s, [key]: val }; persist({ [section]: next }); return next; });
+  };
+
+  const savePref = (key) => async (val) => {
+    setPref(s => { const next = { ...s, [key]: val }; persist({ preferencias: next }); return next; });
+  };
+
+  /* ── Loading ── */
+  if (fetching) {
+    return (
+      <Layout>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '50vh', gap: 12, color: c.muted, fontSize: 14 }}>
+          <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${c.border}`, borderTopColor: c.primary, animation: 'spin 0.7s linear infinite' }} />
+          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+          Carregando…
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Layout>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '50vh', color: c.muted, fontSize: 14 }}>
+          Redirecionando…
+        </div>
+      </Layout>
+    );
+  }
+
+  /* ── Panels ── */
+  const panels = {
+
+    /* ── Conta ── */
+    conta: (
+      <Section title="Conta" description="Gerencie seu e-mail, telefone e acesso.">
+        <EditableRow
+          label="E-mail"
+          value={conta.email}
+          type="email"
+          placeholder="novo@email.com"
+          hint="Você receberá um e-mail de confirmação."
+          onSave={saveEmail}
+        />
+        <EditableRow
+          label="Telefone"
+          value={conta.telefone}
+          type="tel"
+          placeholder="+55 (11) 99999-9999"
+          onSave={saveTelefone}
+        />
+        <div style={{ padding: '20px 0' }}>
+          <button
+            onClick={() => { logout(); navigate('/login'); }}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '9px 16px', borderRadius: 9,
+              background: c.redSoft, color: c.red,
+              border: `1px solid ${c.redBorder}`,
+              fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            }}
           >
-            {opt.label}
+            <LogOut size={14} /> Encerrar sessão
           </button>
-        ))}
+        </div>
+      </Section>
+    ),
+
+    /* ── Segurança ── */
+    seguranca: (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <Section title="Senha" description="Mantenha sua conta protegida com uma senha forte.">
+          <EditableRow
+            label="Senha"
+            value="definida"
+            sensitive
+            placeholder="Nova senha (mín. 8 caracteres)"
+            hint="Use letras, números e símbolos para maior segurança."
+            onSave={saveSenha}
+          />
+        </Section>
+
+        <Section title="Verificação" description="Camadas adicionais de proteção para sua conta.">
+          <ToggleRow
+            label="Autenticação em dois fatores"
+            description="Exige um código extra ao fazer login."
+            active={seg.twoFactor}
+            onChange={saveToggle('seguranca', setSeg, 'twoFactor')}
+          />
+          <ToggleRow
+            label="Alertas de login"
+            description="Receba um e-mail quando um novo acesso for detectado."
+            active={seg.loginAlerts}
+            onChange={saveToggle('seguranca', setSeg, 'loginAlerts')}
+          />
+        </Section>
+
+        <Section title="Sessões ativas" description="Dispositivos com acesso à sua conta.">
+          <div style={{ padding: '14px 0', borderBottom: `1px solid ${c.border}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 9, background: c.primarySoft, display: 'flex', alignItems: 'center', justifyContent: 'center', color: c.primary, flexShrink: 0 }}>
+                <Laptop size={16} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 14, fontWeight: 500, color: c.text, margin: 0 }}>Este dispositivo</p>
+                <p style={{ fontSize: 12, color: c.muted, margin: '2px 0 0' }}>Sessão atual</p>
+              </div>
+              <span style={{ fontSize: 12, color: c.success, fontWeight: 600, background: c.successSoft, padding: '3px 9px', borderRadius: 999 }}>
+                Ativo
+              </span>
+            </div>
+          </div>
+          <div style={{ padding: '16px 0' }}>
+            <button
+              onClick={() => showToast('success', 'Todas as outras sessões foram encerradas.')}
+              style={{
+                fontSize: 13, fontWeight: 600, color: c.red,
+                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+              }}
+            >
+              Encerrar todas as outras sessões
+            </button>
+          </div>
+        </Section>
       </div>
-    </div>
+    ),
+
+    /* ── Preferências ── */
+    preferencias: (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <Section title="Aparência" description="Personalize como a plataforma é exibida.">
+          <div style={{ padding: '14px 0', borderBottom: `1px solid ${c.border}` }}>
+            <p style={{ fontSize: 13, color: c.muted, margin: '0 0 10px' }}>Tema</p>
+            <PillGroup
+              value={pref.tema}
+              onChange={savePref('tema')}
+              options={[
+                { value: 'light',  label: 'Claro',   icon: <Sun size={13} /> },
+                { value: 'dark',   label: 'Escuro',  icon: <Moon size={13} /> },
+                { value: 'system', label: 'Sistema', icon: <Monitor size={13} /> },
+              ]}
+            />
+          </div>
+          <div style={{ padding: '14px 0' }}>
+            <p style={{ fontSize: 13, color: c.muted, margin: '0 0 10px' }}>Idioma</p>
+            <select
+              value={pref.idioma}
+              onChange={e => savePref('idioma')(e.target.value)}
+              style={{
+                padding: '9px 14px', borderRadius: 9,
+                border: `1px solid ${c.border}`, background: c.surface,
+                color: c.text, fontSize: 14, outline: 'none',
+                cursor: 'pointer', maxWidth: 240, width: '100%',
+              }}
+            >
+              <option value="pt-BR">Português (Brasil)</option>
+              <option value="en-US">English (US)</option>
+              <option value="es">Español</option>
+            </select>
+          </div>
+        </Section>
+      </div>
+    ),
+
+    /* ── Privacidade ── */
+    privacidade: (
+      <Section title="Privacidade" description="Controle o que outros usuários podem ver sobre você.">
+        <ToggleRow
+          label="Perfil público"
+          description="Permite que outros usuários encontrem e visualizem seu perfil."
+          active={priv.perfilPublico}
+          onChange={saveToggle('privacidade', setPriv, 'perfilPublico')}
+        />
+        <ToggleRow
+          label="Exibir ranking"
+          description="Mostra sua posição no ranking público."
+          active={priv.mostrarRanking}
+          onChange={saveToggle('privacidade', setPriv, 'mostrarRanking')}
+        />
+        <ToggleRow
+          label="Exibir certificados"
+          description="Torna seus certificados visíveis no perfil."
+          active={priv.mostrarCertificados}
+          onChange={saveToggle('privacidade', setPriv, 'mostrarCertificados')}
+        />
+        <ToggleRow
+          label="Exibir atividade recente"
+          description="Mostra suas participações e conquistas recentes."
+          active={priv.mostrarAtividade}
+          onChange={saveToggle('privacidade', setPriv, 'mostrarAtividade')}
+        />
+      </Section>
+    ),
+
+    /* ── Notificações ── */
+    notificacoes: (
+      <Section title="Notificações" description="Escolha quais alertas você deseja receber.">
+        <ToggleRow
+          label="E-mail"
+          description="Notificações gerais enviadas por e-mail."
+          active={notif.email}
+          onChange={saveToggle('notificacoes', setNotif, 'email')}
+        />
+        <ToggleRow
+          label="Competições"
+          description="Alertas sobre torneios, resultados e convites."
+          active={notif.competicoes}
+          onChange={saveToggle('notificacoes', setNotif, 'competicoes')}
+        />
+        <ToggleRow
+          label="Certificados"
+          description="Aviso quando um novo certificado estiver disponível."
+          active={notif.certificados}
+          onChange={saveToggle('notificacoes', setNotif, 'certificados')}
+        />
+        <ToggleRow
+          label="Novidades do sistema"
+          description="Atualizações, melhorias e comunicados da plataforma."
+          active={notif.novidades}
+          onChange={saveToggle('notificacoes', setNotif, 'novidades')}
+        />
+      </Section>
+    ),
+  };
+
+  return (
+    <Layout>
+      <div style={{ maxWidth: 860, margin: '0 auto', padding: '32px 20px 80px' }}>
+
+        {/* Page title */}
+        <div style={{ marginBottom: 28 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: c.text, margin: 0 }}>Configurações</h1>
+          <p style={{ fontSize: 14, color: c.muted, margin: '4px 0 0' }}>
+            Gerencie sua conta, segurança e preferências.
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+
+          {/* ── Sidebar ── */}
+          <aside style={{
+            width: 192, flexShrink: 0,
+            background: c.surface, borderRadius: 14,
+            border: `1px solid ${c.border}`,
+            boxShadow: '0 1px 3px rgba(15,17,23,0.05)',
+            padding: 8,
+            position: 'sticky', top: 80,
+          }} className="cfg-sidebar">
+            {SECTIONS.map(s => (
+              <NavItem
+                key={s.id}
+                icon={s.icon}
+                label={s.label}
+                active={active === s.id}
+                onClick={() => setActive(s.id)}
+              />
+            ))}
+          </aside>
+
+          {/* ── Content ── */}
+          <main style={{ flex: 1, minWidth: 0 }}>
+            {/* Mobile section picker */}
+            <div className="cfg-mobile-select" style={{ display: 'none', marginBottom: 16 }}>
+              <select
+                value={active}
+                onChange={e => setActive(e.target.value)}
+                style={{
+                  width: '100%', padding: '10px 14px', borderRadius: 10,
+                  border: `1px solid ${c.border}`, background: c.surface,
+                  color: c.text, fontSize: 14, outline: 'none',
+                }}
+              >
+                {SECTIONS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+              </select>
+            </div>
+
+            {panels[active]}
+          </main>
+        </div>
+      </div>
+
+      <Toast type={toast.type} message={toast.message} onClose={clearToast} />
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 600px) {
+          .cfg-sidebar       { display: none !important; }
+          .cfg-mobile-select { display: block !important; }
+        }
+      `}</style>
+    </Layout>
   );
 }

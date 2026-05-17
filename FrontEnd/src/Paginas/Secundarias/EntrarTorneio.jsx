@@ -28,7 +28,6 @@ export default function EntrarTorneio() {
       nome: "Matemática",
       imagem: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       cor: "from-blue-600 to-purple-600",
-      participantes: 1240,
       nivel: "Intermediário",
       descricao: "Desafie suas habilidades matemáticas com problemas de álgebra, cálculo e lógica"
     },
@@ -37,16 +36,14 @@ export default function EntrarTorneio() {
       nome: "Programação",
       imagem: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       cor: "from-emerald-600 to-cyan-600",
-      participantes: 892,
       nivel: "Avançado",
       descricao: "Teste suas habilidades de codificação em algoritmos e estrutura de dados"
     },
     {
       id: "ingles",
-      nome: "Língua Inglesa",
+      nome: "Inglês",
       imagem: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       cor: "from-rose-600 to-orange-500",
-      participantes: 1567,
       nivel: "Todos os níveis",
       descricao: "Aprimore seu vocabulário e compreensão da língua inglesa"
     }
@@ -108,20 +105,21 @@ export default function EntrarTorneio() {
 
         if (tourData.ativo && tourData.torneio) {
           setTorneioAtivo(tourData.torneio);
+          
+          // 3. Buscar estatísticas reais de participantes do torneio ativo
+          try {
+            const statsRes = await fetch(`${apiBaseUrl}/api/tournaments/${tourData.torneio.id}/participants/count`);
+            const statsData = await statsRes.json();
+            if (statsData.success && statsData.counts) {
+              setEstatisticasParticipantes(statsData.counts);
+              console.log('📊 Estatísticas de participantes carregadas:', statsData.counts);
+            }
+          } catch (sErr) {
+            console.error('Erro ao carregar estatísticas:', sErr);
+          }
         } else {
           setTorneioAtivo(null);
-          // Opcional: setError("Nenhum torneio ativo no momento.");
-        }
-
-        // 2. Estatísticas Reais
-        try {
-          const statsRes = await fetch(`${apiBaseUrl}/api/torneios/estatisticas`);
-          const statsData = await statsRes.json();
-          if (statsData.success && statsData.stats) {
-            setEstatisticasParticipantes(statsData.stats);
-          }
-        } catch (sErr) {
-          console.error('Erro estatísticas:', sErr);
+          setEstatisticasParticipantes({ 'Matemática': 0, 'Inglês': 0, 'Programação': 0, total: 0 });
         }
       } catch (err) {
         console.error('Erro conexão:', err);
@@ -159,8 +157,8 @@ export default function EntrarTorneio() {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          id_usuario: user.id,
-          disciplina_competida: disciplinaSelecionada.nome === "Língua Inglesa" ? "Inglês" : disciplinaSelecionada.nome
+          id_usuario: user.id, // ID do usuário
+          disciplina_competida: disciplinaSelecionada.nome // Nome da disciplina já padronizado
         })
       });
 
@@ -453,8 +451,8 @@ export default function EntrarTorneio() {
                             const discNomeAPI = disc.nome === "Língua Inglesa" ? "Inglês" : disc.nome;
                             const total = estatisticasParticipantes && estatisticasParticipantes[discNomeAPI] !== undefined
                               ? estatisticasParticipantes[discNomeAPI]
-                              : disc.participantes;
-                            return `${total.toLocaleString()} participantes`;
+                              : 0;
+                            return `${total.toLocaleString()} participante${total !== 1 ? 's' : ''}`;
                           })()}
                         </span>
                       </div>

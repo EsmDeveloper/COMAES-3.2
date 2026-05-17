@@ -39,6 +39,10 @@ const Pergunta = sequelize.define('Pergunta', {
      type: DataTypes.ENUM('a', 'b', 'c', 'd'),
     allowNull: false,
   },
+  dificuldade: {
+    type: DataTypes.ENUM('facil', 'medio', 'dificil'),
+    defaultValue: 'facil',
+  },
   pontos: {
     type: DataTypes.INTEGER,
     defaultValue: 1,

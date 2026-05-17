@@ -12,8 +12,7 @@
   "dependencies": {
     "axios": "^1.13.2",
     "bootstrap": "^5.3.8",
-    "framer-motion": "^12.23.25",
-    "html-to-image": "^1.11.13",
+    "framer-motion": "^12.38.0",
     "lucide-react": "^0.562.0",
     "react": "^18.3.1",
     "react-bootstrap": "^2.10.10",

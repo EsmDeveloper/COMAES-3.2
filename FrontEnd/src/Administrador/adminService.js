@@ -15,7 +15,7 @@ const createApiClient = (token) => {
 };
 
 const SPECIAL_ENDPOINTS = {
-    torneio: 'torneos' // use plural controller routes for tournaments
+    torneio: 'torneos'
 };
 
 const createCrudClient = (modelName, token) => {

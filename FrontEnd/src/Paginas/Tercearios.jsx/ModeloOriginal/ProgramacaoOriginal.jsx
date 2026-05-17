@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import socket from '../../../socket';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import { FaSignOutAlt, FaPlay, FaRedo, FaExpand, FaCompress } from "react-icons/fa";
@@ -13,6 +12,7 @@ import ModalVencedores from '../../../components/ModalVencedores';
 import useVencedores from '../../../hooks/useVencedores';
 import CertificateCheckButton from '../../../components/certificates/CertificateCheckButton';
 import TournamentFinishedModal from '../../../components/TournamentFinishedModal';
+import useTorneioParticipante from '../../../hooks/useTorneioParticipante';
 
 const TEMPO_QUESTAO = 90;
 const DISCIPLINA = 'Programação';
@@ -26,15 +26,24 @@ export default function ProgramacaoOriginal() {
   const socketRef = useRef(null);
   const enunciadoRef = useRef(null);
 
-  // Estados do torneio
-  const [torneio, setTorneio] = useState(null);
-  const [participante, setParticipante] = useState(null);
-  const [ranking, setRanking] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // ── Hook centralizado de torneio ──────────────────────────────────────────
+  const {
+    torneio,
+    participante,
+    setTorneio,
+    ranking,
+    loading,
+    error,
+    torneioFinalizado,
+    setTorneioFinalizado,
+    dentroDoPeriodo,
+    setDentroDoPeriodo,
+    actualizarParticipante,
+  } = useTorneioParticipante({ disciplina: 'Programação', disciplinaSlug: 'programacao', user, token });
+
+  // Estados locais
   const [progresso, setProgresso] = useState(0);
   const [tempoRestante, setTempoRestante] = useState({ dias: 0, horas: 0, minutos: 0, segundos: 0 });
-  const [dentroDoPeriodo, setDentroDoPeriodo] = useState(false);
-  const [error, setError] = useState(null);
 
   // Estados locais
   const [questoes, setQuestoes] = useState([]);
@@ -73,7 +82,6 @@ export default function ProgramacaoOriginal() {
     fecharVencedores 
   } = useVencedores('Programação', ranking, torneio, participante);
 
-  const [torneioFinalizado, setTorneioFinalizado] = useState(false);
   const calcularTempoRestante = (torneioData) => {
     if (!torneioData?.termina_em) {
       return { dias: 0, horas: 0, minutos: 0, segundos: 0 };
@@ -229,144 +237,21 @@ export default function ProgramacaoOriginal() {
     }
   }, [questoesFiltradas]);
 
-  // VERIFICAR TORNEIO ATIVO
+  // VERIFICAR TORNEIO ATIVO — gerido pelo hook useTorneioParticipante
+
+  // Carregar questões quando o torneio ficar disponível
   useEffect(() => {
-    const verificarTorneioAtivo = async () => {
-      try {
-        console.log('🔍 Verificando torneio ativo para Programação...');
-        const response = await fetch('http://localhost:3000/api/torneios/ativo');
-        const data = await response.json();
-        
-        if (data.ativo && data.torneio) {
-          setTorneio(data.torneio);
-          
-          const tempo = calcularTempoRestante(data.torneio);
-          setTempoRestante(tempo);
-          
-          const progresso = calcularProgressoTemporal(data.torneio);
-          setProgresso(progresso);
-          
-          if (user?.id) {
-            await buscarDadosUsuario(data.torneio.id, user.id);
-          }
-          
-          await buscarRanking(data.torneio.id);
-          await buscarQuestoes(data.torneio.id);
-          
-        } else {
-          setError(data.message || "Nenhum torneio ativo no momento.");
-        }
-      } catch (err) {
-        console.error('❌ Erro ao verificar torneio ativo:', err);
-        setError("Erro ao conectar com o servidor. Tente novamente.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    verificarTorneioAtivo();
-  }, [user]);
-
-  // Conectar Socket.IO para atualizações em tempo real do ranking
-  useEffect(() => {
-    if (!torneio) return;
-
-    socketRef.current = socket;
-
-    const handleRankingUpdate = (payload) => {
-      console.debug('Programacao recebido ranking_update', payload);
-      try {
-        if (payload?.torneio_id === torneio.id && payload?.disciplina === 'Programação') {
-          setRanking(payload.ranking || []);
-        }
-      } catch (e) {
-        console.warn('Erro ao processar evento ranking_update (Programação)', e);
-      }
-    };
-
-    socketRef.current.on('ranking_update', handleRankingUpdate);
-
-    const handleTournamentFinished = (payload) => {
-      console.log('🏁 Torneio finalizado via socket:', payload);
-      if (payload?.id === torneio?.id) {
-        setTorneio(prev => ({ ...prev, status: 'finalizado' }));
-        setDentroDoPeriodo(false);
-        setTorneioFinalizado(true);
-      }
-    };
-    socketRef.current.on('tournament_finished', handleTournamentFinished);
-
-    return () => {
-      try { if (socketRef.current) {
-        socketRef.current.off('ranking_update', handleRankingUpdate);
-        socketRef.current.off('tournament_finished', handleTournamentFinished);
-      } } catch (e) {}
-    };
-  }, [torneio]);
-
-  // Buscar dados do usuário
-  const buscarDadosUsuario = async (torneioId, userId) => {
-    try {
-      const response = await fetch(
-        `http://localhost:3000/api/participantes/usuario/${userId}/programacao`
-      );
-      const data = await response.json();
-      
-      if (data.success && data.data) {
-        setParticipante(data.data);
-      } else if (response.status === 404) {
-        await registrarParticipante(userId);
-      }
-    } catch (err) {
-      console.error('❌ Erro ao buscar dados do usuário:', err);
+    if (torneio?.id) {
+      buscarQuestoes(torneio.id);
     }
-  };
+  }, [torneio?.id]);
 
-  // Registrar participante
-  const registrarParticipante = async (userId) => {
-    try {
-      const response = await fetch('http://localhost:3000/api/participantes/registrar', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : ''
-        },
-        body: JSON.stringify({
-          id_usuario: userId,
-          disciplina_competida: DISCIPLINA
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (data.success && data.data) {
-        setParticipante(data.data);
-      }
-    } catch (err) {
-      console.error('❌ Erro ao registrar participante:', err);
-    }
-  };
-
-  // Buscar ranking
-  const buscarRanking = async (torneioId) => {
-    try {
-      const response = await fetch(
-        `http://localhost:3000/api/participantes/ranking/programacao`
-      );
-      const data = await response.json();
-      
-      if (data.success) {
-        setRanking(data.data || []);
-      }
-    } catch (err) {
-      console.error('❌ Erro ao buscar ranking:', err);
-    }
-  };
+  // Conectar Socket.IO — gerido pelo hook useTorneioParticipante
 
   // Buscar questões do banco de dados
   const buscarQuestoes = async (torneioId) => {
     try {
-      const response = await fetch(`http://localhost:3000/torneios/${torneioId}/questoes/programacao`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/torneios/${torneioId}/questoes/programacao`);
       const data = await response.json();
       
       if (data.success && data.data.length > 0) {
@@ -487,7 +372,7 @@ export default function ProgramacaoOriginal() {
     };
 
     try {
-      const resp = await fetch('http://localhost:3000/api/avaliar', {
+      const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/avaliar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
         body: JSON.stringify(payload)
@@ -519,7 +404,7 @@ export default function ProgramacaoOriginal() {
         const passed = detalhe?.testes_passados || detalhe?.casos_passados || detalhe?.tests_passed || 0;
         setTestesPassados(Number(passed));
 
-        if (data.data.participante) setParticipante(data.data.participante);
+        if (data.data.participante) actualizarParticipante(data.data.participante);
       }
     } catch (err) {
       console.error('Erro ao chamar /api/avaliar', err);
@@ -638,13 +523,21 @@ export default function ProgramacaoOriginal() {
             </thead>
             <tbody className="text-gray-800">
               {ranking.length > 0 ? (
-                ranking.map((participanteRank) => (
-                  <tr key={participanteRank.id} className="border-b border-gray-200 hover:bg-gray-50">
+                ranking.map((participanteRank) => {
+                  const isMe = participanteRank.usuario_id === user?.id || participanteRank.usuario?.id === user?.id;
+                  return (
+                  <tr key={participanteRank.id}
+                    className={`border-b transition-colors ${
+                      isMe
+                        ? 'bg-purple-50 border-l-4 border-l-purple-500 border-b-purple-100'
+                        : 'border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
                     <td className="px-2 py-2 font-semibold">
                       {participanteRank.posicao === 1 ? '🥇' : 
                        participanteRank.posicao === 2 ? '🥈' : 
                        participanteRank.posicao === 3 ? '🥉' : 
-                       participanteRank.posicao}
+                       participanteRank.posicao ?? '-'}
                     </td>
                     <td className="px-2 py-2">
                       <div className="flex items-center gap-2">
@@ -652,19 +545,29 @@ export default function ProgramacaoOriginal() {
                           <img 
                             src={participanteRank.usuario.imagem} 
                             alt={participanteRank.usuario.nome}
-                            className="w-7 h-6 rounded-full object-cover"
+                            className={`w-7 h-7 rounded-full object-cover ${isMe ? 'ring-2 ring-purple-500' : ''}`}
                           />
                         ) : (
-                          <div className="w-7 h-6 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs">
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-xs ${isMe ? 'bg-purple-600 ring-2 ring-purple-400' : 'bg-purple-500'}`}>
                             {participanteRank.usuario?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'U'}
                           </div>
                         )}
-                        <span className="truncate">{participanteRank.usuario?.nome || 'Usuário'}</span>
+                        <div className="flex flex-col min-w-0">
+                          <span className={`truncate ${isMe ? 'font-bold text-purple-700' : ''}`}>
+                            {participanteRank.usuario?.nome || 'Usuário'}
+                          </span>
+                          {isMe && (
+                            <span className="text-[10px] font-bold text-purple-500 leading-none">● você</span>
+                          )}
+                        </div>
                       </div>
                     </td>
-                    <td className="px-2 py-2 text-purple-600 font-semibold">{participanteRank.pontuacao || 0}</td>
+                    <td className={`px-2 py-2 font-semibold ${isMe ? 'text-purple-700' : 'text-purple-600'}`}>
+                      {participanteRank.pontuacao || 0}
+                    </td>
                   </tr>
-                ))
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan="3" className="px-2 py-4 text-center text-gray-500">
@@ -965,9 +868,9 @@ export default function ProgramacaoOriginal() {
               <div className="bg-white rounded-3xl border border-purple-200 p-2 flex flex-col items-center gap-1 w-40">
                 <div className="w-14 h-14">
                   <CircularProgressbar 
-                    value={participante.posicao || 0} 
+                    value={participante.posicao > 0 ? Math.max(0, 100 - participante.posicao) : 0} 
                     maxValue={100} 
-                    text={`#${participante.posicao || 0}`} 
+                    text={participante.posicao > 0 ? `#${participante.posicao}` : '-'} 
                     styles={buildStyles({
                       textSize: '16px',
                       textColor: '#333',
@@ -1036,13 +939,21 @@ export default function ProgramacaoOriginal() {
               </thead>
               <tbody className="text-gray-800">
                 {ranking.length > 0 ? (
-                  ranking.map((participanteRank) => (
-                    <tr key={participanteRank.id} className="border-b border-gray-200 hover:bg-gray-50">
+                  ranking.map((participanteRank) => {
+                    const isMe = participanteRank.usuario_id === user?.id || participanteRank.usuario?.id === user?.id;
+                    return (
+                    <tr key={participanteRank.id}
+                      className={`border-b transition-colors ${
+                        isMe
+                          ? 'bg-purple-50 border-l-4 border-l-purple-500 border-b-purple-100'
+                          : 'border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
                       <td className="px-2 py-2 font-semibold">
                         {participanteRank.posicao === 1 ? '🥇' : 
                          participanteRank.posicao === 2 ? '🥈' : 
                          participanteRank.posicao === 3 ? '🥉' : 
-                         participanteRank.posicao}
+                         participanteRank.posicao ?? '-'}
                       </td>
                       <td className="px-2 py-2">
                         <div className="flex items-center gap-2">
@@ -1050,19 +961,29 @@ export default function ProgramacaoOriginal() {
                             <img 
                               src={participanteRank.usuario.imagem} 
                               alt={participanteRank.usuario.nome}
-                              className="w-7 h-6 rounded-full object-cover"
+                              className={`w-7 h-7 rounded-full object-cover ${isMe ? 'ring-2 ring-purple-500' : ''}`}
                             />
                           ) : (
-                            <div className="w-7 h-6 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs">
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-xs ${isMe ? 'bg-purple-600 ring-2 ring-purple-400' : 'bg-purple-500'}`}>
                               {participanteRank.usuario?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'U'}
                             </div>
                           )}
-                          <span className="truncate">{participanteRank.usuario?.nome || 'Usuário'}</span>
+                          <div className="flex flex-col min-w-0">
+                            <span className={`truncate ${isMe ? 'font-bold text-purple-700' : ''}`}>
+                              {participanteRank.usuario?.nome || 'Usuário'}
+                            </span>
+                            {isMe && (
+                              <span className="text-[10px] font-bold text-purple-500 leading-none">● você</span>
+                            )}
+                          </div>
                         </div>
                       </td>
-                      <td className="px-2 py-2 text-purple-600 font-semibold">{participanteRank.pontuacao || 0}</td>
+                      <td className={`px-2 py-2 font-semibold ${isMe ? 'text-purple-700' : 'text-purple-600'}`}>
+                        {participanteRank.pontuacao || 0}
+                      </td>
                     </tr>
-                  ))
+                    );
+                  })
                 ) : (
                   <tr>
                     <td colSpan="3" className="px-2 py-4 text-center text-gray-500">
@@ -1121,9 +1042,9 @@ export default function ProgramacaoOriginal() {
                 <div className="bg-white rounded-3xl border border-purple-200 p-2 flex flex-col items-center gap-1 w-40">
                   <div className="w-14 h-14">
                     <CircularProgressbar 
-                      value={participante.posicao || 0} 
+                      value={participante.posicao > 0 ? Math.max(0, 100 - participante.posicao) : 0} 
                       maxValue={100} 
-                      text={`#${participante.posicao || 0}`} 
+                      text={participante.posicao > 0 ? `#${participante.posicao}` : '-'} 
                       styles={buildStyles({
                         textSize: '16px',
                         textColor: '#333',

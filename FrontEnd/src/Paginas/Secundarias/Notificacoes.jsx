@@ -38,7 +38,7 @@ export default function NotificacoesModal({ isOpen, onClose }) {
         try {
           const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/usuarios/${user.id}/notificacoes`, {
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
+              'Authorization': `Bearer ${localStorage.getItem('comaes_token')}`
             }
           });
           const data = await response.json();
@@ -99,7 +99,7 @@ export default function NotificacoesModal({ isOpen, onClose }) {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/notificacoes/${id}/lido`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('comaes_token')}`
         }
       });
       const data = await response.json();
@@ -121,7 +121,7 @@ export default function NotificacoesModal({ isOpen, onClose }) {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/usuarios/${user.id}/notificacoes/lido-todas`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('comaes_token')}`
         }
       });
       const data = await response.json();
@@ -325,3 +325,4 @@ export default function NotificacoesModal({ isOpen, onClose }) {
     </AnimatePresence>
   );
 }
+

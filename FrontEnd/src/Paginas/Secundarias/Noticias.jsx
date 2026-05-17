@@ -286,12 +286,16 @@ export default function News() {
   const [search, setSearch]       = useState('');
   const [loading, setLoading]     = useState(true);
   const [catCounts, setCatCounts] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [emailNewsletter, setEmailNewsletter] = useState('');
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const itemsPerPage = 5;
 
   useEffect(() => {
     const loadNews = async () => {
       setLoading(true);
       try {
-        const response = await fetch('http://localhost:3000/noticias');
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/noticias`);
         const result = await response.json();
         if (result.success) {
           const transformed = result.data.map(item => {
@@ -335,6 +339,10 @@ export default function News() {
     loadNews();
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(1); // Volta para a primeira página ao filtrar ou pesquisar
+  }, [filter, search]);
+
   const filteredNews = news.filter(item => {
     const matchFilter = filter === 'all' || item.category === filter;
     const q = search.toLowerCase();
@@ -343,6 +351,20 @@ export default function News() {
       item.tags.some(tag => tag.toLowerCase().includes(q));
     return matchFilter && matchSearch;
   });
+
+  const totalPages = Math.ceil(filteredNews.length / itemsPerPage);
+  const currentNewsItems = filteredNews.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handleNewsletter = (e) => {
+    e.preventDefault();
+    if (!emailNewsletter || !emailNewsletter.includes('@')) {
+      setToast({ show: true, message: 'Insira um e-mail válido.', type: 'error' });
+      return;
+    }
+    setToast({ show: true, message: 'Inscrição realizada com sucesso! 🎉', type: 'success' });
+    setEmailNewsletter('');
+    setTimeout(() => setToast({ ...toast, show: false }), 4000);
+  };
 
   const toggleBookmark = (id) => {
     setBookmarked(prev =>
@@ -492,10 +514,10 @@ export default function News() {
         )}
 
         {/* ── Main layout ── */}
-        <div style={{  display:'grid', gridTemplateColumns:'1fr 310px', gap:24, alignItems:'start'  }}>
+        <div style={{  display:'flex', flexWrap: 'wrap', gap:24, alignItems:'start'  }}>
 
           {/* Left: news list */}
-          <div>
+          <div style={{ flex: '1 1 600px', minWidth: 'min(100%, 600px)' }}>
             {/* List header */}
             <div className="anim" style={{ 
               display:'flex', justifyContent:'space-between', alignItems:'center',
@@ -524,8 +546,8 @@ export default function News() {
 
             {/* Cards */}
             <div className="anim" style={{  display:'flex', flexDirection:'column', gap:18, animationDelay:'180ms'  }}>
-              {filteredNews.length > 0 ? (
-                filteredNews.map(item => (
+              {currentNewsItems.length > 0 ? (
+                currentNewsItems.map(item => (
                   <NewsCard
                     key={item.id} {...item}
                     isBookmarked={bookmarked.includes(item.id)}
@@ -551,27 +573,44 @@ export default function News() {
             </div>
 
             {/* Pagination */}
-            {filteredNews.length > 6 && (
+            {totalPages > 1 && (
               <div className="anim" style={{  display:'flex', justifyContent:'center', gap:8, marginTop:28, animationDelay:'220ms'  }}>
-                {['Anterior', '1', '2', '3', '…', 'Próxima'].map((p, i) => (
-                  <button key={i} style={{ 
+                <button 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => prev - 1)}
+                  style={{ 
                     padding:'9px 16px', borderRadius:10, fontSize:13, fontWeight:600, cursor:'pointer',
-                    border:`1.5px solid ${p === '1' ? t.primary : t.border}`,
-                    background: p === '1' ? t.primary : t.surface,
-                    color: p === '1' ? '#fff' : t.muted,
-                    transition:'all 0.15s',
-                   }}
-                  onMouseEnter={e => { if(p !== '1') { e.currentTarget.style.background=t.bg; e.currentTarget.style.color=t.text; }  }}
-                  onMouseLeave={e => { if(p !== '1') { e.currentTarget.style.background=t.surface; e.currentTarget.style.color=t.muted; }  }}>
-                    {p}
-                  </button>
+                    border:`1.5px solid ${t.border}`, background: t.surface, color: t.muted, opacity: currentPage === 1 ? 0.5 : 1
+                  }}
+                >Anterior</button>
+                
+                {[...Array(totalPages)].map((_, i) => (
+                  <button 
+                    key={i} 
+                    onClick={() => setCurrentPage(i + 1)}
+                    style={{ 
+                      padding:'9px 16px', borderRadius:10, fontSize:13, fontWeight:600, cursor:'pointer',
+                      border:`1.5px solid ${currentPage === i + 1 ? t.primary : t.border}`,
+                      background: currentPage === i + 1 ? t.primary : t.surface,
+                      color: currentPage === i + 1 ? '#fff' : t.muted,
+                    }}
+                  >{i + 1}</button>
                 ))}
+
+                <button 
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => prev + 1)}
+                  style={{ 
+                    padding:'9px 16px', borderRadius:10, fontSize:13, fontWeight:600, cursor:'pointer',
+                    border:`1.5px solid ${t.border}`, background: t.surface, color: t.muted, opacity: currentPage === totalPages ? 0.5 : 1
+                  }}
+                >Próxima</button>
               </div>
             )}
           </div>
 
           {/* ── Sidebar ── */}
-          <div className="anim" style={{  display:'flex', flexDirection:'column', gap:18, position:'sticky', top:24, animationDelay:'160ms'  }}>
+          <div className="anim news-sidebar" style={{  display:'flex', flexDirection:'column', gap:18, flex: '1 1 310px', minWidth: 'min(100%, 310px)', animationDelay:'160ms'  }}>
 
             {/* Quick updates */}
             <div style={{  ...cardBase, padding:'22px 20px'  }}>
@@ -687,14 +726,17 @@ export default function News() {
                 <p style={{  fontSize:13, color:'rgba(255,255,255,0.75)', marginBottom:18, lineHeight:1.55  }}>
                   Inscreva-se para receber as principais notícias por email
                 </p>
-                <input type="email" placeholder="Seu email"
+                <form onSubmit={handleNewsletter}>
+                  <input type="email" placeholder="Seu email"
+                    value={emailNewsletter}
+                    onChange={(e) => setEmailNewsletter(e.target.value)}
                   style={{ 
                     width:'100%', padding:'10px 14px', borderRadius:10,
                     border:'none', fontSize:13, marginBottom:10,
                     boxSizing:'border-box', outline:'none',
                    }}
                 />
-                <button style={{ 
+                <button type="submit" style={{ 
                   width:'100%', padding:'11px 0',
                   background:'rgba(255,255,255,0.15)', border:'1.5px solid rgba(255,255,255,0.3)',
                   borderRadius:10, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer',
@@ -704,11 +746,22 @@ export default function News() {
                 onMouseLeave={e=>e.target.style.background='rgba(255,255,255,0.15)'}>
                   Inscrever-se →
                 </button>
+                </form>
               </div>
             </div>
 
           </div>
         </div>
+        
+        {toast.show && (
+          <div style={{
+            position:'fixed', bottom:24, right:24, padding:'12px 20px', borderRadius:12,
+            background: toast.type === 'success' ? t.success : '#EF4444', color:'#fff',
+            fontSize:14, fontWeight:600, boxShadow:'0 8px 24px rgba(0,0,0,0.15)', zIndex:9999
+          }}>
+            {toast.message}
+          </div>
+        )}
       </div>
     </Layout>
   );

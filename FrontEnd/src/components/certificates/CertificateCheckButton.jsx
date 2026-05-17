@@ -23,7 +23,7 @@ export default function CertificateCheckButton({ onClick, isLoading }) {
         whileTap={{ scale: 0.98 }}
         onClick={handleAction}
         disabled={isLoading}
-        className={`group relative flex items-center justify-center gap-3 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 shadow-xl overflow-hidden
+        className={`group relative flex items-center justify-center gap-3 px-8 py-4 rounded-2xl font-bold text-lg transition-[colors,transform,box-shadow] duration-normal ease-out-fluid will-change-transform-opacity shadow-xl overflow-hidden
           ${isLoading 
             ? 'bg-gray-200 text-gray-400 cursor-wait' 
             : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 hover:shadow-purple-500/25'

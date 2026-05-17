@@ -235,7 +235,7 @@ CREATE TABLE `participantes_torneios` (
   `entrou_em` datetime DEFAULT NULL,
   `status` enum('pendente','confirmado','removido','desclassificado') DEFAULT 'pendente',
   `pontuacao` decimal(10,2) DEFAULT 0.00,
-  `posicao` int(11) DEFAULT 9999,
+  `posicao` int(11) DEFAULT NULL,
   `casos_resolvidos` int(11) DEFAULT 0,
   `disciplina_competida` enum('Matemática','Inglês','Programação') NOT NULL,
   `ultima_atividade` datetime DEFAULT NULL,

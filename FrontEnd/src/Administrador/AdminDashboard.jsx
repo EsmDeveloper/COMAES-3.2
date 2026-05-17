@@ -3,6 +3,7 @@ import logotipo from '../assets/logo.png';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import TableManager from './TableManager';
+import AdminStats from './AdminStats';
 import { STATIC_TABLE_DEFS } from './TableManager';
 import adminService from './adminService';
 
@@ -12,6 +13,7 @@ const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('');
     const [menuItems, setMenuItems] = useState([]);
     const [loadError, setLoadError] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     const formatLabel = (model) => {
         return model
@@ -22,6 +24,7 @@ const AdminDashboard = () => {
     useEffect(() => {
         if (!user || !token) return;
         setLoadError(null);
+        setIsLoading(true);
         adminService(token)
                 .getModels()
                 .then((models) => {
@@ -36,59 +39,94 @@ const AdminDashboard = () => {
                     if (items.length && (!activeTab || !items.find((i) => i.id === activeTab))) {
                         setActiveTab(items[0].id);
                     }
+                    setIsLoading(false);
                 })
                 .catch((err) => {
                     console.error('Erro ao carregar modelos:', err);
                     setLoadError(err?.message || 'Erro ao carregar painel. Verifique a conexão com o servidor.');
-                    // fallback básico
-                    setMenuItems([{ id: 'user', label: 'Usuários', icon: '👥' }]);
+                    // fallback básico com todos os modelos disponíveis
+                    setMenuItems([
+                        { id: 'user', label: 'Usuários', icon: '👥' },
+                        { id: 'torneio', label: 'Torneios', icon: '🏆' },
+                        { id: 'noticia', label: 'Notícias', icon: '📰' },
+                        { id: 'ticketsuporte', label: 'Suporte', icon: '🎫' },
+                        { id: 'funcao', label: 'Funções', icon: '👔' },
+                        { id: 'pergunta', label: 'Perguntas', icon: '❓' },
+                        { id: 'questaomatematica', label: 'Matemática', icon: '🔢' },
+                        { id: 'questoes_programacao', label: 'Programação', icon: '💻' },
+                        { id: 'questaoingles', label: 'Inglês', icon: '🇺🇸' },
+                        { id: 'tentativateste', label: 'Tentativas', icon: '📝' },
+                        { id: 'participante_torneio', label: 'Participantes', icon: '🎯' },
+                        { id: 'notificacao', label: 'Notificações', icon: '🔔' },
+                        { id: 'conquista', label: 'Conquistas', icon: '🏅' },
+                        { id: 'conquistausuario', label: 'Conquistas Usuário', icon: '🎖️' },
+                        { id: 'redefinicaosenha', label: 'Redefinições', icon: '🔑' },
+                        { id: 'configuracaousuario', label: 'Configurações', icon: '⚙️' }
+                    ]);
+                    setIsLoading(false);
                 });
     }, [user, token]);
 
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
+    // Alteração 5: sair do painel admin SEM destruir a sessão do usuário
+    // Apenas navega de volta para a área pública, preservando token e estado
     const handleLogout = () => {
-        logout();
-        navigate('/login');
+        navigate('/');
     };
 
     return (
-        <div className="flex h-screen bg-gray-100 overflow-hidden">
+        <div className="flex h-screen bg-gradient-to-br from-slate-50 to-blue-50 overflow-hidden">
             {/* Desktop Sidebar (hidden on small screens) */}
-            <div className="hidden md:flex w-64 bg-gray-900 text-white shadow-lg flex-col h-screen overflow-hidden">
-                <div className="p-6 border-b border-gray-700 flex-shrink-0">
-                    <h1 className="text-2xl font-bold">Admin Panel</h1>
-                    <p className="text-sm text-gray-400 mt-2">COMAES Platform</p>
+            <div className="hidden md:flex w-72 bg-white shadow-xl border-r border-slate-200 flex-col h-screen overflow-hidden">
+                <div className="p-6 border-b border-slate-200 flex-shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600">
+                    <div className="flex items-center gap-3">
+                        <img src={logotipo} alt="Comaes" className="h-10 w-auto object-contain drop-shadow-sm" />
+                        <div>
+                            <h1 className="text-xl font-bold text-white">Admin Panel</h1>
+                            <p className="text-sm text-blue-100">COMAES Platform</p>
+                        </div>
+                    </div>
                 </div>
 
-                <nav className="flex-1 overflow-y-auto">
-                    {menuItems.map(item => (
-                        <div
-                            key={item.id}
-                            onClick={() => setActiveTab(item.id)}
-                            className={`px-6 py-3 cursor-pointer transition text-sm ${
-                                activeTab === item.id
-                                    ? 'bg-blue-600 border-r-4 border-blue-400'
-                                    : 'hover:bg-gray-800'
-                            }`}
-                        >
-                            <div className="flex items-center gap-3">
-                                <span className="text-lg">{item.icon}</span>
-                                <span className="font-semibold">{item.label}</span>
-                            </div>
+                <nav className="flex-1 overflow-y-auto bg-slate-50 p-4">
+                    {isLoading ? (
+                        <div className="space-y-3">
+                            {[...Array(4)].map((_, i) => (
+                                <div key={i} className="animate-pulse">
+                                    <div className="h-12 bg-slate-200 rounded-lg"></div>
+                                </div>
+                            ))}
                         </div>
-                    ))}
+                    ) : (
+                        menuItems.map(item => (
+                            <div
+                                key={item.id}
+                                onClick={() => setActiveTab(item.id)}
+                                className={`px-4 py-3 cursor-pointer rounded-xl mb-2 transition-all duration-200 transform hover:scale-105 ${
+                                    activeTab === item.id
+                                        ? 'bg-blue-600 text-white shadow-lg border-l-4 border-blue-400'
+                                        : 'hover:bg-white hover:shadow-md text-slate-700 border border-transparent'
+                                }`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <span className="text-xl">{item.icon}</span>
+                                    <span className="font-semibold">{item.label}</span>
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </nav>
 
                 {/* Sidebar Footer - Dados dinâmicos do usuário */}
-                <div className="border-t border-gray-700 p-6 flex-shrink-0">
+                <div className="border-t border-slate-200 p-6 flex-shrink-0 bg-white">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold shadow-md">
                             {user?.name?.charAt(0).toUpperCase() || 'A'}
                         </div>
-                        <div>
-                            <p className="text-sm font-semibold truncate">{user?.name || 'Administrador'}</p>
-                            <p className="text-xs text-gray-400 truncate">{user?.email || 'admin@comaes.com'}</p>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold truncate text-slate-800">{user?.name || 'Administrador'}</p>
+                            <p className="text-xs text-slate-500 truncate">{user?.email || 'admin@comaes.com'}</p>
                         </div>
                     </div>
                 </div>
@@ -96,29 +134,34 @@ const AdminDashboard = () => {
 
             {/* Mobile Sidebar Overlay */}
             {mobileSidebarOpen && (
-                <div className="fixed inset-0 z-40 md:hidden">
-                    <div className="absolute inset-0 bg-black/50" onClick={() => setMobileSidebarOpen(false)} />
-                    <aside className="absolute left-0 top-0 h-full w-64 bg-gray-900 text-white shadow-lg overflow-hidden flex flex-col">
-                        <div className="p-6 border-b border-gray-700 flex items-center justify-between flex-shrink-0">
+                <div className="fixed inset-0 z-50 md:hidden">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileSidebarOpen(false)} />
+                    <aside className="absolute left-0 top-0 h-full w-72 bg-white shadow-2xl overflow-hidden flex flex-col transform transition-transform duration-300 ease-in-out">
+                        <div className="p-6 border-b border-slate-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600">
                             <div className="flex items-center gap-3">
-                                <img src={logotipo} alt="Comaes" className="h-8 w-auto object-contain" />
-                                <h1 className="text-lg font-bold">Admin</h1>
+                                <img src={logotipo} alt="Comaes" className="h-8 w-auto object-contain drop-shadow-sm" />
+                                <h1 className="text-lg font-bold text-white">Admin</h1>
                             </div>
-                            <button onClick={() => setMobileSidebarOpen(false)} className="text-gray-300 px-2">Fechar</button>
+                            <button 
+                                onClick={() => setMobileSidebarOpen(false)} 
+                                className="text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+                            >
+                                ✕
+                            </button>
                         </div>
-                        <nav className="flex-1 overflow-y-auto px-3 py-4">
+                        <nav className="flex-1 overflow-y-auto bg-slate-50 p-4">
                             {menuItems.map(item => (
                                 <div
                                     key={item.id}
                                     onClick={() => { setActiveTab(item.id); setMobileSidebarOpen(false); }}
-                                    className={`px-4 py-3 cursor-pointer rounded-lg mb-1 ${
+                                    className={`px-4 py-3 cursor-pointer rounded-xl mb-2 transition-all duration-200 ${
                                         activeTab === item.id 
-                                            ? 'bg-blue-600' 
-                                            : 'hover:bg-gray-800'
+                                            ? 'bg-blue-600 text-white shadow-lg' 
+                                            : 'hover:bg-white hover:shadow-md text-slate-700'
                                     }`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <span>{item.icon}</span>
+                                        <span className="text-lg">{item.icon}</span>
                                         <span className="font-medium">{item.label}</span>
                                     </div>
                                 </div>
@@ -131,51 +174,67 @@ const AdminDashboard = () => {
             {/* Main Content */}
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Header - Fixed at top */}
-                <header className="bg-blue-600 shadow-sm border-b flex-shrink-0">
-                    <div className="px-4 py-4 flex items-center justify-between">
+                <header className="bg-white shadow-lg border-b border-slate-200 flex-shrink-0">
+                    <div className="px-6 py-4 flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <button 
-                                className="md:hidden w-10 h-10 flex items-center justify-center rounded-lg text-white hover:text-blue-200" 
+                                className="md:hidden w-12 h-12 flex items-center justify-center rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200" 
                                 onClick={() => setMobileSidebarOpen(true)}
                             >
                                 <span className="text-xl">☰</span>
                             </button>
-                            <img src={logotipo} alt="Comaes" className="h-10 w-auto object-contain" />
                             <div className="hidden md:block">
-                                <h2 className="text-2xl font-bold text-white">{menuItems.find(m => m.id === activeTab)?.label || 'Painel'}</h2>
-                                <p className="text-sm text-white/80">Gerencie todos os aspectos da plataforma COMAES</p>
+                                <h2 className="text-2xl font-bold text-slate-800">
+                                    {menuItems.find(m => m.id === activeTab)?.label || 'Painel Administrativo'}
+                                </h2>
+                                <p className="text-sm text-slate-600 mt-1">
+                                    Gerencie todos os aspectos da plataforma COMAES
+                                </p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-4">
                             {/* User info for mobile */}
-                            <div className="md:hidden flex items-center gap-2 text-white">
-                                <div className="w-8 h-8 bg-blue-700 rounded-full flex items-center justify-center text-sm font-bold">
+                            <div className="md:hidden flex items-center gap-3 text-slate-700">
+                                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-md">
                                     {user?.name?.charAt(0).toUpperCase() || 'A'}
                                 </div>
-                                <span className="text-sm truncate max-w-[100px]">{user?.name?.split(' ')[0] || 'Admin'}</span>
+                                <span className="text-sm font-medium truncate max-w-[120px]">
+                                    {user?.name?.split(' ')[0] || 'Admin'}
+                                </span>
                             </div>
                             
                             {/* Logout button - Always visible */}
                             <button
                                 onClick={handleLogout}
-                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition font-medium shadow-md whitespace-nowrap"
+                                className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl whitespace-nowrap"
                             >
-                                Sair
+                                <span className="flex items-center gap-2">
+                                    ← Voltar ao site
+                                </span>
                             </button>
                         </div>
                     </div>
                 </header>
 
                 {/* Content Area - Scrollable */}
-                <div className="flex-1 overflow-y-auto">
-                    <div className="max-w-7xl mx-auto w-full px-4 py-6">
+                <div className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50 to-blue-50">
+                    <div className="max-w-7xl mx-auto w-full px-6 py-8">
                         {loadError && (
-                            <div className="mb-4 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg">
-                                {loadError}
+                            <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-xl shadow-sm animate-fade-in">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-red-500 text-xl">⚠️</span>
+                                    <div>
+                                        <p className="font-semibold">Erro ao carregar painel</p>
+                                        <p className="text-sm">{loadError}</p>
+                                    </div>
+                                </div>
                             </div>
                         )}
-                        <TableManager table={activeTab} />
+                        <div className="animate-fade-in">
+                            <AdminStats />
+                            <TableManager table={activeTab} />
+                        </div>
                     </div>
                 </div>
             </div>

@@ -51,15 +51,12 @@ const ParticipanteTorneio = sequelize.define('ParticipanteTorneio', {
   },
   posicao: {
     type: DataTypes.INTEGER,
-    defaultValue: 9999, // Valor alto inicial para posições não definidas
+    defaultValue: null,   // null = posição ainda não calculada
+    allowNull: true,
     validate: {
       min: {
         args: [1],
         msg: 'A posição deve ser pelo menos 1'
-      },
-      max: {
-        args: [9999],
-        msg: 'A posição não pode exceder 9999'
       },
       notZero(value) {
         if (value === 0) {
@@ -147,6 +144,18 @@ const ParticipanteTorneio = sequelize.define('ParticipanteTorneio', {
       total_tentativas: 0
     }
   },
+  posicao_congelada: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+    comment: 'Indica se a posição foi finalizada/congelada (torneio finalizado)'
+  },
+  tempo_congelamento: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    defaultValue: null,
+    comment: 'Timestamp de quando a posição foi congelada'
+  },
 }, {
   tableName: 'participantes_torneios',
   timestamps: true,
@@ -189,11 +198,8 @@ const ParticipanteTorneio = sequelize.define('ParticipanteTorneio', {
       if (existente) {
         throw new Error('Usuário já está participando deste torneio nesta disciplina');
       }
-      
-      // Definir posição inicial como um valor alto
-      if (!participante.posicao || participante.posicao === 0) {
-        participante.posicao = 9999;
-      }
+      // Posição será calculada dinamicamente — não atribuir valor fictício
+      participante.posicao = null;
     },
     
     beforeUpdate: (participante) => {
@@ -214,11 +220,6 @@ const ParticipanteTorneio = sequelize.define('ParticipanteTorneio', {
         else if (pontuacao >= 500) participante.nivel_atual = 'avançado';
         else if (pontuacao >= 200) participante.nivel_atual = 'intermediário';
         else participante.nivel_atual = 'iniciante';
-      }
-      
-      // Garantir que posição nunca seja 0
-      if (participante.posicao === 0) {
-        participante.posicao = 9999;
       }
     }
   }
@@ -272,55 +273,54 @@ ParticipanteTorneio.prototype.adicionarConquista = function(conquistaId, nome, d
 
 // Métodos estáticos
 ParticipanteTorneio.calcularRanking = async function(torneioId, disciplina) {
+  // Busca TODOS os participantes confirmados, incluindo os com pontuação zero
   const participantes = await this.findAll({
     where: {
       torneio_id: torneioId,
       disciplina_competida: disciplina,
       status: 'confirmado'
     },
-    order: [['pontuacao', 'DESC'], ['criado_em', 'ASC']]
+    order: [
+      ['pontuacao', 'DESC'],
+      ['entrou_em', 'ASC']  // desempate: quem entrou primeiro fica à frente
+    ]
   });
-  
+
   if (participantes.length === 0) {
     return [];
   }
-  
-  // Agrupar por pontuação para definir posições corretas (empates)
+
+  // Agrupar por pontuação para tratar empates correctamente
   const gruposPorPontuacao = {};
   participantes.forEach(participante => {
-    const pontuacao = parseFloat(participante.pontuacao).toFixed(2);
+    const pontuacao = parseFloat(participante.pontuacao || 0).toFixed(2);
     if (!gruposPorPontuacao[pontuacao]) {
       gruposPorPontuacao[pontuacao] = [];
     }
     gruposPorPontuacao[pontuacao].push(participante);
   });
-  
-  // Calcular posições
+
   const pontuacoesOrdenadas = Object.keys(gruposPorPontuacao)
     .sort((a, b) => parseFloat(b) - parseFloat(a));
-  
+
   let posicaoAtual = 1;
   const participantesAtualizados = [];
-  
+
   for (const pontuacao of pontuacoesOrdenadas) {
     const grupo = gruposPorPontuacao[pontuacao];
-    
-    // Se tiver mais de 1 com mesma pontuação, define posição de empate
     const posicaoEmpate = posicaoAtual;
-    
+
     for (const participante of grupo) {
-      // Atualizar posição
       participante.posicao = posicaoEmpate;
       participantesAtualizados.push(participante);
     }
-    
-    // Avançar posição para o próximo grupo
+
     posicaoAtual += grupo.length;
   }
-  
-  // Salvar todas as posições atualizadas
+
+  // Persistir posições calculadas
   await Promise.all(participantesAtualizados.map(p => p.save()));
-  
+
   return participantesAtualizados;
 };
 
@@ -337,34 +337,15 @@ ParticipanteTorneio.buscarPorUsuarioDisciplina = function(usuarioId, disciplina)
 
 ParticipanteTorneio.atualizarPosicoes = async function(torneioId, disciplina) {
   try {
-    // Primeiro calcular ranking
+    // calcularRanking já inclui todos os participantes (com e sem pontuação)
+    // e persiste as posições correctas na BD
     const ranking = await this.calcularRanking(torneioId, disciplina);
-    
-    // Obter participantes sem pontuação (para atribuir posição máxima)
-    const participantesSemPontuacao = await this.findAll({
-      where: {
-        torneio_id: torneioId,
-        disciplina_competida: disciplina,
-        status: 'confirmado',
-        pontuacao: 0
-      }
-    });
-    
-    // Atribuir posição 9999 para quem tem pontuação zero
-    const ultimaPosicaoReal = ranking.length;
-    const posicaoBaseParaZeros = Math.max(ultimaPosicaoReal + 1, 9999);
-    
-    for (const participante of participantesSemPontuacao) {
-      participante.posicao = posicaoBaseParaZeros;
-      await participante.save();
-    }
-    
+
     return {
       sucesso: true,
       totalRanking: ranking.length,
-      totalZeros: participantesSemPontuacao.length,
       primeiraPosicao: ranking.length > 0 ? ranking[0].posicao : 0,
-      ultimaPosicaoReal: ultimaPosicaoReal
+      ultimaPosicao: ranking.length > 0 ? ranking[ranking.length - 1].posicao : 0
     };
   } catch (error) {
     console.error('Erro ao atualizar posições:', error);
@@ -381,6 +362,82 @@ ParticipanteTorneio.prototype.atualizarPosicaoIndividual = function() {
       return participanteAtualizado ? Promise.resolve(participanteAtualizado) : this;
     });
 };
+
+/**
+ * Congela as posições de todos os participantes de um torneio/disciplina
+ * Chamado quando o torneio passa para "finalizado"
+ * Garante que posições não sejam mais recalculadas
+ */
+ParticipanteTorneio.congelarRanking = async function(torneioId, disciplina) {
+  try {
+    console.log(`❄️ Congelando ranking do torneio ${torneioId}, disciplina: ${disciplina}`);
+    
+    // Primeiro, sincronizar/calcular posições atuais
+    const ranking = await this.calcularRanking(torneioId, disciplina);
+    
+    if (ranking.length === 0) {
+      console.log(`⚠️ Sem participantes confirmados para congelar`);
+      return { sucesso: false, mensagem: 'Sem participantes confirmados' };
+    }
+
+    // Marcar todos como congelados com timestamp
+    const agora = new Date();
+    const resultados = await Promise.all(ranking.map(p => 
+      this.update(
+        { 
+          posicao_congelada: true, 
+          tempo_congelamento: agora 
+        },
+        { where: { id: p.id } }
+      )
+    ));
+
+    console.log(`✅ Ranking congelado: ${ranking.length} participantes marcados como finalizados`);
+    
+    return {
+      sucesso: true,
+      totalCongelados: ranking.length,
+      timestamp: agora
+    };
+  } catch (error) {
+    console.error('❌ Erro ao congelar ranking:', error);
+    throw error;
+  }
+};
+
+/**
+ * Retorna o ranking com posições persistidas (nunca recalcula)
+ * Se posições não foram congeladas, calcula e persiste
+ */
+ParticipanteTorneio.obterRankingPersistido = async function(torneioId, disciplina) {
+  try {
+    // Buscar participantes com posição já persistida
+    const participantes = await this.findAll({
+      where: {
+        torneio_id: torneioId,
+        disciplina_competida: disciplina,
+        status: 'confirmado'
+      },
+      order: [
+        ['posicao', 'ASC'],  // Usa posição persistida
+        ['pontuacao', 'DESC'],  // Fallback para cálculo se posicao for NULL
+        ['entrou_em', 'ASC']
+      ]
+    });
+
+    // Se nenhum tem posição (primeira vez), calcular e persistir
+    if (participantes.length > 0 && !participantes[0].posicao) {
+      console.log('📊 Primeira sincronização de ranking detectada, calculando...');
+      return await this.calcularRanking(torneioId, disciplina);
+    }
+
+    return participantes;
+  } catch (error) {
+    console.error('❌ Erro ao obter ranking persistido:', error);
+    throw error;
+  }
+};
+
 
 // Validator personalizado para posição
 const validarPosicao = (value) => {

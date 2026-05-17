@@ -16,7 +16,7 @@ export default function useCertificado(disciplina, participante, ranking) {
 
       try {
         // Buscar status do torneio
-        const response = await fetch('http://localhost:3000/api/torneios/ativo');
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/torneios/ativo`);
         const data = await response.json();
 
         if (data.ativo && data.torneio) {
@@ -29,8 +29,12 @@ export default function useCertificado(disciplina, participante, ranking) {
             // Verificar posição do usuário no ranking
             const posicaoUsuario = ranking.findIndex(r => r.usuario_id === user.id) + 1;
 
-            // Se está entre os 3 primeiros
+            // Se está entre os 3 primeiros E tem pontuação real
             if (posicaoUsuario >= 1 && posicaoUsuario <= 3 && !jaExibido) {
+              // Verificar se o usuário realmente pontuou
+              const meuDado = ranking.find(r => r.usuario_id === user.id);
+              const pontuacaoReal = parseFloat(meuDado?.pontuacao || 0) > 0;
+              if (!pontuacaoReal) return; // sem pontuação — não gerar certificado automático
               // Verificar se já recebeu certificado (pode ser armazenado no localStorage)
               const certificadoKey = `certificado_${disciplina}_${user.id}_${data.torneio.id}`;
               const certificadoRecebido = localStorage.getItem(certificadoKey);
@@ -88,6 +92,14 @@ export default function useCertificado(disciplina, participante, ranking) {
     const posicaoUsuario = ranking.findIndex(r => r.usuario_id === user?.id) + 1;
     if (posicaoUsuario === 0) {
       setMensagemStatus('Você não participou deste torneio ou ainda não possui pontuação.');
+      return false;
+    }
+
+    // Verificar se o usuário tem pontuação real
+    const meuDado = ranking.find(r => r.usuario_id === user?.id);
+    const pontuacaoReal = parseFloat(meuDado?.pontuacao || 0) > 0;
+    if (!pontuacaoReal) {
+      setMensagemStatus('Certificado disponível apenas para participantes com pontuação válida.');
       return false;
     }
 

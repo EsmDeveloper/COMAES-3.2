@@ -1,4 +1,6 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
+import PageTransition from "./components/PageTransition";
 
 //import Login from "./Paginas/Primarias/Login";
 //import Cadastro from "./Paginas/Primarias/Cadastro"
@@ -22,47 +24,63 @@ import Sobre from "./Paginas/Secundarias/Sobre";
 import Suporte from "./Paginas/Secundarias/Suporte";
 import Teste from "./Paginas/Secundarias/Teste";
 import Ranking from "./Paginas/Secundarias/Ranking";
+import RankingCompleto from "./Paginas/Secundarias/RankingCompleto";
 
 import MatematicaOriginal from "./Paginas/Tercearios.jsx/ModeloOriginal/MatematicaOriginal";
 import ProgramacaoOriginal from "./Paginas/Tercearios.jsx/ModeloOriginal/ProgramacaoOriginal";
 import InglesOriginal from "./Paginas/Tercearios.jsx/ModeloOriginal/InglesOriginal";
 
 import NotFoundPage from "./Paginas/Secundarias/NotFoundPage";
+import NavbarDemo from "./components/ui/resizable-navbar-demo";
+
+function AnimatedRoutes() {
+  const location = useLocation();
+  
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        {/* Depois (mantenha ambas as rotas apontando para o mesmo componente): */}
+        <Route path="/login" element={<PageTransition><AuthContainer /></PageTransition>} />
+        <Route path="/cadastro" element={<PageTransition><AuthContainer initialMode="cadastro" /></PageTransition>} />
+        <Route path="/recuperar-senha" element={<PageTransition><Recuperar /></PageTransition>} />
+        <Route path="/redefinir-senha" element={<PageTransition><ResetPasswordPage /></PageTransition>} />
+
+        <Route path="/layout" element={<PageTransition><Layout /></PageTransition>} />
+        <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+        <Route path="/entrar-no-torneio" element={<PageTransition><EntrarTorneio /></PageTransition>} />
+        <Route path="/configuracoes" element={<PageTransition><Configuracoes /></PageTransition>} />
+        <Route path="/painel" element={<PageTransition><Dashboard /></PageTransition>} />
+        <Route path="/administrador" element={<ProtectedAdminRoute><PageTransition><AdminDashboard /></PageTransition></ProtectedAdminRoute>} />
+        <Route path="/portal-de-noticias" element={<PageTransition><Noticias /></PageTransition>} />
+        <Route path="/perfil" element={<PageTransition><Perfil /></PageTransition>} />
+        <Route path="/sobre-nos" element={<PageTransition><Sobre /></PageTransition>} />
+        <Route path="/suporte" element={<PageTransition><Suporte /></PageTransition>} />
+        <Route path="/teste-seu-conhecimento" element={<PageTransition><Teste /></PageTransition>} />
+        <Route path="/ranking" element={<PageTransition><Ranking /></PageTransition>} />
+        <Route path="/ranking/:tournamentId" element={<PageTransition><RankingCompleto /></PageTransition>} />
+
+        <Route path="/matematica-original/:username" element={<PageTransition><MatematicaOriginal /></PageTransition>} />
+        <Route path="/programacao-original/:username" element={<PageTransition><ProgramacaoOriginal /></PageTransition>} />
+        <Route path="/ingles-original/:username" element={<PageTransition><InglesOriginal /></PageTransition>} />
+
+        {/* Rota temporária para testar navbar sem animações */}
+        <Route path="/test-navbar" element={<PageTransition><NavbarDemo /></PageTransition>} />
+
+        {/* Rota 404 Específica (para usar com Navigate) */}
+        <Route path="/404" element={<PageTransition><NotFoundPage /></PageTransition>} />
+
+        {/* Rota de Fallback para qualquer Caminho Inexistente */}
+        <Route path="*" element={<PageTransition><NotFoundPage /></PageTransition>} />
+      </Routes>
+    </AnimatePresence>
+  );
+}
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Routes>
-          {/* Depois (mantenha ambas as rotas apontando para o mesmo componente): */}
-          <Route path="/login" element={<AuthContainer />} />
-          <Route path="/cadastro" element={<AuthContainer initialMode="cadastro" />} />
-          <Route path="/recuperar-senha" element={<Recuperar />} />
-          <Route path="/redefinir-senha" element={<ResetPasswordPage />} />
-
-          <Route path="/layout" element={<Layout />} />
-          <Route path="/" element={<Home />} />
-          <Route path="/entrar-no-torneio" element={<EntrarTorneio />} />
-          <Route path="/configuracoes" element={<Configuracoes />} />
-          <Route path="/painel" element={<Dashboard />} />
-          <Route path="/administrador" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
-          <Route path="/portal-de-noticias" element={<Noticias />} />
-          <Route path="/perfil" element={<Perfil />} />
-          <Route path="/sobre-nos" element={<Sobre />} />
-          <Route path="/suporte" element={<Suporte />} />
-          <Route path="/teste-seu-conhecimento" element={<Teste />} />
-          <Route path="/ranking" element={<Ranking />} />
-
-          <Route path="/matematica-original/:username" element={<MatematicaOriginal />} />
-          <Route path="/programacao-original/:username" element={<ProgramacaoOriginal />} />
-          <Route path="/ingles-original/:username" element={<InglesOriginal />} />
-
-          {/* Rota 404 Específica (para usar com Navigate) */}
-          <Route path="/404" element={<NotFoundPage />} />
-
-          {/* Rota de Fallback para qualquer Caminho Inexistente */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+        <AnimatedRoutes />
       </BrowserRouter>
     </AuthProvider>
   );

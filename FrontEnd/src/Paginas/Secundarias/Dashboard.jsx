@@ -199,6 +199,7 @@ function Dashboard() {
   const navigate = useNavigate();
   
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [showAllTournaments, setShowAllTournaments] = useState(false);
   
   useEffect(() => {
     if (!user) {
@@ -237,9 +238,9 @@ function Dashboard() {
   ]);
   const [monthlyProgress, setMonthlyProgress] = useState([]);
   const [disciplineStats, setDisciplineStats] = useState({
-    matematica: { points: 0, accuracy: 0, time: 0, tournaments: 0, bestPosition: 9999 },
-    ingles: { points: 0, accuracy: 0, time: 0, tournaments: 0, bestPosition: 9999 },
-    programacao: { points: 0, accuracy: 0, time: 0, tournaments: 0, bestPosition: 9999 }
+    matematica: { points: 0, accuracy: 0, time: 0, tournaments: 0, bestPosition: null },
+    ingles: { points: 0, accuracy: 0, time: 0, tournaments: 0, bestPosition: null },
+    programacao: { points: 0, accuracy: 0, time: 0, tournaments: 0, bestPosition: null }
   });
   const [recentAchievements, setRecentAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -249,9 +250,9 @@ function Dashboard() {
   const calculateAdvancedMetrics = (participacoes) => {
     // Estatísticas por disciplina
     const stats = {
-      matematica: { points: 0, accuracy: 0, time: 0, tournaments: 0, bestPosition: 9999, positions: [] },
-      ingles: { points: 0, accuracy: 0, time: 0, tournaments: 0, bestPosition: 9999, positions: [] },
-      programacao: { points: 0, accuracy: 0, time: 0, tournaments: 0, bestPosition: 9999, positions: [] }
+      matematica: { points: 0, accuracy: 0, time: 0, tournaments: 0, bestPosition: null, positions: [] },
+      ingles: { points: 0, accuracy: 0, time: 0, tournaments: 0, bestPosition: null, positions: [] },
+      programacao: { points: 0, accuracy: 0, time: 0, tournaments: 0, bestPosition: null, positions: [] }
     };
 
     let totalTime = 0;
@@ -265,8 +266,10 @@ function Dashboard() {
         stats[disciplina].time += Number(p.tempo_total) || 0;
         stats[disciplina].tournaments += 1;
         
-        if (p.posicao && p.posicao < stats[disciplina].bestPosition && p.posicao > 0) {
-          stats[disciplina].bestPosition = p.posicao;
+        if (p.posicao && p.posicao > 0) {
+          if (stats[disciplina].bestPosition === null || p.posicao < stats[disciplina].bestPosition) {
+            stats[disciplina].bestPosition = p.posicao;
+          }
         }
         
         if (p.posicao && p.posicao <= 3) {
@@ -321,7 +324,7 @@ function Dashboard() {
           month: monthYear, 
           positions: [], 
           points: [],
-          bestPosition: 9999
+          bestPosition: null
         };
       }
       
@@ -402,7 +405,7 @@ function Dashboard() {
   // Buscar dados do ranking global
   const fetchGlobalRanking = async (userId) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/participantes/ranking/global`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/participantes/ranking/global`);
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
@@ -425,7 +428,7 @@ function Dashboard() {
       
       try {
         // Buscar participações do usuário
-        const response = await fetch(`http://localhost:3000/usuarios/${user.id}/participacoes`);
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/usuarios/${user.id}/participacoes`);
         const result = await response.json();
         
         // Buscar ranking global
@@ -846,8 +849,8 @@ function Dashboard() {
       {/* ── Stat cards grid ── */}
       <div className="dash-anim" style={{
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: 20, 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+        gap: '16px', 
         marginBottom: 28, 
         animationDelay: '60ms',
       }}>
@@ -859,7 +862,7 @@ function Dashboard() {
       {/* ── Charts Row 1 ── */}
       <div className="dash-anim" style={{
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))',
         gap: 20, 
         marginBottom: 20, 
         animationDelay: '120ms',
@@ -935,7 +938,7 @@ function Dashboard() {
       {/* ── Charts Row 2 ── */}
       <div className="dash-anim" style={{
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
         gap: 20, 
         marginBottom: 28, 
         animationDelay: '160ms',
@@ -1030,7 +1033,7 @@ function Dashboard() {
       {/* ── Charts Row 3 ── */}
       <div className="dash-anim" style={{
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
         gap: 20, 
         marginBottom: 28, 
         animationDelay: '200ms',
@@ -1113,7 +1116,7 @@ function Dashboard() {
                     <div>
                       <div style={{ color: tokens.muted }}>Melhor Pos.</div>
                       <div style={{ fontWeight: 600, color: tokens.text }}>
-                        {stats.bestPosition < 9999 ? `#${stats.bestPosition}` : '-'}
+                        {stats.bestPosition !== null ? `#${stats.bestPosition}` : '-'}
                       </div>
                     </div>
                   </div>
@@ -1125,25 +1128,32 @@ function Dashboard() {
       </div>
 
       {/* ── Recent Tournaments & Goals ── */}
-      <div className="dash-anim" style={{
-        display: 'grid', 
-        gridTemplateColumns: '1fr 340px',
-        gap: 20, 
-        marginBottom: 28, 
+      <div className="dash-anim dashboard-bottom-grid" style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '20px',
+        marginBottom: '28px',
         animationDelay: '240ms',
       }}>
 
         {/* Recent tournaments */}
-        <div style={cardStyle}>
+        <div style={{ ...cardStyle, flex: '1 1 500px', minWidth: 'min(100%, 500px)' }}>
           <SectionHeader 
             title="Torneios Recentes" 
             subtitle="Últimas competições participadas" 
             icon={<Clock size={18}/>}
-            action={<span style={{ fontSize: 12, color: tokens.primary, cursor: 'pointer' }}>Ver todos</span>}
+            action={
+              <span 
+                onClick={() => setShowAllTournaments(!showAllTournaments)} 
+                style={{ fontSize: 12, color: tokens.primary, cursor: 'pointer', fontWeight: 600 }}
+              >
+                {showAllTournaments ? 'Ver menos' : 'Ver todos'}
+              </span>
+            }
           />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {tournamentHistory.slice(0, 5).length > 0 ? (
-              tournamentHistory.slice(0, 5).map(t => {
+            {tournamentHistory.length > 0 ? (
+              (showAllTournaments ? tournamentHistory : tournamentHistory.slice(0, 5)).map(t => {
                 const cc = categoryColors(t.category);
                 const ps = positionStyle(t.position);
                 return (
@@ -1216,7 +1226,7 @@ function Dashboard() {
         </div>
 
         {/* Goals & Achievements */}
-        <div style={cardStyle}>
+        <div style={{ ...cardStyle, flex: '1 1 300px', minWidth: 'min(100%, 300px)' }}>
           <SectionHeader 
             title="Metas e Conquistas" 
             subtitle="Seu progresso para os próximos objetivos" 

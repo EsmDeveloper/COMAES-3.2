@@ -1,4 +1,4 @@
-// Layout.jsx - com cores do primeiro layout
+// Layout.jsx - header fixo corrigido
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -6,12 +6,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   FaBars, FaUserCircle, FaChartLine, FaBell, FaBook, FaTrophy, FaBullhorn,
   FaHeadset, FaCogs, FaInfoCircle, FaFacebook, FaInstagram,
-  FaWhatsapp, FaLinkedin, FaPhone, FaHome, FaTimes
+  FaWhatsapp, FaLinkedin, FaHome, FaTimes
 } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
 import NotificacoesModal from "./Notificacoes";
 import logotipo from "../../assets/logotipo.png";
 import logo from "../../assets/logo.png";
+import logoShort from "../../assets/iso_icon.png";
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
@@ -38,12 +39,12 @@ export default function Layout({ children }) {
     { icon: <FaHeadset />, text: "Suporte", link: "/suporte" },
   ];
 
-  // Itens da barra inferior (Responsivo - Mobile Only)
-  const bottomNavItems = [
-    { icon: <FaHome />, text: "Home", link: "/" },
-    { icon: <FaTrophy />, text: "Torneios", link: "/entrar-no-torneio" },
-    { icon: <FaChartLine />, text: "Painel", link: "/painel" },
-    { icon: <FaUserCircle />, text: "Perfil", link: "/perfil" },
+  const desktopNavItems = [
+    { icon: <FaTrophy />, text: "Entrar no Torneio", link: "/entrar-no-torneio" },
+    { icon: <FaBook />, text: "Teste seu Conhecimento", link: "/teste-seu-conhecimento" },
+    { icon: <FaChartLine />, text: "Dashboard", link: "/painel" },
+    { icon: <FaBullhorn />, text: "Notícias", link: "/portal-de-noticias" },
+    { icon: <FaInfoCircle />, text: "Sobre nós", link: "/sobre-nos" },
   ];
 
   useEffect(() => {
@@ -61,8 +62,8 @@ export default function Layout({ children }) {
     const fetchNotificationCount = async () => {
       if (user && user.id) {
         try {
-          const response = await fetch(`http://localhost:3000/usuarios/${user.id}/notificacoes/nao-lidas/count`, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/usuarios/${user.id}/notificacoes/nao-lidas/count`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('comaes_token')}` }
           });
           const data = await response.json();
           if (data.success) setNotificationCount(data.count);
@@ -88,7 +89,6 @@ export default function Layout({ children }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Bloqueia scroll quando menu aberto
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -101,8 +101,6 @@ export default function Layout({ children }) {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 font-sans text-gray-900 overflow-x-hidden">
-
-      {/* OVERLAY */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -111,13 +109,12 @@ export default function Layout({ children }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/70 z-[60]"
+            className="fixed inset-0 bg-black/70 z-[60] md:hidden"
             onClick={() => setMenuOpen(false)}
           />
         )}
       </AnimatePresence>
 
-      {/* SIDEBAR */}
       <AnimatePresence>
         {menuOpen && (
           <motion.aside
@@ -126,9 +123,8 @@ export default function Layout({ children }) {
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "spring", stiffness: 320, damping: 34 }}
-            className="fixed top-0 left-0 h-full z-[70] flex flex-col w-72 bg-black text-white shadow-lg"
+            className="fixed top-0 left-0 h-full z-[70] flex flex-col w-72 bg-black text-white shadow-lg md:hidden"
           >
-            {/* Header da sidebar */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
               <img src={logotipo} alt="Comaes" className="h-10 w-auto object-contain" />
               <button
@@ -138,8 +134,6 @@ export default function Layout({ children }) {
                 <FaTimes className="text-sm" />
               </button>
             </div>
-
-            {/* Navegação */}
             <nav className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-0.5">
               {menuItems.map((item, index) => {
                 const isActive = activeItem === index;
@@ -156,17 +150,13 @@ export default function Layout({ children }) {
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-150
                         ${isActive ? 'bg-blue-600 text-white' : 'text-white hover:bg-blue-700/70 hover:text-white'}`}
                     >
-                      <span className={`text-base flex-shrink-0 ${isActive ? 'text-white' : 'text-white'}`}>
-                        {item.icon}
-                      </span>
+                      <span className="text-base flex-shrink-0">{item.icon}</span>
                       {item.text}
                     </Link>
                   </motion.div>
                 );
               })}
             </nav>
-
-            {/* Rodapé da sidebar - info do usuário */}
             {user && (
               <div className="px-4 py-4 border-t border-white/10">
                 <div className="flex items-center gap-3">
@@ -195,55 +185,81 @@ export default function Layout({ children }) {
         )}
       </AnimatePresence>
 
-      {/* MODAL NOTIFICAÇÕES */}
       <NotificacoesModal
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
       />
 
-      {/* HEADER */}
+      {/* HEADER FIXO - sticky top-0 */}
       <motion.header
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className={`sticky top-0 z-50 w-full transition-all duration-300 bg-blue-600 text-white shadow-md`}
-        style={{
-          boxShadow: scrolled ? "0 2px 8px rgba(0,0,0,0.2)" : "none",
-        }}
+        className={`sticky top-0 z-50 w-full transition-all duration-300 bg-blue-600 text-white ${scrolled ? 'shadow-lg' : ''}`}
       >
-        <div className="flex items-center justify-between px-4 py-3 sm:px-6 max-w-7xl mx-auto">
-
-          {/* Esquerda: hamburguer + logo */}
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between px-3 py-2 sm:px-6 max-w-7xl mx-auto">
+          
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setMenuOpen(true)}
-              className="w-9 h-9 flex items-center justify-center rounded-lg text-white hover:text-blue-300 transition-all duration-150"
+              className="md:hidden w-8 h-8 flex items-center justify-center rounded-lg text-white hover:text-blue-300 transition-all duration-150 outline-none focus:outline-none cursor-pointer"
             >
               <FaBars className="text-lg" />
             </button>
-            <img src={logo} alt="Comaes" className="h-9 sm:h-11 w-auto object-contain" />
+            <Link to="/" className="flex items-center">
+              {/* Desktop: full logo | Mobile: compact icon */}
+              <img src={logo} alt="Comaes" className="hidden md:block h-10 w-auto object-contain cursor-pointer" />
+              <img src={logoShort} alt="Comaes" className="block md:hidden h-9 w-9 object-contain cursor-pointer rounded-md" />
+            </Link>
           </div>
 
-          {/* Direita */}
+          <nav className="hidden md:flex items-center gap-2 lg:gap-3 mx-auto">
+            {desktopNavItems.map((item, idx) => {
+              const isActive = location.pathname === item.link;
+              return (
+                <Link
+                  key={idx}
+                  to={item.link}
+                  className={`
+                    flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200
+                    ${isActive 
+                      ? 'bg-white/20 text-white shadow-sm' 
+                      : 'text-white/90 hover:bg-white/10 hover:shadow-md hover:text-white'
+                    }
+                  `}
+                >
+                  <span className="text-base">{item.icon}</span>
+                  {item.text}
+                </Link>
+              );
+            })}
+          </nav>
+
           <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex md:hidden items-center gap-1.5 sm:gap-2">
+              <Link
+                to="/teste-seu-conhecimento"
+                title="Teste seu Conhecimento"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-white hover:bg-white hover:text-blue-600 transition-all duration-150"
+              >
+                <FaBook className="text-sm" />
+              </Link>
+              <Link
+                to="/entrar-no-torneio"
+                title="Entrar no Torneio"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-white hover:bg-white hover:text-blue-600 transition-all duration-150"
+              >
+                <FaTrophy className="text-sm" />
+              </Link>
+            </div>
 
-            {/* Ícone: Teste */}
-            <Link
-              to="/teste-seu-conhecimento"
-              title="Teste seu Conhecimento"
-              className="w-9 h-9 flex items-center justify-center rounded-full bg-blue-500 text-white hover:bg-white hover:text-blue-600 transition-all duration-150"
-            >
-              <FaBook className="text-base" />
-            </Link>
-
-            {/* Ícone: Notificações */}
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(true)}
                 title="Notificações"
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-blue-500 text-white hover:bg-white hover:text-blue-600 transition-all duration-150"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-white hover:bg-white hover:text-blue-600 transition-all duration-150"
               >
-                <FaBell className="text-base" />
+                <FaBell className="text-sm sm:text-base" />
               </button>
               {notificationCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 pointer-events-none">
@@ -252,30 +268,19 @@ export default function Layout({ children }) {
               )}
             </div>
 
-            {/* Ícone: Torneio */}
-            <Link
-              to="/entrar-no-torneio"
-              title="Entrar no Torneio"
-              className="w-9 h-9 flex items-center justify-center rounded-full bg-blue-500 text-white hover:bg-white hover:text-blue-600 transition-all duration-150"
-            >
-              <FaTrophy className="text-base" />
-            </Link>
+            <div className="w-px h-5 bg-white/30 md:hidden" />
 
-            {/* Divisor */}
-            <div className="w-px h-5 mx-1 bg-white/30" />
-
-            {/* Auth */}
             {!user ? (
               <div className="flex gap-1.5">
                 <button
                   onClick={() => navigate("/login")}
-                  className="px-4 py-1.5 rounded-lg text-sm font-medium bg-transparent border border-white text-white hover:bg-white hover:text-blue-600 transition-all duration-150"
+                  className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-transparent border border-white text-white hover:bg-white hover:text-blue-600 transition-all duration-150"
                 >
                   Entrar
                 </button>
                 <button
                   onClick={() => navigate("/cadastro")}
-                  className="px-4 py-1.5 rounded-lg text-sm font-medium bg-white text-blue-600 hover:bg-blue-50 transition-all duration-150"
+                  className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-white text-blue-600 hover:bg-blue-50 transition-all duration-150"
                 >
                   Cadastre-se
                 </button>
@@ -284,7 +289,7 @@ export default function Layout({ children }) {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-blue-500 text-white hover:bg-blue-400 transition-all duration-150"
+                  className="flex items-center gap-2 px-2 py-1 rounded-lg bg-blue-500 text-white hover:bg-blue-400 transition-all duration-150"
                 >
                   <span className="hidden sm:block text-sm font-medium">
                     {user.name || user.username || "Usuário"}
@@ -294,8 +299,6 @@ export default function Layout({ children }) {
                     : <FaUserCircle className="text-xl" />
                   }
                 </button>
-
-                {/* Dropdown */}
                 <AnimatePresence>
                   {profileOpen && (
                     <motion.div
@@ -312,38 +315,13 @@ export default function Layout({ children }) {
                         <p className="text-xs text-gray-600 truncate mt-0.5">{user.email || ""}</p>
                       </div>
                       <div className="py-1">
-                        <Link
-                          to="/perfil"
-                          onClick={() => setProfileOpen(false)}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-100"
-                        >
-                          Meu Perfil
-                        </Link>
-                        <Link
-                          to="/configuracoes"
-                          onClick={() => setProfileOpen(false)}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-100"
-                        >
-                          Configurações
-                        </Link>
-                        {
-                          (user.isAdmin || user.role === 'admin') && (
-                            <Link
-                              to="/administrador"
-                              onClick={() => setProfileOpen(false)}
-                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-100"
-                            >
-                             Painel Admin
-                            </Link>
-                          )
-                        }
+                        <Link to="/perfil" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Meu Perfil</Link>
+                        <Link to="/configuracoes" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Configurações</Link>
+                        {(user.isAdmin || user.role === 'admin') && (
+                          <Link to="/administrador" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Painel Admin</Link>
+                        )}
                         <div className="mx-3 my-1 h-px bg-gray-200" />
-                        <button
-                          onClick={handleLogout}
-                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors duration-100"
-                        >
-                          Sair
-                        </button>
+                        <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Sair</button>
                       </div>
                     </motion.div>
                   )}
@@ -354,60 +332,50 @@ export default function Layout({ children }) {
         </div>
       </motion.header>
 
-      {/* MAIN CONTENT */}
       <motion.main
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="flex-1 p-6 sm:p-8 max-w-7xl mx-auto w-full pb-24 md:pb-12"
+        className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full pb-12"
       >
         {children}
       </motion.main>
 
-      {/* BOTTOM NAVIGATION (Responsive - Mobile Only) */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white border-t border-gray-200 px-6 py-2 shadow-lg">
-        <div className="flex items-center justify-between max-w-md mx-auto">
-          {bottomNavItems.map((item, index) => {
-            const isActive = location.pathname === item.link;
-            return (
-              <Link
-                key={index}
-                to={item.link}
-                className={`flex flex-col items-center gap-1 p-2 ${
-                  isActive ? 'text-blue-600' : 'text-gray-400'
-                }`}
-              >
-                <span className="text-xl">{item.icon}</span>
-                <span className="text-[10px] font-bold">
-                  {item.text}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      <Link
+        to="/suporte"
+        className="fixed bottom-6 right-6 z-50 bg-blue-600 text-white p-2 sm:p-3 rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 animate-pulse outline-none focus:outline-none"
+        style={{ boxShadow: '0 0 0 0 rgba(59, 130, 246, 0.5)' }}
+      >
+        <FaHeadset className="text-xl sm:text-2xl md:text-3xl" />
+      </Link>
 
-      {/* FOOTER */}
-      <footer className="bg-gray-900 text-gray-300 mt-auto w-full pb-24 md:pb-0">
+      <footer className="bg-gray-900 text-gray-300 mt-auto w-full">
         <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8 flex flex-col items-center gap-5">
           <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm">
             <Link to="/sobre-nos" className="text-gray-400 hover:text-blue-500 transition-colors duration-150">Sobre Nós</Link>
             <Link to="/suporte" className="text-gray-400 hover:text-blue-500 transition-colors duration-150">Suporte</Link>
             <Link to="/privacidade" className="text-gray-400 hover:text-blue-500 transition-colors duration-150">Privacidade</Link>
           </div>
-
           <div className="flex justify-center gap-5 text-lg">
             <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-150"><FaFacebook /></a>
             <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-150"><FaInstagram /></a>
             <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-150"><FaWhatsapp /></a>
             <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-150"><FaLinkedin /></a>
           </div>
-
           <p className="text-xs text-gray-500 text-center">
             &copy; {new Date().getFullYear()} COMAES Education. Todos os direitos reservados.
           </p>
         </div>
       </footer>
+
+      <style>{`
+        @keyframes pulse-ring {
+          0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+          70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+        .animate-pulse { animation: pulse-ring 1.5s infinite; }
+      `}</style>
     </div>
   );
 }
