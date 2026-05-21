@@ -20,38 +20,47 @@ Restaurar o painel administrativo ao estado funcional anterior à implementaçã
 - **Commit**: a5068b8
 - **Impacto**: Consistência visual, acessibilidade, manutenibilidade
 
+### 2. Gestão de Torneios - Integração (ALTA)
+- **Status**: ✅ RESTAURADO
+- **Alterações**:
+  - Importado TorneiosTab no AdminDashboard
+  - Integrado renderização condicional: quando activeTab === 'torneio', renderiza TorneiosTab
+  - TorneiosTab agora é o componente especializado para gestão de torneios
+  - Mantém funcionalidades: listagem, busca, visualização, exclusão
+- **Commit**: f4f8a23
+- **Impacto**: Interface especializada para torneios, melhor UX
+
 ---
 
 ## 🔄 EM PROGRESSO
 
-### 2. Gestão de Torneios
-- **Status**: 🔄 INICIADO
+### 3. Validações de Torneios
+- **Status**: ⏳ PENDENTE
 - **Tarefas**:
-  - [ ] Integrar TorneiosTab ao AdminDashboard
-  - [ ] Restaurar validações de data
+  - [ ] Restaurar validações de data em TorneiosTab
   - [ ] Restaurar slug automático
-  - [ ] Restaurar criação/edição de torneios
+  - [ ] Restaurar criação/edição de torneios em TorneiosTab
 
-### 3. Sistema de Questões
+### 4. Sistema de Questões
 - **Status**: ⏳ PENDENTE
 - **Tarefas**:
   - [ ] Criar interface especializada para questões
   - [ ] Restaurar validações de questões
   - [ ] Restaurar associação pergunta ↔ questão
 
-### 4. Testes de Conhecimento
+### 5. Testes de Conhecimento
 - **Status**: ⏳ PENDENTE
 - **Tarefas**:
   - [ ] Implementar persistência no backend
   - [ ] Restaurar salvamento de tentativas
 
-### 5. Sistema de Notificações
+### 6. Sistema de Notificações
 - **Status**: ⏳ PENDENTE
 - **Tarefas**:
   - [ ] Criar interface especializada
   - [ ] Restaurar funcionalidades
 
-### 6. Sistema de Notícias
+### 7. Sistema de Notícias
 - **Status**: ⏳ PENDENTE
 - **Tarefas**:
   - [ ] Integrar interface de criação/edição
@@ -69,7 +78,7 @@ Restaurar o painel administrativo ao estado funcional anterior à implementaçã
 
 ### Altas (Afetam UX/manutenção)
 1. ✅ Ícones: Emojis em vez de lucide-react (RESTAURADO)
-2. ❌ Torneios: Componente TorneiosTab não integrado
+2. ✅ Torneios: Componente TorneiosTab não integrado (RESTAURADO)
 3. ❌ Padrões: Inconsistência em validação/erros/modais
 
 ### Médias (Melhorias necessárias)
@@ -82,11 +91,12 @@ Restaurar o painel administrativo ao estado funcional anterior à implementaçã
 ## 📊 PROGRESSO
 
 ```
-████░░░░░░░░░░░░░░░░ 20% (1/5 áreas críticas restauradas)
+████████░░░░░░░░░░░░ 40% (2/5 áreas críticas restauradas)
 ```
 
 - Ícones: ✅ 100%
-- Torneios: 0%
+- Torneios (Integração): ✅ 100%
+- Torneios (Validações): 0%
 - Questões: 0%
 - Testes: 0%
 - Notificações: 0%
@@ -99,14 +109,16 @@ Restaurar o painel administrativo ao estado funcional anterior à implementaçã
 - Commit anterior (antes do status automático): `2c2845d`
 - Commit atual (com status automático): `fd00e3c`
 - Commit de restauração de ícones: `a5068b8`
+- Commit de integração de TorneiosTab: `f4f8a23`
 
 ---
 
 ## 📝 Próximas Ações
 
-1. Integrar TorneiosTab ao AdminDashboard
-2. Restaurar validações de torneios
-3. Criar interface especializada para questões
-4. Implementar persistência de testes no backend
-5. Criar interface especializada para notificações
-6. Criar interface especializada para notícias
+1. Restaurar validações de torneios em TorneiosTab
+2. Restaurar slug automático em TorneiosTab
+3. Restaurar criação/edição de torneios em TorneiosTab
+4. Criar interface especializada para questões
+5. Implementar persistência de testes no backend
+6. Criar interface especializada para notificações
+7. Criar interface especializada para notícias
