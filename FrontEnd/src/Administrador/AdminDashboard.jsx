@@ -6,6 +6,7 @@ import TableManager from './TableManager';
 import AdminStats from './AdminStats';
 import { STATIC_TABLE_DEFS } from './TableManager';
 import adminService from './adminService';
+import { Users, Trophy, Newspaper, Ticket, Briefcase, HelpCircle, Calculator, Code, Globe, FileText, Target, Bell, Award, Medal, Key, Settings } from 'lucide-react';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -46,22 +47,22 @@ const AdminDashboard = () => {
                     setLoadError(err?.message || 'Erro ao carregar painel. Verifique a conexão com o servidor.');
                     // fallback básico com todos os modelos disponíveis
                     setMenuItems([
-                        { id: 'user', label: 'Usuários', icon: '👥' },
-                        { id: 'torneio', label: 'Torneios', icon: '🏆' },
-                        { id: 'noticia', label: 'Notícias', icon: '📰' },
-                        { id: 'ticketsuporte', label: 'Suporte', icon: '🎫' },
-                        { id: 'funcao', label: 'Funções', icon: '👔' },
-                        { id: 'pergunta', label: 'Perguntas', icon: '❓' },
-                        { id: 'questaomatematica', label: 'Matemática', icon: '🔢' },
-                        { id: 'questoes_programacao', label: 'Programação', icon: '💻' },
-                        { id: 'questaoingles', label: 'Inglês', icon: '🇺🇸' },
-                        { id: 'tentativateste', label: 'Tentativas', icon: '📝' },
-                        { id: 'participante_torneio', label: 'Participantes', icon: '🎯' },
-                        { id: 'notificacao', label: 'Notificações', icon: '🔔' },
-                        { id: 'conquista', label: 'Conquistas', icon: '🏅' },
-                        { id: 'conquistausuario', label: 'Conquistas Usuário', icon: '🎖️' },
-                        { id: 'redefinicaosenha', label: 'Redefinições', icon: '🔑' },
-                        { id: 'configuracaousuario', label: 'Configurações', icon: '⚙️' }
+                        { id: 'user', label: 'Usuários', icon: Users },
+                        { id: 'torneio', label: 'Torneios', icon: Trophy },
+                        { id: 'noticia', label: 'Notícias', icon: Newspaper },
+                        { id: 'ticketsuporte', label: 'Suporte', icon: Ticket },
+                        { id: 'funcao', label: 'Funções', icon: Briefcase },
+                        { id: 'pergunta', label: 'Perguntas', icon: HelpCircle },
+                        { id: 'questaomatematica', label: 'Matemática', icon: Calculator },
+                        { id: 'questoes_programacao', label: 'Programação', icon: Code },
+                        { id: 'questaoingles', label: 'Inglês', icon: Globe },
+                        { id: 'tentativateste', label: 'Tentativas', icon: FileText },
+                        { id: 'participante_torneio', label: 'Participantes', icon: Target },
+                        { id: 'notificacao', label: 'Notificações', icon: Bell },
+                        { id: 'conquista', label: 'Conquistas', icon: Award },
+                        { id: 'conquistausuario', label: 'Conquistas Usuário', icon: Medal },
+                        { id: 'redefinicaosenha', label: 'Redefinições', icon: Key },
+                        { id: 'configuracaousuario', label: 'Configurações', icon: Settings }
                     ]);
                     setIsLoading(false);
                 });
@@ -110,7 +111,11 @@ const AdminDashboard = () => {
                                 }`}
                             >
                                 <div className="flex items-center gap-3">
-                                    <span className="text-xl">{item.icon}</span>
+                                    {typeof item.icon === 'string' ? (
+                                        <span className="text-xl">{item.icon}</span>
+                                    ) : (
+                                        <item.icon className="w-6 h-6" />
+                                    )}
                                     <span className="font-semibold">{item.label}</span>
                                 </div>
                             </div>
@@ -161,7 +166,11 @@ const AdminDashboard = () => {
                                     }`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <span className="text-lg">{item.icon}</span>
+                                        {typeof item.icon === 'string' ? (
+                                            <span className="text-lg">{item.icon}</span>
+                                        ) : (
+                                            <item.icon className="w-5 h-5" />
+                                        )}
                                         <span className="font-medium">{item.label}</span>
                                     </div>
                                 </div>

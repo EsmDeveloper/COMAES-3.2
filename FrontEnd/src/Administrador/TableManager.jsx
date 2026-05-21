@@ -3,12 +3,13 @@ import adminService from './adminService';
 import TableModal from './TableModal';
 import UserModal from './UserModal';
 import { useAuth } from '../context/AuthContext';
+import { Users, Trophy, Newspaper, Ticket, Briefcase, HelpCircle, Calculator, Code, Globe, FileText, Target, Bell, Award, Medal, Key, Settings } from 'lucide-react';
 
 // shared static definitions used by both dashboard and table manager
 export const STATIC_TABLE_DEFS = {
     user: {
         title: 'Usuários',
-        icon: '👥',
+        icon: Users,
         columns: ['id', 'nome', 'email', 'telefone', 'isAdmin'],
         displayColumns: ['ID', 'Nome', 'Email', 'Telefone', 'Admin'],
         fields: [
@@ -24,7 +25,7 @@ export const STATIC_TABLE_DEFS = {
     torneio: {
         tableName: 'torneio',
         title: 'Torneios',
-        icon: '🏆',
+        icon: Trophy,
         columns: ['id', 'titulo', 'slug', 'status'],
         displayColumns: ['ID', 'Título', 'Slug', 'Status'],
         fields: [
@@ -41,7 +42,7 @@ export const STATIC_TABLE_DEFS = {
     },
     noticia: {
         title: 'Notícias',
-        icon: '📰',
+        icon: Newspaper,
         columns: ['id', 'titulo', 'autor_id', 'publicado_em'],
         displayColumns: ['ID', 'Título', 'Autor', 'Publicado em'],
         fields: [
@@ -55,7 +56,7 @@ export const STATIC_TABLE_DEFS = {
     },
     ticketsuporte: {
         title: 'Suporte',
-        icon: '🎫',
+        icon: Ticket,
         columns: ['id', 'titulo', 'status', 'prioridade'],
         displayColumns: ['ID', 'Título', 'Status', 'Prioridade'],
         fields: [
@@ -68,7 +69,7 @@ export const STATIC_TABLE_DEFS = {
     },
     funcao: {
         title: 'Funções',
-        icon: '👔',
+        icon: Briefcase,
         columns: ['id', 'nome', 'descricao'],
         displayColumns: ['ID', 'Nome', 'Descrição'],
         fields: [
@@ -78,7 +79,7 @@ export const STATIC_TABLE_DEFS = {
     },
     redefinicaosenha: {
         title: 'Redefinições de Senha',
-        icon: '🔑',
+        icon: Key,
         columns: ['id', 'usuario_id', 'token', 'expira_em'],
         displayColumns: ['ID', 'Usuário', 'Token', 'Expira em'],
         fields: [
@@ -90,7 +91,7 @@ export const STATIC_TABLE_DEFS = {
     },
     configuracaousuario: {
         title: 'Configurações de Usuário',
-        icon: '⚙️',
+        icon: Settings,
         columns: ['id', 'usuario_id', 'chave', 'valor'],
         displayColumns: ['ID', 'Usuário', 'Chave', 'Valor'],
         fields: [
@@ -101,7 +102,7 @@ export const STATIC_TABLE_DEFS = {
     },
     pergunta: {
         title: 'Perguntas',
-        icon: '❓',
+        icon: HelpCircle,
         columns: ['id', 'titulo', 'tipo', 'dificuldade'],
         displayColumns: ['ID', 'Título', 'Tipo', 'Dificuldade'],
         fields: [
@@ -115,7 +116,7 @@ export const STATIC_TABLE_DEFS = {
     },
     questaomatematica: {
         title: 'Questões de Matemática',
-        icon: '🔢',
+        icon: Calculator,
         columns: ['id', 'pergunta_id', 'enunciado', 'resposta_correta'],
         displayColumns: ['ID', 'Pergunta', 'Enunciado', 'Resposta Correta'],
         fields: [
@@ -128,7 +129,7 @@ export const STATIC_TABLE_DEFS = {
     },
     questoes_programacao: {
         title: 'Questões de Programação',
-        icon: '💻',
+        icon: Code,
         columns: ['id', 'pergunta_id', 'enunciado', 'linguagem'],
         displayColumns: ['ID', 'Pergunta', 'Enunciado', 'Linguagem'],
         fields: [
@@ -142,7 +143,7 @@ export const STATIC_TABLE_DEFS = {
     },
     questaoingles: {
         title: 'Questões de Inglês',
-        icon: '🇺🇸',
+        icon: Globe,
         columns: ['id', 'pergunta_id', 'enunciado', 'tipo_questao'],
         displayColumns: ['ID', 'Pergunta', 'Enunciado', 'Tipo'],
         fields: [
@@ -156,7 +157,7 @@ export const STATIC_TABLE_DEFS = {
     },
     tentativateste: {
         title: 'Tentativas de Teste',
-        icon: '📝',
+        icon: FileText,
         columns: ['id', 'usuario_id', 'pergunta_id', 'pontuacao'],
         displayColumns: ['ID', 'Usuário', 'Pergunta', 'Pontuação'],
         fields: [
@@ -170,7 +171,7 @@ export const STATIC_TABLE_DEFS = {
     },
     participante_torneio: {
         title: 'Participantes de Torneio',
-        icon: '🎯',
+        icon: Target,
         columns: ['id', 'usuario_id', 'torneio_id', 'pontuacao_total'],
         displayColumns: ['ID', 'Usuário', 'Torneio', 'Pontuação Total'],
         fields: [
@@ -184,7 +185,7 @@ export const STATIC_TABLE_DEFS = {
     },
     notificacao: {
         title: 'Notificações',
-        icon: '🔔',
+        icon: Bell,
         columns: ['id', 'usuario_id', 'titulo', 'lido'],
         displayColumns: ['ID', 'Usuário', 'Título', 'Lido'],
         fields: [
@@ -198,7 +199,7 @@ export const STATIC_TABLE_DEFS = {
     },
     conquista: {
         title: 'Conquistas',
-        icon: '🏅',
+        icon: Award,
         columns: ['id', 'nome', 'descricao', 'pontuacao'],
         displayColumns: ['ID', 'Nome', 'Descrição', 'Pontuação'],
         fields: [
@@ -212,7 +213,7 @@ export const STATIC_TABLE_DEFS = {
     },
     conquistausuario: {
         title: 'Conquistas de Usuário',
-        icon: '🎖️',
+        icon: Medal,
         columns: ['id', 'usuario_id', 'conquista_id', 'data_conquista'],
         displayColumns: ['ID', 'Usuário', 'Conquista', 'Data'],
         fields: [

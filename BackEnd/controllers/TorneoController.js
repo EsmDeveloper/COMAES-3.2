@@ -3,41 +3,6 @@ import Usuario from '../models/User.js';
 import ParticipanteTorneio from '../models/ParticipanteTorneio.js';
 import sequelize from '../config/db.js';
 
-// Alteração 4: torneio só passa para "finalizado" 24h após termina_em
-const FINALIZATION_DELAY_MS = 24 * 60 * 60 * 1000; // 24 horas
-
-const normalizeTorneoStatus = (status, termina_em, existingStatus = null) => {
-    const now = new Date();
-    const endDate = termina_em ? new Date(termina_em) : null;
-    const hasEnded = endDate instanceof Date && !Number.isNaN(endDate.getTime()) && endDate < now;
-    // Só finaliza após 24h do término
-    const canFinalize = hasEnded && (now - endDate) >= FINALIZATION_DELAY_MS;
-    // Período intermediário: terminou mas ainda não completou 24h
-    const isEncerrandoWindow = hasEnded && !canFinalize;
-
-    if (status === 'cancelado' || existingStatus === 'cancelado') {
-        return 'cancelado';
-    }
-
-    if (status === 'finalizado') {
-        if (!canFinalize) {
-            throw new Error('Não é possível marcar um torneio como finalizado antes de 24h após a data de término.');
-        }
-        return 'finalizado';
-    }
-
-    if (canFinalize) {
-        return 'finalizado';
-    }
-
-    if (isEncerrandoWindow) {
-        // Mantém status intermediário "encerrando" durante as 24h de processamento
-        return 'encerrando';
-    }
-
-    return status || existingStatus || 'rascunho';
-};
-
 export const TorneoController = {
     // Get all tournaments
     getAllTorneos: async (req, res) => {
@@ -280,9 +245,6 @@ export const TorneoController = {
                 }
             }
 
-            const effectiveStatus = normalizeTorneoStatus(status, termina_em);
-            console.log('📊 Status efetivo:', effectiveStatus);
-
             // Create main tournament
             const slug = titulo.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
             console.log('🏷️ Slug gerado:', slug);
@@ -300,7 +262,7 @@ export const TorneoController = {
                 inicia_em,
                 termina_em,
                 criado_por: createdBy,
-                status: effectiveStatus,
+                status: status || 'rascunho',
                 publico: publico !== false
             };
 
@@ -369,39 +331,13 @@ export const TorneoController = {
                 }
             }
 
-            const effectiveStatus = normalizeTorneoStatus(status, termina_em, existingTorneo.status);
-
-            // Detectar transição para "finalizado"
-            const estava_nao_finalizado = existingTorneo.status !== 'finalizado';
-            const agora_finalizado = effectiveStatus === 'finalizado';
-            const passou_para_finalizado = estava_nao_finalizado && agora_finalizado;
-
             const [updated] = await Torneio.update(
-                { titulo, descricao, inicia_em, termina_em, maximo_participantes, status: effectiveStatus, publico },
+                { titulo, descricao, inicia_em, termina_em, maximo_participantes, status, publico },
                 { where: { id } }
             );
 
             if (updated) {
                 const torneo = await Torneio.findOne({ where: { id } });
-
-                // Se passou para "finalizado", congelar ranking de todas as disciplinas
-                if (passou_para_finalizado) {
-                    console.log(`🏁 Torneio ${id} finalizado, congelando rankings...`);
-                    const disciplinas = ['Matemática', 'Inglês', 'Programação'];
-                    
-                    for (const disciplina of disciplinas) {
-                        try {
-                            const resultado = await ParticipanteTorneio.congelarRanking(id, disciplina);
-                            if (resultado.sucesso) {
-                                console.log(`✅ ${disciplina}: ${resultado.totalCongelados} posições congeladas`);
-                            }
-                        } catch (erro) {
-                            console.error(`❌ Erro ao congelar ${disciplina}:`, erro);
-                            // Não falha o update do torneio, apenas loga o erro
-                        }
-                    }
-                }
-
                 res.status(200).json(torneo);
             } else {
                 res.status(404).json({ message: 'Torneio não encontrado' });

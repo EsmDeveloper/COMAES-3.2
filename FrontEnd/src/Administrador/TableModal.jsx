@@ -12,17 +12,6 @@ const TableModal = ({ mode, item, tableInfo, onClose, onSubmit }) => {
     const isTorneio = tableInfo?.title === 'Torneios' || tableInfo?.tableName === 'torneio';
 
     const getStatusOptions = (field) => {
-        if (!isTorneio || field.name !== 'status') return field.options || [];
-
-        if (mode === 'create') {
-            return ['rascunho', 'agendado', 'ativo'];
-        }
-
-        if (mode === 'edit') {
-            // Permite todos os status relevantes na edição
-            return ['rascunho', 'agendado', 'ativo', 'encerrando', 'finalizado', 'cancelado'];
-        }
-
         return field.options || [];
     };
 
