@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import TableManager from './TableManager';
 import AdminStats from './AdminStats';
+import TorneiosTab from './TorneiosTab';
 import { STATIC_TABLE_DEFS } from './TableManager';
 import adminService from './adminService';
 import { Users, Trophy, Newspaper, Ticket, Briefcase, HelpCircle, Calculator, Code, Globe, FileText, Target, Bell, Award, Medal, Key, Settings } from 'lucide-react';
@@ -242,7 +243,11 @@ const AdminDashboard = () => {
                         )}
                         <div className="animate-fade-in">
                             <AdminStats />
-                            <TableManager table={activeTab} />
+                            {activeTab === 'torneio' ? (
+                                <TorneiosTab />
+                            ) : (
+                                <TableManager table={activeTab} />
+                            )}
                         </div>
                     </div>
                 </div>
