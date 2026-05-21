@@ -33,6 +33,7 @@ import iaEvaluators from './services/iaEvaluators.js';
 import adminPanelRoutes from './routes/adminPanelRoutes.js';
 import certificatesRoutes from './routes/certificatesRoutes.js';
 import tournamentsRoutes from './routes/tournamentsRoutes.js';
+import notificacoesRoutes from './routes/notificacoesRoutes.js';
 import { sendResetEmail, sendWelcomeEmail } from './services/emailService.js';
 import auth from './middlewares/auth.js';
 import isAdmin from './middlewares/isAdmin.js';
@@ -354,6 +355,10 @@ app.use('/api/certificates', certificatesRoutes);
 
 // Registrar rotas de torneios e ranking
 app.use('/api/tournaments', tournamentsRoutes);
+
+// Registrar rotas de notificações
+app.use('/notificacoes', notificacoesRoutes);
+app.use('/usuarios/:usuarioId/notificacoes', notificacoesRoutes);
 
 app.get("/health", async (req, res) => {
   try {

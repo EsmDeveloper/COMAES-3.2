@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   IoClose, 
@@ -7,7 +7,8 @@ import {
   IoTime,
   IoAlertCircle,
   IoSparkles,
-  IoMedal
+  IoMedal,
+  IoRefresh
 } from "react-icons/io5";
 import { FaTrophy, FaUsers, FaCalendarAlt, FaBell } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
@@ -16,6 +17,10 @@ export default function NotificacoesModal({ isOpen, onClose }) {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [filter, setFilter] = useState('all'); // 'all', 'unread', 'read'
+  const pollIntervalRef = useRef(null);
+  const lastFetchRef = useRef(null);
 
   const normalizeConteudo = (conteudo) => {
     if (!conteudo) return {};
@@ -31,45 +36,63 @@ export default function NotificacoesModal({ isOpen, onClose }) {
     return {};
   };
 
-
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      if (user && user.id && isOpen) {
-        try {
-          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/usuarios/${user.id}/notificacoes`, {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('comaes_token')}`
-            }
-          });
-          const data = await response.json();
-          if (data.success) {
-            // Formatar notificações vindas do banco
-            const formatted = data.data.map((n) => {
-              const conteudo = normalizeConteudo(n.conteudo);
-              const title = conteudo.titulo || conteudo.title || n.tipo || "";
-              const message = conteudo.mensagem || conteudo.message || conteudo.texto || "";
-
-              return {
-                id: n.id,
-                title,
-                message,
-                read: Boolean(n.lido),
-                type: n.tipo || "geral",
-                time: formatTime(n.criado_em),
-                icon: getIconForType(n.tipo)
-              };
-            });
-            setNotifications(formatted);
-            setUnreadCount(formatted.filter(n => !n.read).length);
-          }
-        } catch (error) {
-          console.error("Erro ao carregar notificações:", error);
+  const fetchNotifications = useCallback(async () => {
+    if (!user || !user.id) return;
+    
+    try {
+      setLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/usuarios/${user.id}/notificacoes`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('comaes_token')}`
         }
+      });
+      const data = await response.json();
+      if (data.success) {
+        // Formatar notificações vindas do banco
+        const formatted = data.data.map((n) => {
+          const conteudo = normalizeConteudo(n.conteudo);
+          const title = conteudo.titulo || conteudo.title || n.tipo || "";
+          const message = conteudo.mensagem || conteudo.message || conteudo.texto || "";
+
+          return {
+            id: n.id,
+            title,
+            message,
+            read: Boolean(n.lido),
+            type: n.tipo || "geral",
+            time: formatTime(n.criado_em),
+            icon: getIconForType(n.tipo),
+            criado_em: n.criado_em
+          };
+        });
+        setNotifications(formatted);
+        setUnreadCount(formatted.filter(n => !n.read).length);
+        lastFetchRef.current = Date.now();
+      }
+    } catch (error) {
+      console.error("Erro ao carregar notificações:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  // Polling automático quando modal está aberto
+  useEffect(() => {
+    if (isOpen && user?.id) {
+      fetchNotifications();
+      
+      // Polling a cada 10 segundos
+      pollIntervalRef.current = setInterval(() => {
+        fetchNotifications();
+      }, 10000);
+    }
+
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
       }
     };
-
-    fetchNotifications();
-  }, [user, isOpen]);
+  }, [isOpen, user?.id, fetchNotifications]);
 
   const formatTime = (dateString) => {
     const date = new Date(dateString);
@@ -80,7 +103,7 @@ export default function NotificacoesModal({ isOpen, onClose }) {
     if (diffInSeconds < 3600) return `Há ${Math.floor(diffInSeconds / 60)} min`;
     if (diffInSeconds < 86400) return `Há ${Math.floor(diffInSeconds / 3600)} h`;
     if (diffInSeconds < 172800) return "Ontem";
-    return date.toLocaleDateString();
+    return date.toLocaleDateString('pt-PT');
   };
 
   const getIconForType = (type) => {
@@ -158,6 +181,13 @@ export default function NotificacoesModal({ isOpen, onClose }) {
     }
   };
 
+  // Filtrar notificações
+  const filteredNotifications = notifications.filter(n => {
+    if (filter === 'unread') return !n.read;
+    if (filter === 'read') return n.read;
+    return true;
+  });
+
   if (!user) {
     return (
       <AnimatePresence>
@@ -219,34 +249,33 @@ export default function NotificacoesModal({ isOpen, onClose }) {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Cabeçalho */}
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
+            <div className="p-4 md:p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="relative flex-shrink-0">
                     <IoNotifications className="text-2xl text-blue-600" />
                     {unreadCount > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                        {unreadCount}
+                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                        {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     )}
                   </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-800">Notificações</h2>
-                    <p className="text-sm text-gray-500">
+                  <div className="min-w-0">
+                    <h2 className="text-lg md:text-xl font-bold text-gray-800">Notificações</h2>
+                    <p className="text-xs md:text-sm text-gray-500">
                       {unreadCount} não lida{unreadCount !== 1 ? 's' : ''}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {unreadCount > 0 && (
-                    <button
-                      onClick={marcarTodasComoLidas}
-                      className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors"
-                    >
-                      <IoCheckmarkDone />
-                      <span>Marcar todas</span>
-                    </button>
-                  )}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => fetchNotifications()}
+                    disabled={loading}
+                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50"
+                    title="Atualizar"
+                  >
+                    <IoRefresh className={loading ? 'animate-spin' : ''} size={18} />
+                  </button>
                   <button
                     onClick={onClose}
                     className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
@@ -255,45 +284,66 @@ export default function NotificacoesModal({ isOpen, onClose }) {
                   </button>
                 </div>
               </div>
+
+              {/* Filtros */}
+              <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
+                {['all', 'unread', 'read'].map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                      filter === f
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white text-gray-700 border border-gray-300 hover:border-blue-400'
+                    }`}
+                  >
+                    {f === 'all' ? 'Todas' : f === 'unread' ? 'Não Lidas' : 'Lidas'}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Lista de Notificações */}
-            <div className="flex-1 overflow-y-auto p-4">
-              {notifications.length === 0 ? (
+            <div className="flex-1 overflow-y-auto p-3 md:p-4">
+              {filteredNotifications.length === 0 ? (
                 <div className="text-center py-12">
                   <IoNotifications className="text-4xl text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">Nenhuma notificação</p>
+                  <p className="text-gray-500">
+                    {filter === 'unread' ? 'Nenhuma notificação não lida' : 
+                     filter === 'read' ? 'Nenhuma notificação lida' : 
+                     'Nenhuma notificação'}
+                  </p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {notifications.map((notification) => (
+                <div className="space-y-2 md:space-y-3">
+                  {filteredNotifications.map((notification) => (
                     <motion.div
                       key={notification.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className={`p-4 rounded-xl border transition-all duration-200 hover:shadow-md cursor-pointer ${
+                      className={`p-3 md:p-4 rounded-lg border transition-all duration-200 hover:shadow-md cursor-pointer ${
                         notification.read 
                           ? 'bg-gray-50 border-gray-200' 
-                          : 'bg-blue-50 border-blue-200'
+                          : 'bg-blue-50 border-blue-200 shadow-sm'
                       }`}
                       onClick={() => marcarComoLida(notification.id)}
                     >
                       <div className="flex gap-3">
-                        <div className="mt-1">
+                        <div className="mt-1 flex-shrink-0">
                           {notification.icon}
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between mb-1">
-                            <h3 className={`font-semibold ${
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <h3 className={`font-semibold text-sm md:text-base truncate ${
                               notification.read ? 'text-gray-700' : 'text-gray-900'
                             }`}>
                               {notification.title}
                             </h3>
-                            <span className="text-xs text-gray-500 whitespace-nowrap">
+                            <span className="text-xs text-gray-500 whitespace-nowrap flex-shrink-0">
                               {notification.time}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-600 mb-2">
+                          <p className="text-xs md:text-sm text-gray-600 mb-2 line-clamp-2">
                             {notification.message}
                           </p>
                           <div className="flex items-center justify-between">
@@ -301,7 +351,7 @@ export default function NotificacoesModal({ isOpen, onClose }) {
                               {getTypeText(notification.type)}
                             </span>
                             {!notification.read && (
-                              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                              <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>
                             )}
                           </div>
                         </div>
@@ -313,10 +363,18 @@ export default function NotificacoesModal({ isOpen, onClose }) {
             </div>
 
             {/* Rodapé */}
-            <div className="p-4 border-t border-gray-200">
-              <div className="flex items-center justify-between text-sm text-gray-600">
-                <span>COMAES Notificações</span>
-                <span>{notifications.length} itens</span>
+            <div className="p-3 md:p-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between text-xs md:text-sm text-gray-600">
+              <span>COMAES Notificações</span>
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <button
+                    onClick={marcarTodasComoLidas}
+                    className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                  >
+                    Marcar todas como lidas
+                  </button>
+                )}
+                <span>{filteredNotifications.length} itens</span>
               </div>
             </div>
           </motion.div>

@@ -25,6 +25,7 @@ import Suporte from "./Paginas/Secundarias/Suporte";
 import Teste from "./Paginas/Secundarias/Teste";
 import Ranking from "./Paginas/Secundarias/Ranking";
 import RankingCompleto from "./Paginas/Secundarias/RankingCompleto";
+import NotificacoesPage from "./Paginas/Secundarias/NotificacoesPage";
 
 import MatematicaOriginal from "./Paginas/Tercearios.jsx/ModeloOriginal/MatematicaOriginal";
 import ProgramacaoOriginal from "./Paginas/Tercearios.jsx/ModeloOriginal/ProgramacaoOriginal";
@@ -58,6 +59,7 @@ function AnimatedRoutes() {
         <Route path="/teste-seu-conhecimento" element={<PageTransition><Teste /></PageTransition>} />
         <Route path="/ranking" element={<PageTransition><Ranking /></PageTransition>} />
         <Route path="/ranking/:tournamentId" element={<PageTransition><RankingCompleto /></PageTransition>} />
+        <Route path="/notificacoes" element={<PageTransition><NotificacoesPage /></PageTransition>} />
 
         <Route path="/matematica-original/:username" element={<PageTransition><MatematicaOriginal /></PageTransition>} />
         <Route path="/programacao-original/:username" element={<PageTransition><ProgramacaoOriginal /></PageTransition>} />

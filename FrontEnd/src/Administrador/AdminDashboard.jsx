@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import logotipo from '../assets/logo.png';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import TableManager from './TableManager';
 import AdminStats from './AdminStats';
 import TorneiosTab from './TorneiosTab';
+import NotificationsTab from './NotificationsTab';
 import { STATIC_TABLE_DEFS } from './TableManager';
 import adminService from './adminService';
 import { Users, Trophy, Newspaper, Ticket, Briefcase, HelpCircle, Calculator, Code, Globe, FileText, Target, Bell, Award, Medal, Key, Settings } from 'lucide-react';
@@ -68,8 +69,6 @@ const AdminDashboard = () => {
                     setIsLoading(false);
                 });
     }, [user, token]);
-
-    const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
     // Alteração 5: sair do painel admin SEM destruir a sessão do usuário
     // Apenas navega de volta para a área pública, preservando token e estado
@@ -245,6 +244,8 @@ const AdminDashboard = () => {
                             <AdminStats />
                             {activeTab === 'torneio' ? (
                                 <TorneiosTab />
+                            ) : activeTab === 'notificacao' ? (
+                                <NotificationsTab token={token} />
                             ) : (
                                 <TableManager table={activeTab} />
                             )}
