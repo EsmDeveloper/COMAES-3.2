@@ -108,7 +108,7 @@ export default function EntrarTorneio() {
           
           // 3. Buscar estatísticas reais de participantes do torneio ativo
           try {
-            const statsRes = await fetch(`${apiBaseUrl}/api/tournaments/${tourData.torneio.id}/participants/count`);
+            const statsRes = await fetch(`${apiBaseUrl}/api/tournaments/${tourData.torneio.id}/participant-counts`);
             const statsData = await statsRes.json();
             if (statsData.success && statsData.counts) {
               setEstatisticasParticipantes(statsData.counts);

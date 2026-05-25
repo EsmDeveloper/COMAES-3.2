@@ -833,11 +833,11 @@ app.post('/api/participantes/registrar', async (req, res) => {
         attributes: ['disciplina_competida', [sequelize.fn('COUNT', sequelize.col('id')), 'total']],
         group: ['disciplina_competida']
       });
-      const stats = { 'Matematica': 0, 'Ingles': 0, 'Programacao': 0 };
+      const stats = { 'Matemática': 0, 'Inglês': 0, 'Programação': 0 };
       counts.forEach(c => {
         const d = c.getDataValue('disciplina_competida');
         const n = parseInt(c.getDataValue('total')) || 0;
-        if (d) stats[d] = n;
+        if (d && stats[d] !== undefined) stats[d] = n;
       });
       io.emit('tournament_stats_update', { stats, totalParticipants: Object.values(stats).reduce((a, b) => a + b, 0) });
     }

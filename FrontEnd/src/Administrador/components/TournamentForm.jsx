@@ -41,12 +41,16 @@ export default function TournamentForm({
 
   useEffect(() => {
     if (mode === 'edit' && initialData) {
+      // No modo edição só existem 3 status válidos; se vier rascunho/agendado, promover para ativo
+      const editStatus = ['ativo', 'finalizado', 'cancelado'].includes(initialData.status)
+        ? initialData.status
+        : 'ativo';
       setFormData({
         titulo: initialData.titulo || '',
         descricao: initialData.descricao || '',
         inicia_em: TournamentValidation.formatDateForInput(initialData.inicia_em),
         termina_em: TournamentValidation.formatDateForInput(initialData.termina_em),
-        status: initialData.status || 'rascunho',
+        status: editStatus,
         publico: initialData.publico !== false,
         slug: initialData.slug || '',
       });
@@ -320,11 +324,19 @@ export default function TournamentForm({
                   ${formData.status === 'finalizado' ? 'text-gray-500' : ''}
                   ${formData.status === 'cancelado' ? 'text-rose-600' : ''}`}
               >
-                <option value="rascunho">📝 Rascunho</option>
-                <option value="agendado">📅 Agendado</option>
-                <option value="ativo">🔥 Ativo</option>
-                <option value="finalizado">🏁 Finalizado</option>
-                <option value="cancelado">❌ Cancelado</option>
+                {mode === 'create' ? (
+                  <>
+                    <option value="rascunho">📝 Rascunho</option>
+                    <option value="agendado">📅 Agendado</option>
+                    <option value="ativo">🔥 Ativo</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="ativo">🔥 Ativo</option>
+                    <option value="finalizado">🏁 Finalizado</option>
+                    <option value="cancelado">❌ Cancelado</option>
+                  </>
+                )}
               </select>
             </div>
             {errors.status && (
