@@ -12,6 +12,7 @@
  */
 
 import Questao from '../models/Questao.js';
+import QuestaoTesteConhecimento from '../models/QuestaoTesteConhecimento.js';
 import Torneio from '../models/Torneio.js';
 import { Op } from 'sequelize';
 
@@ -289,7 +290,7 @@ export const QuestoesControllerRefactored = {
 
   /**
    * GET /api/questoes/quiz/:area
-   * Carregar questões para quiz
+   * Carregar questões para quiz a partir de questoes_teste_conhecimento
    */
   carregarQuiz: async (req, res) => {
     try {
@@ -298,51 +299,57 @@ export const QuestoesControllerRefactored = {
 
       console.log(`🎯 Carregando questões para quiz - Área: ${area}, Limite: ${limit}`);
 
-      // Mapear área para tipo (tabela perguntas usa 'tipo' não 'disciplina')
       const areaMap = {
         'matematica': 'matematica',
         'ingles': 'ingles',
         'programacao': 'programacao'
       };
 
-      const tipo = areaMap[area?.toLowerCase()];
-      if (!tipo) {
-        return respostaErro(res, 400, 'Área inválida. Use: matematica, ingles ou programacao');
+      const categoria = areaMap[area?.toLowerCase()];
+      if (!categoria) {
+        return res.status(400).json({
+          success: false,
+          error: 'Área inválida. Use: matematica, ingles ou programacao'
+        });
       }
 
-      // CORREÇÃO: Buscar da tabela 'perguntas' (tabela legada onde as questões realmente estão)
-      const questoes = await Questao.sequelize.query(
-        `SELECT * FROM perguntas WHERE tipo = :tipo ORDER BY RAND() LIMIT :limite`,
-        {
-          replacements: { tipo, limite: Math.min(parseInt(limit), 20) },
-          type: Questao.sequelize.QueryTypes.SELECT
+      // Buscar da tabela questoes_teste_conhecimento (fonte única de dados do admin)
+      const questoes = await QuestaoTesteConhecimento.findAll({
+        where: { categoria, ativo: true },
+        order: QuestaoTesteConhecimento.sequelize.random(),
+        limit: Math.min(parseInt(limit), 20),
+        attributes: ['id', 'enunciado', 'opcoes', 'resposta_correta', 'dificuldade', 'categoria', 'pontos']
+      });
+
+      console.log(`✅ ${questoes.length} questões carregadas para quiz (categoria: ${categoria})`);
+
+      // Formatar para o frontend: garantir que opcoes é sempre um array
+      const questoesFormatadas = questoes.map(q => {
+        let opcoes = q.opcoes;
+        // Sequelize pode retornar JSON como string em algumas versões do MySQL
+        if (typeof opcoes === 'string') {
+          try { opcoes = JSON.parse(opcoes); } catch { opcoes = []; }
         }
-      );
-
-      console.log(`✅ ${questoes.length} questões carregadas para quiz`);
-
-      // Formatar resposta compatível com frontend (formato esperado pelo Teste.jsx)
-      const questoesFormatadas = questoes.map(q => ({
-        id: q.id,
-        texto_pergunta: q.texto_pergunta,
-        opcao_a: q.opcao_a,
-        opcao_b: q.opcao_b,
-        opcao_c: q.opcao_c,
-        opcao_d: q.opcao_d,
-        resposta_correta: q.resposta_correta,
-        pontos: q.pontos || 10,
-        tipo: q.tipo
-      }));
+        if (!Array.isArray(opcoes)) opcoes = [];
+        return {
+          id: q.id,
+          enunciado: q.enunciado,
+          opcoes,
+          resposta_correta: q.resposta_correta,
+          dificuldade: q.dificuldade,
+          categoria: q.categoria,
+          pontos: q.pontos
+        };
+      });
 
       res.json({
         success: true,
-        area: tipo,
+        area: categoria,
         total: questoesFormatadas.length,
         data: questoesFormatadas
       });
     } catch (error) {
       console.error('❌ Erro ao carregar quiz:', error);
-
       res.status(500).json({
         success: false,
         error: error.message || 'Erro ao carregar questões para quiz'

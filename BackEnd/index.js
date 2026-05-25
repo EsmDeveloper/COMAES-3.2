@@ -164,48 +164,6 @@ const validateRegistrationPayload = ({ nome, telefone, email, nascimento, sexo, 
 };
 
 
-const DEFAULT_QUIZ_QUESTIONS = {
-  matematica: [
-    { texto_pergunta: 'Quanto � 2 + 2?', opcao_a: '3', opcao_b: '4', opcao_c: '5', opcao_d: '6', resposta_correta: 'b' },
-    { texto_pergunta: 'Qual � o resultado de 9 x 3?', opcao_a: '18', opcao_b: '21', opcao_c: '27', opcao_d: '36', resposta_correta: 'c' },
-    { texto_pergunta: 'Quanto � 15 - 7?', opcao_a: '6', opcao_b: '7', opcao_c: '8', opcao_d: '9', resposta_correta: 'c' },
-    { texto_pergunta: 'Qual � a metade de 20?', opcao_a: '8', opcao_b: '10', opcao_c: '12', opcao_d: '14', resposta_correta: 'b' },
-    { texto_pergunta: 'Quanto � 6 + 5?', opcao_a: '10', opcao_b: '11', opcao_c: '12', opcao_d: '13', resposta_correta: 'b' }
-  ],
-  programacao: [
-    { texto_pergunta: 'Qual linguagem � mais usada para p�ginas web no navegador?', opcao_a: 'JavaScript', opcao_b: 'C', opcao_c: 'Rust', opcao_d: 'SQL', resposta_correta: 'a' },
-    { texto_pergunta: 'Qual s�mbolo inicia um coment�rio de uma linha em JavaScript?', opcao_a: '/*', opcao_b: '#', opcao_c: '//', opcao_d: '<!--', resposta_correta: 'c' },
-    { texto_pergunta: 'HTML � usado para:', opcao_a: 'Estilizar p�ginas', opcao_b: 'Estruturar conte�do', opcao_c: 'Gerir banco de dados', opcao_d: 'Compilar c�digo', resposta_correta: 'b' },
-    { texto_pergunta: 'CSS serve principalmente para:', opcao_a: 'Criar tabelas no banco', opcao_b: 'Estilizar interfaces', opcao_c: 'Autenticar usu�rios', opcao_d: 'Enviar emails', resposta_correta: 'b' },
-    { texto_pergunta: 'Qual destas op��es representa uma vari�vel v�lida em JavaScript?', opcao_a: '2nome', opcao_b: 'meuNome', opcao_c: 'var-1', opcao_d: 'nome completo', resposta_correta: 'b' }
-  ],
-  ingles: [
-    { texto_pergunta: 'Qual � a tradu��o de "book"?', opcao_a: 'Mesa', opcao_b: 'Livro', opcao_c: 'Caneta', opcao_d: 'Caderno', resposta_correta: 'b' },
-    { texto_pergunta: 'Complete: She ___ my friend.', opcao_a: 'are', opcao_b: 'is', opcao_c: 'am', opcao_d: 'be', resposta_correta: 'b' },
-    { texto_pergunta: 'Qual palavra significa "�gua" em ingl�s?', opcao_a: 'Water', opcao_b: 'Fire', opcao_c: 'Earth', opcao_d: 'Wind', resposta_correta: 'a' },
-    { texto_pergunta: 'Choose the correct word: I ___ to school every day.', opcao_a: 'go', opcao_b: 'goes', opcao_c: 'going', opcao_d: 'gone', resposta_correta: 'a' },
-    { texto_pergunta: 'Qual � o plural de "child"?', opcao_a: 'childs', opcao_b: 'childes', opcao_c: 'children', opcao_d: 'childrens', resposta_correta: 'c' }
-  ],
-  cultura_geral: [
-    { texto_pergunta: 'Qual � a capital de Angola?', opcao_a: 'Benguela', opcao_b: 'Huambo', opcao_c: 'Luanda', opcao_d: 'Lobito', resposta_correta: 'c' },
-    { texto_pergunta: 'Quantos dias tem uma semana?', opcao_a: '5', opcao_b: '6', opcao_c: '7', opcao_d: '8', resposta_correta: 'c' },
-    { texto_pergunta: 'Qual planeta conhecemos como Planeta Vermelho?', opcao_a: 'Marte', opcao_b: 'V�nus', opcao_c: 'J�piter', opcao_d: 'Saturno', resposta_correta: 'a' },
-    { texto_pergunta: 'Qual oceano banha a costa ocidental de �frica?', opcao_a: '�ndico', opcao_b: 'Atl�ntico', opcao_c: '�rtico', opcao_d: 'Pac�fico', resposta_correta: 'b' },
-    { texto_pergunta: 'Qual destes � um mam�fero?', opcao_a: '�guia', opcao_b: 'Tubar�o', opcao_c: 'Golfinho', opcao_d: 'Cobra', resposta_correta: 'c' }
-  ]
-};
-
-const QUIZ_AREA_MAP = {
-  matematica: 'matematica',
-  programacao: 'programacao',
-  ingles: 'ingles',
-  'cultura-geral': 'cultura_geral',
-  cultura_geral: 'cultura_geral',
-  culturaGeral: 'cultura_geral'
-};
-
-const resolveQuizArea = (rawArea) => QUIZ_AREA_MAP[rawArea] || null;
-
 const buildSlug = (value = '') => value
   .toString()
   .normalize('NFD')

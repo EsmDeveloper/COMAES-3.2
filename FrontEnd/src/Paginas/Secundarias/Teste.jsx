@@ -1,670 +1,819 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import Layout from "./Layout";
-import { enviarTentativa } from '../../services/tentativasService';
-import { 
-  CheckCircle,
-  Lock
-} from 'lucide-react';
+import Layout from './Layout';
 
-function Teste() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  
-  const [isRedirecting, setIsRedirecting] = useState(false);
-  const [selectedArea, setSelectedArea] = useState(null);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [score, setScore] = useState(0);
-  const [correctAnswers, setCorrectAnswers] = useState(0);
-  const [wrongAnswers, setWrongAnswers] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(30);
-  const [userAnswers, setUserAnswers] = useState([]);
-  const [quizCompleted, setQuizCompleted] = useState(false);
-  const [submittingAnswer, setSubmittingAnswer] = useState(false);
-  const [torneioId, setTorneioId] = useState(null);
+// ─── CONSTANTS ────────────────────────────────────────────────────
 
-  // Verificar se usuário está autenticado
-  useEffect(() => {
-    if (!user) {
-      setIsRedirecting(true);
-      // Redirecionar para login após 2 segundos
-      const timer = setTimeout(() => {
-        navigate('/login');
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [user, navigate]);
+const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+const TIME_PER_QUESTION = 30;
 
-  const [loading, setLoading] = useState(false);
+const AREAS = {
+  matematica: {
+    key: 'matematica',
+    title: 'Matemática',
+    emoji: '📐',
+    description: 'Álgebra, geometria, cálculo e raciocínio lógico',
+    color: 'blue',
+    gradient: 'from-blue-500 to-blue-700',
+    lightBg: 'bg-blue-50',
+    border: 'border-blue-500',
+    text: 'text-blue-600',
+    ring: 'ring-blue-400',
+  },
+  programacao: {
+    key: 'programacao',
+    title: 'Programação',
+    emoji: '💻',
+    description: 'Lógica, algoritmos, linguagens e desenvolvimento',
+    color: 'emerald',
+    gradient: 'from-emerald-500 to-emerald-700',
+    lightBg: 'bg-emerald-50',
+    border: 'border-emerald-500',
+    text: 'text-emerald-600',
+    ring: 'ring-emerald-400',
+  },
+  ingles: {
+    key: 'ingles',
+    title: 'Inglês',
+    emoji: '🌍',
+    description: 'Gramática, vocabulário e compreensão textual',
+    color: 'violet',
+    gradient: 'from-violet-500 to-violet-700',
+    lightBg: 'bg-violet-50',
+    border: 'border-violet-500',
+    text: 'text-violet-600',
+    ring: 'ring-violet-400',
+  },
+};
 
-  // Dados dos quizzes por ├írea (metadados estáticos, Questões dinâmicas)
-  const [quizzes, setQuizzes] = useState({
-    matematica: {
-      title: "Matemática",
-      icon: "­ƒº«",
-      color: "#3B82F6",
-      gradient: "from-blue-500 to-blue-600",
-      questions: []
-    },
-    programacao: {
-      title: "Programação",
-      icon: "­ƒÆ╗",
-      color: "#10B981",
-      gradient: "from-emerald-500 to-emerald-600",
-      questions: []
-    },
-    ingles: {
-      title: "Inglês",
-      icon: "­ƒöñ",
-      color: "#8B5CF6",
-      gradient: "from-violet-500 to-violet-600",
-      questions: []
-    }
-  });
+const CORRECT_MESSAGES = [
+  'Excelente trabalho! 🎯',
+  'Muito bem! Continue assim!',
+  'Fantástico! Resposta certa!',
+  'Brilhante! Estás a arrasar!',
+  'Perfeito! Continua assim!',
+  'Incrível! Muito bem!',
+];
 
-  // Carregar Questões do backend ao selecionar ├írea
-  useEffect(() => {
-    const fetchQuestions = async (area) => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/questoes/quiz/${area}`);
-        const result = await response.json();
-        
-        if (result.success) {
-          const mappedQuestions = result.data.map(q => {
-            const options = [q.opcao_a, q.opcao_b, q.opcao_c, q.opcao_d].filter(opt => opt !== null);
-            
-            return {
-              id: q.id,
-              question: q.texto_pergunta,
-              options: options
-            };
-          });
+const WRONG_MESSAGES = [
+  'Não desistas! A próxima será melhor.',
+  'Continue aprendendo, tu consegues!',
+  'Quase lá! Não desistas.',
+  'Boa tentativa! Segue em frente.',
+  'Aprende com o erro e avança!',
+  'Não te preocupes, continua!',
+];
 
-          setQuizzes(prev => ({
-            ...prev,
-            [area]: {
-              ...prev[area],
-              questions: mappedQuestions
-            }
-          }));
-        }
-      } catch (error) {
-        console.error(`Erro ao carregar Questões de ${area}:`, error);
-      }
-    };
+const TIMEOUT_MESSAGES = [
+  'O tempo esgotou! Mais rapidez na próxima.',
+  'Tempo esgotado! Não desistas.',
+  'Próxima vez responde mais rápido!',
+];
 
-    // Pr├®-carregar todas as áreas para mostrar contagem
-    Object.keys(quizzes).forEach(area => {
-      fetchQuestions(area);
-    });
-  }, []);
+const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-  // Recarregar Questões se necess├írio ao selecionar ├írea (opcional se j├í pr├®-carregado)
-  useEffect(() => {
-    if (selectedArea && quizzes[selectedArea].questions.length === 0) {
-      // For├ºar carregamento se ainda n├úo tiver
-      setLoading(true);
-      const timer = setTimeout(() => setLoading(false), 500);
-      return () => clearTimeout(timer);
-    }
-  }, [selectedArea]);
+// ─── CIRCULAR TIMER ───────────────────────────────────────────────
 
-  useEffect(() => {
-    let timer;
-    if (selectedArea && timeLeft > 0 && !quizCompleted) {
-      timer = setTimeout(() => {
-        setTimeLeft(timeLeft - 1);
-      }, 1000);
-    } else if (timeLeft === 0 && selectedArea) {
-      handleNextQuestion();
-    }
-    return () => clearTimeout(timer);
-  }, [timeLeft, selectedArea, quizCompleted]);
-
-  const handleAreaSelect = (area) => {
-    setSelectedArea(area);
-    setCurrentQuestion(0);
-    setScore(0);
-    setCorrectAnswers(0);
-    setWrongAnswers(0);
-    setTimeLeft(30);
-    setUserAnswers([]);
-    setQuizCompleted(false);
-  };
-
-  const handleAnswerSelect = async (optionIndex) => {
-    if (quizCompleted || submittingAnswer) return;
-
-    const currentQuiz = quizzes[selectedArea];
-    const currentQ = currentQuiz.questions[currentQuestion];
-    const selectedOption = currentQ.options[optionIndex];
-    
-    setSubmittingAnswer(true);
-
-    try {
-      // Calcular tempo gasto nesta questão
-      const tempoGasto = 30 - timeLeft;
-
-      // Enviar resposta para o backend (backend valida e calcula pontos)
-      const result = await enviarTentativa({
-        torneio_id: torneioId || 1,
-        disciplina_competida: selectedArea === 'matematica' ? 'Matemática' : selectedArea === 'programacao' ? 'Programação' : 'Inglês',
-        questao_id: currentQ.id,
-        resposta_selecionada: selectedOption,
-        tempo_gasto: tempoGasto
-      });
-
-      // Backend retorna validação e pontos
-      const tentativa = result.tentativa;
-      const resumo = result.resumo;
-
-      // Armazenar resposta com dados do backend (sem validação local)
-      const newUserAnswers = [...userAnswers, {
-        question: currentQuestion,
-        selected: optionIndex,
-        correct: tentativa.correta,
-        pontosObtidos: tentativa.pontos_obtidos,
-        respostaCorreta: tentativa.resposta_correta
-      }];
-      
-      setUserAnswers(newUserAnswers);
-
-      // Atualizar pontuação com dados do backend
-      setScore(resumo.total_pontos);
-      setCorrectAnswers(resumo.total_acertos);
-      setWrongAnswers(resumo.total_questoes - resumo.total_acertos);
-
-      // Passar para próxima questão ou finalizar
-      if (currentQuestion === currentQuiz.questions.length - 1) {
-        setQuizCompleted(true);
-      } else {
-        setTimeout(() => {
-          handleNextQuestion();
-        }, 1500);
-      }
-    } catch (error) {
-      console.error('Erro ao enviar resposta:', error);
-      alert(`Erro ao enviar resposta: ${error.message}`);
-    } finally {
-      setSubmittingAnswer(false);
-    }
-  };
-
-  const handleNextQuestion = () => {
-    if (currentQuestion < quizzes[selectedArea].questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-      setTimeLeft(30);
-    } else {
-      setQuizCompleted(true);
-    }
-  };
-
-  const handleBackToSelection = () => {
-    setSelectedArea(null);
-  };
-
-  const handleRestartQuiz = () => {
-    setCurrentQuestion(0);
-    setScore(0);
-    setCorrectAnswers(0);
-    setWrongAnswers(0);
-    setTimeLeft(30);
-    setUserAnswers([]);
-    setQuizCompleted(false);
-  };
-
-  // Se usu├írio n├úo est├í autenticado, mostrar tela de login
-  if (!user) {
-    return (
-      <Layout>
-        <div className="min-h-screen bg-gradient-to-b p-4 md:p-6">
-          <div className="max-w-5xl mx-auto">
-            {/* Header */}
-            <div className="text-center mb-8">
-              <div className="flex justify-center mb-6">
-                <div className="p-4 rounded-full bg-gradient-to-r from-red-100 to-orange-100">
-                  <Lock className="h-12 w-12 text-red-600" />
-                </div>
-              </div>
-              
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Acesso Restrito aos Testes COMAES
-              </h2>
-              
-              <p className="text-gray-700 mb-6">
-                Os testes de conhecimento COMAES est├úo disponíveis apenas para usuários autenticados.
-                <br />
-                Faça login ou cadastre-se para testar seus conhecimentos e competir.
-              </p>
-              
-              {isRedirecting ? (
-                <div className="mb-6">
-                  <div className="inline-flex items-center justify-center space-x-2">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                    <span className="text-blue-600 font-medium">Redirecionando para login...</span>
-                  </div>
-                  <p className="text-gray-500 text-sm mt-2">Você será redirecionado automaticamente em instantes</p>
-                </div>
-              ) : (
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <button
-                    onClick={() => navigate('/login')}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all"
-                  >
-                    Fazer Login
-                  </button>
-                  <button
-                    onClick={() => navigate('/cadastro')}
-                    className="px-6 py-3 border border-blue-600 text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-all"
-                  >
-                    Cadastrar-se
-                  </button>
-                </div>
-              )}
-              
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <p className="text-sm text-gray-600 mb-3">Benefícios dos Testes COMAES:</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-gray-700">Questões de diferentes áreas</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-gray-700">Temporizador por questão</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-gray-700">Pontuação por velocidade</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-gray-700">Estatísticas detalhadas</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Cards de Áreas (exemplo visual) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 opacity-50">
-              {Object.entries(quizzes).map(([key, area]) => (
-                <div
-                  key={key}
-                  className={`bg-white rounded-xl shadow-md border-t-4 border-${area.color.split('-')[1]}-500 overflow-hidden`}
-                >
-                  <div className="p-6">
-                    <div className="text-4xl mb-4 text-center">{area.icon}</div>
-                    <h3 className="text-xl font-bold text-gray-800 text-center mb-2">{area.title}</h3>
-                    <p className="text-gray-600 text-sm text-center mb-4">
-                      {area.questions.length} Questões ÔÇó 30s por questão
-                    </p>
-                    <div className="w-full py-2.5 px-5 bg-gray-200 text-gray-500 font-semibold rounded-lg flex items-center justify-center gap-1.5 text-sm">
-                      Faça login para acessar
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
-  // Se n├úo h├í ├írea selecionada, mostrar seleção de áreas
-  if (!selectedArea) {
-    return (
-      <Layout>
-        <div className="min-h-screen bg-gradient-to-b p-4 md:p-6">
-          <div className="max-w-5xl mx-auto">
-            {/* Header */}
-            <div className="text-center mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent mb-3">
-                ­ƒôè Teste Teu Conhecimento COMAES
-              </h1>
-              <p className="text-gray-600 text-base max-w-xl mx-auto">
-                Bem-vindo, <span className="font-semibold text-blue-600">{user.fullName || user.username}</span>! 
-                Escolhe uma ├írea e mostra o que sabes! Desafia-te com Questões das principais competições da Comaes.
-              </p>
-              <div className="text-sm text-gray-500 mt-2">
-                ID: {user.id ? user.id.toString().slice(-8) : 'COMAES-USER'}
-              </div>
-            </div>
-
-            {/* Cards de Áreas */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-              {Object.entries(quizzes).map(([key, area]) => (
-                <div
-                  key={key}
-                  className={`bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 border-t-4 border-${area.color.split('-')[1]}-500 cursor-pointer overflow-hidden`}
-                  onClick={() => handleAreaSelect(key)}
-                >
-                  <div className="p-6">
-                    <div className="text-4xl mb-4 text-center">{area.icon}</div>
-                    <h3 className="text-xl font-bold text-gray-800 text-center mb-2">{area.title}</h3>
-                    <p className="text-gray-600 text-sm text-center mb-4">
-                      {area.questions.length > 0 ? `${area.questions.length} Questões` : 'Carregando Questões...'} ÔÇó 30s por questão
-                    </p>
-                    <button className={`w-full py-2.5 px-5 bg-gradient-to-r ${area.gradient} text-white font-semibold rounded-lg hover:opacity-90 transition-all duration-300 flex items-center justify-center gap-1.5 text-sm`}>
-                      Iniciar Teste
-                      <span className="text-lg">ÔåÆ</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Estatísticas */}
-            <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto">
-              <h2 className="text-xl font-bold text-gray-800 text-center mb-6">Como Funciona o COMAES</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600 mb-1.5">4</div>
-                  <p className="text-gray-600 text-sm">Questões por ├írea</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-emerald-600 mb-1.5">30s</div>
-                  <p className="text-gray-600 text-sm">Tempo por questão</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-violet-600 mb-1.5">+10</div>
-                  <p className="text-gray-600 text-sm">Pontos por acerto</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
-  const currentQuiz = quizzes[selectedArea];
-  
-  if (loading || !currentQuiz || currentQuiz.questions.length === 0) {
-    return (
-      <Layout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Carregando Questões do teste...</p>
-            <button 
-              onClick={handleBackToSelection}
-              className="mt-4 text-blue-600 hover:underline"
-            >
-              Voltar para seleção
-            </button>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
-  const currentQ = currentQuiz.questions[currentQuestion];
-  const totalQuestions = currentQuiz.questions.length;
-  const progress = ((currentQuestion + 1) / totalQuestions) * 100;
+function CircularTimer({ timeLeft, total = TIME_PER_QUESTION }) {
+  const radius = 28;
+  const circumference = 2 * Math.PI * radius;
+  const ratio = timeLeft / total;
+  const offset = circumference * (1 - ratio);
+  const color = ratio > 0.5 ? '#10b981' : ratio > 0.25 ? '#f59e0b' : '#ef4444';
 
   return (
-    <Layout>
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-4 md:p-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header do Quiz */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-8">
-            <button
-              onClick={handleBackToSelection}
-              className="flex items-center gap-1.5 text-gray-600 hover:text-gray-800 font-medium px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors text-sm"
-            >
-              ÔåÉ Voltar para áreas
-            </button>
-            <div className="flex items-center gap-3">
-              <span className={`px-3 py-1.5 rounded-full ${selectedArea === 'matematica' ? 'bg-blue-100 text-blue-600' : selectedArea === 'programacao' ? 'bg-emerald-100 text-emerald-600' : 'bg-violet-100 text-violet-600'} font-semibold text-sm`}>
-                {currentQuiz.icon} {currentQuiz.title}
-              </span>
-              <div className={`px-3 py-1.5 rounded-lg ${timeLeft < 10 ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'} font-bold flex items-center gap-1.5 text-sm transition-colors duration-300`}>
-                ÔÅ▒´©Å {timeLeft}s
-              </div>
-            </div>
-          </div>
-
-          {/* ├ürea Principal - Aumentada e com mais espa├ºo */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* ├ürea do Quiz - Mais larga */}
-            <div className="lg:col-span-3">
-              {quizCompleted ? (
-                <div className="bg-white rounded-xl shadow-md p-8">
-                  <div className="text-center max-w-2xl mx-auto">
-                    <div className="text-5xl mb-6">­ƒÅå</div>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-3">Teste Concluído COMAES!</h2>
-                    <p className="text-gray-600 text-base mb-8">Resultados de {currentQuiz.title}</p>
-                    
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                      <div className="bg-gray-50 rounded-lg p-5 text-center">
-                        <div className="text-2xl font-bold text-blue-600 mb-2">{score}</div>
-                        <div className="text-gray-600 text-sm">Pontos</div>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-5 text-center">
-                        <div className="text-2xl font-bold text-emerald-600 mb-2">{correctAnswers}</div>
-                        <div className="text-gray-600 text-sm">Acertos</div>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-5 text-center">
-                        <div className="text-2xl font-bold text-red-600 mb-2">{wrongAnswers}</div>
-                        <div className="text-gray-600 text-sm">Erros</div>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-5 text-center">
-                        <div className="text-2xl font-bold text-gray-800 mb-2">{totalQuestions}</div>
-                        <div className="text-gray-600 text-sm">Total</div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <button
-                        onClick={handleRestartQuiz}
-                        className={`px-6 py-3 bg-gradient-to-r ${currentQuiz.gradient} text-white font-semibold rounded-lg hover:opacity-90 transition-all duration-300 text-sm`}
-                      >
-                        Ôå╗ Refazer Teste
-                      </button>
-                      <button
-                        onClick={handleBackToSelection}
-                        className="px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-all duration-300 text-sm"
-                      >
-                        ÔåÉ Nova ├ürea
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {/* Barra de Progresso */}
-                  <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-                    <div className="flex justify-between items-center mb-4">
-                      <span className="text-gray-700 font-medium text-sm">
-                        questão {currentQuestion + 1} de {totalQuestions}
-                      </span>
-                      <span className="text-gray-600 text-sm">{Math.round(progress)}% completo</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div
-                        className={`h-2.5 rounded-full transition-all duration-500 ${selectedArea === 'matematica' ? 'bg-blue-500' : selectedArea === 'programacao' ? 'bg-emerald-500' : 'bg-violet-500'}`}
-                        style={{ width: `${progress}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  {/* Card da questão - Aumentado */}
-                  <div className="bg-white rounded-xl shadow-md p-7 mb-6">
-                    <h2 className="text-xl font-bold text-gray-800 mb-7 leading-relaxed">
-                      {currentQ.question}
-                    </h2>
-
-                    {/* Opções */}
-                    <div className="space-y-3">
-                      {currentQ.options.map((option, index) => {
-                        const userAnswer = userAnswers.find(a => a.question === currentQuestion);
-                        let buttonClass = "w-full text-left p-4 rounded-lg border-2 transition-all duration-300 flex items-center gap-3 ";
-                        
-                        if (userAnswer) {
-                          if (index === userAnswer.selected) {
-                            // Mostrar resposta selecionada pelo usuário
-                            buttonClass += userAnswer.correct 
-                              ? "bg-emerald-50 border-emerald-400 text-emerald-700 " 
-                              : "bg-red-50 border-red-400 text-red-700 ";
-                          } else if (index === userAnswer.respostaCorreta) {
-                            // Mostrar resposta correta (se errou)
-                            buttonClass += "bg-emerald-50 border-emerald-400 text-emerald-700 opacity-70 ";
-                          } else {
-                            buttonClass += "bg-gray-50 border-gray-200 text-gray-700 opacity-50 ";
-                          }
-                        } else {
-                          buttonClass += "bg-gray-50 border-gray-200 text-gray-800 ";
-                          buttonClass += "hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 ";
-                        }
-
-                        return (
-                          <button
-                            key={index}
-                            className={buttonClass}
-                            onClick={() => handleAnswerSelect(index)}
-                            disabled={userAnswers.some(a => a.question === currentQuestion) || submittingAnswer}
-                          >
-                            <div className={`flex items-center justify-center w-8 h-8 rounded-full ${userAnswer && index === userAnswer.selected ? (userAnswer.correct ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white') : userAnswer && index === userAnswer.respostaCorreta ? 'bg-emerald-500 text-white' : 'bg-white text-gray-600 border'}`}>
-                              <span className="font-bold text-sm">{String.fromCharCode(65 + index)}</span>
-                            </div>
-                            <span className="flex-1 text-sm">{option}</span>
-                            {userAnswer && index === userAnswer.selected && (
-                              <span className="text-lg">{userAnswer.correct ? '✓' : '✗'}</span>
-                            )}
-                            {userAnswer && !userAnswer.correct && index === userAnswer.respostaCorreta && (
-                              <span className="text-lg text-emerald-500">✓</span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Navegação */}
-                  <div className="flex justify-end">
-                    <button
-                      onClick={handleNextQuestion}
-                      disabled={!userAnswers.some(a => a.question === currentQuestion) || submittingAnswer}
-                      className={`px-6 py-3 font-semibold rounded-lg transition-all duration-300 flex items-center gap-2 text-sm ${userAnswers.some(a => a.question === currentQuestion) && !submittingAnswer ? `bg-gradient-to-r ${currentQuiz.gradient} text-white hover:opacity-90` : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
-                    >
-                      {submittingAnswer ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
-                          Enviando...
-                        </>
-                      ) : (
-                        <>
-                          {currentQuestion === totalQuestions - 1 ? 'Finalizar' : 'Próxima Questão'}
-                          <span className="text-base">→</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Sidebar de Resultados - Mais larga e separada */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-md p-6 sticky top-8 h-fit">
-                <h3 className="text-lg font-bold text-gray-800 mb-6 pb-4 border-b">­ƒôê Seus Resultados</h3>
-                
-                <div className="space-y-4 mb-7">
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-center w-11 h-11 bg-yellow-100 rounded-full">
-                      <span className="text-xl">Ô¡É</span>
-                    </div>
-                    <div>
-                      <div className="text-xl font-bold text-gray-800">{score}</div>
-                      <div className="text-gray-600 text-xs">Pontos</div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-center w-11 h-11 bg-emerald-100 rounded-full">
-                      <span className="text-xl text-emerald-600">Ô£ô</span>
-                    </div>
-                    <div>
-                      <div className="text-xl font-bold text-gray-800">{correctAnswers}</div>
-                      <div className="text-gray-600 text-xs">Acertos</div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-center w-11 h-11 bg-red-100 rounded-full">
-                      <span className="text-xl text-red-600">Ô£ù</span>
-                    </div>
-                    <div>
-                      <div className="text-xl font-bold text-gray-800">{wrongAnswers}</div>
-                      <div className="text-gray-600 text-xs">Erros</div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-center w-11 h-11 bg-blue-100 rounded-full">
-                      <span className="text-xl text-blue-600">­ƒôØ</span>
-                    </div>
-                    <div>
-                      <div className="text-xl font-bold text-gray-800">{currentQuestion + 1}/{totalQuestions}</div>
-                      <div className="text-gray-600 text-xs">Questões</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Progresso das Questões */}
-                <div className="mb-7">
-                  <h4 className="font-semibold text-gray-700 text-sm mb-4">Progresso das Questões</h4>
-                  <div className="grid grid-cols-5 gap-2">
-                    {currentQuiz.questions.map((_, index) => {
-                      const userAnswer = userAnswers.find(a => a.question === index);
-                      let dotClass = "w-9 h-9 rounded-full flex items-center justify-center font-medium transition-all duration-300 text-sm ";
-                      
-                      if (userAnswer) {
-                        dotClass += userAnswer.correct ? "bg-emerald-500 text-white" : "bg-red-500 text-white";
-                      } else if (index === currentQuestion) {
-                        dotClass += `border-2 ${selectedArea === 'matematica' ? 'border-blue-500 text-blue-600' : selectedArea === 'programacao' ? 'border-emerald-500 text-emerald-600' : 'border-violet-500 text-violet-600'} bg-white`;
-                      } else {
-                        dotClass += "bg-gray-100 text-gray-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300";
-                      }
-                      
-                      return (
-                        <button
-                          key={index}
-                          className={dotClass}
-                          onClick={() => !quizCompleted && userAnswers.some(a => a.question === index) && setCurrentQuestion(index)}
-                          title={`Questão ${index + 1}`}
-                          disabled={quizCompleted || !userAnswers.some(a => a.question === index)}
-                        >
-                          {index + 1}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Informa├º├Áes de Tempo */}
-                <div className="space-y-3 pt-6 border-t">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600 text-sm">Tempo Restante:</span>
-                    <span className="font-semibold text-blue-600 text-sm">{timeLeft}s</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600 text-sm">Velocidade M├®dia:</span>
-                    <span className="font-semibold text-gray-800 text-sm">
-                      {currentQuestion > 0 ? Math.round((30 * currentQuestion - (30 - timeLeft)) / currentQuestion) : 0}s/q
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Layout>
+    <div className="relative flex items-center justify-center w-16 h-16">
+      <svg className="absolute w-16 h-16 -rotate-90" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r={radius} fill="none" stroke="#e5e7eb" strokeWidth="4" />
+        <circle
+          cx="32" cy="32" r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth="4"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.3s' }}
+        />
+      </svg>
+      <span
+        className="relative z-10 text-sm font-bold tabular-nums"
+        style={{ color }}
+      >
+        {timeLeft}s
+      </span>
+    </div>
   );
 }
 
-export default Teste;
+// ─── AI ASSISTANT ─────────────────────────────────────────────────
 
+function AIAssistant({ message, visible }) {
+  if (!visible || !message) return null;
+  return (
+    <div className="flex items-end gap-3 animate-fade-in">
+      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+        <span className="text-lg">🤖</span>
+      </div>
+      <div className="relative bg-white border border-indigo-100 rounded-2xl rounded-bl-none px-4 py-3 shadow-md max-w-xs">
+        <p className="text-sm text-gray-700 font-medium">{message}</p>
+        <div className="absolute -bottom-2 left-0 w-3 h-3 bg-white border-b border-l border-indigo-100 rotate-45 translate-x-2" />
+      </div>
+    </div>
+  );
+}
+
+// ─── PROGRESS BAR ─────────────────────────────────────────────────
+
+function ProgressBar({ current, total, color }) {
+  const pct = total > 0 ? ((current) / total) * 100 : 0;
+  const gradients = {
+    blue: 'from-blue-400 to-blue-600',
+    emerald: 'from-emerald-400 to-emerald-600',
+    violet: 'from-violet-400 to-violet-600',
+  };
+  return (
+    <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+      <div
+        className={`h-2.5 rounded-full bg-gradient-to-r ${gradients[color] || gradients.blue} transition-all duration-500`}
+        style={{ width: `${pct}%` }}
+      />
+    </div>
+  );
+}
+
+// ─── MEDAL ────────────────────────────────────────────────────────
+
+function Medal({ pct }) {
+  if (pct >= 90) return <div className="text-6xl">🥇</div>;
+  if (pct >= 70) return <div className="text-6xl">🥈</div>;
+  if (pct >= 50) return <div className="text-6xl">🥉</div>;
+  return <div className="text-6xl">🎓</div>;
+}
+
+function motivationalMessage(pct) {
+  if (pct >= 90) return 'Desempenho excepcional! És um verdadeiro campeão COMAES!';
+  if (pct >= 70) return 'Muito bom resultado! Continua a estudar e chegarás ao topo!';
+  if (pct >= 50) return 'Bom esforço! Com mais prática vais melhorar muito!';
+  return 'Não desistas! Cada tentativa é um passo para a excelência!';
+}
+
+// ─── MAIN COMPONENT ───────────────────────────────────────────────
+
+export default function Teste() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Phase: 'select' | 'quiz' | 'result'
+  const [phase, setPhase] = useState('select');
+  const [selectedArea, setSelectedArea] = useState(null);
+
+  // Questions data per area (counts for cards)
+  const [areaCounts, setAreaCounts] = useState({ matematica: null, programacao: null, ingles: null });
+
+  // Quiz state
+  const [questions, setQuestions] = useState([]);
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [answers, setAnswers] = useState([]); // { idx, selected, correct, points }
+  const [timeLeft, setTimeLeft] = useState(TIME_PER_QUESTION);
+  const [loadingQuiz, setLoadingQuiz] = useState(false);
+  const [quizError, setQuizError] = useState(null);
+
+  // Feedback
+  const [feedback, setFeedback] = useState(null); // { type: 'correct'|'wrong'|'timeout', msg }
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [answered, setAnswered] = useState(false);
+
+  // Gamification
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
+  const [xp, setXp] = useState(0);
+  const [totalTime, setTotalTime] = useState(0);
+
+  // AI assistant
+  const [assistantMsg, setAssistantMsg] = useState('');
+  const [assistantVisible, setAssistantVisible] = useState(false);
+
+  const timerRef = useRef(null);
+  const feedbackTimerRef = useRef(null); // separate — never cleared by the main timer effect
+  const startTimeRef = useRef(null);
+
+  // ── Load area counts on mount ──
+  useEffect(() => {
+    if (!user) return;
+    ['matematica', 'programacao', 'ingles'].forEach(async (area) => {
+      try {
+        const res = await fetch(`${API_BASE}/api/questoes/quiz/${area}?limit=20`);
+        const json = await res.json();
+        if (json.success) {
+          setAreaCounts(prev => ({ ...prev, [area]: json.total }));
+        }
+      } catch {
+        setAreaCounts(prev => ({ ...prev, [area]: 0 }));
+      }
+    });
+  }, [user]);
+
+  // ── Timer ──
+  const clearMainTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = null;
+  }, []);
+
+  const clearFeedbackTimer = useCallback(() => {
+    if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+    feedbackTimerRef.current = null;
+  }, []);
+
+  const clearTimers = useCallback(() => {
+    clearMainTimer();
+    clearFeedbackTimer();
+  }, [clearMainTimer, clearFeedbackTimer]);
+
+  const advanceQuestion = useCallback(() => {
+    clearFeedbackTimer();
+    clearMainTimer();
+    setFeedback(null);
+    setSelectedOption(null);
+    setAnswered(false);
+    setTimeLeft(TIME_PER_QUESTION);
+    setCurrentIdx(prev => {
+      const next = prev + 1;
+      if (next >= questions.length) {
+        setPhase('result');
+        return prev;
+      }
+      return next;
+    });
+  }, [questions.length, clearMainTimer, clearFeedbackTimer]);
+
+  const handleTimeout = useCallback(() => {
+    if (answered) return;
+    clearMainTimer();
+    setAnswered(true);
+    setSelectedOption(null);
+    const msg = pickRandom(TIMEOUT_MESSAGES);
+    setFeedback({ type: 'timeout', msg });
+    setAssistantMsg(msg);
+    setAssistantVisible(true);
+    setStreak(0);
+    setAnswers(prev => [...prev, { idx: currentIdx, selected: null, correct: false, points: 0 }]);
+    // auto-advance after 2.5s — feedback timer is independent of main timer
+    feedbackTimerRef.current = setTimeout(() => {
+      setAssistantVisible(false);
+      advanceQuestion();
+    }, 2500);
+  }, [answered, currentIdx, clearMainTimer, advanceQuestion]);
+
+  // Main countdown — only clears the interval timer, never the feedback timer
+  useEffect(() => {
+    if (phase !== 'quiz' || answered || loadingQuiz) return;
+    clearMainTimer();
+    timerRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+          handleTimeout();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearMainTimer();
+  }, [phase, currentIdx, answered, loadingQuiz]); // eslint-disable-line
+
+  // Track total time
+  useEffect(() => {
+    if (phase === 'quiz') {
+      startTimeRef.current = Date.now();
+    }
+    if (phase === 'result' && startTimeRef.current) {
+      setTotalTime(Math.round((Date.now() - startTimeRef.current) / 1000));
+    }
+  }, [phase]);
+
+  // ── Start quiz ──
+  const startQuiz = async (areaKey) => {
+    setSelectedArea(areaKey);
+    setLoadingQuiz(true);
+    setQuizError(null);
+    setQuestions([]);
+    setCurrentIdx(0);
+    setAnswers([]);
+    setScore(0);
+    setStreak(0);
+    setBestStreak(0);
+    setXp(0);
+    setTimeLeft(TIME_PER_QUESTION);
+    setFeedback(null);
+    setSelectedOption(null);
+    setAnswered(false);
+    setAssistantVisible(false);
+    setPhase('quiz');
+
+    try {
+      const res = await fetch(`${API_BASE}/api/questoes/quiz/${areaKey}?limit=10`);
+      const json = await res.json();
+      if (!json.success || !Array.isArray(json.data) || json.data.length === 0) {
+        setQuizError('Nenhuma questão disponível para esta área. O administrador ainda não criou questões.');
+        setLoadingQuiz(false);
+        return;
+      }
+      setQuestions(json.data);
+    } catch (err) {
+      setQuizError('Erro ao carregar questões. Verifica a ligação ao servidor.');
+    } finally {
+      setLoadingQuiz(false);
+    }
+  };
+
+  // ── Answer ──
+  const handleAnswer = useCallback((optionText) => {
+    if (answered || feedback) return;
+    clearMainTimer(); // stop countdown — do NOT clear feedbackTimerRef here
+    setAnswered(true);
+    setSelectedOption(optionText);
+
+    const q = questions[currentIdx];
+    const isCorrect = optionText.trim().toLowerCase() === q.resposta_correta.trim().toLowerCase();
+    const timeBonus = Math.max(0, timeLeft - 5);
+    const basePoints = q.pontos || 10;
+    const earned = isCorrect ? basePoints + Math.floor(timeBonus / 3) : 0;
+    const earnedXp = isCorrect ? 15 + Math.floor(timeBonus / 5) : 2;
+
+    const newStreak = isCorrect ? streak + 1 : 0;
+    const newBest = Math.max(bestStreak, newStreak);
+
+    setScore(prev => prev + earned);
+    setXp(prev => prev + earnedXp);
+    setStreak(newStreak);
+    setBestStreak(newBest);
+    setAnswers(prev => [...prev, { idx: currentIdx, selected: optionText, correct: isCorrect, points: earned }]);
+
+    const msg = isCorrect ? pickRandom(CORRECT_MESSAGES) : pickRandom(WRONG_MESSAGES);
+    setFeedback({ type: isCorrect ? 'correct' : 'wrong', msg });
+    setAssistantMsg(msg);
+    setAssistantVisible(true);
+
+    // Auto-advance after 2.5s — independent of main timer
+    clearFeedbackTimer();
+    feedbackTimerRef.current = setTimeout(() => {
+      setAssistantVisible(false);
+      advanceQuestion();
+    }, 2500);
+  }, [answered, feedback, questions, currentIdx, timeLeft, streak, bestStreak, clearMainTimer, clearFeedbackTimer, advanceQuestion]);
+
+  // ── Cleanup on unmount ──
+  useEffect(() => () => clearTimers(), [clearTimers]);
+
+  // ─── RENDER: Not logged in ───────────────────────────────────────
+  if (!user) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-indigo-900 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+            <div className="text-5xl mb-4">🔒</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Acesso Restrito</h2>
+            <p className="text-gray-600 mb-6">Faz login para acederes ao Teste de Conhecimento COMAES.</p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => navigate('/login')}
+                className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors"
+              >
+                Fazer Login
+              </button>
+              <button
+                onClick={() => navigate('/cadastro')}
+                className="px-6 py-3 border-2 border-indigo-600 text-indigo-600 rounded-xl font-semibold hover:bg-indigo-50 transition-colors"
+              >
+                Cadastrar
+              </button>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // ─── RENDER: Area Selection ──────────────────────────────────────
+  if (phase === 'select') {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-4 md:p-8">
+          <div className="max-w-5xl mx-auto">
+
+            {/* Header */}
+            <div className="text-center mb-10 pt-4">
+              <div className="inline-flex items-center gap-2 bg-white/10 text-white/80 text-sm px-4 py-1.5 rounded-full mb-4 backdrop-blur-sm">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Teste ao Vivo · COMAES
+              </div>
+              <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-3 tracking-tight">
+                Testa o teu Conhecimento
+              </h1>
+              <p className="text-indigo-200 text-lg max-w-xl mx-auto">
+                Olá, <span className="font-semibold text-white">{user.nome || user.name || 'Competidor'}</span>! Escolhe uma área e mostra o que sabes.
+              </p>
+            </div>
+
+            {/* Area Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+              {Object.values(AREAS).map((area) => {
+                const count = areaCounts[area.key];
+                return (
+                  <button
+                    key={area.key}
+                    onClick={() => startQuiz(area.key)}
+                    className="group relative bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/30 rounded-2xl p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl backdrop-blur-sm"
+                  >
+                    {/* Glow */}
+                    <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${area.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
+
+                    <div className="relative z-10">
+                      <div className="text-5xl mb-4">{area.emoji}</div>
+                      <h3 className="text-xl font-bold text-white mb-2">{area.title}</h3>
+                      <p className="text-white/60 text-sm mb-5 leading-relaxed">{area.description}</p>
+
+                      <div className="flex items-center justify-between mb-5">
+                        <span className="text-white/50 text-xs">
+                          {count === null ? 'A carregar...' : count === 0 ? 'Sem questões' : `${count} questões`}
+                        </span>
+                        <span className="text-white/50 text-xs">30s / questão</span>
+                      </div>
+
+                      <div className={`w-full py-2.5 rounded-xl bg-gradient-to-r ${area.gradient} text-white font-semibold text-sm text-center group-hover:shadow-lg transition-shadow`}>
+                        Iniciar →
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* How it works */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
+              <h2 className="text-white font-bold text-center mb-6 text-lg">Como funciona</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                {[
+                  { icon: '⏱️', label: '30s por questão' },
+                  { icon: '⚡', label: 'Bónus por rapidez' },
+                  { icon: '🔥', label: 'Sequência de acertos' },
+                  { icon: '🏆', label: 'XP e pontuação' },
+                ].map((item) => (
+                  <div key={item.label} className="flex flex-col items-center gap-2">
+                    <span className="text-2xl">{item.icon}</span>
+                    <span className="text-white/60 text-xs">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // ─── RENDER: Quiz ────────────────────────────────────────────────
+  if (phase === 'quiz') {
+    const area = AREAS[selectedArea] || AREAS.matematica;
+    const q = questions[currentIdx];
+    const totalQ = questions.length;
+    const correctCount = answers.filter(a => a.correct).length;
+
+    // Loading state
+    if (loadingQuiz) {
+      return (
+        <Layout>
+          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-16 h-16 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-white text-lg font-medium">A carregar questões...</p>
+              <p className="text-indigo-300 text-sm mt-1">{area.title}</p>
+            </div>
+          </div>
+        </Layout>
+      );
+    }
+
+    // Error state
+    if (quizError) {
+      return (
+        <Layout>
+          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+              <div className="text-5xl mb-4">⚠️</div>
+              <h2 className="text-xl font-bold text-gray-900 mb-3">Sem questões disponíveis</h2>
+              <p className="text-gray-600 mb-6 text-sm">{quizError}</p>
+              <button
+                onClick={() => setPhase('select')}
+                className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors"
+              >
+                ← Voltar
+              </button>
+            </div>
+          </div>
+        </Layout>
+      );
+    }
+
+    if (!q) return null;
+
+    const opcoes = Array.isArray(q.opcoes) ? q.opcoes : [];
+    const answerForCurrent = answers.find(a => a.idx === currentIdx);
+
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-3 md:p-6">
+          <div className="max-w-3xl mx-auto">
+
+            {/* Top bar */}
+            <div className="flex items-center justify-between mb-5">
+              <button
+                onClick={() => { clearTimers(); setPhase('select'); }}
+                className="text-white/60 hover:text-white text-sm flex items-center gap-1.5 transition-colors"
+              >
+                ← Sair
+              </button>
+              <div className="flex items-center gap-3">
+                {/* Streak */}
+                {streak > 1 && (
+                  <div className="flex items-center gap-1 bg-orange-500/20 text-orange-300 text-xs font-bold px-3 py-1.5 rounded-full border border-orange-500/30">
+                    🔥 {streak}x
+                  </div>
+                )}
+                {/* XP */}
+                <div className="flex items-center gap-1 bg-yellow-500/20 text-yellow-300 text-xs font-bold px-3 py-1.5 rounded-full border border-yellow-500/30">
+                  ⚡ {xp} XP
+                </div>
+                {/* Score */}
+                <div className="flex items-center gap-1 bg-white/10 text-white text-xs font-bold px-3 py-1.5 rounded-full border border-white/20">
+                  🏆 {score} pts
+                </div>
+              </div>
+            </div>
+
+            {/* Progress */}
+            <div className="mb-5">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-white/70 text-sm font-medium">
+                  Questão <span className="text-white font-bold">{currentIdx + 1}</span> de <span className="text-white font-bold">{totalQ}</span>
+                </span>
+                <span className="text-white/50 text-xs">{area.emoji} {area.title}</span>
+              </div>
+              <ProgressBar current={currentIdx} total={totalQ} color={area.color} />
+            </div>
+
+            {/* Question card */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 mb-5 backdrop-blur-sm">
+
+              {/* Timer + question header */}
+              <div className="flex items-start justify-between gap-4 mb-6">
+                <div className="flex-1">
+                  <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full mb-3 ${area.lightBg} ${area.text}`}>
+                    {area.title} · {q.dificuldade || 'médio'}
+                  </span>
+                  <h2 className="text-white text-lg md:text-xl font-semibold leading-relaxed">
+                    {q.enunciado}
+                  </h2>
+                </div>
+                <div className="flex-shrink-0">
+                  <CircularTimer timeLeft={timeLeft} total={TIME_PER_QUESTION} />
+                </div>
+              </div>
+
+              {/* Options */}
+              <div className="space-y-3">
+                {opcoes.map((opt, i) => {
+                  const label = String.fromCharCode(65 + i);
+                  let cls = 'w-full text-left flex items-center gap-3 p-4 rounded-xl border-2 transition-all duration-200 ';
+
+                  if (!answered) {
+                    cls += 'border-white/10 bg-white/5 text-white hover:border-white/40 hover:bg-white/10 cursor-pointer';
+                  } else {
+                    const isCorrectOpt = opt.trim().toLowerCase() === q.resposta_correta.trim().toLowerCase();
+                    const isSelected = opt === selectedOption;
+
+                    if (isCorrectOpt) {
+                      cls += 'border-emerald-400 bg-emerald-500/20 text-emerald-200';
+                    } else if (isSelected && !isCorrectOpt) {
+                      cls += 'border-red-400 bg-red-500/20 text-red-200';
+                    } else {
+                      cls += 'border-white/5 bg-white/3 text-white/30 cursor-default';
+                    }
+                  }
+
+                  return (
+                    <button
+                      key={i}
+                      className={cls}
+                      onClick={() => handleAnswer(opt)}
+                      disabled={answered}
+                    >
+                      <span className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold border ${
+                        !answered
+                          ? 'border-white/20 text-white/60'
+                          : opt.trim().toLowerCase() === q.resposta_correta.trim().toLowerCase()
+                            ? 'border-emerald-400 text-emerald-300 bg-emerald-500/30'
+                            : opt === selectedOption
+                              ? 'border-red-400 text-red-300 bg-red-500/30'
+                              : 'border-white/10 text-white/20'
+                      }`}>
+                        {label}
+                      </span>
+                      <span className="flex-1 text-sm md:text-base">{opt}</span>
+                      {answered && opt.trim().toLowerCase() === q.resposta_correta.trim().toLowerCase() && (
+                        <span className="text-emerald-400 text-lg">✓</span>
+                      )}
+                      {answered && opt === selectedOption && opt.trim().toLowerCase() !== q.resposta_correta.trim().toLowerCase() && (
+                        <span className="text-red-400 text-lg">✗</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Feedback banner */}
+            {feedback && (
+              <div className={`rounded-xl px-5 py-3 mb-4 text-sm font-semibold flex items-center justify-between gap-2 ${
+                feedback.type === 'correct'
+                  ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
+                  : feedback.type === 'timeout'
+                    ? 'bg-yellow-500/20 border border-yellow-500/40 text-yellow-300'
+                    : 'bg-red-500/20 border border-red-500/40 text-red-300'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <span>{feedback.type === 'correct' ? '✓' : feedback.type === 'timeout' ? '⏱' : '✗'}</span>
+                  <span>{feedback.msg}</span>
+                </div>
+              </div>
+            )}
+
+            {/* AI Assistant */}
+            <AIAssistant message={assistantMsg} visible={assistantVisible} />
+
+            {/* Next button — always visible after answering */}
+            {answered && (
+              <div className="mt-4 flex justify-end">
+                <button
+                  onClick={() => {
+                    clearFeedbackTimer();
+                    setAssistantVisible(false);
+                    advanceQuestion();
+                  }}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r ${area.gradient} hover:opacity-90 active:scale-95 transition-all shadow-lg`}
+                >
+                  {currentIdx >= totalQ - 1 ? 'Ver Resultado 🏆' : 'Próxima →'}
+                </button>
+              </div>
+            )}
+
+            {/* Stats row */}
+            <div className="grid grid-cols-3 gap-3 mt-5">
+              <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                <div className="text-emerald-400 font-bold text-lg">{correctCount}</div>
+                <div className="text-white/40 text-xs">Acertos</div>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                <div className="text-red-400 font-bold text-lg">{answers.filter(a => !a.correct).length}</div>
+                <div className="text-white/40 text-xs">Erros</div>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                <div className="text-orange-400 font-bold text-lg">{bestStreak}</div>
+                <div className="text-white/40 text-xs">Melhor sequência</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // ─── RENDER: Result ──────────────────────────────────────────────
+  if (phase === 'result') {
+    const area = AREAS[selectedArea] || AREAS.matematica;
+    const totalQ = questions.length;
+    const correctCount = answers.filter(a => a.correct).length;
+    const wrongCount = answers.filter(a => !a.correct).length;
+    const pct = totalQ > 0 ? Math.round((correctCount / totalQ) * 100) : 0;
+    const mins = Math.floor(totalTime / 60);
+    const secs = totalTime % 60;
+    const timeStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+
+    const performanceLabel =
+      pct >= 90 ? 'Excelente' :
+      pct >= 70 ? 'Muito Bom' :
+      pct >= 50 ? 'Bom' : 'A Melhorar';
+
+    const performanceColor =
+      pct >= 90 ? 'text-emerald-400' :
+      pct >= 70 ? 'text-blue-400' :
+      pct >= 50 ? 'text-yellow-400' : 'text-red-400';
+
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-4 md:p-8">
+          <div className="max-w-2xl mx-auto">
+
+            {/* Medal + title */}
+            <div className="text-center mb-8 pt-4">
+              <Medal pct={pct} />
+              <h1 className="text-3xl font-extrabold text-white mt-4 mb-2">Teste Concluído!</h1>
+              <p className="text-indigo-200">{area.emoji} {area.title}</p>
+            </div>
+
+            {/* Score highlight */}
+            <div className={`bg-gradient-to-r ${area.gradient} rounded-2xl p-6 text-center mb-6 shadow-2xl`}>
+              <div className="text-6xl font-extrabold text-white mb-1">{pct}%</div>
+              <div className={`text-white/80 font-semibold text-lg`}>{performanceLabel}</div>
+              <div className="text-white/60 text-sm mt-1">{score} pontos · {xp} XP</div>
+            </div>
+
+            {/* Stats grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              {[
+                { icon: '✅', label: 'Acertos', value: correctCount, color: 'text-emerald-400' },
+                { icon: '❌', label: 'Erros', value: wrongCount, color: 'text-red-400' },
+                { icon: '🔥', label: 'Melhor sequência', value: bestStreak, color: 'text-orange-400' },
+                { icon: '⏱️', label: 'Tempo total', value: timeStr, color: 'text-blue-400' },
+              ].map((stat) => (
+                <div key={stat.label} className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                  <div className="text-2xl mb-1">{stat.icon}</div>
+                  <div className={`font-bold text-xl ${stat.color}`}>{stat.value}</div>
+                  <div className="text-white/40 text-xs mt-0.5">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Progress bar visual */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-6">
+              <div className="flex justify-between text-sm text-white/60 mb-2">
+                <span>Desempenho</span>
+                <span className={`font-bold ${performanceColor}`}>{pct}%</span>
+              </div>
+              <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
+                <div
+                  className={`h-3 rounded-full bg-gradient-to-r ${area.gradient} transition-all duration-1000`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Per-question review */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-6">
+              <h3 className="text-white font-semibold mb-4 text-sm">Revisão das questões</h3>
+              <div className="flex flex-wrap gap-2">
+                {questions.map((_, i) => {
+                  const ans = answers.find(a => a.idx === i);
+                  return (
+                    <div
+                      key={i}
+                      className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold ${
+                        !ans ? 'bg-white/10 text-white/30' :
+                        ans.correct ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-500/50' :
+                        'bg-red-500/30 text-red-300 border border-red-500/50'
+                      }`}
+                    >
+                      {i + 1}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Motivational message */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-6 flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                <span className="text-lg">🤖</span>
+              </div>
+              <p className="text-white/80 text-sm leading-relaxed pt-1">{motivationalMessage(pct)}</p>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => startQuiz(selectedArea)}
+                className={`flex-1 py-3 rounded-xl font-semibold text-white bg-gradient-to-r ${area.gradient} hover:opacity-90 transition-opacity`}
+              >
+                ↺ Repetir Teste
+              </button>
+              <button
+                onClick={() => setPhase('select')}
+                className="flex-1 py-3 rounded-xl font-semibold text-white bg-white/10 border border-white/20 hover:bg-white/15 transition-colors"
+              >
+                ← Escolher Área
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  return null;
+}
