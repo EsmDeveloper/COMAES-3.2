@@ -10,6 +10,7 @@ import {
 } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
 import NotificacoesModal from "./Notificacoes";
+import LogoutModal from "../../components/LogoutModal";
 import logotipo from "../../assets/logotipo.png";
 import logo from "../../assets/logo.png";
 import logoShort from "../../assets/iso_icon.png";
@@ -25,6 +26,7 @@ export default function Layout({ children }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
   const [scrolled, setScrolled] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const dropdownRef = useRef(null);
 
   const menuItems = [
@@ -95,12 +97,24 @@ export default function Layout({ children }) {
   }, [menuOpen]);
 
   const handleLogout = () => {
+    setMenuOpen(false);
+    setProfileOpen(false);
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = () => {
+    setShowLogoutModal(false);
     logout();
     navigate("/");
   };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 font-sans text-gray-900 overflow-x-hidden">
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogoutModal(false)}
+      />
       <AnimatePresence>
         {menuOpen && (
           <motion.div

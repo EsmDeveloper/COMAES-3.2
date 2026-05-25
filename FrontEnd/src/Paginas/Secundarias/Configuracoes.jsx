@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Layout from './Layout';
+import LogoutModal from '../../components/LogoutModal';
 import {
   User, Mail, Phone, Lock, Globe, Shield, Bell,
   Monitor, Moon, Sun, ChevronRight, Check, X,
@@ -313,6 +314,7 @@ export default function Configuracoes() {
   const [active, setActive]   = useState('conta');
   const [toast, setToast]     = useState({ type: '', message: '' });
   const [fetching, setFetching] = useState(true);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   /* Settings state */
   const [conta, setConta]     = useState({ email: '', telefone: '' });
@@ -447,7 +449,7 @@ export default function Configuracoes() {
         />
         <div style={{ padding: '20px 0' }}>
           <button
-            onClick={() => { logout(); navigate('/login'); }}
+            onClick={() => setShowLogoutModal(true)}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               padding: '9px 16px', borderRadius: 9,
@@ -621,6 +623,11 @@ export default function Configuracoes() {
 
   return (
     <Layout>
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onConfirm={() => { setShowLogoutModal(false); logout(); navigate('/login'); }}
+        onCancel={() => setShowLogoutModal(false)}
+      />
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '32px 20px 80px' }}>
 
         {/* Page title */}

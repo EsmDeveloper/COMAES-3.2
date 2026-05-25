@@ -8,6 +8,7 @@ import TorneiosTab from './TorneiosTab';
 import NotificationsTab from './NotificationsTab';
 import { STATIC_TABLE_DEFS } from './TableManager';
 import adminService from './adminService';
+import LogoutModal from '../components/LogoutModal';
 import { 
   BarChart3, Trophy, BookOpen, Users, Award, Bell, Settings, 
   LogOut, Menu, X, ChevronDown, Zap, FileText, Shield, Database
@@ -19,6 +20,7 @@ const AdminDashboardRestructured = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [expandedSection, setExpandedSection] = useState(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Estrutura reorganizada em seções
   const menuSections = [
@@ -106,6 +108,12 @@ const AdminDashboardRestructured = () => {
   ];
 
   const handleLogout = () => {
+    setMobileSidebarOpen(false);
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = () => {
+    setShowLogoutModal(false);
     navigate('/');
   };
 
@@ -127,7 +135,11 @@ const AdminDashboardRestructured = () => {
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-slate-50 to-blue-50 overflow-hidden">
-      {/* Desktop Sidebar */}
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogoutModal(false)}
+      />
       <div className="hidden md:flex w-80 bg-white shadow-2xl border-r border-slate-200 flex-col h-screen overflow-hidden">
         {/* Header */}
         <div className="p-6 border-b border-slate-200 flex-shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600">

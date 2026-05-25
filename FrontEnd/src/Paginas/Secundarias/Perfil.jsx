@@ -2,6 +2,7 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Layout from './Layout';
+import LogoutModal from '../../components/LogoutModal';
 import {
   Camera, CheckCircle, AlertCircle, X, Edit2, LogOut,
   Mail, Calendar, Trophy, Star, Award, Save, ChevronRight,
@@ -164,6 +165,7 @@ export default function Perfil() {
   const [saving, setSaving]     = useState(false);
   const [toast, setToast]       = useState({ type: '', message: '' });
   const [stats, setStats]       = useState({ torneios: 0, pontos: 0, premios: 0 });
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
 
@@ -297,6 +299,11 @@ export default function Perfil() {
 
   return (
     <Layout>
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onConfirm={() => { setShowLogoutModal(false); logout(); navigate('/login'); }}
+        onCancel={() => setShowLogoutModal(false)}
+      />
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '32px 20px 72px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
         {/* ── Identity card ── */}
@@ -358,7 +365,7 @@ export default function Perfil() {
                   <Btn variant="secondary" onClick={() => setEditMode(true)}>
                     <Edit2 size={13} /> Editar
                   </Btn>
-                  <Btn variant="ghost" onClick={() => { logout(); navigate('/login'); }}>
+                  <Btn variant="ghost" onClick={() => setShowLogoutModal(true)}>
                     <LogOut size={13} /> Sair
                   </Btn>
                 </>
