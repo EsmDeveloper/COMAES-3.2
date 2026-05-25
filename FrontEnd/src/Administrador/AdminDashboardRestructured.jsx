@@ -24,7 +24,7 @@ const AdminDashboardRestructured = () => {
   const menuSections = [
     {
       id: 'dashboard',
-      title: '📊 Dashboard',
+      title: 'Dashboard',
       icon: BarChart3,
       color: 'from-blue-500 to-indigo-600',
       items: [
@@ -33,7 +33,7 @@ const AdminDashboardRestructured = () => {
     },
     {
       id: 'tournaments',
-      title: '🏆 Torneios & Competições',
+      title: 'Torneios & Competições',
       icon: Trophy,
       color: 'from-yellow-500 to-orange-600',
       items: [
@@ -44,7 +44,7 @@ const AdminDashboardRestructured = () => {
     },
     {
       id: 'content',
-      title: '❓ Questões & Conteúdo',
+      title: 'Questões & Conteúdo',
       icon: BookOpen,
       color: 'from-purple-500 to-pink-600',
       items: [
@@ -56,7 +56,7 @@ const AdminDashboardRestructured = () => {
     },
     {
       id: 'users',
-      title: '👥 Usuários & Comunidade',
+      title: 'Usuários & Comunidade',
       icon: Users,
       color: 'from-green-500 to-emerald-600',
       items: [
@@ -66,7 +66,7 @@ const AdminDashboardRestructured = () => {
     },
     {
       id: 'gamification',
-      title: '🎖️ Gamificação',
+      title: 'Gamificação',
       icon: Award,
       color: 'from-red-500 to-pink-600',
       items: [
@@ -76,7 +76,7 @@ const AdminDashboardRestructured = () => {
     },
     {
       id: 'communication',
-      title: '📢 Comunicação',
+      title: 'Comunicação',
       icon: Bell,
       color: 'from-cyan-500 to-blue-600',
       items: [
@@ -86,7 +86,7 @@ const AdminDashboardRestructured = () => {
     },
     {
       id: 'support',
-      title: '🎫 Suporte & Operações',
+      title: 'Suporte & Operações',
       icon: Zap,
       color: 'from-orange-500 to-red-600',
       items: [
@@ -95,7 +95,7 @@ const AdminDashboardRestructured = () => {
     },
     {
       id: 'system',
-      title: '⚙️ Sistema',
+      title: 'Sistema',
       icon: Settings,
       color: 'from-gray-500 to-slate-600',
       items: [

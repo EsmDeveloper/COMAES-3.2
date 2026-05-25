@@ -3,7 +3,7 @@ import adminService from './adminService';
 import TableModal from './TableModal';
 import UserModal from './UserModal';
 import { useAuth } from '../context/AuthContext';
-import { Users, Trophy, Newspaper, Ticket, Briefcase, HelpCircle, Calculator, Code, Globe, FileText, Target, Bell, Award, Medal, Key, Settings } from 'lucide-react';
+import { Users, Trophy, Newspaper, Ticket, Briefcase, HelpCircle, Calculator, Code, Globe, FileText, Target, Bell, Award, Medal, Key, Settings, Plus, Edit, Trash2, Search, CheckCircle, AlertCircle, Inbox, Crown, ArrowUp } from 'lucide-react';
 
 // shared static definitions used by both dashboard and table manager
 export const STATIC_TABLE_DEFS = {
@@ -47,11 +47,12 @@ export const STATIC_TABLE_DEFS = {
         displayColumns: ['ID', 'Título', 'Autor', 'Publicado em'],
         fields: [
             { name: 'titulo', label: 'Título', type: 'text', required: true },
+            { name: 'resumo', label: 'Resumo', type: 'textarea' },
             { name: 'conteudo', label: 'Conteúdo', type: 'textarea', required: true },
-            { name: 'autor_id', label: 'Autor ID', type: 'number', required: true },
+            { name: 'url_capa', label: 'URL da Capa', type: 'text' },
             { name: 'publicado', label: 'Publicado', type: 'checkbox' },
             { name: 'publicado_em', label: 'Data de Publicação', type: 'datetime-local' },
-            { name: 'tags', label: 'Tags', type: 'text' }
+            { name: 'tags', label: 'Tags (separadas por vírgula)', type: 'text' }
         ]
     },
     ticketsuporte: {
@@ -310,7 +311,7 @@ const TableManager = ({ table }) => {
         if (table === 'torneio') {
             setSelectedItem({ status: 'agendado', publico: true });
         } else if (table === 'noticia') {
-            setSelectedItem({ autor_id: user?.id || '', publicado: true, publicado_em: new Date().toISOString().slice(0, 16), tags: '' });
+            setSelectedItem({ publicado: true, publicado_em: new Date().toISOString().slice(0, 16), tags: '' });
         } else if (table === 'notificacao') {
             setSelectedItem({ lido: false, tipo: 'geral', conteudo: '{"titulo":"","mensagem":""}' });
         } else {
@@ -426,7 +427,7 @@ const TableManager = ({ table }) => {
                         onClick={handleAdd}
                         className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2 whitespace-nowrap"
                     >
-                        <span className="text-lg">+</span>
+                        <Plus className="w-5 h-5" />
                         <span>Adicionar {info.title.slice(0, -1)}</span>
                     </button>
                 </div>
@@ -437,7 +438,8 @@ const TableManager = ({ table }) => {
                 <div className="flex flex-col sm:flex-row gap-4">
                     <div className="flex-1">
                         <label className="block text-sm font-semibold text-slate-700 mb-2">
-                            🔍 Buscar registros
+                            <Search className="w-4 h-4 inline mr-2" />
+                            Buscar registros
                         </label>
                         <input
                             type="text"
@@ -453,7 +455,7 @@ const TableManager = ({ table }) => {
             {/* Status Messages */}
             {success && (
                 <div className="bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-xl shadow-sm animate-fade-in flex items-center gap-3">
-                    <span className="text-green-500 text-xl">✅</span>
+                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                     <div>
                         <p className="font-semibold">Sucesso!</p>
                         <p className="text-sm">{success}</p>
@@ -462,7 +464,7 @@ const TableManager = ({ table }) => {
             )}
             {error && (
                 <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-xl shadow-sm animate-fade-in flex items-center gap-3">
-                    <span className="text-red-500 text-xl">⚠️</span>
+                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
                     <div>
                         <p className="font-semibold">Erro</p>
                         <p className="text-sm">{error}</p>
@@ -502,7 +504,7 @@ const TableManager = ({ table }) => {
                                     <tr>
                                         <td colSpan={info.displayColumns.length + 1} className="px-6 py-12 text-center">
                                             <div className="flex flex-col items-center gap-3">
-                                                <span className="text-4xl">📭</span>
+                                                <Inbox className="w-12 h-12 text-slate-300" />
                                                 <div>
                                                     <p className="text-slate-500 font-medium">Nenhum registro encontrado</p>
                                                     <p className="text-slate-400 text-sm">
@@ -528,7 +530,7 @@ const TableManager = ({ table }) => {
                                                         onClick={() => handleEdit(item)}
                                                         className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-1.5 text-xs font-medium"
                                                     >
-                                                        <span>✏️</span>
+                                                        <Edit className="w-4 h-4" />
                                                         <span className="hidden sm:inline">Editar</span>
                                                     </button>
                                                     {(table === 'user' || table === 'users') && (
@@ -538,7 +540,7 @@ const TableManager = ({ table }) => {
                                                                 className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-1.5 text-xs font-medium"
                                                                 title="Redefinir senha"
                                                             >
-                                                                <span>🔑</span>
+                                                                <Key className="w-4 h-4" />
                                                                 <span className="hidden sm:inline">Senha</span>
                                                             </button>
                                                             {user?.isAdmin && String(user?.id) !== String(item.id) && (
@@ -553,7 +555,7 @@ const TableManager = ({ table }) => {
                                                                     className={`${item.isAdmin ? 'bg-orange-500 hover:bg-orange-600' : 'bg-purple-500 hover:bg-purple-600'} text-white px-3 py-1.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-1.5 text-xs font-medium`}
                                                                     title={item.isAdmin ? 'Remover admin' : 'Tornar admin'}
                                                                 >
-                                                                    <span>{item.isAdmin ? '👑' : '⬆️'}</span>
+                                                                    <span>{item.isAdmin ? <Crown className="w-4 h-4" /> : <ArrowUp className="w-4 h-4" />}</span>
                                                                     <span className="hidden sm:inline">{item.isAdmin ? 'Remover Admin' : 'Tornar Admin'}</span>
                                                                 </button>
                                                             )}
@@ -565,7 +567,7 @@ const TableManager = ({ table }) => {
                                                         className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-1.5 text-xs font-medium disabled:opacity-40 disabled:cursor-not-allowed"
                                                         title={String(user?.id) === String(item.id) ? 'Não pode excluir a própria conta' : 'Excluir'}
                                                     >
-                                                        <span>🗑️</span>
+                                                        <Trash2 className="w-4 h-4" />
                                                         <span className="hidden sm:inline">Excluir</span>
                                                     </button>
                                                 </div>

@@ -57,7 +57,7 @@ export const rules = {
   ],
 
   login: [
-    { field: 'usuario', checks: [r.required('O usuário é obrigatório.'), r.noScript(), r.noSql()] },
+    { field: 'usuario', checks: [r.required('O usuário é obrigatório.'), r.noSql()] },
     { field: 'senha',   checks: [r.required('A senha é obrigatória.')] },
   ],
 
@@ -101,6 +101,11 @@ export const rules = {
  */
 export function validate(ruleSet, opts = {}) {
   return (req, res, next) => {
+    // Guard: if body parser didn't run or body is missing, treat as empty object
+    if (!req.body || typeof req.body !== 'object') {
+      req.body = {};
+    }
+
     const errors = {};
 
     for (const { field, checks } of ruleSet) {

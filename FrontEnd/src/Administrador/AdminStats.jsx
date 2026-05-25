@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import adminService from './adminService';
 import { useAuth } from '../context/AuthContext';
+import { Users, Trophy, Ticket, TrendingUp } from 'lucide-react';
 
 const AdminStats = () => {
     const { token } = useAuth();
@@ -66,7 +67,7 @@ const AdminStats = () => {
         fetchStats();
     }, [token]);
 
-    const StatCard = ({ title, value, subtitle, icon, color = 'blue' }) => {
+    const StatCard = ({ title, value, subtitle, icon: Icon, color = 'blue' }) => {
         const colorClasses = {
             blue: 'from-blue-500 to-indigo-600',
             green: 'from-green-500 to-emerald-600',
@@ -82,7 +83,7 @@ const AdminStats = () => {
                         <p className="text-3xl font-bold mb-1">{loading ? '...' : value}</p>
                         {subtitle && <p className="text-white/70 text-sm">{subtitle}</p>}
                     </div>
-                    <div className="text-4xl opacity-80">{icon}</div>
+                    <Icon className="w-12 h-12 opacity-80" />
                 </div>
             </div>
         );
@@ -94,28 +95,28 @@ const AdminStats = () => {
                 title="Total de Usuários"
                 value={stats.users.total}
                 subtitle={`${stats.users.admins} administradores`}
-                icon="👥"
+                icon={Users}
                 color="blue"
             />
             <StatCard
                 title="Torneios Ativos"
                 value={stats.torneios.ativos}
                 subtitle={`${stats.torneios.total} total`}
-                icon="🏆"
+                icon={Trophy}
                 color="green"
             />
             <StatCard
                 title="Tickets de Suporte"
                 value={stats.tickets.abertos}
                 subtitle={`${stats.tickets.resolvidos} resolvidos`}
-                icon="🎫"
+                icon={Ticket}
                 color="orange"
             />
             <StatCard
                 title="Novos Usuários"
                 value={stats.users.recent}
                 subtitle="Últimos 7 dias"
-                icon="📈"
+                icon={TrendingUp}
                 color="purple"
             />
         </div>

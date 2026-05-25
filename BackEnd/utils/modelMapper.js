@@ -4,11 +4,8 @@ import RedefinicaoSenha from '../models/RedefinicaoSenha.js';
 import ConfiguracaoUsuario from '../models/ConfiguracaoUsuario.js';
 import Torneio from '../models/Torneio.js';
 import Noticia from '../models/Noticia.js';
-import Pergunta from '../models/Pergunta.js';
-import QuestaoMatematica from '../models/QuestaoMatematica.js';
-import QuestaoProgramacao from '../models/QuestaoProgramacao.js';
+import Questao from '../models/Questao.js';
 import ParticipanteTorneio from '../models/ParticipanteTorneio.js';
-import QuestaoIngles from '../models/QuestaoIngles.js';
 import TentativaTeste from '../models/TentativaTeste.js';
 import TicketSuporte from '../models/TicketSuporte.js';
 import Notificacao from '../models/Notificacao.js';
@@ -22,10 +19,7 @@ const models = {
     configuracaousuario: ConfiguracaoUsuario,
     torneio: Torneio,
     noticia: Noticia,
-    pergunta: Pergunta,
-    questaomatematica: QuestaoMatematica,
-    questoes_programacao: QuestaoProgramacao,
-    questaoingles: QuestaoIngles,
+    questao: Questao,
     tentativateste: TentativaTeste,
     ticketsuporte: TicketSuporte,
     participante_torneio: ParticipanteTorneio,

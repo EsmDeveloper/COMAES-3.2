@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { validateNome, validateEmail, validatePassword } from '../utils/validators.js';
+import { Plus, Edit, Trash2, AlertCircle, X, Save } from 'lucide-react';
 
 const TableModal = ({ mode, item, tableInfo, onClose, onSubmit }) => {
     const [formData, setFormData] = useState(item ? { ...item } : {});
@@ -280,16 +281,16 @@ const TableModal = ({ mode, item, tableInfo, onClose, onSubmit }) => {
                 <div className="border-b border-slate-200 px-6 py-5 bg-gradient-to-r from-slate-50 to-blue-50">
                     <div className="flex items-center justify-between">
                         <h3 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
-                            {mode === 'create' && <span className="text-green-500">➕</span>}
-                            {mode === 'edit' && <span className="text-blue-500">✏️</span>}
-                            {mode === 'delete' && <span className="text-red-500">🗑️</span>}
+                            {mode === 'create' && <Plus className="w-6 h-6 text-green-500" />}
+                            {mode === 'edit' && <Edit className="w-6 h-6 text-blue-500" />}
+                            {mode === 'delete' && <Trash2 className="w-6 h-6 text-red-500" />}
                             {getModalTitle()}
                         </h3>
                         <button
                             onClick={onClose}
                             className="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100 transition-all duration-200"
                         >
-                            <span className="text-2xl">✕</span>
+                            <X className="w-6 h-6" />
                         </button>
                     </div>
                 </div>
@@ -299,7 +300,7 @@ const TableModal = ({ mode, item, tableInfo, onClose, onSubmit }) => {
                     {mode === 'delete' ? (
                         <div className="space-y-4">
                             <div className="flex items-center gap-4 p-4 bg-red-50 border border-red-200 rounded-xl">
-                                <span className="text-red-500 text-3xl">⚠️</span>
+                                <AlertCircle className="w-8 h-8 text-red-500 flex-shrink-0" />
                                 <div>
                                     <p className="text-red-800 font-semibold">Atenção: Ação irreversível</p>
                                     <p className="text-red-700 text-sm">Esta operação não pode ser desfeita.</p>
@@ -377,7 +378,7 @@ const TableModal = ({ mode, item, tableInfo, onClose, onSubmit }) => {
                                     )}
                                     {fieldErrors[field.name] && (
                                         <p className="mt-1 text-sm text-red-600 flex items-center gap-2">
-                                            <span>⚠️</span>
+                                            <AlertCircle className="w-4 h-4" />
                                             {fieldErrors[field.name]}
                                         </p>
                                     )}
@@ -386,7 +387,7 @@ const TableModal = ({ mode, item, tableInfo, onClose, onSubmit }) => {
 
                             {error && (
                                 <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl shadow-sm flex items-center gap-3">
-                                    <span className="text-red-500">⚠️</span>
+                                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
                                     <div>
                                         <p className="font-semibold">Erro de validação</p>
                                         <p className="text-sm">{error}</p>
@@ -424,17 +425,17 @@ const TableModal = ({ mode, item, tableInfo, onClose, onSubmit }) => {
                             </>
                         ) : mode === 'create' ? (
                             <>
-                                <span>➕</span>
+                                <Plus className="w-4 h-4" />
                                 <span>Criar</span>
                             </>
                         ) : mode === 'edit' ? (
                             <>
-                                <span>💾</span>
+                                <Save className="w-4 h-4" />
                                 <span>Atualizar</span>
                             </>
                         ) : (
                             <>
-                                <span>🗑️</span>
+                                <Trash2 className="w-4 h-4" />
                                 <span>Deletar</span>
                             </>
                         )}

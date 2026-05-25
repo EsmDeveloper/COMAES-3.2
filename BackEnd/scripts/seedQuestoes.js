@@ -2,9 +2,7 @@ import sequelize from '../config/db.js';
 import bcrypt from 'bcryptjs';
 import Usuario from '../models/User.js';
 import Torneio from '../models/Torneio.js';
-import QuestaoMatematica from '../models/QuestaoMatematica.js';
-import QuestaoProgramacao from '../models/QuestaoProgramacao.js';
-import QuestaoIngles from '../models/QuestaoIngles.js';
+import Questao from '../models/Questao.js';
 
 async function seed() {
   try {
@@ -138,23 +136,23 @@ async function seed() {
     ];
 
     for (const q of mathQuest) {
-      await QuestaoMatematica.findOrCreate({
+      await Questao.findOrCreate({
         where: { torneio_id: torneio.id, titulo: q.titulo },
-        defaults: { ...q, torneio_id: torneio.id }
+        defaults: { ...q, torneio_id: torneio.id, disciplina: 'matematica', tipo: 'multipla_escolha' }
       });
     }
 
     for (const q of progQuest) {
-      await QuestaoProgramacao.findOrCreate({
+      await Questao.findOrCreate({
         where: { torneio_id: torneio.id, titulo: q.titulo },
-        defaults: { ...q, torneio_id: torneio.id }
+        defaults: { ...q, torneio_id: torneio.id, disciplina: 'programacao', tipo: 'codigo', linguagem: 'javascript' }
       });
     }
 
     for (const q of engQuest) {
-      await QuestaoIngles.findOrCreate({
+      await Questao.findOrCreate({
         where: { torneio_id: torneio.id, titulo: q.titulo },
-        defaults: { ...q, torneio_id: torneio.id }
+        defaults: { ...q, torneio_id: torneio.id, disciplina: 'ingles', tipo: 'multipla_escolha' }
       });
     }
 

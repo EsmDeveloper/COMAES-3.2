@@ -1,0 +1,148 @@
+{
+  "timestamp": "2026-05-22T11:40:46.495Z",
+  "tests": [
+    {
+      "name": "Questao.js carregado corretamente",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Contar questões na tabela",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Buscar questão por ID",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Buscar questões por disciplina",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Buscar questões por dificuldade",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Buscar questões por torneio",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Verificar campos obrigatórios",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Verificar distribuição por disciplina",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Verificar distribuição por tipo",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Verificar distribuição por dificuldade",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "ParticipanteTorneio carregado corretamente",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Contar participantes",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Buscar participante por torneio",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Verificar ranking por torneio",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "TentativaResposta carregado corretamente",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Contar tentativas de resposta",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Query: Questões por torneio e disciplina",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Query: Questões ordenadas por pontos",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Query: Paginação de questões",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Query: Questões com opções JSON",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Verificar se Questao.js é usado em runtime",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Verificar se tabelas legadas têm dados novos",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Simular: GET /api/questoes/quiz/matematica",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Simular: GET /api/questoes/torneio/3",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Simular: GET /api/ranking/torneio/3",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Verificar foreign keys de questoes",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "name": "Verificar foreign keys de participantes",
+      "status": "OK",
+      "error": null
+    }
+  ],
+  "risks": [],
+  "summary": {
+    "total_tests": 27,
+    "passed": 27,
+    "failed": 0,
+    "risks_found": 0,
+    "status": "OK"
+  }
+}

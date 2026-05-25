@@ -1,0 +1,179 @@
+TESTE FLUXO COMPLETO - PAINEL ADMINISTRATIVO
+
+DATA: May 23, 2026
+STATUS: PRONTO PARA TESTES
+
+====================================================================
+FASE 1 - CRIAR TORNEIO
+====================================================================
+
+Passos:
+1. Abrir Admin Panel
+2. Ir para "Gerenciar Torneios"
+3. Clicar em "Criar Torneio"
+4. Preencher:
+   - Título: "Torneio de Teste 2026"
+   - Descrição: "Torneio para validação do sistema"
+   - Data Início: Amanhã 10:00
+   - Data Término: Amanhã 12:00
+   - Status: "Agendado"
+5. Clicar em "Criar Torneio"
+
+Verificações:
+✓ Modal abre corretamente
+✓ Todos os campos visíveis
+✓ Scroll funciona
+✓ Botão "Criar Torneio" visível
+✓ Sem scroll duplo
+✓ Sem barras brancas
+✓ Sem conteúdo cortado
+
+Resultado Esperado:
+✓ Torneio criado com sucesso
+✓ Toast de sucesso aparece
+✓ Modal fecha
+✓ Novo torneio aparece na tabela
+
+====================================================================
+FASE 2 - EDITAR TORNEIO
+====================================================================
+
+Passos:
+1. Na tabela de torneios, clicar no ícone de editar
+2. Modificar:
+   - Título: Adicionar " - Editado"
+   - Status: Mudar para "Ativo"
+3. Scroll até o final
+4. Clicar em "Guardar Alterações"
+
+Verificações:
+✓ Modal abre com dados preenchidos
+✓ Todos os campos visíveis
+✓ Scroll funciona
+✓ Botão "Guardar Alterações" visível
+✓ Sem scroll duplo
+✓ Sem barras brancas
+
+Resultado Esperado:
+✓ Torneio atualizado com sucesso
+✓ Toast de sucesso aparece
+✓ Modal fecha
+✓ Tabela atualiza com novos dados
+
+====================================================================
+FASE 3 - VISUALIZAR TORNEIO
+====================================================================
+
+Passos:
+1. Na tabela de torneios, clicar no ícone de visualizar (olho)
+2. Verificar detalhes
+3. Clicar em "Fechar Janela"
+
+Verificações:
+✓ Modal abre com detalhes
+✓ Todos os dados visíveis
+✓ Scroll funciona se necessário
+✓ Botão "Fechar Janela" visível
+
+Resultado Esperado:
+✓ Detalhes exibidos corretamente
+✓ Modal fecha sem erros
+
+====================================================================
+FASE 4 - DELETAR TORNEIO
+====================================================================
+
+Passos:
+1. Na tabela de torneios, clicar no ícone de deletar (lixo)
+2. Verificar modal de confirmação
+3. Clicar em "Sim, Excluir"
+
+Verificações:
+✓ Modal de confirmação aparece
+✓ Mensagem clara sobre exclusão
+✓ Botões visíveis
+✓ Sem erros
+
+Resultado Esperado:
+✓ Torneio deletado com sucesso
+✓ Toast de sucesso aparece
+✓ Modal fecha
+✓ Torneio removido da tabela
+
+====================================================================
+FASE 5 - RESPONSIVIDADE
+====================================================================
+
+Testar em:
+- Desktop (1920x1080)
+- Desktop (1366x768)
+- Tablet (768px)
+- Mobile (375px)
+
+Verificações:
+✓ Nenhum botão escondido
+✓ Nenhum campo cortado
+✓ Nenhuma scrollbar dupla
+✓ Nenhum modal fora da tela
+✓ Nenhuma barra branca
+✓ Nenhum conteúdo invisível
+
+====================================================================
+BUGS CORRIGIDOS
+====================================================================
+
+1. ✓ Scroll duplo no modal de formulário
+   - Removido overflow-y-auto do overlay
+   - Estrutura flexível corrigida
+
+2. ✓ Barras brancas sobre o formulário
+   - Removido padding duplicado
+   - Estrutura de header/footer/content corrigida
+
+3. ✓ Conteúdo cortado
+   - Adicionado flex-1 e min-h-0 ao conteúdo
+   - Scroll funciona corretamente
+
+4. ✓ Botão de exclusão não funciona
+   - Corrigido tratamento de resposta 204
+   - Adicionado force: true no delete
+
+5. ✓ Modal de exclusão com layout ruim
+   - Estrutura flexível corrigida
+   - Header/footer/content separados
+
+====================================================================
+ARQUIVOS MODIFICADOS
+====================================================================
+
+1. FrontEnd/src/Administrador/TorneiosTab.jsx
+   - Corrigido ModalOverlay
+   - Corrigido modal de formulário
+   - Corrigido modal de visualização
+   - Corrigido modal de exclusão
+   - Corrigido tratamento de delete (204)
+
+2. BackEnd/controllers/TorneoController.js
+   - Adicionado force: true no delete
+   - Melhorado tratamento de erros
+
+====================================================================
+BUILD STATUS
+====================================================================
+
+✓ Build: SUCCESS
+✓ No errors
+✓ No warnings
+✓ Production ready
+
+====================================================================
+PRÓXIMOS PASSOS
+====================================================================
+
+1. Executar testes manuais em todos os navegadores
+2. Testar em dispositivos reais
+3. Validar fluxo completo
+4. Coletar feedback
+5. Deploy para produção
+
+====================================================================

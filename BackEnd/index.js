@@ -18,23 +18,32 @@ import ConfiguracaoUsuario from "./models/ConfiguracaoUsuario.js";
 import Torneio from "./models/Torneio.js";
 import ParticipanteTorneio from "./models/ParticipanteTorneio.js";
 import Noticia from "./models/Noticia.js";
-import Pergunta from "./models/Pergunta.js";
-import QuestaoMatematica from "./models/QuestaoMatematica.js";
-import QuestaoProgramacao from "./models/QuestaoProgramacao.js";
-import QuestaoIngles from "./models/QuestaoIngles.js";
+import Questao from "./models/Questao.js";
 import TentativaTeste from "./models/TentativaTeste.js";
+import TentativaResposta from "./models/TentativaResposta.js";
 import TicketSuporte from "./models/TicketSuporte.js";
 import Notificacao from "./models/Notificacao.js";
 import Conquista from "./models/Conquista.js";
 import ConquistaUsuario from "./models/ConquistaUsuario.js";
 import Certificate from "./models/Certificate.js";
 import Certificado from "./models/Certificado.js";
+
+// ===== CONFIGURAR ASSOCIA��ES ANTES DE IMPORTAR ROTAS =====
+// CR�TICO: Este import deve vir ANTES das rotas para garantir que
+// as associa��es estejam dispon�veis quando os controllers forem carregados
+import './models/associations.js';
+
+// ===== IMPORTAR SERVIÇOS E ROTAS =====
 import iaEvaluators from './services/iaEvaluators.js';
 import adminPanelRoutes from './routes/adminPanelRoutes.js';
 import certificatesRoutes from './routes/certificatesRoutes.js';
 import tournamentsRoutes from './routes/tournamentsRoutes.js';
 import notificacoesRoutes from './routes/notificacoesRoutes.js';
+import questoesRoutesRefactored from './routes/questoesRoutesRefactored.js';
+import tentativasRoutes from './routes/tentativasRoutes.js';
+import testeConhecimentoRoutes from './routes/testeConhecimentoRoutes.js';
 import { sendResetEmail, sendWelcomeEmail } from './services/emailService.js';
+import { setIO } from './services/socketService.js';
 import auth from './middlewares/auth.js';
 import isAdmin from './middlewares/isAdmin.js';
 import { baseSanitizer } from './middlewares/security/sanitizer.js';
@@ -48,13 +57,19 @@ const port = process.env.PORT || 3000;
 let io = null; // inicializado no startServer
 
 // ===== MIDDLEWARES CORRIGIDOS =====
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Force UTF-8 encoding for all responses
+app.use((req, res, next) => {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  next();
+});
 
-// Global sanitizer � strips NoSQL injection keys and normalizes strings
+app.use(express.json({ charset: 'utf-8' }));
+app.use(express.urlencoded({ extended: true, charset: 'utf-8' }));
+
+// Global sanitizer - strips NoSQL injection keys and normalizes strings
 app.use(baseSanitizer);
 
-// Configura��o CORS completa para permitir requisi��es do frontend
+// Configuracao CORS completa para permitir requisicoes do frontend
 app.use(cors({
   origin: true, // Permitir todas as origens na rede local
   credentials: true,
@@ -230,111 +245,17 @@ const createNotificationForAllUsers = async ({ tipo = 'geral', titulo, mensagem,
   return payload.length;
 };
 
-const ensureQuizQuestions = async (area) => {
-  const normalizedArea = resolveQuizArea(area);
-  if (!normalizedArea) {
-    throw new Error('�rea de perguntas inv�lida.');
-  }
+// ?? FUN��O LEGADA REMOVIDA EM FASE 3 (2026-05-22):
+// ensureQuizQuestions() - usava modelo Pergunta descontinuado
+// Substitu�da por: QuestoesController.carregarQuiz() que usa Questao.js
 
-  const tipo = normalizedArea === 'cultura_geral' ? 'multipla_escolha' : normalizedArea;
-  const existingCount = await Pergunta.count({ where: { tipo } });
-  if (existingCount > 0) return;
-
-  const defaults = DEFAULT_QUIZ_QUESTIONS[normalizedArea] || [];
-  if (!defaults.length) return;
-
-  await Pergunta.bulkCreate(defaults.map((question, index) => ({
-    ordem_indice: index + 1,
-    tipo,
-    texto_pergunta: question.texto_pergunta,
-    opcao_a: question.opcao_a,
-    opcao_b: question.opcao_b,
-    opcao_c: question.opcao_c,
-    opcao_d: question.opcao_d,
-    resposta_correta: question.resposta_correta,
-    pontos: 10,
-    midia: null
-  })));
-};
 
 // ===== ASSOCIA��ES DO SEQUELIZE =====
-const setupAssociations = () => {
-  // Usuario <-> Funcao
-  Funcao.hasMany(Usuario, { foreignKey: 'funcao_id', as: 'usuarios' });
-  Usuario.belongsTo(Funcao, { foreignKey: 'funcao_id', as: 'funcao' });
+// ===== ASSOCIA��ES DO SEQUELIZE =====
+// MOVIDAS PARA: models/associations.js
+// As associa��es s�o configuradas automaticamente quando o arquivo � importado
+// no topo deste arquivo, ANTES das rotas serem carregadas.
 
-  // Usuario <-> RedefinicaoSenha
-  Usuario.hasMany(RedefinicaoSenha, { foreignKey: 'usuario_id', as: 'redefinicoes' });
-  RedefinicaoSenha.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
-
-  // Usuario <-> ConfiguracaoUsuario (1:1)
-  Usuario.hasOne(ConfiguracaoUsuario, { foreignKey: 'usuario_id', as: 'configuracao' });
-  ConfiguracaoUsuario.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
-
-  // Torneio <-> Usuario (criador)
-  Usuario.hasMany(Torneio, { foreignKey: 'criado_por', as: 'torneiosCriados' });
-  Torneio.belongsTo(Usuario, { foreignKey: 'criado_por', as: 'criador' });
-
-  // Torneio <-> ParticipanteTorneio
-  Torneio.hasMany(ParticipanteTorneio, { foreignKey: 'torneio_id', as: 'participantes' });
-  ParticipanteTorneio.belongsTo(Torneio, { foreignKey: 'torneio_id', as: 'torneio' });
-
-  // ParticipanteTorneio <-> Usuario
-  Usuario.hasMany(ParticipanteTorneio, { foreignKey: 'usuario_id', as: 'torneios' });
-  ParticipanteTorneio.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
-
-  // Noticia <-> Usuario (autor)
-  Usuario.hasMany(Noticia, { foreignKey: 'autor_id', as: 'noticias' });
-  Noticia.belongsTo(Usuario, { foreignKey: 'autor_id', as: 'autor' });
-
-  // Torneio <-> QuestãoMatematica
-  Torneio.hasMany(QuestaoMatematica, { foreignKey: 'torneio_id', as: 'questoesMat' });
-  QuestaoMatematica.belongsTo(Torneio, { foreignKey: 'torneio_id', as: 'torneio' });
-
-  // Torneio <-> QuestaoProgramacao
-  Torneio.hasMany(QuestaoProgramacao, { foreignKey: 'torneio_id', as: 'questoesProg' });
-  QuestaoProgramacao.belongsTo(Torneio, { foreignKey: 'torneio_id', as: 'torneio' });
-
-  // Torneio <-> QuestaoIngles
-  Torneio.hasMany(QuestaoIngles, { foreignKey: 'torneio_id', as: 'questoesEng' });
-  QuestaoIngles.belongsTo(Torneio, { foreignKey: 'torneio_id', as: 'torneio' });
-
-  // TentativaTeste <-> Usuario
-  Usuario.hasMany(TentativaTeste, { foreignKey: 'usuario_id', as: 'tentativas' });
-  TentativaTeste.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
-
-  // TicketSuporte <-> Usuario (autor)
-  Usuario.hasMany(TicketSuporte, { foreignKey: 'usuario_id', as: 'ticketsEnviados' });
-  TicketSuporte.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario', onDelete: 'SET NULL' });
-
-  // TicketSuporte <-> Usuario (atribuído_para)
-  Usuario.hasMany(TicketSuporte, { foreignKey: 'atribuido_para', as: 'ticketsAtribuidos' });
-  TicketSuporte.belongsTo(Usuario, { foreignKey: 'atribuido_para', as: 'atribuido', onDelete: 'SET NULL' });
-
-  // Notificacao <-> Usuario
-  Usuario.hasMany(Notificacao, { foreignKey: 'usuario_id', as: 'notificacoes' });
-  Notificacao.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
-
-  // ConquistaUsuario <-> Usuario
-  Usuario.hasMany(ConquistaUsuario, { foreignKey: 'usuario_id', as: 'conquistas' });
-  ConquistaUsuario.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
-
-  // ConquistaUsuario <-> Conquista
-  Conquista.hasMany(ConquistaUsuario, { foreignKey: 'conquista_id', as: 'usuarios' });
-  ConquistaUsuario.belongsTo(Conquista, { foreignKey: 'conquista_id', as: 'conquista' });
-
-  // ConquistaUsuario <-> Usuario (concedido_por)
-  Usuario.hasMany(ConquistaUsuario, { foreignKey: 'concedido_por', as: 'conquistasConcedidas' });
-  ConquistaUsuario.belongsTo(Usuario, { foreignKey: 'concedido_por', as: 'concedidoPor', onDelete: 'SET NULL' });
-
-  // Certificate <-> Usuario
-  Usuario.hasMany(Certificate, { foreignKey: 'user_id', as: 'certificates' });
-  Certificate.belongsTo(Usuario, { foreignKey: 'user_id', as: 'user' });
-
-  // Certificate <-> Torneio
-  Torneio.hasMany(Certificate, { foreignKey: 'tournament_id', as: 'certificates' });
-  Certificate.belongsTo(Torneio, { foreignKey: 'tournament_id', as: 'tournament' });
-};
 
 // ===== ROTAS PÚBLICAS =====
 app.get("/", async (req, res) => {
@@ -356,9 +277,18 @@ app.use('/api/certificates', certificatesRoutes);
 // Registrar rotas de torneios e ranking
 app.use('/api/tournaments', tournamentsRoutes);
 
+// Registrar rotas de questões (especializado - REFATORADO para Questao.js)
+app.use('/api/questoes', questoesRoutesRefactored);
+
+// Registrar rotas de tentativas (persistência de respostas)
+app.use('/api/tentativas', tentativasRoutes);
+
+// Registrar rotas do Teste de Conhecimento (sistema independente)
+app.use('/api/teste-conhecimento', testeConhecimentoRoutes);
+
 // Registrar rotas de notificações
-app.use('/notificacoes', notificacoesRoutes);
-app.use('/usuarios/:usuarioId/notificacoes', notificacoesRoutes);
+app.use('/api/notificacoes', notificacoesRoutes);
+app.use('/api/usuarios/:usuarioId/notificacoes', notificacoesRoutes);
 
 app.get("/health", async (req, res) => {
   try {
@@ -430,39 +360,48 @@ app.post('/auth/login', validate(rules.login), async (req, res) => {
   try {
     const { usuario, senha } = req.body;
 
-    console.log('🔑 Tentativa de login:', { usuario, senha: '***' });
+    console.log('Login attempt:', { usuario, senha: '***' });
 
     if (!usuario || !senha) {
       return res.status(400).json({
         success: false,
-        error: 'Usuário e senha são obrigatórios.'
+        error: 'Usuario e senha sao obrigatorios.'
       });
     }
 
-    // Buscar usuário por email OU telefone
-    const user = await Usuario.unscoped().findOne({
-      where: {
-        [Op.or]: [
-          { email: usuario },
-          { telefone: usuario }
-        ]
-      }
-    });
+    // Buscar usuario por email OU telefone
+    let user;
+    try {
+      user = await Usuario.unscoped().findOne({
+        where: {
+          [Op.or]: [
+            { email: usuario.toLowerCase() },
+            { telefone: usuario }
+          ]
+        }
+      });
+    } catch (dbError) {
+      console.error('Erro de banco de dados no login:', dbError.message);
+      return res.status(503).json({
+        success: false,
+        error: 'Servico temporariamente indisponivel. Tente novamente.'
+      });
+    }
 
     if (!user) {
-      console.log('❌ Usuário não encontrado:', usuario);
+      console.log('Usuario nao encontrado:', usuario);
       return res.status(401).json({
         success: false,
-        error: 'Usuário ou senha inválidos.'
+        error: 'Usuario ou senha invalidos.'
       });
     }
 
     const match = await bcrypt.compare(senha, user.password);
     if (!match) {
-      console.log('❌ Senha inválida para usuário:', usuario);
+      console.log('Senha invalida para usuario:', usuario);
       return res.status(401).json({
         success: false,
-        error: 'Usuário ou senha inválidos.'
+        error: 'Usuario ou senha invalidos.'
       });
     }
 
@@ -480,22 +419,26 @@ app.post('/auth/login', validate(rules.login), async (req, res) => {
     // Remover senha do objeto de retorno
     const { password, ...userSafe } = user.get({ plain: true });
 
-    console.log('✅ Login bem-sucedido para:', user.email);
+    console.log('Login bem-sucedido para:', user.email);
 
-    // Emitir estatísticas de login e atualizar total (garante sincronia)
+    // Emitir estatisticas de login e atualizar total
     if (io) {
-      const totalUsuarios = await Usuario.count();
-      io.emit('stats_update', { totalUsuarios });
-      io.emit('login_update', { userId: user.id, username: user.nome });
+      try {
+        const totalUsuarios = await Usuario.count();
+        io.emit('stats_update', { totalUsuarios });
+        io.emit('login_update', { userId: user.id, username: user.nome });
+      } catch (socketError) {
+        console.warn('Erro ao emitir evento socket (nao afeta login):', socketError.message);
+      }
     }
 
-    // Enviar e-mail de boas-vindas de forma assíncrona (não bloqueia o login)
+    // Enviar e-mail de boas-vindas de forma assincrona (nao bloqueia o login)
     setImmediate(async () => {
       try {
         await sendWelcomeEmail(user.email, user.nome);
-        console.log('📧 Email de boas-vindas enviado para:', user.email);
+        console.log('Email de boas-vindas enviado para:', user.email);
       } catch (emailError) {
-        console.error('⚠️ Erro ao enviar email de boas-vindas (não afeta login):', emailError.message);
+        console.warn('Erro ao enviar email de boas-vindas (nao afeta login):', emailError.message);
       }
     });
 
@@ -505,7 +448,7 @@ app.post('/auth/login', validate(rules.login), async (req, res) => {
       token
     });
   } catch (error) {
-    console.error('❌ Erro no login:', error);
+    console.error('Erro inesperado no login:', error);
     res.status(500).json({
       success: false,
       error: 'Erro interno no servidor.'
@@ -1775,7 +1718,7 @@ app.get('/usuarios/:id/participacoes', async (req, res) => {
 // ===== CRUD TORNEIOS =====
 app.get('/torneios', async (req, res) => {
   try {
-    const torneios = await Torneio.findAll({ include: ['criador', 'participantes'] });
+    const torneios = await Torneio.findAll({ include: [{ model: Usuario, as: 'criador' }, { model: ParticipanteTorneio, as: 'participantes' }] });
     res.json({ success: true, data: torneios });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -1784,7 +1727,7 @@ app.get('/torneios', async (req, res) => {
 
 app.get('/torneios/:id', async (req, res) => {
   try {
-    const torneio = await Torneio.findByPk(req.params.id, { include: ['criador', 'participantes'] });
+    const torneio = await Torneio.findByPk(req.params.id, { include: [{ model: Usuario, as: 'criador' }, { model: ParticipanteTorneio, as: 'participantes' }] });
     if (!torneio) return res.status(404).json({ success: false, error: 'Torneio não encontrado.' });
     res.json({ success: true, data: torneio });
   } catch (error) {
@@ -1841,7 +1784,7 @@ app.post('/torneios/:id/join', async (req, res) => {
 app.get('/torneios/:id/participantes', async (req, res) => {
   try {
     const torneioId = req.params.id;
-    const participantes = await ParticipanteTorneio.findAll({ where: { torneio_id: torneioId }, include: ['usuario'] });
+    const participantes = await ParticipanteTorneio.findAll({ where: { torneio_id: torneioId }, include: [{ model: Usuario, as: 'usuario' }] });
     res.json({ success: true, data: participantes });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -1851,12 +1794,16 @@ app.get('/torneios/:id/participantes', async (req, res) => {
 app.get('/torneios/:id/questoes/matematica', async (req, res) => {
   try {
     const torneioId = req.params.id;
-    const questoes = await QuestaoMatematica.findAll({
-      where: { torneio_id: torneioId },
-      attributes: ['id', 'titulo', 'descricao', 'dificuldade', 'pontos', 'opcoes', 'midia']
+    const questoes = await Questao.findAll({
+      where: { 
+        torneio_id: torneioId,
+        disciplina: 'matematica'
+      },
+      attributes: ['id', 'titulo', 'descricao', 'dificuldade', 'pontos', 'opcoes', 'midia', 'tipo', 'resposta_correta', 'explicacao']
     });
     res.json({ success: true, data: questoes });
   } catch (error) {
+    console.error('Erro ao buscar questões de matemática:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -1864,12 +1811,16 @@ app.get('/torneios/:id/questoes/matematica', async (req, res) => {
 app.get('/torneios/:id/questoes/programacao', async (req, res) => {
   try {
     const torneioId = req.params.id;
-    const questoes = await QuestaoProgramacao.findAll({
-      where: { torneio_id: torneioId },
-      attributes: ['id', 'titulo', 'descricao', 'dificuldade', 'pontos', 'opcoes', 'midia', 'linguagem']
+    const questoes = await Questao.findAll({
+      where: { 
+        torneio_id: torneioId,
+        disciplina: 'programacao'
+      },
+      attributes: ['id', 'titulo', 'descricao', 'dificuldade', 'pontos', 'opcoes', 'midia', 'linguagem', 'tipo', 'resposta_correta', 'explicacao']
     });
     res.json({ success: true, data: questoes });
   } catch (error) {
+    console.error('Erro ao buscar questões de programação:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -1877,12 +1828,16 @@ app.get('/torneios/:id/questoes/programacao', async (req, res) => {
 app.get('/torneios/:id/questoes/ingles', async (req, res) => {
   try {
     const torneioId = req.params.id;
-    const questoes = await QuestaoIngles.findAll({
-      where: { torneio_id: torneioId },
-      attributes: ['id', 'titulo', 'descricao', 'dificuldade', 'pontos', 'opcoes', 'midia']
+    const questoes = await Questao.findAll({
+      where: { 
+        torneio_id: torneioId,
+        disciplina: 'ingles'
+      },
+      attributes: ['id', 'titulo', 'descricao', 'dificuldade', 'pontos', 'opcoes', 'midia', 'tipo', 'resposta_correta', 'explicacao']
     });
     res.json({ success: true, data: questoes });
   } catch (error) {
+    console.error('Erro ao buscar questões de inglês:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -1951,97 +1906,10 @@ app.get('/torneios/:id/ranking', async (req, res) => {
 });
 
 
-app.get('/perguntas/:area', async (req, res) => {
-  try {
-    const normalizedArea = resolveQuizArea(req.params.area);
-    if (!normalizedArea) {
-      return res.status(400).json({ success: false, error: '�rea inv�lida.' });
-    }
-
-    await ensureQuizQuestions(normalizedArea);
-
-    const tipo = normalizedArea === 'cultura_geral' ? 'multipla_escolha' : normalizedArea;
-    const perguntas = await Pergunta.findAll({
-      where: { tipo },
-      order: [['ordem_indice', 'ASC']],
-      limit: 20
-    });
-
-    res.json({ success: true, area: normalizedArea, total: perguntas.length, data: perguntas });
-  } catch (error) {
-    console.error('Erro ao carregar perguntas:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Novo endpoint para quiz com quest�es ordenadas por dificuldade e aleat�rias
-app.get('/api/quiz/:area', async (req, res) => {
-  try {
-    const { area } = req.params;
-    const { limit = 10 } = req.query;
-
-    // Mapear �rea
-    const areaMap = {
-      'matematica': 'matematica',
-      'ingles': 'ingles',
-      'programacao': 'programacao'
-    };
-
-    const tipo = areaMap[area.toLowerCase()];
-    if (!tipo) {
-      return res.status(400).json({ success: false, error: '�rea inv�lida. Use: matematica, ingles ou programacao' });
-    }
-
-    // Buscar quest�es ordenadas por dificuldade (f�cil -> m�dio -> dif�cil)
-    const questoes = await Pergunta.findAll({
-      where: { tipo },
-      order: [
-        [sequelize.literal("CASE WHEN dificuldade = 'facil' THEN 1 WHEN dificuldade = 'medio' THEN 2 ELSE 3 END"), 'ASC'],
-        [sequelize.fn('RAND')]
-      ],
-      limit: Math.min(parseInt(limit), 20),
-      attributes: ['id', 'texto_pergunta', 'opcao_a', 'opcao_b', 'opcao_c', 'opcao_d', 'resposta_correta', 'dificuldade']
-    });
-
-    if (questoes.length === 0) {
-      return res.status(404).json({ success: false, error: 'Nenhuma quest�o encontrada para esta �rea' });
-    }
-
-    // Embaralhar op��es de cada quest�o
-    const questoesProcessadas = questoes.map(q => {
-      const opcoes = [
-        { texto: q.opcao_a, correta: q.resposta_correta === 'a' },
-        { texto: q.opcao_b, correta: q.resposta_correta === 'b' },
-        { texto: q.opcao_c, correta: q.resposta_correta === 'c' },
-        { texto: q.opcao_d, correta: q.resposta_correta === 'd' }
-      ];
-
-      // Fisher-Yates shuffle
-      for (let i = opcoes.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [opcoes[i], opcoes[j]] = [opcoes[j], opcoes[i]];
-      }
-
-      return {
-        id: q.id,
-        questao: q.texto_pergunta,
-        opcoes: opcoes.map(o => o.texto),
-        respostaCorreta: opcoes.findIndex(o => o.correta),
-        dificuldade: q.dificuldade
-      };
-    });
-
-    res.json({
-      success: true,
-      area: tipo,
-      total: questoesProcessadas.length,
-      data: questoesProcessadas
-    });
-  } catch (error) {
-    console.error('Erro ao carregar quiz:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
+// ⚠️ ROTAS LEGADAS REMOVIDAS EM FASE 3 (2026-05-22):
+// - GET /perguntas/:area (usava modelo Pergunta descontinuado)
+// - GET /api/quiz/:area (usava modelo Pergunta descontinuado)
+// Substituídas por: GET /api/questoes/quiz/:area (usa Questao.js)
 
 app.post('/noticias', auth, isAdmin, async (req, res) => {
   try {
@@ -2199,25 +2067,25 @@ app.post('/api/torneios/:id/finalizar', async (req, res) => {
 // ===== INICIALIZAÇÃO =====
 async function startServer() {
   try {
-    console.log("🔄 Inicializando servidor...");
-    // Testar conexão com banco (não fatal)
+    console.log("Inicializando servidor...");
+
+    // Associations are configured in models/associations.js (imported at top of file)
+    // No need to call setupAssociations() here anymore
+
+    // Testar conexao com banco (nao fatal)
     let dbConnected = false;
     try {
       dbConnected = await testConnection();
       if (dbConnected) {
-        console.log("✅ Banco de dados conectado!");
-
-        // Setup associações
-        setupAssociations();
-
+        console.log("Banco de dados conectado!");
         // Sincronizar modelos
         await sequelize.sync({ alter: false });
-        console.log("✅ Modelos sincronizados!");
+        console.log("Modelos sincronizados!");
       } else {
-        console.warn('⚠️ Banco de dados indisponível — iniciando em modo degradado (sem sincronização)');
+        console.warn("Banco de dados indisponivel - iniciando em modo degradado (sem sincronizacao)");
       }
     } catch (dbErr) {
-      console.warn('⚠️ Falha ao testar/sincronizar banco — iniciando em modo degradado', dbErr?.message || dbErr);
+      console.warn("Falha ao testar/sincronizar banco - iniciando em modo degradado", dbErr?.message || dbErr);
       dbConnected = false;
     }
 
@@ -2242,6 +2110,10 @@ async function startServer() {
           console.log('📴 Socket desconectado:', socket.id, reason);
         });
       });
+      
+      // Registrar instância no socketService
+      setIO(io);
+      
       console.log('✅ Socket.IO inicializado (realtime habilitado)');
     } catch (e) {
       console.warn('⚠️ Socket.IO não disponível — realtime desativado. Instale "socket.io" para habilitar.');
@@ -2262,6 +2134,8 @@ async function startServer() {
 }
 
 startServer();
+
+
 
 
 

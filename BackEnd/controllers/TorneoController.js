@@ -11,7 +11,9 @@ export const TorneoController = {
                 include: [
                     { model: Usuario, as: 'criador', attributes: ['id', 'nome', 'email'] },
                     { model: ParticipanteTorneio, as: 'participantes', attributes: ['id', 'usuario_id', 'disciplina_competida', 'status'] }
-                ]
+                ],
+                raw: false,
+                subQuery: false
             });
             res.status(200).json(torneos);
         } catch (error) {
@@ -352,13 +354,32 @@ export const TorneoController = {
         try {
             const { id } = req.params;
             
-            const deleted = await Torneio.destroy({ where: { id } });
+            // Verificar se torneio existe
+            const torneio = await Torneio.findByPk(id);
+            if (!torneio) {
+                return res.status(404).json({ message: 'Torneio não encontrado' });
+            }
+            
+            // Deletar com cascade (sem force, deixar o banco fazer o cascade)
+            const deleted = await Torneio.destroy({ 
+                where: { id }
+            });
+            
             if (deleted) {
                 res.status(204).send();
             } else {
                 res.status(404).json({ message: 'Torneio não encontrado' });
             }
         } catch (error) {
+            console.error('Erro ao deletar torneio:', error);
+            
+            // Tratamento específico para erros de constraint
+            if (error.name === 'SequelizeForeignKeyConstraintError') {
+                return res.status(409).json({ 
+                    message: 'Não é possível deletar este torneio pois existem participantes ou dados associados. Remova-os primeiro.' 
+                });
+            }
+            
             res.status(500).json({ message: 'Erro ao deletar torneio', error: error.message });
         }
     }

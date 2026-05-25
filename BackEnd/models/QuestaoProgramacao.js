@@ -23,6 +23,7 @@ const QuestaoProgramacao = sequelize.define('QuestaoProgramacao', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: { model: 'torneios', key: 'id' },
+    onDelete: 'CASCADE'
   },
   resposta_correta: {
     type: DataTypes.TEXT,

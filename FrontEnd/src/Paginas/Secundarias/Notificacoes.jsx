@@ -13,7 +13,7 @@ import {
 import { FaTrophy, FaUsers, FaCalendarAlt, FaBell } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
 
-export default function NotificacoesModal({ isOpen, onClose }) {
+export default function NotificacoesModal({ isOpen, onClose, onNotificationRead, onAllRead }) {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -41,7 +41,7 @@ export default function NotificacoesModal({ isOpen, onClose }) {
     
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/usuarios/${user.id}/notificacoes`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/notificacoes/usuario/${user.id}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('comaes_token')}`
         }
@@ -60,8 +60,7 @@ export default function NotificacoesModal({ isOpen, onClose }) {
             message,
             read: Boolean(n.lido),
             type: n.tipo || "geral",
-            time: formatTime(n.criado_em),
-            icon: getIconForType(n.tipo),
+            time: n.criado_em,
             criado_em: n.criado_em
           };
         });
@@ -118,8 +117,12 @@ export default function NotificacoesModal({ isOpen, onClose }) {
   };
 
   const marcarComoLida = async (id) => {
+    // Verificar se já está lida para não decrementar o contador desnecessariamente
+    const notif = notifications.find(n => n.id === id);
+    if (notif && notif.read) return;
+
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/notificacoes/${id}/lido`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/notificacoes/${id}/lido`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('comaes_token')}`
@@ -128,11 +131,14 @@ export default function NotificacoesModal({ isOpen, onClose }) {
       const data = await response.json();
       if (data.success) {
         setNotifications(prev => 
-          prev.map(notif => 
-            notif.id === id ? { ...notif, read: true } : notif
-          )
+          prev.map(n => n.id === id ? { ...n, read: true } : n)
         );
         setUnreadCount(prev => Math.max(0, prev - 1));
+        
+        // Notificar o Layout para atualizar o contador
+        if (onNotificationRead) {
+          onNotificationRead();
+        }
       }
     } catch (error) {
       console.error("Erro ao marcar como lida:", error);
@@ -141,7 +147,7 @@ export default function NotificacoesModal({ isOpen, onClose }) {
 
   const marcarTodasComoLidas = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/usuarios/${user.id}/notificacoes/lido-todas`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/notificacoes/usuario/${user.id}/lido-todas`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('comaes_token')}`
@@ -153,6 +159,11 @@ export default function NotificacoesModal({ isOpen, onClose }) {
           prev.map(notif => ({ ...notif, read: true }))
         );
         setUnreadCount(0);
+        
+        // Notificar o Layout para zerar o contador
+        if (onAllRead) {
+          onAllRead();
+        }
       }
     } catch (error) {
       console.error("Erro ao marcar todas como lidas:", error);

@@ -1,7 +1,9 @@
 import express from 'express';
 import Notificacao from '../models/Notificacao.js';
 import Usuario from '../models/User.js';
-import { auth, isAdmin } from '../middlewares/auth.js';
+import auth from '../middlewares/auth.js';
+import isAdmin from '../middlewares/isAdmin.js';
+import { emitNotificacao, emitNotificacoes } from '../services/socketService.js';
 
 const router = express.Router();
 
@@ -189,15 +191,19 @@ router.post('/', auth, isAdmin, async (req, res) => {
       const payload = users.map(user => ({
         usuario_id: user.id,
         tipo,
-        conteudo: JSON.stringify({
+        conteudo: {
           titulo: titulo.trim(),
           mensagem: mensagem.trim(),
           ...extras
-        }),
+        },
         lido: false
       }));
 
-      await Notificacao.bulkCreate(payload);
+      const notificacoes = await Notificacao.bulkCreate(payload, { returning: true });
+      
+      // Emitir via Socket.IO
+      emitNotificacoes(notificacoes);
+
       return res.status(201).json({ 
         success: true, 
         message: `${payload.length} notificações criadas com sucesso.`,
@@ -210,15 +216,19 @@ router.post('/', auth, isAdmin, async (req, res) => {
       const payload = usuarios_ids.map(uid => ({
         usuario_id: uid,
         tipo,
-        conteudo: JSON.stringify({
+        conteudo: {
           titulo: titulo.trim(),
           mensagem: mensagem.trim(),
           ...extras
-        }),
+        },
         lido: false
       }));
 
-      await Notificacao.bulkCreate(payload);
+      const notificacoes = await Notificacao.bulkCreate(payload, { returning: true });
+      
+      // Emitir via Socket.IO
+      emitNotificacoes(notificacoes);
+
       return res.status(201).json({ 
         success: true, 
         message: `${payload.length} notificações criadas com sucesso.`,
@@ -236,12 +246,21 @@ router.post('/', auth, isAdmin, async (req, res) => {
       const notificacao = await Notificacao.create({
         usuario_id,
         tipo,
-        conteudo: JSON.stringify({
+        conteudo: {
           titulo: titulo.trim(),
           mensagem: mensagem.trim(),
           ...extras
-        }),
+        },
         lido: false
+      });
+
+      // Emitir via Socket.IO
+      emitNotificacao(usuario_id, {
+        id: notificacao.id,
+        tipo: notificacao.tipo,
+        conteudo: notificacao.conteudo,
+        lido: notificacao.lido,
+        criado_em: notificacao.criado_em
       });
 
       return res.status(201).json({ 

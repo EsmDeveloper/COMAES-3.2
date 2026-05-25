@@ -59,13 +59,25 @@ export const getById = async (req, res) => {
     }
 };
 
+// Helper: gera slug a partir de uma string
+const buildSlug = (value = '') =>
+    value
+        .toString()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 120);
+
 export const create = async (req, res) => {
     try {
         const { Model } = req;
+        let body = { ...req.body };
         
         // Validação centralizada para o modelo Usuario
         if (Model.name === 'Usuario') {
-            const { nome, email, password } = req.body;
+            const { nome, email, password } = body;
             const validation = validateUserData({ nome, email, password });
             
             if (!validation.valid) {
@@ -75,8 +87,53 @@ export const create = async (req, res) => {
                 });
             }
         }
+
+        // Tratamento especial para Noticia:
+        // - autor_id deve vir do token JWT (req.user), não do body
+        // - slug deve ser gerado automaticamente a partir do titulo
+        // - tags devem ser normalizadas para array
+        if (Model.name === 'Noticia') {
+            // Injetar autor_id do usuário autenticado
+            if (req.user && req.user.id) {
+                body.autor_id = req.user.id;
+            } else {
+                return res.status(401).json({ message: 'Usuário não autenticado.' });
+            }
+
+            // Gerar slug único a partir do titulo
+            if (body.titulo) {
+                let baseSlug = buildSlug(body.titulo);
+                let slug = baseSlug;
+                let counter = 1;
+                // Garantir unicidade do slug
+                while (true) {
+                    const existing = await Model.findOne({ where: { slug } });
+                    if (!existing) break;
+                    slug = `${baseSlug}-${counter++}`;
+                }
+                body.slug = slug;
+            } else {
+                return res.status(400).json({ message: 'O título é obrigatório para criar uma notícia.' });
+            }
+
+            // Normalizar tags para array
+            if (body.tags !== undefined) {
+                if (Array.isArray(body.tags)) {
+                    body.tags = body.tags.map(t => String(t).trim()).filter(Boolean);
+                } else if (typeof body.tags === 'string' && body.tags.trim()) {
+                    body.tags = body.tags.split(',').map(t => t.trim()).filter(Boolean);
+                } else {
+                    body.tags = [];
+                }
+            }
+
+            // Definir publicado_em se publicado=true e não foi fornecido
+            if (body.publicado && !body.publicado_em) {
+                body.publicado_em = new Date();
+            }
+        }
         
-        const newRecord = await Model.create(req.body);
+        const newRecord = await Model.create(body);
         res.status(201).json(newRecord);
     } catch (error) {
         // Tratamento de erros de validação do Sequelize

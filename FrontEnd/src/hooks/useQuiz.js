@@ -1,4 +1,4 @@
-// src/hooks/useQuiz.js
+﻿// src/hooks/useQuiz.js
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { evaluateOpenAnswer } from '../utils/evaluation';
 
@@ -53,13 +53,13 @@ export const useQuiz = (areaKey, options = {}) => {
 
     try {
       const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
-      const resp = await fetch(`${apiBase}/api/quiz/${area}?limit=${questionLimit}`, {
+      const resp = await fetch(`${apiBase}/api/questoes/quiz/${area}?limit=${questionLimit}`, {
         signal: controller.signal,
       });
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const json = await resp.json();
-      if (!json.success) throw new Error(json.error ?? 'Falha ao obter questões');
-      if (!Array.isArray(json.data)) throw new Error('Dados inválidos');
+      if (!json.success) throw new Error(json.error ?? 'Falha ao obter questÃµes');
+      if (!Array.isArray(json.data)) throw new Error('Dados invÃ¡lidos');
 
       const processed = json.data.map((q, i) => ({
         id: q.id ?? `${area}-${i}`,
@@ -268,7 +268,7 @@ export const useQuiz = (areaKey, options = {}) => {
   const percent = maxScore ? Math.round((totalScore / maxScore) * 100) : 0;
   const correctCount = answers.filter(a => a.correta === true).length;
   const wrongCount = answers.filter(a => a.correta === false).length;
-  const classification = percent >= 90 ? 'Avançado' : percent >= 70 ? 'Intermediário' : percent >= 50 ? 'Iniciante' : 'Iniciante (continuação)';
+  const classification = percent >= 90 ? 'AvanÃ§ado' : percent >= 70 ? 'IntermediÃ¡rio' : percent >= 50 ? 'Iniciante' : 'Iniciante (continuaÃ§Ã£o)';
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -310,3 +310,4 @@ export const useQuiz = (areaKey, options = {}) => {
     progress,
   };
 };
+

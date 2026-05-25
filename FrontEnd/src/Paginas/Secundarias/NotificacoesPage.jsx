@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { FaTrophy, FaUsers, FaCalendarAlt, FaBell } from 'react-icons/fa';
 import { IoSparkles, IoMedal, IoTime } from 'react-icons/io5';
+import ConfirmModal from '../../components/ConfirmModal';
 
 export default function NotificacoesPage() {
   const { user } = useAuth();
@@ -23,6 +24,8 @@ export default function NotificacoesPage() {
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [notificationToDelete, setNotificationToDelete] = useState(null);
 
   const notificationTypes = [
     { value: 'geral', label: 'Geral', color: 'bg-gray-500', icon: FaBell },
@@ -124,8 +127,6 @@ export default function NotificacoesPage() {
   };
 
   const deleteNotification = async (id) => {
-    if (!window.confirm('Tem certeza que deseja deletar esta notificação?')) return;
-
     try {
       const response = await fetch(
         `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/admin/notificacao/${id}`,
@@ -385,7 +386,10 @@ export default function NotificacoesPage() {
                         )}
                       </button>
                       <button
-                        onClick={() => deleteNotification(notif.id)}
+                        onClick={() => {
+                          setNotificationToDelete(notif);
+                          setShowDeleteModal(true);
+                        }}
                         className="p-2 hover:bg-red-100 rounded-lg transition-colors"
                         title="Deletar"
                       >
@@ -398,6 +402,25 @@ export default function NotificacoesPage() {
             })
           )}
         </div>
+
+        {/* Modal de Confirmação */}
+        <ConfirmModal
+          isOpen={showDeleteModal}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setNotificationToDelete(null);
+          }}
+          onConfirm={() => {
+            if (notificationToDelete) {
+              deleteNotification(notificationToDelete.id);
+            }
+          }}
+          title="Confirmar Exclusão"
+          message="Tem certeza que deseja deletar esta notificação? Esta ação não pode ser desfeita."
+          confirmText="Deletar"
+          cancelText="Cancelar"
+          type="danger"
+        />
       </div>
     </div>
   );

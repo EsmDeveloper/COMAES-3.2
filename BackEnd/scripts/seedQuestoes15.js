@@ -1,7 +1,5 @@
 import sequelize from '../config/db.js';
-import QuestaoIngles from '../models/QuestaoIngles.js';
-import QuestaoMatematica from '../models/QuestaoMatematica.js';
-import QuestaoProgramacao from '../models/QuestaoProgramacao.js';
+import Questao from '../models/Questao.js';
 
 const TORNEIO_ID = 15;
 
@@ -412,9 +410,11 @@ async function seedQuestions() {
     // Inserir Questões de Inglês
     console.log('\n📚 Inserindo questões de Inglês...');
     for (const q of questoesIngles) {
-      await QuestaoIngles.create({
+      await Questao.create({
         ...q,
         torneio_id: TORNEIO_ID,
+        disciplina: 'ingles',
+        tipo: 'multipla_escolha',
       });
     }
     console.log(`✅ ${questoesIngles.length} questões de Inglês inseridas`);
@@ -422,9 +422,11 @@ async function seedQuestions() {
     // Inserir Questões de Matemática
     console.log('\n📐 Inserindo questões de Matemática...');
     for (const q of questoesMatematica) {
-      await QuestaoMatematica.create({
+      await Questao.create({
         ...q,
         torneio_id: TORNEIO_ID,
+        disciplina: 'matematica',
+        tipo: 'multipla_escolha',
       });
     }
     console.log(`✅ ${questoesMatematica.length} questões de Matemática inseridas`);
@@ -432,9 +434,11 @@ async function seedQuestions() {
     // Inserir Questões de Programação
     console.log('\n💻 Inserindo questões de Programação...');
     for (const q of questoesProgramacao) {
-      await QuestaoProgramacao.create({
+      await Questao.create({
         ...q,
         torneio_id: TORNEIO_ID,
+        disciplina: 'programacao',
+        tipo: 'codigo',
       });
     }
     console.log(`✅ ${questoesProgramacao.length} questões de Programação inseridas`);

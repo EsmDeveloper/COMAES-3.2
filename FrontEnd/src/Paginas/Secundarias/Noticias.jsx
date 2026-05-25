@@ -299,26 +299,44 @@ export default function News() {
         const result = await response.json();
         if (result.success) {
           const transformed = result.data.map(item => {
+            // Parse seguro de tags — suporta string simples, JSON array, ou double-encoded
+            const parseTags = (raw) => {
+              if (!raw) return [];
+              if (Array.isArray(raw)) return raw;
+              try {
+                let parsed = JSON.parse(raw);
+                // double-encoded: resultado ainda é string
+                if (typeof parsed === 'string') parsed = JSON.parse(parsed);
+                if (Array.isArray(parsed)) return parsed;
+                if (typeof parsed === 'string') {
+                  return parsed.split(',').map(t => t.trim()).filter(Boolean);
+                }
+                return [];
+              } catch {
+                // fallback: tratar como string separada por vírgulas
+                return String(raw).replace(/['"\\]/g, '').split(',').map(t => t.trim()).filter(Boolean);
+              }
+            };
+
+            const tagsArr = parseTags(item.tags);
+
             let category = 'novidade';
-            if (item.tags) {
-              const tagsArr = Array.isArray(item.tags) ? item.tags : JSON.parse(item.tags || '[]');
-              if (tagsArr.some(t => t.toLowerCase().includes('evento'))) category = 'evento';
-              else if (tagsArr.some(t => t.toLowerCase().includes('atualização') || t.toLowerCase().includes('update'))) category = 'atualização';
-              else if (tagsArr.some(t => t.toLowerCase().includes('dica'))) category = 'dica';
-            }
+            if (tagsArr.some(t => t.toLowerCase().includes('evento'))) category = 'evento';
+            else if (tagsArr.some(t => t.toLowerCase().includes('atualização') || t.toLowerCase().includes('update'))) category = 'atualização';
+            else if (tagsArr.some(t => t.toLowerCase().includes('dica'))) category = 'dica';
             return {
               id: item.id, category,
               title: item.titulo,
               excerpt: item.resumo || item.conteudo.substring(0, 150) + '…',
-              author: item.usuario?.nome || 'Equipe COMAES',
+              author: item.autor?.nome || item.usuario?.nome || 'Equipe COMAES',
               date: item.publicado_em
                 ? new Date(item.publicado_em).toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' })
                 : 'Recentemente',
-              readTime: Math.ceil(item.conteudo.split(' ').length / 200) + ' min',
+              readTime: Math.ceil((item.conteudo || '').split(' ').length / 200) + ' min',
               views: Math.floor(Math.random() * 1000) + 100,
               isBookmarked: false,
-              imageUrl: item.url_capa || 'https://images.unsplash.com/photo-1504711432869-5d39a110fdd7?auto=format&fit=crop&w=800',
-              tags: Array.isArray(item.tags) ? item.tags : JSON.parse(item.tags || '[]'),
+              imageUrl: item.url_capa || null,
+              tags: tagsArr,
             };
           });
           setNews(transformed);

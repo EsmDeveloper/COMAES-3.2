@@ -8,6 +8,7 @@ import {
   validateNome, validateEmail, validatePassword,
   validatePasswordConfirm, validatePhone, validateBirthDate,
 } from '../utils/validators.js';
+import { Eye, EyeOff, Crown, Lock, AlertCircle, X, Plus, Edit, Trash2, Key, Save } from 'lucide-react';
 
 // ── Password strength ─────────────────────────────────────────
 function getPasswordStrength(pwd) {
@@ -219,14 +220,14 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
         {/* Header */}
         <div className="border-b border-slate-200 px-6 py-4 bg-gradient-to-r from-slate-50 to-blue-50 flex items-center justify-between flex-shrink-0">
           <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            {mode === 'create' && <span className="text-green-500">➕</span>}
-            {mode === 'edit'   && <span className="text-blue-500">✏️</span>}
-            {mode === 'delete' && <span className="text-red-500">🗑️</span>}
-            {mode === 'reset-password' && <span className="text-amber-500">🔑</span>}
+            {mode === 'create' && <Plus className="w-5 h-5 text-green-500" />}
+            {mode === 'edit'   && <Edit className="w-5 h-5 text-blue-500" />}
+            {mode === 'delete' && <Trash2 className="w-5 h-5 text-red-500" />}
+            {mode === 'reset-password' && <Key className="w-5 h-5 text-amber-500" />}
             {titles[mode] || 'Usuário'}
           </h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-all">
-            <span className="text-xl">✕</span>
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -237,7 +238,7 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
           {isDelete && (
             <div className="space-y-4">
               <div className="flex items-start gap-4 p-4 bg-red-50 border border-red-200 rounded-xl">
-                <span className="text-red-500 text-3xl flex-shrink-0">⚠️</span>
+                <AlertCircle className="w-8 h-8 text-red-500 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-red-800 font-semibold">Ação irreversível</p>
                   <p className="text-red-700 text-sm mt-1">
@@ -268,7 +269,7 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
                     className={inputCls(touched.password && errors.password)} placeholder="Nova senha" />
                   <button type="button" onClick={() => setShowPwd(v => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm">
-                    {showPwd ? '🙈' : '👁️'}
+                    {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {form.password && (
@@ -289,7 +290,7 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
                     className={inputCls(touched.confirmPassword && errors.confirmPassword)} placeholder="Confirmar nova senha" />
                   <button type="button" onClick={() => setShowConfirm(v => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm">
-                    {showConfirm ? '🙈' : '👁️'}
+                    {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </Field>
@@ -305,7 +306,8 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
               {/* Super-admin badge */}
               {isSuperAdmin && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 border border-purple-200 rounded-lg text-xs text-purple-700 font-medium">
-                  <span>👑</span> Você é o Administrador Supremo — pode criar e promover administradores.
+                  <Crown className="w-4 h-4" />
+                  Você é o Administrador Supremo — pode criar e promover administradores.
                 </div>
               )}
 
@@ -367,8 +369,9 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
 
               {/* Password section */}
               <div className="border-t border-slate-100 pt-4">
-                <p className="text-sm font-semibold text-slate-600 mb-3">
-                  {isCreate ? '🔒 Senha de Acesso' : '🔒 Nova Senha (deixe em branco para manter a atual)'}
+                <p className="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
+                  <Lock className="w-4 h-4" />
+                  {isCreate ? 'Senha de Acesso' : 'Nova Senha (deixe em branco para manter a atual)'}
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field label={isCreate ? 'Senha' : 'Nova Senha'} required={isCreate}
@@ -382,7 +385,7 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
                         maxLength={128} autoComplete="new-password" />
                       <button type="button" onClick={() => setShowPwd(v => !v)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm">
-                        {showPwd ? '🙈' : '👁️'}
+                        {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                     {form.password && (
@@ -407,7 +410,7 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
                         placeholder="Confirmar senha" maxLength={128} autoComplete="new-password" />
                       <button type="button" onClick={() => setShowConfirm(v => !v)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm">
-                        {showConfirm ? '🙈' : '👁️'}
+                        {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                     {form.password && form.confirmPassword && form.password === form.confirmPassword && (
@@ -425,8 +428,9 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
                       onChange={handleChange}
                       className="w-5 h-5 text-purple-600 border-slate-300 rounded focus:ring-purple-500" />
                     <div>
-                      <span className="text-sm font-semibold text-slate-700 group-hover:text-purple-700 transition-colors">
-                        👑 Conceder privilégios de Administrador
+                      <span className="text-sm font-semibold text-slate-700 group-hover:text-purple-700 transition-colors flex items-center gap-2">
+                        <Crown className="w-4 h-4" />
+                        Conceder privilégios de Administrador
                       </span>
                       <p className="text-xs text-slate-400">
                         Administradores têm acesso total ao painel de gestão.
@@ -434,8 +438,9 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
                     </div>
                   </label>
                   {isEdit && item?.isAdmin && !form.isAdmin && (
-                    <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2">
-                      ⚠️ Ao salvar, os privilégios de administrador serão removidos deste usuário.
+                    <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                      Ao salvar, os privilégios de administrador serão removidos deste usuário.
                     </p>
                   )}
                 </div>
@@ -445,7 +450,7 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
               {!isSuperAdmin && (
                 <div className="border-t border-slate-100 pt-3">
                   <p className="text-xs text-slate-400 flex items-center gap-1.5">
-                    <span>🔒</span>
+                    <Lock className="w-3 h-3" />
                     Apenas o Administrador Supremo pode conceder ou remover privilégios administrativos.
                   </p>
                 </div>
@@ -453,7 +458,7 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
 
               {serverError && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-start gap-2">
-                  <span className="flex-shrink-0">⚠️</span>
+                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                   <span>{serverError}</span>
                 </div>
               )}
@@ -481,13 +486,13 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
             {loading ? (
               <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /><span>Processando...</span></>
             ) : isDelete ? (
-              <><span>🗑️</span><span>Excluir</span></>
+              <><Trash2 className="w-4 h-4" /><span>Excluir</span></>
             ) : isReset ? (
-              <><span>🔑</span><span>Redefinir Senha</span></>
+              <><Key className="w-4 h-4" /><span>Redefinir Senha</span></>
             ) : isCreate ? (
-              <><span>➕</span><span>Criar Usuário</span></>
+              <><Plus className="w-4 h-4" /><span>Criar Usuário</span></>
             ) : (
-              <><span>💾</span><span>Salvar Alterações</span></>
+              <><Save className="w-4 h-4" /><span>Salvar Alterações</span></>
             )}
           </button>
         </div>

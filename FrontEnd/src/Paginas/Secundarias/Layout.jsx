@@ -62,7 +62,7 @@ export default function Layout({ children }) {
     const fetchNotificationCount = async () => {
       if (user && user.id) {
         try {
-          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/usuarios/${user.id}/notificacoes/nao-lidas/count`, {
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/notificacoes/usuario/${user.id}/nao-lidas/count`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('comaes_token')}` }
           });
           const data = await response.json();
@@ -188,6 +188,14 @@ export default function Layout({ children }) {
       <NotificacoesModal
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
+        onNotificationRead={() => {
+          // Atualizar contador quando uma notificação é lida
+          setNotificationCount(prev => Math.max(0, prev - 1));
+        }}
+        onAllRead={() => {
+          // Zerar contador quando todas são marcadas como lidas
+          setNotificationCount(0);
+        }}
       />
 
       {/* HEADER FIXO - sticky top-0 */}

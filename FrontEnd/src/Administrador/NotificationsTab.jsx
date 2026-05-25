@@ -170,20 +170,29 @@ const NotificationsTab = ({ token }) => {
     try {
       setLoading(true);
       setError(null);
-      const service = adminService(token);
 
-      // Enviar para cada usuário selecionado
-      const promises = Array.from(selectedUsers).map(userId =>
-        service.notificacao.create({
-          usuario_id: userId,
+      // Enviar para todos os usuários selecionados de uma vez
+      const API_BASE = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}`;
+      
+      const response = await fetch(`${API_BASE}/api/notificacoes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          usuarios_ids: Array.from(selectedUsers),
           titulo: formData.titulo,
           mensagem: formData.mensagem,
-          tipo: formData.tipo,
-          lido: false
+          tipo: formData.tipo
         })
-      );
+      });
 
-      await Promise.all(promises);
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Erro ao enviar notificações');
+      }
 
       setSuccess(`Notificações enviadas para ${selectedUsers.size} usuário(s)`);
       setFormData({ titulo: '', mensagem: '', tipo: 'geral' });
@@ -194,7 +203,7 @@ const NotificationsTab = ({ token }) => {
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       console.error('Erro ao enviar notificações:', err);
-      setError('Erro ao enviar notificações');
+      setError(err.message || 'Erro ao enviar notificações');
     } finally {
       setLoading(false);
     }
