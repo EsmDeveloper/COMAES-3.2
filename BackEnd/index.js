@@ -42,6 +42,7 @@ import notificacoesRoutes from './routes/notificacoesRoutes.js';
 import questoesRoutesRefactored from './routes/questoesRoutesRefactored.js';
 import tentativasRoutes from './routes/tentativasRoutes.js';
 import testeConhecimentoRoutes from './routes/testeConhecimentoRoutes.js';
+import resultadosTesteRoutes from './routes/resultadosTesteRoutes.js';
 import { sendResetEmail, sendWelcomeEmail } from './services/emailService.js';
 import { setIO } from './services/socketService.js';
 import auth from './middlewares/auth.js';
@@ -243,6 +244,11 @@ app.use('/api/tentativas', tentativasRoutes);
 
 // Registrar rotas do Teste de Conhecimento (sistema independente)
 app.use('/api/teste-conhecimento', testeConhecimentoRoutes);
+
+// Registrar rotas de resultados do Teste de Conhecimento
+app.use('/api/resultados', resultadosTesteRoutes);
+// Alias para o endpoint de melhores desempenhos
+app.use('/api/usuarios', resultadosTesteRoutes);
 
 // Registrar rotas de notificações
 app.use('/api/notificacoes', notificacoesRoutes);

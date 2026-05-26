@@ -126,6 +126,8 @@ export default function Teste() {
   const [phase, setPhase] = useState('select');
   const [selectedArea, setSelectedArea] = useState(null);
   const [areaCounts, setAreaCounts] = useState({ matematica: null, programacao: null, ingles: null });
+  const [bestPerformances, setBestPerformances] = useState({ matematica: null, programacao: null, ingles: null });
+  const [bestPerformances, setBestPerformances] = useState({ matematica: null, programacao: null, ingles: null });
 
   // quiz state
   const [questions, setQuestions] = useState([]);
@@ -154,9 +156,11 @@ export default function Teste() {
   const feedbackTimerRef = useRef(null);
   const startTimeRef = useRef(null);
 
-  // Load area counts
+  // Load area counts and best performances
   useEffect(() => {
     if (!user) return;
+    
+    // Load question counts
     Object.keys(AREAS).forEach(async (area) => {
       try {
         const res = await fetch(`${API_BASE}/api/questoes/quiz/${area}?limit=20`);
@@ -166,6 +170,23 @@ export default function Teste() {
         setAreaCounts(prev => ({ ...prev, [area]: 0 }));
       }
     });
+
+    // Load best performances
+    const loadBestPerformances = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_BASE}/api/usuarios/me/melhores-desempenhos`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const json = await res.json();
+        if (json.success) {
+          setBestPerformances(json.data);
+        }
+      } catch (err) {
+        console.error('Erro ao carregar melhores desempenhos:', err);
+      }
+    };
+    loadBestPerformances();
   }, [user]);
 
   // Timer helpers — separated to avoid cancelling feedback timer
@@ -184,6 +205,39 @@ export default function Teste() {
     clearFeedbackTimer();
   }, [clearMainTimer, clearFeedbackTimer]);
 
+  const saveTestResult = useCallback(async () => {
+    if (!selectedArea || questions.length === 0) return;
+    
+    const totalQ = questions.length;
+    const correctCount = answers.filter(a => a.correct).length;
+    const pct = totalQ > 0 ? Math.round((correctCount / totalQ) * 100) : 0;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE}/api/resultados`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          area: selectedArea,
+          percentual: pct,
+          pontos: score,
+          total_questoes: totalQ,
+          acertos: correctCount,
+        }),
+      });
+      const json = await res.json();
+      if (json.success && json.melhores_desempenhos) {
+        // Update best performances with the new data
+        setBestPerformances(json.melhores_desempenhos);
+      }
+    } catch (err) {
+      console.error('Erro ao salvar resultado:', err);
+    }
+  }, [selectedArea, questions.length, answers, score]);
+
   const advanceQuestion = useCallback(() => {
     clearFeedbackTimer();
     clearMainTimer();
@@ -193,10 +247,15 @@ export default function Teste() {
     setTimeLeft(TIME_PER_QUESTION);
     setCurrentIdx(prev => {
       const next = prev + 1;
-      if (next >= questions.length) { setPhase('result'); return prev; }
+      if (next >= questions.length) {
+        // Test finished — save result
+        saveTestResult();
+        setPhase('result');
+        return prev;
+      }
       return next;
     });
-  }, [questions.length, clearMainTimer, clearFeedbackTimer]);
+  }, [questions.length, clearMainTimer, clearFeedbackTimer, saveTestResult]);
 
   const handleTimeout = useCallback(() => {
     if (answered) return;
@@ -343,6 +402,7 @@ export default function Teste() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             {Object.values(AREAS).map((area) => {
               const count = areaCounts[area.key];
+              const bestPct = bestPerformances[area.key];
               const { Icon } = area;
               return (
                 <div
@@ -357,6 +417,21 @@ export default function Teste() {
 
                   <h3 className="text-xl font-bold text-slate-800 mb-2">{area.title}</h3>
                   <p className="text-sm text-gray-600 mb-5 leading-relaxed">{area.description}</p>
+
+                  {/* Best performance badge */}
+                  {bestPct !== null ? (
+                    <div className="mb-4">
+                      <span className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 rounded-full px-3 py-1.5 text-xs font-semibold">
+                        🏆 Melhor: {bestPct}%
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="mb-4">
+                      <span className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-500 rounded-full px-3 py-1.5 text-xs font-semibold">
+                        ✨ Não iniciado
+                      </span>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between mb-5">
                     <span className="text-xs text-gray-400">
