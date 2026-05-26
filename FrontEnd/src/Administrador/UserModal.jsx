@@ -492,7 +492,6 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
               )}
             </form>
           )}
-        </div>
     </ComaesModal>
   );
 }
