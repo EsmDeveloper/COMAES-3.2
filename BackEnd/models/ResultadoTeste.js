@@ -38,12 +38,13 @@ const ResultadoTeste = sequelize.define('ResultadoTeste', {
   },
 }, {
   tableName: 'resultados_teste',
-  timestamps: false,
-  createdAt: false,
+  timestamps: true,
+  createdAt: 'created_at',
   updatedAt: false,
   indexes: [
     { fields: ['usuario_id', 'area'] },
     { fields: ['usuario_id'] },
+    { fields: ['created_at'] },
   ],
 });
 
