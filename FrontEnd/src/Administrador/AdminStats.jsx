@@ -15,10 +15,12 @@ const AdminStats = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retrying, setRetrying] = useState(false);
+  const [debugInfo, setDebugInfo] = useState(null);
 
   const fetchStats = async () => {
     setLoading(true);
     setError(null);
+    setDebugInfo(null);
     
     try {
       if (!token) {
@@ -26,37 +28,45 @@ const AdminStats = () => {
       }
 
       const response = await fetch('/api/admin/stats', {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Accept': 'application/json'
         }
       });
 
-      // Verificar se a resposta é JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await response.text();
-        console.error('Resposta não-JSON recebida:', text.substring(0, 200));
-        throw new Error('Servidor retornou resposta inválida. Tente novamente.');
+      // Ler a resposta como texto primeiro
+      const responseText = await response.text();
+      
+      // Tentar parsear como JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        // Se não conseguir parsear, verificar se é HTML
+        if (responseText.trim().startsWith('<!') || responseText.trim().startsWith('<html')) {
+          throw new Error(`Servidor retornou página HTML (status ${response.status}). Verifique se o backend está rodando corretamente.`);
+        }
+        throw new Error(`Falha ao processar resposta do servidor`);
       }
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Erro ${response.status}: Falha ao carregar estatísticas`);
+        throw new Error(data?.message || `Erro ${response.status}: ${data?.error || 'Falha ao carregar estatísticas'}`);
       }
 
-      const data = await response.json();
-      
       if (data.success && data.data) {
         setStats(data.data);
       } else if (data.error) {
         throw new Error(data.error);
       } else {
-        throw new Error('Formato de resposta inválido');
+        throw new Error('Formato de resposta inválido do servidor');
       }
     } catch (err) {
-      console.error('Erro ao carregar estatísticas:', err);
       setError(err.message || 'Erro desconhecido ao carregar estatísticas');
+      setDebugInfo({
+        message: err.message,
+        timestamp: new Date().toISOString()
+      });
     } finally {
       setLoading(false);
       setRetrying(false);
@@ -66,6 +76,9 @@ const AdminStats = () => {
   useEffect(() => {
     if (token) {
       fetchStats();
+    } else {
+      setLoading(false);
+      setError('Token não disponível. Faça login novamente.');
     }
   }, [token]);
 
@@ -95,14 +108,34 @@ const AdminStats = () => {
         <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
         <h3 className="text-xl font-semibold text-red-700 mb-2">Erro ao carregar estatísticas</h3>
         <p className="text-red-600 mb-6 max-w-md mx-auto">{error}</p>
+        
+        {/* Botão de retry */}
         <button
           onClick={() => { setRetrying(true); fetchStats(); }}
           disabled={retrying}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 mb-4"
         >
           <RefreshCw className={`w-5 h-5 ${retrying ? 'animate-spin' : ''}`} />
           {retrying ? 'Tentando novamente...' : 'Tentar novamente'}
         </button>
+        
+        {/* Debug info - expandir para ver detalhes */}
+        {debugInfo && (
+          <details className="text-left mt-4 p-4 bg-white rounded-lg border border-red-200">
+            <summary className="text-sm font-medium text-red-700 cursor-pointer">
+              Ver detalhes técnicos (para debug)
+            </summary>
+            <pre className="text-xs text-gray-600 mt-2 overflow-auto p-2 bg-gray-100 rounded">
+              {JSON.stringify(debugInfo, null, 2)}
+            </pre>
+          </details>
+        )}
+        
+        {/* Link para testar endpoint diretamente */}
+        <div className="mt-4 text-sm text-gray-500">
+          <p>Backend rodando em: <code className="bg-gray-200 px-2 py-1 rounded">http://localhost:3000</code></p>
+          <p>Endpoint: <code className="bg-gray-200 px-2 py-1 rounded">/api/admin/stats</code></p>
+        </div>
       </div>
     );
   }

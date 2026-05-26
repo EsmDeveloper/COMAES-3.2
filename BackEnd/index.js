@@ -58,9 +58,15 @@ const port = process.env.PORT || 3000;
 let io = null; // inicializado no startServer
 
 // ===== MIDDLEWARES CORRIGIDOS =====
-// Force UTF-8 encoding for all responses
+// Force UTF-8 encoding for JSON responses only (não sobrescreve outros content-types)
 app.use((req, res, next) => {
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  const originalJson = res.json.bind(res);
+  res.json = (body) => {
+    if (body && typeof body === 'object') {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    }
+    return originalJson(body);
+  };
   next();
 });
 
