@@ -12,6 +12,7 @@ import {
 } from "react-icons/io5";
 import { FaTrophy, FaUsers, FaCalendarAlt, FaBell } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
+import ComaesModal, { ModalBtnPrimary } from "../../components/ComaesModal";
 
 export default function NotificacoesModal({ isOpen, onClose, onNotificationRead, onAllRead }) {
   const { user } = useAuth();
@@ -201,43 +202,22 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
 
   if (!user) {
     return (
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-            onClick={onClose}
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="relative bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="text-center">
-                <div className="inline-flex p-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-4">
-                  <FaBell className="text-2xl text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">
-                  Acesso Restrito
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Faça login para visualizar suas notificações
-                </p>
-                <button
-                  onClick={onClose}
-                  className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300"
-                >
-                  Fechar
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <ComaesModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Acesso Restrito"
+        icon={<FaBell size={18} />}
+        iconBg="bg-blue-100"
+        iconColor="text-blue-600"
+        maxWidth="max-w-sm"
+        footer={<ModalBtnPrimary onClick={onClose}>Fechar</ModalBtnPrimary>}
+      >
+        <p className="text-gray-600 text-sm text-center leading-relaxed py-2">
+          Faça login para visualizar suas notificações.
+        </p>
+      </ComaesModal>
+    );
+  }
     );
   }
 

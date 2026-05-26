@@ -3,9 +3,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
-import { Users, Trophy, Clock, AlertCircle, Play, BookOpen, Code, Calculator } from 'lucide-react';
+import { Users, Trophy, Clock, AlertCircle, Play, BookOpen, Code, Calculator, CheckCircle2, Info } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import socket from '../../socket';
+import ComaesModal, { ModalBtnPrimary } from '../../components/ComaesModal';
 
 const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
 
@@ -323,51 +324,19 @@ const Torneios = () => {
         </div>
       </div>
 
-      {/* Modal de Feedback */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full">
-            <div className="flex items-center justify-center mb-4">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                modalType === 'success' ? 'bg-green-900' :
-                modalType === 'error' ? 'bg-red-900' :
-                'bg-blue-900'
-              }`}>
-                {modalType === 'success' ? (
-                  <Trophy className="w-6 h-6 text-green-300" />
-                ) : modalType === 'error' ? (
-                  <AlertCircle className="w-6 h-6 text-red-300" />
-                ) : (
-                  <AlertCircle className="w-6 h-6 text-blue-300" />
-                )}
-              </div>
-            </div>
-            
-            <h3 className="text-xl font-bold text-center mb-2">
-              {modalType === 'success' ? 'Sucesso!' :
-               modalType === 'error' ? 'Erro!' :
-               'Informação'}
-            </h3>
-            
-            <p className="text-gray-300 text-center mb-6">
-              {modalMessage}
-            </p>
-            
-            <div className="flex justify-center">
-              <button
-                onClick={() => setShowModal(false)}
-                className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
-                  modalType === 'success' ? 'bg-green-600 hover:bg-green-700' :
-                  modalType === 'error' ? 'bg-red-600 hover:bg-red-700' :
-                  'bg-blue-600 hover:bg-blue-700'
-                } text-white`}
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modal de Feedback — padronizado com ComaesModal */}
+      <ComaesModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title={modalType === 'success' ? 'Sucesso!' : modalType === 'error' ? 'Erro!' : 'Informação'}
+        icon={modalType === 'success' ? <CheckCircle2 size={18} /> : modalType === 'error' ? <AlertCircle size={18} /> : <Info size={18} />}
+        iconBg={modalType === 'success' ? 'bg-green-100' : modalType === 'error' ? 'bg-red-100' : 'bg-blue-100'}
+        iconColor={modalType === 'success' ? 'text-green-600' : modalType === 'error' ? 'text-red-600' : 'text-blue-600'}
+        maxWidth="max-w-sm"
+        footer={<ModalBtnPrimary onClick={() => setShowModal(false)}>OK</ModalBtnPrimary>}
+      >
+        <p className="text-gray-600 text-sm text-center leading-relaxed py-2">{modalMessage}</p>
+      </ComaesModal>
     </div>
   );
 };

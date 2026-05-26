@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { validateNome, validateEmail, validatePassword } from '../utils/validators.js';
 import { Plus, Edit, Trash2, AlertCircle, X, Save } from 'lucide-react';
+import ComaesModal, { ModalBtnCancel, ModalBtnPrimary, ModalBtnDanger } from '../components/ComaesModal';
 
 const TableModal = ({ mode, item, tableInfo, onClose, onSubmit }) => {
     const [formData, setFormData] = useState(item ? { ...item } : {});
@@ -274,29 +275,40 @@ const TableModal = ({ mode, item, tableInfo, onClose, onSubmit }) => {
         }
     };
 
-    return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden transform transition-all duration-300 scale-100 animate-modal-appear">
-                {/* Header */}
-                <div className="border-b border-slate-200 px-6 py-5 bg-gradient-to-r from-slate-50 to-blue-50">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
-                            {mode === 'create' && <Plus className="w-6 h-6 text-green-500" />}
-                            {mode === 'edit' && <Edit className="w-6 h-6 text-blue-500" />}
-                            {mode === 'delete' && <Trash2 className="w-6 h-6 text-red-500" />}
-                            {getModalTitle()}
-                        </h3>
-                        <button
-                            onClick={onClose}
-                            className="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100 transition-all duration-200"
-                        >
-                            <X className="w-6 h-6" />
-                        </button>
-                    </div>
-                </div>
+    const modeIcon = mode === 'create' ? <Plus className="w-5 h-5" />
+        : mode === 'edit' ? <Edit className="w-5 h-5" />
+        : <Trash2 className="w-5 h-5" />;
+    const modeIconBg = mode === 'delete' ? 'bg-red-100' : mode === 'create' ? 'bg-green-100' : 'bg-blue-100';
+    const modeIconColor = mode === 'delete' ? 'text-red-600' : mode === 'create' ? 'text-green-600' : 'text-blue-600';
 
-                {/* Content */}
-                <div className="px-6 py-6 overflow-y-auto max-h-[60vh]">
+    const footerButtons = (
+        <>
+            <ModalBtnCancel onClick={onClose} disabled={loading}>Cancelar</ModalBtnCancel>
+            {mode === 'delete' ? (
+                <ModalBtnDanger onClick={handleSubmit} disabled={loading}>
+                    {loading ? <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /><span>Processando...</span></> : <><Trash2 className="w-4 h-4" /><span>Deletar</span></>}
+                </ModalBtnDanger>
+            ) : (
+                <ModalBtnPrimary type="submit" form="tableForm" disabled={loading}>
+                    {loading ? <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /><span>Processando...</span></>
+                        : mode === 'create' ? <><Plus className="w-4 h-4" /><span>Criar</span></>
+                        : <><Save className="w-4 h-4" /><span>Atualizar</span></>}
+                </ModalBtnPrimary>
+            )}
+        </>
+    );
+
+    return (
+        <ComaesModal
+            isOpen
+            onClose={onClose}
+            title={getModalTitle()}
+            icon={modeIcon}
+            iconBg={modeIconBg}
+            iconColor={modeIconColor}
+            maxWidth="max-w-2xl"
+            footer={footerButtons}
+        >
                     {mode === 'delete' ? (
                         <div className="space-y-4">
                             <div className="flex items-center gap-4 p-4 bg-red-50 border border-red-200 rounded-xl">
@@ -397,52 +409,7 @@ const TableModal = ({ mode, item, tableInfo, onClose, onSubmit }) => {
                         </form>
                     )}
                 </div>
-
-                {/* Footer */}
-                <div className="border-t border-slate-200 px-6 py-4 flex justify-end gap-3 bg-slate-50">
-                    <button
-                        onClick={onClose}
-                        disabled={loading}
-                        className="px-6 py-2 border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-100 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                    >
-                        Cancelar
-                    </button>
-                    <button
-                        onClick={mode === 'delete' ? handleSubmit : undefined}
-                        type={mode === 'delete' ? 'button' : 'submit'}
-                        form={mode === 'delete' ? undefined : 'tableForm'}
-                        disabled={loading}
-                        className={`px-6 py-2 rounded-xl text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${
-                            mode === 'delete'
-                                ? 'bg-red-600 hover:bg-red-700'
-                                : 'bg-blue-600 hover:bg-blue-700'
-                        }`}
-                    >
-                        {loading ? (
-                            <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                <span>Processando...</span>
-                            </>
-                        ) : mode === 'create' ? (
-                            <>
-                                <Plus className="w-4 h-4" />
-                                <span>Criar</span>
-                            </>
-                        ) : mode === 'edit' ? (
-                            <>
-                                <Save className="w-4 h-4" />
-                                <span>Atualizar</span>
-                            </>
-                        ) : (
-                            <>
-                                <Trash2 className="w-4 h-4" />
-                                <span>Deletar</span>
-                            </>
-                        )}
-                    </button>
-                </div>
-            </div>
-        </div>
+        </ComaesModal>
     );
 };
 

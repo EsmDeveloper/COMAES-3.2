@@ -9,6 +9,7 @@ import {
   validatePasswordConfirm, validatePhone, validateBirthDate,
 } from '../utils/validators.js';
 import { Eye, EyeOff, Crown, Lock, AlertCircle, X, Plus, Edit, Trash2, Key, Save } from 'lucide-react';
+import ComaesModal, { ModalBtnCancel, ModalBtnPrimary, ModalBtnDanger } from '../components/ComaesModal';
 
 // ── Password strength ─────────────────────────────────────────
 function getPasswordStrength(pwd) {
@@ -213,26 +214,53 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
     'reset-password': 'Redefinir Senha',
   };
 
+  const modeIcon = isDelete ? <Trash2 className="w-5 h-5" />
+    : isReset  ? <Key className="w-5 h-5" />
+    : isCreate ? <Plus className="w-5 h-5" />
+    : <Edit className="w-5 h-5" />;
+  const modeIconBg    = isDelete ? 'bg-red-100'    : isReset ? 'bg-amber-100'  : isCreate ? 'bg-green-100' : 'bg-blue-100';
+  const modeIconColor = isDelete ? 'text-red-600'  : isReset ? 'text-amber-600': isCreate ? 'text-green-600' : 'text-blue-600';
+
+  const footerButtons = (
+    <>
+      <ModalBtnCancel onClick={onClose} disabled={loading}>Cancelar</ModalBtnCancel>
+      {isDelete ? (
+        <ModalBtnDanger onClick={handleSubmit} disabled={loading}>
+          {loading ? <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /><span>Processando...</span></> : <><Trash2 className="w-4 h-4" /><span>Excluir</span></>}
+        </ModalBtnDanger>
+      ) : (
+        <ModalBtnPrimary
+          type={isDelete ? 'button' : 'submit'}
+          form={isDelete ? undefined : 'userForm'}
+          onClick={isDelete ? handleSubmit : undefined}
+          disabled={loading}
+          className={isReset ? '!bg-amber-500 hover:!bg-amber-600 !shadow-amber-200' : ''}
+        >
+          {loading ? (
+            <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /><span>Processando...</span></>
+          ) : isReset ? (
+            <><Key className="w-4 h-4" /><span>Redefinir Senha</span></>
+          ) : isCreate ? (
+            <><Plus className="w-4 h-4" /><span>Criar Usuário</span></>
+          ) : (
+            <><Save className="w-4 h-4" /><span>Salvar Alterações</span></>
+          )}
+        </ModalBtnPrimary>
+      )}
+    </>
+  );
+
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden">
-
-        {/* Header */}
-        <div className="border-b border-slate-200 px-6 py-4 bg-gradient-to-r from-slate-50 to-blue-50 flex items-center justify-between flex-shrink-0">
-          <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            {mode === 'create' && <Plus className="w-5 h-5 text-green-500" />}
-            {mode === 'edit'   && <Edit className="w-5 h-5 text-blue-500" />}
-            {mode === 'delete' && <Trash2 className="w-5 h-5 text-red-500" />}
-            {mode === 'reset-password' && <Key className="w-5 h-5 text-amber-500" />}
-            {titles[mode] || 'Usuário'}
-          </h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-all">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="overflow-y-auto flex-1 px-6 py-5">
+    <ComaesModal
+      isOpen
+      onClose={onClose}
+      title={titles[mode] || 'Usuário'}
+      icon={modeIcon}
+      iconBg={modeIconBg}
+      iconColor={modeIconColor}
+      maxWidth="max-w-2xl"
+      footer={footerButtons}
+    >
 
           {/* DELETE confirmation */}
           {isDelete && (
@@ -465,38 +493,6 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
             </form>
           )}
         </div>
-
-        {/* Footer */}
-        <div className="border-t border-slate-200 px-6 py-4 flex justify-end gap-3 bg-slate-50 flex-shrink-0">
-          <button onClick={onClose} disabled={loading}
-            className="px-5 py-2 border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-100 transition-all font-medium disabled:opacity-50 text-sm">
-            Cancelar
-          </button>
-          <button
-            type={isDelete ? 'button' : 'submit'}
-            form={isDelete ? undefined : 'userForm'}
-            onClick={isDelete ? handleSubmit : undefined}
-            disabled={loading}
-            className={`px-5 py-2 rounded-xl text-white font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 flex items-center gap-2 text-sm ${
-              isDelete ? 'bg-red-600 hover:bg-red-700' :
-              isReset  ? 'bg-amber-500 hover:bg-amber-600' :
-              'bg-blue-600 hover:bg-blue-700'
-            }`}
-          >
-            {loading ? (
-              <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /><span>Processando...</span></>
-            ) : isDelete ? (
-              <><Trash2 className="w-4 h-4" /><span>Excluir</span></>
-            ) : isReset ? (
-              <><Key className="w-4 h-4" /><span>Redefinir Senha</span></>
-            ) : isCreate ? (
-              <><Plus className="w-4 h-4" /><span>Criar Usuário</span></>
-            ) : (
-              <><Save className="w-4 h-4" /><span>Salvar Alterações</span></>
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
+    </ComaesModal>
   );
 }
