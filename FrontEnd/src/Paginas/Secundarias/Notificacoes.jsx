@@ -218,8 +218,6 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
       </ComaesModal>
     );
   }
-    );
-  }
 
   return (
     <AnimatePresence>
