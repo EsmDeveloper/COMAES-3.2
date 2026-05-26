@@ -408,7 +408,6 @@ const TableModal = ({ mode, item, tableInfo, onClose, onSubmit }) => {
                             )}
                         </form>
                     )}
-                </div>
         </ComaesModal>
     );
 };
