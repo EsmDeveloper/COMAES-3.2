@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { 
   Users, Trophy, BookOpen, FileText, TrendingUp, 
-  Clock, CheckCircle, AlertCircle, Calendar, Activity
+  Clock, CheckCircle, AlertCircle, Calendar, Activity, RefreshCw
 } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, 
@@ -9,39 +10,64 @@ import {
 } from 'recharts';
 
 const AdminStats = () => {
+  const { token } = useAuth();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [retrying, setRetrying] = useState(false);
+
+  const fetchStats = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      if (!token) {
+        throw new Error('Token de autenticação não encontrado. Faça login novamente.');
+      }
+
+      const response = await fetch('/api/admin/stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      // Verificar se a resposta é JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('Resposta não-JSON recebida:', text.substring(0, 200));
+        throw new Error('Servidor retornou resposta inválida. Tente novamente.');
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Erro ${response.status}: Falha ao carregar estatísticas`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        setStats(data.data);
+      } else if (data.error) {
+        throw new Error(data.error);
+      } else {
+        throw new Error('Formato de resposta inválido');
+      }
+    } catch (err) {
+      console.error('Erro ao carregar estatísticas:', err);
+      setError(err.message || 'Erro desconhecido ao carregar estatísticas');
+    } finally {
+      setLoading(false);
+      setRetrying(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch('/api/admin/stats', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Erro ao carregar estatísticas');
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          setStats(data.data);
-        }
-      } catch (err) {
-        console.error('Erro ao carregar estatísticas:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, []);
+    if (token) {
+      fetchStats();
+    }
+  }, [token]);
 
   // Skeleton loader
   if (loading) {
@@ -65,10 +91,18 @@ const AdminStats = () => {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
-        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-red-700 mb-2">Erro ao carregar estatísticas</h3>
-        <p className="text-red-600">{error}</p>
+      <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+        <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+        <h3 className="text-xl font-semibold text-red-700 mb-2">Erro ao carregar estatísticas</h3>
+        <p className="text-red-600 mb-6 max-w-md mx-auto">{error}</p>
+        <button
+          onClick={() => { setRetrying(true); fetchStats(); }}
+          disabled={retrying}
+          className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
+        >
+          <RefreshCw className={`w-5 h-5 ${retrying ? 'animate-spin' : ''}`} />
+          {retrying ? 'Tentando novamente...' : 'Tentar novamente'}
+        </button>
       </div>
     );
   }
