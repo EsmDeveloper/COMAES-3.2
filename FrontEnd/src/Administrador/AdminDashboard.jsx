@@ -10,8 +10,8 @@ import QuestoesManager from './QuestoesManager';
 import TesteConhecimentoManager from './TesteConhecimentoManager';
 import LogoutModal from '../components/LogoutModal';
 import { 
-  BarChart3, Trophy, BookOpen, Users, Award, Bell, Settings, 
-  Zap, FileText, Shield, Database, X, Menu, ArrowLeft
+  BarChart3, Trophy, BookOpen, Users, Bell, Settings, 
+  Zap, FileText, X, Menu, ArrowLeft
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -38,9 +38,9 @@ const AdminDashboard = () => {
       icon: Trophy,
       color: 'from-yellow-500 to-orange-600',
       items: [
-        { id: 'torneio', label: 'Gerenciar Torneios', icon: Trophy },
-        { id: 'participante_torneio', label: 'Participantes', icon: Users },
-        { id: 'tentativateste', label: 'Tentativas de Teste', icon: FileText }
+        { id: 'torneio', label: 'Gerenciar Torneios', icon: Trophy }
+        // REMOVIDO por alinhamento - 2026-05-26: participante_torneio - UI quebrada, já existe gestão em TorneiosTab
+        // REMOVIDO por alinhamento - 2026-05-26: tentativateste - campos não batem com model real
       ]
     },
     {
@@ -59,20 +59,21 @@ const AdminDashboard = () => {
       icon: Users,
       color: 'from-green-500 to-emerald-600',
       items: [
-        { id: 'user', label: 'Gerenciar Usuários', icon: Users },
-        { id: 'funcao', label: 'Permissões/Funções', icon: Shield }
+        { id: 'user', label: 'Gerenciar Usuários', icon: Users }
+        // REMOVIDO por alinhamento - 2026-05-26: funcao - CRUD genérico muito cru, sem matriz de permissões
       ]
     },
-    {
-      id: 'gamification',
-      title: 'Gamificação',
-      icon: Award,
-      color: 'from-red-500 to-pink-600',
-      items: [
-        { id: 'conquista', label: 'Gerenciar Conquistas', icon: Award },
-        { id: 'conquistausuario', label: 'Conquistas de Usuários', icon: Award }
-      ]
-    },
+    // REMOVIDO por alinhamento - 2026-05-26: seção gamificação inteira - conquista/conquistausuario não batem com model
+    // {
+    //   id: 'gamification',
+    //   title: 'Gamificação',
+    //   icon: Award,
+    //   color: 'from-red-500 to-pink-600',
+    //   items: [
+    //     { id: 'conquista', label: 'Gerenciar Conquistas', icon: Award },
+    //     { id: 'conquistausuario', label: 'Conquistas de Usuários', icon: Award }
+    //   ]
+    // },
     {
       id: 'communication',
       title: 'Comunicação',
@@ -89,7 +90,7 @@ const AdminDashboard = () => {
       icon: Zap,
       color: 'from-orange-500 to-red-600',
       items: [
-        { id: 'ticketsuporte', label: 'Tickets de Suporte', icon: Zap }
+        // REMOVIDO por alinhamento - 2026-05-26: ticketsuporte - campos não batem com model real
       ]
     },
     {
@@ -98,8 +99,8 @@ const AdminDashboard = () => {
       icon: Settings,
       color: 'from-gray-500 to-slate-600',
       items: [
-        { id: 'configuracaousuario', label: 'Configurações', icon: Settings },
-        { id: 'redefinicaosenha', label: 'Redefinições de Senha', icon: Database }
+        // REMOVIDO por alinhamento - 2026-05-26: configuracaousuario - campos não batem (espera id/chave/valor, model tem usuario_id/preferencias)
+        // REMOVIDO por alinhamento - 2026-05-26: redefinicaosenha - expõe tokens internos de reset (risco de segurança)
       ]
     }
   ];
@@ -281,8 +282,14 @@ const AdminDashboard = () => {
                 <QuestoesManager />
               ) : activeTab === 'teste-conhecimento' ? (
                 <TesteConhecimentoManager />
-              ) : (
+              ) : activeTab === 'user' || activeTab === 'noticia' ? (
                 <TableManager table={activeTab} />
+              ) : (
+                // REMOVIDO por alinhamento - 2026-05-26: IDs problemáticos redirecionam para 404
+                <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+                  <p className="text-xl font-semibold">Página não disponível</p>
+                  <p className="text-sm mt-2">Esta funcionalidade foi removida do painel administrativo.</p>
+                </div>
               )}
             </div>
           </div>
