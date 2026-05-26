@@ -334,3 +334,53 @@ O sistema COMAES está **100% funcional e estável**, com uma base de código si
 **Arquivos Corrigidos:** 6  
 **Arquivos Removidos:** 3  
 **Status Final:** ✅ SISTEMA ESTABILIZADO
+
+
+---
+
+## ⚠️ REGRESSÃO DETECTADA PÓS-AUDITORIA
+
+**Data:** 26/05/2026 (após conclusão inicial)  
+**Arquivo:** TableModal.jsx  
+**Erro:** Tag `</div>` extra (mesmo padrão de UserModal e Notificacoes)
+
+### Análise da Regressão
+
+Este erro **confirma a hipótese** identificada na auditoria: a padronização de modais introduziu um padrão de erro sistemático.
+
+**Causa Raiz Confirmada:**
+- Durante a padronização para ComaesModal, múltiplos arquivos foram editados manualmente
+- O padrão de erro (tag `</div>` extra) se repetiu em 4 arquivos:
+  1. UserModal.jsx ✅
+  2. Notificacoes.jsx ✅
+  3. Teste.jsx (declaração duplicada) ✅
+  4. TableModal.jsx ✅
+
+### Ação Corretiva
+
+✅ **Correção Imediata:** Tag extra removida do TableModal.jsx  
+✅ **Commit:** `fix: corrigir erro de sintaxe JSX no TableModal`
+
+### Recomendação URGENTE
+
+Este padrão de erro recorrente **exige ação preventiva imediata**:
+
+1. **CRÍTICO:** Revisar TODOS os modais padronizados para o mesmo erro
+2. **CRÍTICO:** Implementar ESLint/Prettier com validação automática
+3. **CRÍTICO:** Configurar pre-commit hooks para validação JSX
+4. **IMPORTANTE:** Considerar ferramenta de refatoração automática para futuras padronizações
+
+### Arquivos a Revisar Urgentemente
+
+- [ ] TournamentModal.jsx
+- [ ] ConfirmModal.jsx
+- [ ] LogoutModal.jsx
+- [ ] TournamentFinishedModal.jsx
+- [ ] ModalVencedores.jsx
+
+---
+
+**Atualização de Métricas:**
+- Erros de sintaxe JSX corrigidos: 4 (não 3)
+- Commits totais: 8 (não 7)
+- **Padrão de erro identificado:** Tag `</div>` extra em modais padronizados
