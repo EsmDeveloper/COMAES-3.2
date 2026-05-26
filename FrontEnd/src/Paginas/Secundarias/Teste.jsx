@@ -127,7 +127,6 @@ export default function Teste() {
   const [selectedArea, setSelectedArea] = useState(null);
   const [areaCounts, setAreaCounts] = useState({ matematica: null, programacao: null, ingles: null });
   const [bestPerformances, setBestPerformances] = useState({ matematica: null, programacao: null, ingles: null });
-  const [bestPerformances, setBestPerformances] = useState({ matematica: null, programacao: null, ingles: null });
 
   // quiz state
   const [questions, setQuestions] = useState([]);
