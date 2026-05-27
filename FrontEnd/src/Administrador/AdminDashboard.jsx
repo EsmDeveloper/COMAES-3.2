@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import logotipo from '../assets/logo.png';
+import shortLogo from '../assets/short.png';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import TableManager from './TableManager';
@@ -11,15 +11,27 @@ import TesteConhecimentoManager from './TesteConhecimentoManager';
 import LogoutModal from '../components/LogoutModal';
 import { 
   BarChart3, Trophy, BookOpen, Users, Bell, Settings, 
-  Zap, FileText, X, Menu, ArrowLeft
+  Zap, FileText, X, Menu, ArrowLeft, UserCircle, LogOut
 } from 'lucide-react';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { user, token } = useAuth();
+  const { user, token, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+
+  const displayName = user?.name || user?.nome || 'Administrador';
+  const displayEmail = user?.email || 'admin@comaes.ao';
+  const fallbackAvatar = user?.avatar && !String(user.avatar).includes('ui-avatars.com') ? user.avatar : null;
+  const avatarUrl = user?.foto_url || user?.photo_url || user?.imagem || fallbackAvatar;
+  const initials = displayName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part.charAt(0).toUpperCase())
+    .join('') || 'A';
 
   // Estrutura reorganizada em seções
   const menuSections = [
@@ -106,14 +118,78 @@ const AdminDashboard = () => {
   ];
 
   const handleLogout = () => {
+    setProfileMenuOpen(false);
     setMobileSidebarOpen(false);
     setShowLogoutModal(true);
   };
 
   const confirmLogout = () => {
+    logout();
     setShowLogoutModal(false);
     navigate('/');
   };
+
+  const AvatarButton = ({ compact = false }) => (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setProfileMenuOpen(prev => !prev)}
+        className={`w-full flex items-center gap-3 rounded-xl text-gray-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all duration-200 ${
+          compact ? 'p-1.5' : 'p-2'
+        }`}
+        aria-expanded={profileMenuOpen}
+        aria-haspopup="menu"
+      >
+        <div className={`${compact ? 'w-10 h-10' : 'w-12 h-12'} bg-blue-500 rounded-full flex items-center justify-center text-white font-bold shadow-md overflow-hidden flex-shrink-0`}>
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+          ) : initials ? (
+            <span className={compact ? 'text-sm' : 'text-base'}>{initials}</span>
+          ) : (
+            <UserCircle className="w-6 h-6" />
+          )}
+        </div>
+        {!compact && (
+          <div className="flex-1 min-w-0 text-left">
+            <p className="text-sm font-semibold truncate text-gray-800">{displayName}</p>
+            <p className="text-xs text-gray-500 truncate">{displayEmail}</p>
+          </div>
+        )}
+      </button>
+
+      {profileMenuOpen && (
+        <div
+          role="menu"
+          className={`absolute ${compact ? 'right-0 top-12' : 'left-0 bottom-16'} z-50 w-56 rounded-xl border border-slate-200 bg-white py-2 shadow-xl`}
+        >
+          <button
+            type="button"
+            onClick={() => { setProfileMenuOpen(false); navigate('/perfil'); }}
+            className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center gap-2"
+          >
+            <UserCircle className="w-4 h-4" />
+            Meu perfil
+          </button>
+          <button
+            type="button"
+            onClick={() => { setProfileMenuOpen(false); navigate('/configuracoes'); }}
+            className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center gap-2"
+          >
+            <Settings className="w-4 h-4" />
+            Configurações
+          </button>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+          >
+            <LogOut className="w-4 h-4" />
+            Sair
+          </button>
+        </div>
+      )}
+    </div>
+  );
 
   // Get all items flattened for navigation
   const allItems = menuSections.flatMap(section => section.items);
@@ -127,13 +203,10 @@ const AdminDashboard = () => {
       />
       {/* Desktop Sidebar (hidden on small screens) */}
       <div className="hidden md:flex w-72 bg-white shadow-xl border-r border-slate-200 flex-col h-screen overflow-hidden">
-        <div className="p-6 border-b border-slate-200 flex-shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600">
+        <div className="p-6 border-b border-slate-200 flex-shrink-0 bg-white">
           <div className="flex items-center gap-3">
-            <img src={logotipo} alt="Comaes" className="h-10 w-auto object-contain drop-shadow-sm" />
-            <div>
-              <h1 className="text-xl font-bold text-white">Admin Panel</h1>
-              <p className="text-sm text-blue-100">COMAES Platform</p>
-            </div>
+            <img src={shortLogo} alt="COMAES" className="h-10 w-auto object-contain" />
+            <h1 className="text-xl font-bold text-gray-800">Painel Administrativo</h1>
           </div>
         </div>
 
@@ -165,15 +238,7 @@ const AdminDashboard = () => {
 
         {/* Sidebar Footer - Dados dinâmicos do usuário */}
         <div className="border-t border-slate-200 p-6 flex-shrink-0 bg-white">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold shadow-md">
-              {user?.name?.charAt(0).toUpperCase() || 'A'}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate text-slate-800">{user?.name || 'Administrador'}</p>
-              <p className="text-xs text-slate-500 truncate">{user?.email || 'admin@comaes.com'}</p>
-            </div>
-          </div>
+          <AvatarButton />
         </div>
       </div>
 
@@ -182,14 +247,14 @@ const AdminDashboard = () => {
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileSidebarOpen(false)} />
           <aside className="absolute left-0 top-0 h-full w-72 bg-white shadow-2xl overflow-hidden flex flex-col transform transition-transform duration-300 ease-in-out">
-            <div className="p-6 border-b border-slate-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600">
+            <div className="p-6 border-b border-slate-200 flex items-center justify-between flex-shrink-0 bg-white">
               <div className="flex items-center gap-3">
-                <img src={logotipo} alt="Comaes" className="h-8 w-auto object-contain drop-shadow-sm" />
-                <h1 className="text-lg font-bold text-white">Admin</h1>
+                <img src={shortLogo} alt="COMAES" className="h-10 w-auto object-contain" />
+                <h1 className="text-xl font-bold text-gray-800">Painel do ADM</h1>
               </div>
               <button 
                 onClick={() => setMobileSidebarOpen(false)} 
-                className="text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+                className="text-gray-500 hover:text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -246,14 +311,8 @@ const AdminDashboard = () => {
             </div>
 
             <div className="flex items-center gap-4">
-              {/* User info for mobile */}
-              <div className="md:hidden flex items-center gap-3 text-slate-700">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-md">
-                  {user?.name?.charAt(0).toUpperCase() || 'A'}
-                </div>
-                <span className="text-sm font-medium truncate max-w-[120px]">
-                  {user?.name?.split(' ')[0] || 'Admin'}
-                </span>
+              <div className="md:hidden">
+                <AvatarButton compact />
               </div>
               
               {/* Logout button - Always visible */}

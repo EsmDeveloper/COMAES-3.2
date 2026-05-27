@@ -85,8 +85,8 @@ function AuthContainer({ initialMode = "login" }) {
     setLoginError("");
     let newErrors = {};
 
-    if (!loginForm.usuario.trim()) newErrors.usuario = "Este campo È obrigatÛrio";
-    if (!loginForm.senha.trim()) newErrors.senha = "Este campo È obrigatÛrio";
+    if (!loginForm.usuario.trim()) newErrors.usuario = "Este campo ÔøΩ obrigatÔøΩrio";
+    if (!loginForm.senha.trim()) newErrors.senha = "Este campo ÔøΩ obrigatÔøΩrio";
 
     if (Object.keys(newErrors).length > 0) {
       setLoginErrors(newErrors);
@@ -119,7 +119,7 @@ function AuthContainer({ initialMode = "login" }) {
       }
     } catch (error) {
       console.error('Erro no login:', error);
-      setLoginError('Erro de conex„o com o servidor. Verifique se o backend est· rodando.');
+      setLoginError('Erro de conex√£o com o servidor. Verifique se o backend est√° rodando.');
     } finally {
       setIsLoginLoading(false);
     }
@@ -149,27 +149,27 @@ function AuthContainer({ initialMode = "login" }) {
   };
 
   const validarTelefone = (telefone) => {
-    if (!telefone) return 'Este campo È obrigatÛrio';
-    if (telefone.length !== 9) return 'O telefone deve ter 9 dÌgitos';
-    if (!telefone.startsWith('9')) return 'O telefone deve comeÁar com 9';
+    if (!telefone) return 'Este campo √© obrigat√≥rio';
+    if (telefone.length !== 9) return 'O telefone deve ter 9 d√≠gitos';
+    if (!telefone.startsWith('9')) return 'O telefone deve come√ßar com 9';
 
     const segundoDigito = telefone[1];
     const digitosValidos = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
     if (!digitosValidos.includes(segundoDigito)) {
-      return 'N˙mero de telefone inv·lido';
+      return 'N√∫mero de telefone inv√°lido';
     }
 
     return '';
   };
 
   const validarNascimento = (nascimento) => {
-    if (!nascimento) return 'Este campo È obrigatÛrio';
+    if (!nascimento) return 'Este campo √© obrigat√≥rio';
 
     const dataNasc = new Date(nascimento);
     const hoje = new Date();
 
-    if (Number.isNaN(dataNasc.getTime())) return 'Data de nascimento inv·lida';
-    if (dataNasc > hoje) return 'Data de nascimento n„o pode ser no futuro';
+    if (Number.isNaN(dataNasc.getTime())) return 'Data de nascimento inv√°lida';
+    if (dataNasc > hoje) return 'Data de nascimento n√£o pode ser no futuro';
 
     let idade = hoje.getFullYear() - dataNasc.getFullYear();
     const mesAtual = hoje.getMonth();
@@ -181,7 +181,7 @@ function AuthContainer({ initialMode = "login" }) {
       idade -= 1;
     }
 
-    if (idade < 10) return 'VocÍ deve ter pelo menos 10 anos';
+    if (idade < 14) return 'Voc√™ deve ter pelo menos 15 anos';
     return '';
   };
 
@@ -200,14 +200,16 @@ function AuthContainer({ initialMode = "login" }) {
       case 'nascimento':
         return validarNascimento(value);
       case 'sexo':
-        return value ? '' : 'Este campo È obrigatÛrio';
+        return value ? '' : 'Este campo √© obrigat√≥rio';
+      case 'escola':
+        return value ? '' : 'Este campo √© obrigat√≥rio';
       case 'senha': {
         const result = validatePassword(value);
         return result.valid ? '' : result.error;
       }
       case 'confirmaSenha':
-        if (!value) return 'Este campo È obrigatÛrio';
-        if (value !== formState.senha) return 'As senhas n„o coincidem';
+        if (!value) return 'Este campo √© obrigat√≥rio';
+        if (value !== formState.senha) return 'As senhas n√£o coincidem';
         return '';
       default:
         return '';
@@ -308,13 +310,13 @@ function AuthContainer({ initialMode = "login" }) {
       setTimeout(() => navigate('/'), 1500);
     } catch (error) {
       console.error('Erro no cadastro:', error);
-      setCadastroErrors({ geral: 'Erro ao realizar cadastro. Verifique se o servidor est· rodando.' });
+      setCadastroErrors({ geral: 'Erro ao realizar cadastro. Verifique se o servidor est√° rodando.' });
     } finally {
       setIsCadastroLoading(false);
     }
   };
 
-  // Formatar telefone para exibiÁ„o (opcional)
+  // Formatar telefone para exibiÔøΩÔøΩo (opcional)
   const formatarTelefoneParaExibicao = (telefone) => {
     if (!telefone) return "";
     if (telefone.length === 9) {
@@ -390,7 +392,7 @@ function AuthContainer({ initialMode = "login" }) {
                     <input
                       type="text"
                       name="usuario"
-                      placeholder="Nome, Telefone ou Email"
+                      placeholder="Email do Usu√°rio"
                       value={loginForm.usuario}
                       onChange={handleLoginChange}
                       className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition"

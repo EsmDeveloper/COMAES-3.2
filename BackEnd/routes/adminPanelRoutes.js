@@ -4,12 +4,14 @@ import * as GenericController from '../controllers/GenericController.js';
 import { getModelNames, getModel } from '../utils/modelMapper.js';
 import UserController from '../controllers/UserController.js';
 import TorneoController from '../controllers/TorneoController.js';
-import { getStats } from '../controllers/adminStatsController.js';
+import { getStats, getUsuariosPorDia, getAtividadesRecentes } from '../controllers/adminStatsController.js';
 
 const router = express.Router();
 
 // ===== ENDPOINT DE ESTATÍSTICAS AGREGADAS =====
 router.get('/stats', isAdmin, getStats);
+router.get('/novos-usuarios-por-dia', isAdmin, getUsuariosPorDia);
+router.get('/atividades-recentes', isAdmin, getAtividadesRecentes);
 
 // Rota para obter a lista de todos os modelos disponíveis
 router.get('/models', isAdmin, (req, res) => {

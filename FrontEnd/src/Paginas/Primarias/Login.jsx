@@ -128,7 +128,7 @@ function Login() {
               <input
                 type="text"
                 name="usuario"
-                placeholder="Nome, Telefone ou Email"
+                placeholder="Email do Usuário"
                 value={form.usuario}
                 onChange={handleChange}
                 className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-[border-color,box-shadow] duration-fast ease-out-fluid hover:border-gray-400"

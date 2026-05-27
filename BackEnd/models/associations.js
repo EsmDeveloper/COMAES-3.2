@@ -23,6 +23,7 @@ import Questao from "./Questao.js";
 import QuestaoMatematica from "./QuestaoMatematica.js";
 import QuestaoProgramacao from "./QuestaoProgramacao.js";
 import QuestaoIngles from "./QuestaoIngles.js";
+import ResultadoTeste from "./ResultadoTeste.js";
 
 // Flag para garantir que setupAssociations só é chamado uma vez
 let associationsConfigured = false;
@@ -134,6 +135,10 @@ export const setupAssociations = () => {
   // Questao <-> QuestaoIngles (herança)
   Questao.hasOne(QuestaoIngles, { foreignKey: 'questao_id', as: 'detalhesIngles' });
   QuestaoIngles.belongsTo(Questao, { foreignKey: 'questao_id', as: 'questao' });
+
+  // ResultadoTeste <-> Usuario
+  Usuario.hasMany(ResultadoTeste, { foreignKey: 'usuario_id', as: 'resultadosTeste' });
+  ResultadoTeste.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
 
   associationsConfigured = true;
   console.log('✅ Associações Sequelize configuradas com sucesso!');

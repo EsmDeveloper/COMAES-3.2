@@ -3,20 +3,46 @@ import Usuario from '../models/User.js';
 import ParticipanteTorneio from '../models/ParticipanteTorneio.js';
 import sequelize from '../config/db.js';
 
+// Helper para formatar dados do torneio para o frontend
+const formatTorneioForFrontend = (torneio) => {
+  const t = typeof torneio.toJSON === 'function' ? torneio.toJSON() : { ...torneio };
+  
+  // Garantir que as datas são strings ISO formatadas corretamente
+  if (t.inicia_em) {
+    t.inicia_em = new Date(t.inicia_em).toISOString();
+  }
+  if (t.termina_em) {
+    t.termina_em = new Date(t.termina_em).toISOString();
+  }
+  if (t.criado_em) {
+    t.criado_em = new Date(t.criado_em).toISOString();
+  }
+  
+  // Garantir que público é booleano
+  t.público = t.publico !== false;
+  
+  return t;
+};
+
 export const TorneoController = {
     // Get all tournaments
     getAllTorneos: async (req, res) => {
         try {
             const torneos = await Torneio.findAll({
-                include: [
-                    { model: Usuario, as: 'criador', attributes: ['id', 'nome', 'email'] },
-                    { model: ParticipanteTorneio, as: 'participantes', attributes: ['id', 'usuario_id', 'disciplina_competida', 'status'] }
+                attributes: [
+                    'id', 'titulo', 'descricao', 'inicia_em', 'termina_em', 
+                    'status', 'criado_em', 'publico', 'slug'
                 ],
-                raw: false,
-                subQuery: false
+                order: [['criado_em', 'DESC']],
+                limit: 100,
             });
-            res.status(200).json(torneos);
+
+            // Formatar dados para o frontend
+            const formattedTorneios = torneos.map(formatTorneioForFrontend);
+            
+            res.status(200).json(formattedTorneios);
         } catch (error) {
+            console.error('Erro ao obter torneios:', error);
             res.status(500).json({ message: 'Erro ao obter torneios', error: error.message });
         }
     },
@@ -95,12 +121,10 @@ export const TorneoController = {
             }, { transaction });
 
             // 5. Sincronizar ranking após nova inscrição
-            // Isto garante que a nova posição do participante seja calculada e persistida
             try {
                 await ParticipanteTorneio.calcularRanking(torneio_id, disciplina_competida);
             } catch (err) {
                 console.warn('⚠️ Aviso ao sincronizar ranking após inscrição:', err.message);
-                // Não falha a inscrição se o ranking não sincronizar
             }
 
             await transaction.commit();
@@ -112,7 +136,6 @@ export const TorneoController = {
         } catch (error) {
             await transaction.rollback();
             
-            // Tratar erro de constraint única (fallback para casos raros)
             if (error.name === 'SequelizeUniqueConstraintError') {
                 return res.status(409).json({ 
                     message: 'Usuário já está inscrito neste torneio e disciplina' 
@@ -133,7 +156,6 @@ export const TorneoController = {
             const where = { torneio_id: id };
             if (disciplina) where.disciplina_competida = disciplina;
 
-            // Filtrar por status se não especificar includeInactive
             if (includeInactive !== 'true') {
                 where.status = 'confirmado';
             }
@@ -148,7 +170,6 @@ export const TorneoController = {
                 ]
             });
 
-            // Adicionar posição a cada participante
             const comPosicao = participantes.map((p, index) => ({
                 ...p.toJSON(),
                 posicao: index + 1
@@ -163,7 +184,7 @@ export const TorneoController = {
     // Obter participação do usuário logado
     getMinhaParticipacao: async (req, res) => {
         try {
-            const { id } = req.params; // torneio_id
+            const { id } = req.params;
             const { usuario_id, disciplina } = req.query;
 
             const participante = await ParticipanteTorneio.findOne({
@@ -181,10 +202,10 @@ export const TorneoController = {
         }
     },
 
-    // Atualizar pontuação (exemplo de uso do método de instância)
+    // Atualizar pontuação
     atualizarPontos: async (req, res) => {
         try {
-            const { id } = req.params; // id do participante_torneio
+            const { id } = req.params;
             const { pontos, descricao } = req.body;
 
             const participante = await ParticipanteTorneio.findByPk(id);
@@ -197,20 +218,20 @@ export const TorneoController = {
         }
     },
 
-    // Create tournament with 3 disciplines
+    // Create tournament
     createTorneo: async (req, res) => {
         try {
             console.log('🔄 Criando torneio com dados:', req.body);
-            const { titulo, descricao, inicia_em, termina_em, maximo_participantes, criado_por, status, publico } = req.body;
+            const { titulo, descricao, inicia_em, termina_em, maximo_participantes, criado_por, status, público } = req.body;
 
-            if (!titulo) {
-                return res.status(400).json({ message: 'Título é obrigatório' });
+            if (!titulo || !titulo.trim()) {
+                return res.status(400).json({ message: 'Título é obrigatório', field: 'titulo' });
             }
 
-            // Validar datas — não permitir datas passadas
-            // Tolerância de 5 minutos para cobrir pequenas diferenças de sincronização
+            // Validar datas
             const TOLERANCE_MS = 5 * 60 * 1000;
             const now = new Date(Date.now() - TOLERANCE_MS);
+            
             if (inicia_em) {
                 const inicioDate = new Date(inicia_em);
                 if (inicioDate < now) {
@@ -220,6 +241,7 @@ export const TorneoController = {
                     });
                 }
             }
+            
             if (termina_em) {
                 const fimDate = new Date(termina_em);
                 if (fimDate < now) {
@@ -247,8 +269,15 @@ export const TorneoController = {
                 }
             }
 
-            // Create main tournament
-            const slug = titulo.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+            // Gerar slug
+            const slug = titulo
+                .toLowerCase()
+                .trim()
+                .replace(/[^\w\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-|-$/g, '');
+            
             console.log('🏷️ Slug gerado:', slug);
 
             const requestingUserId = req.user?.id;
@@ -257,29 +286,33 @@ export const TorneoController = {
                 return res.status(401).json({ message: 'Usuário autenticado necessário para criar torneio.' });
             }
 
+            // Validar status
+            const validStatuses = ['rascunho', 'ativo'];
+            const finalStatus = validStatuses.includes(status) ? status : 'rascunho';
+
             const torneioData = {
-                titulo,
+                titulo: titulo.trim(),
                 slug,
-                descricao,
-                inicia_em,
-                termina_em,
+                descricao: descricao?.trim() || null,
+                inicia_em: inicia_em || null,
+                termina_em: termina_em || null,
                 criado_por: createdBy,
-                status: status || 'rascunho',
-                publico: publico !== false
+                status: finalStatus,
+                público: público !== false
             };
 
-            // Só adiciona maximo_participantes se foi validado acima
             if (maximo_participantes !== null && maximo_participantes !== undefined && maximo_participantes !== '') {
                 torneioData.maximo_participantes = Number(maximo_participantes);
             }
 
             console.log('💾 Dados para criar torneio:', torneioData);
 
-            const novoTorneo = await Torneio.create(torneioData);
+            const novoTorneio = await Torneio.create(torneioData);
+            const formattedTorneio = formatTorneioForFrontend(novoTorneio);
 
             res.status(201).json({
-                message: 'Torneio criado com sucesso! As 3 disciplinas (Matemática, Inglês e Programação) foram ativadas automaticamente.',
-                torneio: novoTorneo
+                message: 'Torneio criado com sucesso!',
+                torneio: formattedTorneio
             });
         } catch (error) {
             console.error('❌ Erro ao criar torneio:', error);
@@ -291,23 +324,35 @@ export const TorneoController = {
     updateTorneo: async (req, res) => {
         try {
             const { id } = req.params;
-            const { titulo, descricao, inicia_em, termina_em, maximo_participantes, status, publico } = req.body;
+            const { titulo, descricao, inicia_em, termina_em, maximo_participantes, status, público } = req.body;
 
-            const existingTorneo = await Torneio.findByPk(id);
-            if (!existingTorneo) {
+            const existingTorneio = await Torneio.findByPk(id);
+            if (!existingTorneio) {
                 return res.status(404).json({ message: 'Torneio não encontrado' });
             }
 
-            // Só valida datas que foram efetivamente alteradas (diferentes das existentes no banco)
-            // Tolerância de 5 minutos para cobrir pequenas diferenças de sincronização
+            // Validar status de transição
+            const currentStatus = existingTorneio.status;
+            const validTransitions = {
+                rascunho: ['rascunho', 'ativo', 'cancelado'],
+                ativo: ['ativo', 'finalizado', 'cancelado'],
+                finalizado: ['finalizado'],
+                cancelado: ['cancelado'],
+            };
+
+            if (status && !validTransitions[currentStatus]?.includes(status)) {
+                return res.status(400).json({
+                    message: `Não é possível mudar de "${currentStatus}" para "${status}"`,
+                    field: 'status'
+                });
+            }
+
+            // Validar datas
             const TOLERANCE_MS = 5 * 60 * 1000;
             const now = new Date(Date.now() - TOLERANCE_MS);
-            const inicioAlterado = inicia_em && inicia_em !== existingTorneo.inicia_em?.toISOString?.()?.slice(0, 16) &&
-                                   inicia_em !== existingTorneo.inicia_em;
-            const fimAlterado = termina_em && termina_em !== existingTorneo.termina_em?.toISOString?.()?.slice(0, 16) &&
-                                termina_em !== existingTorneo.termina_em;
 
-            if (inicia_em && inicioAlterado) {
+            // Validar data de início
+            if (inicia_em) {
                 const inicioDate = new Date(inicia_em);
                 if (inicioDate < now) {
                     return res.status(400).json({
@@ -316,15 +361,19 @@ export const TorneoController = {
                     });
                 }
             }
-            if (termina_em && fimAlterado) {
+
+            // Validar data de término
+            if (termina_em) {
                 const fimDate = new Date(termina_em);
+                const inicioRef = inicia_em || existingTorneio.inicia_em;
+                
                 if (fimDate < now) {
                     return res.status(400).json({
                         message: 'A data de término não pode ser anterior ao horário atual.',
                         field: 'termina_em'
                     });
                 }
-                const inicioRef = inicia_em || existingTorneo.inicia_em;
+                
                 if (inicioRef && new Date(termina_em) <= new Date(inicioRef)) {
                     return res.status(400).json({
                         message: 'A data de término deve ser posterior à data de início.',
@@ -333,18 +382,40 @@ export const TorneoController = {
                 }
             }
 
-            const [updated] = await Torneio.update(
-                { titulo, descricao, inicia_em, termina_em, maximo_participantes, status, publico },
-                { where: { id } }
-            );
+            // Validar máximo de participantes
+            if (maximo_participantes !== null && maximo_participantes !== undefined && maximo_participantes !== '') {
+                const maxPart = Number(maximo_participantes);
+                if (isNaN(maxPart) || maxPart < 1 || !Number.isInteger(maxPart)) {
+                    return res.status(400).json({
+                        message: 'O máximo de participantes deve ser um número inteiro maior que zero.',
+                        field: 'maximo_participantes'
+                    });
+                }
+            }
+
+            // Preparar dados para atualização
+            const updateData = {};
+            if (titulo !== undefined) updateData.titulo = titulo.trim();
+            if (descricao !== undefined) updateData.descricao = descricao?.trim() || null;
+            if (inicia_em !== undefined) updateData.inicia_em = inicia_em || null;
+            if (termina_em !== undefined) updateData.termina_em = termina_em || null;
+            if (status !== undefined) updateData.status = status;
+            if (público !== undefined) updateData.publico = público !== false;
+            if (maximo_participantes !== null && maximo_participantes !== undefined) {
+                updateData.maximo_participantes = Number(maximo_participantes);
+            }
+
+            const [updated] = await Torneio.update(updateData, { where: { id } });
 
             if (updated) {
-                const torneo = await Torneio.findOne({ where: { id } });
-                res.status(200).json(torneo);
+                const updatedTorneio = await Torneio.findOne({ where: { id } });
+                const formattedTorneio = formatTorneioForFrontend(updatedTorneio);
+                res.status(200).json(formattedTorneio);
             } else {
                 res.status(404).json({ message: 'Torneio não encontrado' });
             }
         } catch (error) {
+            console.error('Erro ao atualizar torneio:', error);
             res.status(500).json({ message: 'Erro ao atualizar torneio', error: error.message });
         }
     },
@@ -354,16 +425,12 @@ export const TorneoController = {
         try {
             const { id } = req.params;
             
-            // Verificar se torneio existe
             const torneio = await Torneio.findByPk(id);
             if (!torneio) {
                 return res.status(404).json({ message: 'Torneio não encontrado' });
             }
             
-            // Deletar com cascade (sem force, deixar o banco fazer o cascade)
-            const deleted = await Torneio.destroy({ 
-                where: { id }
-            });
+            const deleted = await Torneio.destroy({ where: { id } });
             
             if (deleted) {
                 res.status(204).send();
@@ -373,7 +440,6 @@ export const TorneoController = {
         } catch (error) {
             console.error('Erro ao deletar torneio:', error);
             
-            // Tratamento específico para erros de constraint
             if (error.name === 'SequelizeForeignKeyConstraintError') {
                 return res.status(409).json({ 
                     message: 'Não é possível deletar este torneio pois existem participantes ou dados associados. Remova-os primeiro.' 

@@ -1,8 +1,13 @@
 import express from 'express';
 import isAdmin from '../middlewares/isAdmin.js';
 import * as GenericController from '../controllers/GenericController.js';
+import { getStats } from '../controllers/adminStatsController.js';
 
 const router = express.Router();
+
+// Endpoint agregado da Visao Geral. Deve vir antes do loader generico
+// para evitar que "stats" seja interpretado como nome de modelo.
+router.get('/stats', isAdmin, getStats);
 
 // Generic model loader
 router.use('/:model', GenericController.getModelByName);

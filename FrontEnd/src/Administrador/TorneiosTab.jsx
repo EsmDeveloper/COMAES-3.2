@@ -1,7 +1,7 @@
 /**
- * TorneiosTab.jsx - RECONSTRUÍDO
- * Gerenciamento de torneios com arquitetura limpa
- * Responsabilidade: Orquestração de estado e fluxo de dados
+ * TorneiosTab.jsx
+ * Gerenciamento completo de torneios
+ * Implementa: carregamento correto de dados, feedback visual, tratamento de erros
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -13,12 +13,39 @@ import {
   Plus,
   Edit,
   Loader2,
-  Clock
+  Clock,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import TournamentForm from './components/TournamentForm';
 import { ModalOverlay, DeleteConfirmationModal, ViewDetailsModal } from './components/TournamentModal';
 import { TournamentService } from './services/TournamentService';
+
+// Mapeamento de status para configuração visual
+const STATUS_CONFIG = {
+  rascunho: {
+    label: 'Rascunho',
+    className: 'bg-amber-100 text-amber-700',
+    icon: '📝',
+  },
+  ativo: {
+    label: 'Ativo',
+    className: 'bg-emerald-100 text-emerald-700',
+    icon: '🔥',
+  },
+  finalizado: {
+    label: 'Finalizado',
+    className: 'bg-blue-100 text-blue-700',
+    icon: '🏁',
+  },
+  cancelado: {
+    label: 'Cancelado',
+    className: 'bg-rose-100 text-rose-700',
+    icon: '❌',
+  },
+};
 
 export default function TorneiosTab() {
   const { token, user } = useAuth();
@@ -37,16 +64,20 @@ export default function TorneiosTab() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
-  /**
-   * Carregar lista de torneios
-   */
+  // ============================================
+  // CARREGAR LISTA DE TORNEIOS
+  // ============================================
   const fetchTorneios = useCallback(async () => {
     try {
       setLoading(true);
+      console.log('[TorneiosTab] Carregando torneios...');
       const data = await TournamentService.fetchAll(token);
-      setTorneios(data);
+      console.log('[TorneiosTab] Torneios carregados:', data.length);
+      setTorneios(data || []);
     } catch (err) {
+      console.error('[TorneiosTab] Erro ao carregar torneios:', err);
       showToast(err.message || 'Erro ao carregar torneios', 'error');
+      setTorneios([]);
     } finally {
       setLoading(false);
     }
@@ -59,72 +90,98 @@ export default function TorneiosTab() {
     }
   }, [token, fetchTorneios]);
 
-  /**
-   * Mostrar notificação
-   */
-  const showToast = (message, type = 'success') => {
+  // ============================================
+  // NOTIFICAÇÕES
+  // ============================================
+  const showToast = useCallback((message, type = 'success') => {
     setToast({ show: true, message, type });
-    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
-  };
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 4000);
+  }, []);
 
-  /**
-   * Abrir modal de criação
-   */
+  // ============================================
+  // HANDLERS DE MODAL
+  // ============================================
   const handleOpenCreate = useCallback(() => {
+    console.log('[TorneiosTab] Abrindo modal de criação');
     setModalForm({ open: true, mode: 'create', data: null });
   }, []);
 
-  /**
-   * Abrir modal de edição
-   */
   const handleOpenEdit = useCallback((torneio) => {
-    setModalForm({ open: true, mode: 'edit', data: torneio });
+    console.log('[TorneiosTab] Abrindo modal de edição para:', {
+      id: torneio.id,
+      titulo: torneio.titulo,
+      status: torneio.status,
+      inicia_em: torneio.inicia_em,
+      termina_em: torneio.termina_em,
+    });
+    setModalForm({ open: true, mode: 'edit', data: { ...torneio } });
   }, []);
 
-  /**
-   * Fechar modal de formulário
-   */
   const handleCloseForm = useCallback(() => {
     setModalForm({ open: false, mode: 'create', data: null });
   }, []);
 
-  /**
-   * Salvar torneio (criar ou editar)
-   */
+  // ============================================
+  // SALVAR TORNEIO
+  // ============================================
   const handleSaveTorneio = useCallback(
     async (payload) => {
       setIsProcessing(true);
       try {
+        console.log('[TorneiosTab] Salvando torneio:', { mode: modalForm.mode, payload });
+
         if (modalForm.mode === 'create') {
+          // Adicionar criador
           payload.criado_por = user?.id;
-          await TournamentService.create(payload, token);
-          // Refresh full list to get server-side data (includes, etc.)
+
+          // Criar torneio
+          const novoTorneio = await TournamentService.create(payload, token);
+          console.log('[TorneiosTab] Torneio criado:', novoTorneio);
+
+          // Atualizar lista completa
           await fetchTorneios();
           showToast('Torneio criado com sucesso!');
         } else {
-          const result = await TournamentService.update(modalForm.data.id, payload, token);
-          setTorneios(prev => prev.map(t => (t.id === (result.id || modalForm.data.id) ? { ...t, ...result } : t)));
-          showToast('Torneio atualizado com sucesso!');
+          // Atualizar torneio existente
+          const updatedTorneio = await TournamentService.update(
+            modalForm.data.id,
+            payload,
+            token
+          );
+          console.log('[TorneiosTab] Torneio atualizado:', updatedTorneio);
+
+          // Atualizar na lista local
+          setTorneios(prev =>
+            prev.map(t =>
+              t.id === (updatedTorneio.id || modalForm.data.id)
+                ? { ...t, ...updatedTorneio }
+                : t
+            )
+          );
+
+          showToast('Alterações salvas com sucesso!');
         }
 
         handleCloseForm();
       } catch (err) {
+        console.error('[TorneiosTab] Erro ao salvar:', err);
         showToast(err.message || 'Erro ao salvar torneio', 'error');
       } finally {
         setIsProcessing(false);
       }
     },
-    [modalForm.mode, modalForm.data, token, user, handleCloseForm, fetchTorneios]
+    [modalForm.mode, modalForm.data, token, user, handleCloseForm, fetchTorneios, showToast]
   );
 
-  /**
-   * Confirmar exclusão
-   */
+  // ============================================
+  // EXCLUIR TORNEIO
+  // ============================================
   const handleConfirmDelete = useCallback(async () => {
     if (!modalDelete.id) return;
 
     setIsProcessing(true);
     try {
+      console.log('[TorneiosTab] Excluindo torneio:', modalDelete.id);
       await TournamentService.delete(modalDelete.id, token);
 
       // Remover da lista
@@ -138,24 +195,48 @@ export default function TorneiosTab() {
       showToast('Torneio excluído com sucesso!');
       setModalDelete({ open: false, id: null, title: '' });
     } catch (err) {
+      console.error('[TorneiosTab] Erro ao excluir:', err);
       showToast(err.message || 'Erro ao excluir torneio', 'error');
     } finally {
       setIsProcessing(false);
     }
-  }, [modalDelete.id, token, modalView.data?.id]);
+  }, [modalDelete.id, token, modalView.data?.id, showToast]);
 
-  /**
-   * Filtrar torneios por busca
-   */
+  // ============================================
+  // FILTRAR TORNEIOS
+  // ============================================
   const filteredTorneios = torneios.filter(t => {
     const query = searchTerm.trim().toLowerCase();
     if (!query) return true;
     return (
       t.titulo?.toLowerCase().includes(query) ||
-      t.disciplina?.toLowerCase().includes(query)
+      t.status?.toLowerCase().includes(query) ||
+      t.descricao?.toLowerCase().includes(query)
     );
   });
 
+  // ============================================
+  // FORMATAR DATA PARA EXIBIÇÃO
+  // ============================================
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '-';
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return '-';
+    }
+  };
+
+  // ============================================
+  // RENDERIZAÇÃO
+  // ============================================
   return (
     <div className="p-2 sm:p-4">
       {/* Toolbar */}
@@ -164,7 +245,7 @@ export default function TorneiosTab() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder="Buscar torneios..."
+            placeholder="Buscar torneios por título, status..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
@@ -184,7 +265,7 @@ export default function TorneiosTab() {
           <thead className="bg-gray-50/50 border-b border-gray-100">
             <tr>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Torneio</th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Disciplina</th>
+              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Período</th>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Status</th>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase text-right">Ações</th>
             </tr>
@@ -206,56 +287,63 @@ export default function TorneiosTab() {
                 </td>
               </tr>
             ) : (
-              filteredTorneios.map(t => (
-                <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="font-semibold text-gray-900">{t.titulo}</div>
-                    <div className="text-xs text-gray-400 flex items-center gap-1 mt-1">
-                      <Clock size={12} />
-                      {new Date(t.inicia_em).toLocaleDateString('pt-BR')}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{t.disciplina || '-'}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                        t.status === 'ativo'
-                          ? 'bg-green-100 text-green-700'
-                          : t.status === 'finalizado'
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {t.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => handleOpenEdit(t)}
-                        className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all"
-                        title="Editar torneio"
-                      >
-                        <Edit size={18} />
-                      </button>
-                      <button
-                        onClick={() => setModalView({ open: true, data: t })}
-                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                        title="Visualizar detalhes"
-                      >
-                        <Eye size={18} />
-                      </button>
-                      <button
-                        onClick={() => setModalDelete({ open: true, id: t.id, title: t.titulo })}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                        title="Deletar torneio"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+              filteredTorneios.map(t => {
+                const statusConfig = STATUS_CONFIG[t.status] || STATUS_CONFIG.rascunho;
+                return (
+                  <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="font-semibold text-gray-900">{t.titulo}</div>
+                      <div className="text-xs text-gray-400 flex items-center gap-1 mt-1">
+                        <Clock size={12} />
+                        Criado em {formatDate(t.criado_em)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-600">
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-gray-400">Início:</span>
+                          <span className="font-medium">{formatDate(t.inicia_em)}</span>
+                        </div>
+                        <div className="flex items-center gap-1 mt-1">
+                          <span className="text-xs text-gray-400">Fim:</span>
+                          <span className="font-medium">{formatDate(t.termina_em)}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 w-fit ${statusConfig.className}`}>
+                        <span>{statusConfig.icon}</span>
+                        {statusConfig.label}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => handleOpenEdit(t)}
+                          className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all"
+                          title="Editar torneio"
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button
+                          onClick={() => setModalView({ open: true, data: t })}
+                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                          title="Visualizar detalhes"
+                        >
+                          <Eye size={18} />
+                        </button>
+                        <button
+                          onClick={() => setModalDelete({ open: true, id: t.id, title: t.titulo })}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                          title="Deletar torneio"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
@@ -264,12 +352,21 @@ export default function TorneiosTab() {
       {/* Toast Notification */}
       {toast.show && (
         <div
-          className={`fixed bottom-4 right-4 px-6 py-3 rounded-xl font-semibold text-sm shadow-lg z-50 ${
+          className={`fixed bottom-4 right-4 px-6 py-3 rounded-xl font-semibold text-sm shadow-lg z-50 flex items-center gap-2 ${
             toast.type === 'success'
-              ? 'bg-green-600 text-white'
-              : 'bg-red-600 text-white'
+              ? 'bg-emerald-600 text-white'
+              : toast.type === 'error'
+              ? 'bg-rose-600 text-white'
+              : 'bg-amber-500 text-white'
           }`}
         >
+          {toast.type === 'success' ? (
+            <CheckCircle size={18} />
+          ) : toast.type === 'error' ? (
+            <XCircle size={18} />
+          ) : (
+            <AlertCircle size={18} />
+          )}
           {toast.message}
         </div>
       )}

@@ -1,10 +1,10 @@
 /**
  * TournamentForm.jsx
- * Formulário de criação/edição de torneios - Versão com UI melhorada
- * Responsabilidade única: Renderizar e gerenciar estado do formulário
+ * Formulário completo de criação/edição de torneios
+ * Implementa: persistência de dados, status dinâmicos, validação de datas, UX melhorada
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
   Trophy,
@@ -17,8 +17,51 @@ import {
   Globe,
   Loader2,
   CheckCircle2,
+  Info,
+  Lock,
 } from 'lucide-react';
 import { TournamentValidation } from '../utils/TournamentValidation';
+
+// ============================================
+// CONFIGURAÇÃO DE STATUS
+// ============================================
+
+const STATUS_CONFIG = {
+  rascunho: { label: 'Rascunho', emoji: '📝', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
+  ativo: { label: 'Ativo', emoji: '🔥', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
+  finalizado: { label: 'Finalizado', emoji: '🏁', color: 'text-slate-600', bg: 'bg-slate-100', border: 'border-slate-200' },
+  cancelado: { label: 'Cancelado', emoji: '❌', color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-200' },
+};
+
+// Opções de status por modo e estado atual
+const STATUS_OPTIONS = {
+  create: [
+    { value: 'rascunho', label: '📝 Rascunho', description: 'Torneio em preparação, não visível para usuários' },
+    { value: 'ativo', label: '🔥 Ativo', description: 'Torneio publicado e disponível para participação' },
+  ],
+  edit: {
+    rascunho: [
+      { value: 'rascunho', label: '📝 Rascunho', description: 'Manter em preparação' },
+      { value: 'ativo', label: '🔥 Ativo', description: 'Publicar o torneio' },
+      { value: 'cancelado', label: '❌ Cancelado', description: 'Cancelar definitivamente' },
+    ],
+    ativo: [
+      { value: 'ativo', label: '🔥 Ativo', description: 'Manter ativo' },
+      { value: 'finalizado', label: '🏁 Finalizado', description: 'Encerrar o torneio' },
+      { value: 'cancelado', label: '❌ Cancelado', description: 'Cancelar definitivamente' },
+    ],
+    finalizado: [
+      { value: 'finalizado', label: '🏁 Finalizado', description: 'Torneio encerrado - apenas visualização', disabled: true },
+    ],
+    cancelado: [
+      { value: 'cancelado', label: '❌ Cancelado', description: 'Torneio cancelado - apenas visualização', disabled: true },
+    ],
+  },
+};
+
+// ============================================
+// COMPONENTE PRINCIPAL
+// ============================================
 
 export default function TournamentForm({
   mode = 'create',
@@ -27,38 +70,96 @@ export default function TournamentForm({
   onCancel = () => {},
   isLoading = false,
 }) {
+  // Estado do formulário
   const [formData, setFormData] = useState({
     titulo: '',
     descricao: '',
     inicia_em: '',
     termina_em: '',
     status: 'rascunho',
-    publico: true,
+    público: true,
     slug: '',
   });
 
+  // Estado de erros e campos tocados
   const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
+  // Calcular data mínima (agora + 1 minuto)
+  const minDateTime = useMemo(() => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 1);
+    return now.toISOString().slice(0, 16);
+  }, []);
+
+  // Obter opções de status disponíveis baseadas no estado atual
+  const availableStatusOptions = useMemo(() => {
+    if (mode === 'create') {
+      return STATUS_OPTIONS.create;
+    }
+    const currentStatus = initialData?.status || 'rascunho';
+    return STATUS_OPTIONS.edit[currentStatus] || STATUS_OPTIONS.edit.rascunho;
+  }, [mode, initialData?.status]);
+
+  // Verificar se o formulário está em modo somente leitura
+  const isReadOnly = useMemo(() => {
+    if (mode !== 'edit' || !initialData) return false;
+    return ['finalizado', 'cancelado'].includes(initialData.status);
+  }, [mode, initialData]);
+
+  // ============================================
+  // CARREGAR DADOS INICIAIS (MODO EDIÇÃO)
+  // ============================================
   useEffect(() => {
     if (mode === 'edit' && initialData) {
-      // No modo edição só existem 3 status válidos; se vier rascunho/agendado, promover para ativo
-      const editStatus = ['ativo', 'finalizado', 'cancelado'].includes(initialData.status)
-        ? initialData.status
-        : 'ativo';
+      console.log('[TournamentForm] Carregando dados para edição:', {
+        id: initialData.id,
+        titulo: initialData.titulo,
+        inicia_em: initialData.inicia_em,
+        termina_em: initialData.termina_em,
+        status: initialData.status,
+        público: initialData.público,
+      });
+
+      // Preservar o status original do torneio
+      const originalStatus = initialData.status || 'rascunho';
+
+      // Formatar datas com tratamento robusto
+      const iniciaEm = TournamentValidation.formatDateForInput(initialData.inicia_em);
+      const terminaEm = TournamentValidation.formatDateForInput(initialData.termina_em);
+
+      console.log('[TournamentForm] Datas formatadas:', { iniciaEm, terminaEm });
+
       setFormData({
         titulo: initialData.titulo || '',
         descricao: initialData.descricao || '',
-        inicia_em: TournamentValidation.formatDateForInput(initialData.inicia_em),
-        termina_em: TournamentValidation.formatDateForInput(initialData.termina_em),
-        status: editStatus,
-        publico: initialData.publico !== false,
+        inicia_em: iniciaEm || '',
+        termina_em: terminaEm || '',
+        status: originalStatus,
+        público: initialData.público !== false,
         slug: initialData.slug || '',
+      });
+    } else if (mode === 'create') {
+      // Reset para criação
+      setFormData({
+        titulo: '',
+        descricao: '',
+        inicia_em: '',
+        termina_em: '',
+        status: 'rascunho',
+        público: true,
+        slug: '',
       });
     }
     setErrors({});
+    setTouched({});
   }, [mode, initialData]);
 
-  const handleFieldChange = (field, value) => {
+  // ============================================
+  // HANDLERS
+  // ============================================
+
+  const handleFieldChange = useCallback((field, value) => {
     setFormData((prev) => {
       const updated = { ...prev, [field]: value };
       if (field === 'titulo' && mode === 'create') {
@@ -67,36 +168,61 @@ export default function TournamentForm({
       return updated;
     });
 
+    // Limpar erro do campo quando modificado
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: null }));
     }
-  };
+  }, [mode, errors]);
 
-  const handleSubmit = (e) => {
+  const handleBlur = useCallback((field) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+
+    // Validar em tempo real após perder foco
+    const validationErrors = TournamentValidation.validate(formData, mode, minDateTime);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+    }
+  }, [formData, mode, minDateTime]);
+
+  const handleSubmit = useCallback((e) => {
     e.preventDefault();
 
-    const validationErrors = TournamentValidation.validate(formData);
+    // Marcar todos os campos como tocados
+    setTouched({
+      titulo: true,
+      descricao: true,
+      inicia_em: true,
+      termina_em: true,
+      status: true,
+    });
+
+    // Validar formulário completo
+    const validationErrors = TournamentValidation.validate(formData, mode, minDateTime);
 
     if (TournamentValidation.hasErrors(validationErrors)) {
       setErrors(validationErrors);
       return;
     }
 
+    // Preparar payload
     const payload = {
       titulo: formData.titulo.trim(),
       descricao: formData.descricao.trim(),
       inicia_em: formData.inicia_em,
       termina_em: formData.termina_em,
       status: formData.status,
-      publico: formData.publico,
+      público: formData.público,
       slug: formData.slug || TournamentValidation.generateSlug(formData.titulo),
     };
 
+    console.log('[TournamentForm] Enviando payload:', payload);
     onSubmit(payload);
-  };
+  }, [formData, mode, minDateTime, onSubmit]);
 
-  // Helper para renderizar campo com ícone
-  const renderInputField = ({
+  // ============================================
+  // RENDERIZAR CAMPO DE INPUT
+  // ============================================
+  const renderInputField = useCallback(({
     label,
     name,
     type = 'text',
@@ -104,50 +230,141 @@ export default function TournamentForm({
     icon: Icon,
     required = true,
     rows,
-  }) => (
-    <div className="space-y-1.5 animate-fade-in">
-      <label className="block text-sm font-semibold text-gray-700">
-        {label} {required && <span className="text-rose-500 ml-0.5">*</span>}
-      </label>
-      <div className="relative group">
-        {Icon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors">
-            <Icon size={18} />
+    min,
+    max,
+  }) => {
+    const hasError = touched[name] && errors[name];
+    const showError = hasError || (touched[name] && errors[name]);
+
+    return (
+      <div className="space-y-1.5 animate-fade-in">
+        <label className="block text-sm font-semibold text-gray-700">
+          {label} {required && <span className="text-rose-500 ml-0.5">*</span>}
+        </label>
+        <div className="relative group">
+          {Icon && (
+            <div className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors ${
+              showError ? 'text-rose-400' : 'text-gray-400 group-focus-within:text-blue-500'
+            }`}>
+              <Icon size={18} />
+            </div>
+          )}
+          {type === 'textarea' ? (
+            <textarea
+              value={formData[name]}
+              onChange={(e) => handleFieldChange(name, e.target.value)}
+              onBlur={() => handleBlur(name)}
+              placeholder={placeholder}
+              rows={rows || 3}
+              disabled={isLoading || isReadOnly}
+              className={`w-full pl-10 pr-4 py-2.5 bg-white border rounded-xl outline-none transition-all duration-200 resize-none
+                focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:opacity-60 disabled:bg-gray-50
+                ${showError ? 'border-rose-300 bg-rose-50/30 focus:ring-rose-500/20' : 'border-gray-200 hover:border-gray-300'}`}
+            />
+          ) : (
+            <input
+              type={type}
+              value={formData[name]}
+              onChange={(e) => handleFieldChange(name, e.target.value)}
+              onBlur={() => handleBlur(name)}
+              placeholder={placeholder}
+              min={min}
+              max={max}
+              disabled={isLoading || isReadOnly}
+              className={`w-full pl-10 pr-4 py-2.5 bg-white border rounded-xl outline-none transition-all duration-200
+                focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:opacity-60 disabled:bg-gray-50
+                ${showError ? 'border-rose-300 bg-rose-50/30 focus:ring-rose-500/20' : 'border-gray-200 hover:border-gray-300'}`}
+            />
+          )}
+        </div>
+        {showError && (
+          <div className="flex items-center gap-1.5 text-rose-600 text-xs animate-slide-down">
+            <AlertCircle size={14} />
+            <span>{errors[name]}</span>
           </div>
         )}
-        {type === 'textarea' ? (
-          <textarea
-            value={formData[name]}
-            onChange={(e) => handleFieldChange(name, e.target.value)}
-            placeholder={placeholder}
-            rows={rows || 3}
-            disabled={isLoading}
-            className={`w-full pl-10 pr-4 py-2.5 bg-white border rounded-xl outline-none transition-all duration-200 resize-none
-              focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:opacity-60 disabled:bg-gray-50
-              ${errors[name] ? 'border-rose-300 bg-rose-50/30 focus:ring-rose-500/20' : 'border-gray-200 hover:border-gray-300'}`}
-          />
-        ) : (
-          <input
-            type={type}
-            value={formData[name]}
-            onChange={(e) => handleFieldChange(name, e.target.value)}
-            placeholder={placeholder}
-            disabled={isLoading}
-            className={`w-full pl-10 pr-4 py-2.5 bg-white border rounded-xl outline-none transition-all duration-200
-              focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:opacity-60 disabled:bg-gray-50
-              ${errors[name] ? 'border-rose-300 bg-rose-50/30 focus:ring-rose-500/20' : 'border-gray-200 hover:border-gray-300'}`}
-          />
+      </div>
+    );
+  }, [formData, errors, touched, isLoading, isReadOnly, handleFieldChange, handleBlur]);
+
+  // ============================================
+  // RENDERIZAR SELECT DE STATUS
+  // ============================================
+  const renderStatusSelect = useCallback(() => {
+    const currentStatusConfig = STATUS_CONFIG[formData.status] || STATUS_CONFIG.rascunho;
+    const hasError = touched.status && errors.status;
+
+    return (
+      <div className="space-y-1.5">
+        <label className="block text-sm font-semibold text-gray-700">
+          Status <span className="text-rose-500">*</span>
+        </label>
+
+        {/* Indicador visual do status atual */}
+        <div className={`flex items-center gap-2 p-3 rounded-lg border ${currentStatusConfig.bg} ${currentStatusConfig.border}`}>
+          <span className="text-lg">{currentStatusConfig.emoji}</span>
+          <span className={`font-medium ${currentStatusConfig.color}`}>
+            {currentStatusConfig.label}
+          </span>
+          {isReadOnly && (
+            <span className="ml-auto flex items-center gap-1 text-xs text-gray-500">
+              <Lock size={12} />
+              Somente visualização
+            </span>
+          )}
+        </div>
+
+        {/* Select de status */}
+        <div className="relative">
+          <div className={`absolute left-3 top-1/2 -translate-y-1/2 z-10 ${hasError ? 'text-rose-400' : 'text-gray-400'}`}>
+            <Eye size={18} />
+          </div>
+          <select
+            value={formData.status}
+            onChange={(e) => handleFieldChange('status', e.target.value)}
+            onBlur={() => handleBlur('status')}
+            disabled={isLoading || isReadOnly || availableStatusOptions.every(o => o.disabled)}
+            className={`w-full pl-10 pr-10 py-2.5 bg-white border rounded-xl outline-none transition-all duration-200 cursor-pointer
+              focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:opacity-60 disabled:cursor-not-allowed
+              ${hasError ? 'border-rose-300' : 'border-gray-200'}
+              ${formData.status === 'ativo' ? 'text-emerald-700 font-medium' : ''}
+              ${formData.status === 'finalizado' ? 'text-gray-500' : ''}
+              ${formData.status === 'cancelado' ? 'text-rose-600' : ''}`}
+          >
+            {availableStatusOptions.map((option) => (
+              <option
+                key={option.value}
+                value={option.value}
+                disabled={option.disabled}
+              >
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Descrição da opção selecionada */}
+        {availableStatusOptions.find(o => o.value === formData.status)?.description && (
+          <p className="text-xs text-gray-500 flex items-center gap-1">
+            <Info size={12} />
+            {availableStatusOptions.find(o => o.value === formData.status)?.description}
+          </p>
+        )}
+
+        {/* Erro de status */}
+        {hasError && (
+          <div className="flex items-center gap-1.5 text-rose-600 text-xs animate-slide-down">
+            <AlertCircle size={14} />
+            <span>{errors.status}</span>
+          </div>
         )}
       </div>
-      {errors[name] && (
-        <div className="flex items-center gap-1.5 text-rose-600 text-xs animate-slide-down">
-          <AlertCircle size={14} />
-          <span>{errors[name]}</span>
-        </div>
-      )}
-    </div>
-  );
+    );
+  }, [formData.status, errors.status, touched.status, isLoading, isReadOnly, availableStatusOptions, handleFieldChange, handleBlur]);
 
+  // ============================================
+  // RENDERIZAÇÃO PRINCIPAL
+  // ============================================
   return (
     <>
       <style>{`
@@ -217,6 +434,10 @@ export default function TournamentForm({
         }
         input[type="checkbox"]:focus {
           ring: 2px solid #3b82f6;
+        }
+        input[type="checkbox"]:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
       `}</style>
 
@@ -294,6 +515,7 @@ export default function TournamentForm({
               type: 'datetime-local',
               icon: Calendar,
               required: true,
+              min: mode === 'create' ? minDateTime : undefined,
             })}
             {renderInputField({
               label: 'Data de Término',
@@ -301,60 +523,25 @@ export default function TournamentForm({
               type: 'datetime-local',
               icon: Clock,
               required: true,
+              min: formData.inicia_em || minDateTime,
             })}
           </div>
 
-          {/* Status com cores personalizadas */}
-          <div className="space-y-1.5">
-            <label className="block text-sm font-semibold text-gray-700">
-              Status <span className="text-rose-500">*</span>
-            </label>
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10">
-                <Eye size={18} />
-              </div>
-              <select
-                value={formData.status}
-                onChange={(e) => handleFieldChange('status', e.target.value)}
-                disabled={isLoading}
-                className={`w-full pl-10 pr-10 py-2.5 bg-white border rounded-xl outline-none transition-all duration-200 cursor-pointer
-                  focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:opacity-60
-                  ${errors.status ? 'border-rose-300' : 'border-gray-200'}
-                  ${formData.status === 'ativo' ? 'text-emerald-700 font-medium' : ''}
-                  ${formData.status === 'finalizado' ? 'text-gray-500' : ''}
-                  ${formData.status === 'cancelado' ? 'text-rose-600' : ''}`}
-              >
-                {mode === 'create' ? (
-                  <>
-                    <option value="rascunho">📝 Rascunho</option>
-                    <option value="agendado">📅 Agendado</option>
-                    <option value="ativo">🔥 Ativo</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="ativo">🔥 Ativo</option>
-                    <option value="finalizado">🏁 Finalizado</option>
-                    <option value="cancelado">❌ Cancelado</option>
-                  </>
-                )}
-              </select>
-            </div>
-            {errors.status && (
-              <div className="flex items-center gap-1.5 text-rose-600 text-xs animate-slide-down">
-                <AlertCircle size={14} />
-                {errors.status}
-              </div>
-            )}
-          </div>
+          {/* Status com indicadores visuais */}
+          {renderStatusSelect()}
 
           {/* Checkbox público estilizado */}
           <div className="pt-2">
-            <label className="flex items-start gap-3 p-4 bg-gradient-to-br from-blue-50/40 to-indigo-50/30 rounded-xl border border-blue-100 cursor-pointer transition-all hover:shadow-sm">
+            <label className={`flex items-start gap-3 p-4 rounded-xl border border-blue-100 cursor-pointer transition-all hover:shadow-sm ${
+              formData.público
+                ? 'bg-gradient-to-br from-blue-50/40 to-indigo-50/30'
+                : 'bg-gray-50'
+            }`}>
               <input
                 type="checkbox"
-                checked={formData.publico}
-                onChange={(e) => handleFieldChange('publico', e.target.checked)}
-                disabled={isLoading}
+                checked={formData.público}
+                onChange={(e) => handleFieldChange('público', e.target.checked)}
+                disabled={isLoading || isReadOnly}
                 className="mt-0.5 focus:ring-2 focus:ring-blue-500/30"
               />
               <div className="flex-1">
@@ -368,7 +555,7 @@ export default function TournamentForm({
                   Visível para todos os usuários da plataforma. Torneios privados exigem convite.
                 </p>
               </div>
-              {formData.publico && (
+              {formData.público && (
                 <CheckCircle2 size={18} className="text-blue-500" />
               )}
             </label>
@@ -387,7 +574,7 @@ export default function TournamentForm({
           </button>
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || isReadOnly}
             className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold text-sm hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-60 shadow-md shadow-blue-200 flex items-center justify-center gap-2 min-w-[140px]"
           >
             {isLoading ? (
@@ -410,12 +597,13 @@ export default function TournamentForm({
 TournamentForm.propTypes = {
   mode: PropTypes.oneOf(['create', 'edit']),
   initialData: PropTypes.shape({
+    id: PropTypes.number,
     titulo: PropTypes.string,
     descricao: PropTypes.string,
     inicia_em: PropTypes.string,
     termina_em: PropTypes.string,
     status: PropTypes.string,
-    publico: PropTypes.bool,
+    público: PropTypes.bool,
     slug: PropTypes.string,
   }),
   onSubmit: PropTypes.func,
