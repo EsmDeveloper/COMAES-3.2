@@ -15,7 +15,8 @@ const createApiClient = (token) => {
 };
 
 const SPECIAL_ENDPOINTS = {
-    torneio: 'torneos'
+    torneio: 'torneos',
+    user:    'users',
 };
 
 const createCrudClient = (modelName, token) => {

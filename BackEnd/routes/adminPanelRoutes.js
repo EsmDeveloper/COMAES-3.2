@@ -26,6 +26,7 @@ router.get('/models', isAdmin, (req, res) => {
 // ===== ROTAS ESPECÍFICAS (modelos com controladores dedicados) =====
 router.get('/users', isAdmin, UserController.getAllUsers);
 router.post('/users', isAdmin, UserController.createUser);
+router.post('/users/create-admin', isAdmin, UserController.createAdminUser);
 router.put('/users/:id', isAdmin, UserController.updateUser);
 router.delete('/users/:id', isAdmin, UserController.deleteUser);
 router.patch('/users/:id/toggle-admin', isAdmin, UserController.toggleAdmin);
@@ -40,6 +41,7 @@ router.post('/torneos/inscrever', isAdmin, TorneoController.inscreverParticipant
 router.patch('/participantes/:id/pontos', isAdmin, TorneoController.atualizarPontos);
 
 // ===== ROTAS GENÉRICAS (modelos definidos em modelMapper.js) =====
+// NOTA: Devem vir DEPOIS das rotas específicas acima para não capturar /torneos, /users, etc.
 const resolveModel = (req, res, next) => {
     try {
         req.Model = getModel(req.params.model);
@@ -49,6 +51,8 @@ const resolveModel = (req, res, next) => {
     }
 };
 
+// Rotas genéricas sem prefixo — funcionam para qualquer modelo não coberto pelas rotas específicas
+// (ex: /api/admin/noticia, /api/admin/conquista, /api/admin/notificacao, etc.)
 router.get('/:model', isAdmin, resolveModel, GenericController.getAll);
 router.get('/:model/:id', isAdmin, resolveModel, GenericController.getById);
 router.post('/:model', isAdmin, resolveModel, GenericController.create);

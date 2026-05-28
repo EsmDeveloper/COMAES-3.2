@@ -315,9 +315,9 @@ const AdminDashboard = () => {
                 <AvatarButton compact />
               </div>
               
-              {/* Logout button - Always visible */}
+              {/* Back to site button - navigates without logging out */}
               <button
-                onClick={handleLogout}
+                onClick={() => navigate('/')}
                 className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl whitespace-nowrap flex items-center gap-2"
               >
                 <ArrowLeft className="w-4 h-4" />

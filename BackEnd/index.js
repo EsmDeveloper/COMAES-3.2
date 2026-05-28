@@ -1976,6 +1976,21 @@ app.get('/noticias', async (req, res) => {
   }
 });
 
+// Incrementar visualizações de uma notícia (chamado quando o utilizador entra na aba Notícias)
+app.post('/noticias/:id/visualizar', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const noticia = await Noticia.findByPk(id);
+    if (!noticia) {
+      return res.status(404).json({ success: false, error: 'Notícia não encontrada.' });
+    }
+    await noticia.increment('visualizacoes', { by: 1 });
+    res.json({ success: true, visualizacoes: (noticia.visualizacoes || 0) + 1 });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // ===== ROTAS DE FINALIZAÇÃO DE TORNEIO E GERAÇÃO DE CERTIFICADOS =====
 app.post('/api/torneios/:id/finalizar', async (req, res) => {
   try {
@@ -2051,6 +2066,17 @@ async function startServer() {
         // Sincronizar modelos
         await sequelize.sync({ alter: false });
         console.log("Modelos sincronizados!");
+
+        // Garantir coluna visualizacoes na tabela noticias (migração segura)
+        try {
+          const [cols] = await sequelize.query("SHOW COLUMNS FROM `noticias` LIKE 'visualizacoes'");
+          if (cols.length === 0) {
+            await sequelize.query("ALTER TABLE `noticias` ADD COLUMN `visualizacoes` INT NOT NULL DEFAULT 0");
+            console.log("✅ Coluna 'visualizacoes' adicionada à tabela noticias");
+          }
+        } catch (migErr) {
+          console.warn("⚠️ Não foi possível verificar/adicionar coluna visualizacoes:", migErr?.message);
+        }
       } else {
         console.warn("Banco de dados indisponivel - iniciando em modo degradado (sem sincronizacao)");
       }

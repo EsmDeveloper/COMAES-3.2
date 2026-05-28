@@ -1,23 +1,14 @@
 /**
  * ComaesModal.jsx
  * Componente base universal para todos os modais da plataforma COMAES.
- *
- * Uso:
- *   <ComaesModal isOpen={bool} onClose={fn} title="Título" icon={<Icon />} iconBg="bg-blue-100" iconColor="text-blue-600">
- *     {children}
- *   </ComaesModal>
- *
- * Variantes de botão exportadas:
- *   <ModalBtnPrimary>   — bg-blue-600 text-white
- *   <ModalBtnSecondary> — bg-white text-blue-600 border border-blue-600
- *   <ModalBtnCancel>    — bg-white text-gray-700 border border-gray-200
- *   <ModalBtnDanger>    — bg-red-600 text-white
+ * Usa ReactDOM.createPortal para renderizar no document.body,
+ * garantindo que o overlay fixed funcione mesmo dentro de containers
+ * com overflow:hidden ou transform (ex: AdminDashboard).
  */
 
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-
-// ─── Overlay + container ──────────────────────────────────────────
 
 export default function ComaesModal({
   isOpen,
@@ -47,57 +38,60 @@ export default function ComaesModal({
 
   if (!isOpen) return null;
 
-  return (
-    <div
-      className={`fixed inset-0 z-[9999] flex items-center justify-center p-4`}
-      role="dialog"
-      aria-modal="true"
-    >
-      {/* Overlay */}
+  const modal = (
+    <>
+      {/* Overlay — clique fecha o modal, pointer-events apenas aqui */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm"
         style={{ animation: 'comaes-fade 0.2s ease' }}
         onClick={onClose}
       />
 
-      {/* Modal box */}
+      {/* Centering container — z-index acima do overlay, sem pointer-events no wrapper */}
       <div
-        className={`relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full ${maxWidth} z-10 overflow-hidden`}
-        style={{ animation: 'comaes-slide-up 0.25s ease' }}
-        onClick={(e) => e.stopPropagation()}
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-slate-50 to-blue-50">
-          <div className="flex items-center gap-3">
-            {icon && (
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}>
-                <span className={iconColor}>{icon}</span>
+        {/* Modal box — reativa pointer-events apenas aqui */}
+        <div
+          className={`pointer-events-auto bg-white rounded-2xl shadow-2xl border border-gray-200 w-full ${maxWidth} flex flex-col max-h-[90vh]`}
+          style={{ animation: 'comaes-slide-up 0.25s ease' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          {(title || !hideClose) && (
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-slate-50 to-blue-50 flex-shrink-0 rounded-t-2xl">
+              <div className="flex items-center gap-3">
+                {icon && (
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}>
+                    <span className={iconColor}>{icon}</span>
+                  </div>
+                )}
+                {title && <h2 className="text-xl font-bold text-slate-800">{title}</h2>}
               </div>
-            )}
-            <h2 className="text-xl font-bold text-slate-800">{title}</h2>
+              {!hideClose && onClose && (
+                <button
+                  onClick={onClose}
+                  className="text-gray-400 hover:text-gray-600 transition-colors rounded-lg p-1.5 hover:bg-gray-100 flex-shrink-0"
+                  aria-label="Fechar"
+                >
+                  <X size={18} />
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Body — scrollable */}
+          <div className="px-6 py-5 overflow-y-auto flex-1 min-h-0">
+            {children}
           </div>
-          {!hideClose && onClose && (
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors rounded-lg p-1.5 hover:bg-gray-100 flex-shrink-0"
-              aria-label="Fechar"
-            >
-              <X size={18} />
-            </button>
+
+          {/* Footer */}
+          {footer && (
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/80 flex flex-col sm:flex-row gap-3 justify-end flex-shrink-0 rounded-b-2xl">
+              {footer}
+            </div>
           )}
         </div>
-
-        {/* Body */}
-        <div className="px-6 py-5 overflow-y-auto max-h-[60vh]">
-          {children}
-        </div>
-
-        {/* Footer */}
-        {footer && (
-          <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/80 flex flex-col sm:flex-row gap-3 justify-end">
-            {footer}
-          </div>
-        )}
       </div>
 
       <style>{`
@@ -107,19 +101,22 @@ export default function ComaesModal({
         }
         @keyframes comaes-slide-up {
           from { opacity: 0; transform: translateY(16px) scale(0.97); }
-          to   { opacity: 1; transform: translateY(0)    scale(1);    }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
         }
       `}</style>
-    </div>
+    </>
   );
+
+  return createPortal(modal, document.body);
 }
 
 // ─── Button variants ──────────────────────────────────────────────
 
-export function ModalBtnPrimary({ children, onClick, disabled, type = 'button', className = '' }) {
+export function ModalBtnPrimary({ children, onClick, disabled, type = 'button', form, className = '' }) {
   return (
     <button
       type={type}
+      form={form}
       onClick={onClick}
       disabled={disabled}
       className={`flex-1 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-sm transition-all shadow-md shadow-blue-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${className}`}

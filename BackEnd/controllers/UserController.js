@@ -179,6 +179,79 @@ const createUser = async (req, res) => {
   }
 };
 
+// ── POST /api/admin/users/create-admin ────────────────────────────────────
+// Cria um sub-administrador com apenas email + senha.
+// Apenas o Administrador Supremo pode usar este endpoint.
+const createAdminUser = async (req, res) => {
+  try {
+    const body = req.body;
+    const requestingUser = req.user;
+
+    // Apenas super-admin pode criar outros admins
+    if (!requestingUser?.isAdmin) {
+      return res.status(403).json({
+        message: 'Apenas o Administrador Supremo pode criar outros administradores.',
+      });
+    }
+
+    // Validar email
+    if (!body.email || !RE.email.test(body.email.trim().toLowerCase())) {
+      return res.status(422).json({
+        message: 'Dados inválidos.',
+        fieldErrors: { email: 'O e-mail informado é inválido.' },
+      });
+    }
+
+    // Validar senha
+    if (!body.password || !RE.password.test(body.password)) {
+      return res.status(422).json({
+        message: 'Dados inválidos.',
+        fieldErrors: { password: 'A senha deve ter no mínimo 8 caracteres, maiúscula, minúscula, número e símbolo.' },
+      });
+    }
+
+    // Verificar unicidade do email
+    const existing = await Usuario.unscoped().findOne({
+      where: { email: body.email.trim().toLowerCase() },
+    });
+    if (existing) {
+      return res.status(409).json({
+        message: 'E-mail já registado.',
+        fieldErrors: { email: 'Este e-mail já está registado.' },
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(body.password, 10);
+
+    // Gerar dados mínimos obrigatórios para o modelo
+    const emailLocal = body.email.trim().toLowerCase().split('@')[0];
+    const nomeGerado = emailLocal.replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Administrador';
+
+    const newAdmin = await Usuario.create({
+      nome:       nomeGerado,
+      email:      body.email.trim().toLowerCase(),
+      telefone:   `9${Math.floor(10000000 + Math.random() * 89999999)}`, // placeholder único
+      nascimento: '1990-01-01',
+      sexo:       'Masculino',
+      escola:     null,
+      biografia:  '',
+      password:   hashedPassword,
+      isAdmin:    true,
+    });
+
+    const { password: _, ...adminSafe } = newAdmin.get({ plain: true });
+    res.status(201).json({ message: 'Administrador criado com sucesso.', data: adminSafe });
+  } catch (error) {
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      const fieldErrors = {};
+      error.errors.forEach(e => { fieldErrors[e.path] = 'Este valor já está em uso.'; });
+      return res.status(409).json({ message: 'Dados duplicados.', fieldErrors });
+    }
+    console.error('Erro ao criar administrador:', error);
+    res.status(500).json({ message: 'Erro ao criar administrador.', error: error.message });
+  }
+};
+
 // ── PUT /api/admin/users/:id ──────────────────────────────────────────────
 const updateUser = async (req, res) => {
   try {
@@ -354,4 +427,4 @@ const resetPassword = async (req, res) => {
   }
 };
 
-export default { getAllUsers, createUser, updateUser, deleteUser, toggleAdmin, resetPassword };
+export default { getAllUsers, createUser, createAdminUser, updateUser, deleteUser, toggleAdmin, resetPassword };

@@ -45,6 +45,11 @@ const Noticia = sequelize.define('Noticia', {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  visualizacoes: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    allowNull: false,
+  },
   criado_em: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,

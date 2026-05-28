@@ -291,11 +291,13 @@ export default function News() {
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const itemsPerPage = 5;
 
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+
   useEffect(() => {
     const loadNews = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/noticias`);
+        const response = await fetch(`${API_BASE}/noticias`);
         const result = await response.json();
         if (result.success) {
           const transformed = result.data.map(item => {
@@ -333,7 +335,7 @@ export default function News() {
                 ? new Date(item.publicado_em).toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' })
                 : 'Recentemente',
               readTime: Math.ceil((item.conteudo || '').split(' ').length / 200) + ' min',
-              views: Math.floor(Math.random() * 1000) + 100,
+              views: item.visualizacoes ?? 0,
               isBookmarked: false,
               imageUrl: item.url_capa || null,
               tags: tagsArr,
@@ -346,6 +348,20 @@ export default function News() {
             'atualização': transformed.filter(n => n.category === 'atualização').length,
             evento:        transformed.filter(n => n.category === 'evento').length,
             dica:          transformed.filter(n => n.category === 'dica').length,
+          });
+
+          // Incrementar visualizações de todas as notícias carregadas (entrada na aba)
+          transformed.forEach(item => {
+            fetch(`${API_BASE}/noticias/${item.id}/visualizar`, { method: 'POST' })
+              .then(r => r.json())
+              .then(data => {
+                if (data.success) {
+                  setNews(prev => prev.map(n =>
+                    n.id === item.id ? { ...n, views: data.visualizacoes } : n
+                  ));
+                }
+              })
+              .catch(() => {}); // silencioso — não bloqueia a UI
           });
         }
       } catch (error) {
