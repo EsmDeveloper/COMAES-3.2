@@ -347,6 +347,11 @@ const deleteUser = async (req, res) => {
       return res.status(403).json({ message: 'Não é possível excluir a própria conta.' });
     }
 
+    // Admin master (id=1) é intocável
+    if (String(id) === '1') {
+      return res.status(403).json({ message: 'O Administrador Master não pode ser eliminado.' });
+    }
+
     const user = await Usuario.unscoped().findByPk(id);
     if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
 

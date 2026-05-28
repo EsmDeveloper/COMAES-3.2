@@ -339,7 +339,6 @@ const TableManager = ({ table }) => {
 
     const handleModalSubmit = async (formData) => {
         if (!tableService) return;
-        const isUserTable = table === 'user' || table === 'users';
         try {
             if (modalMode === 'create') {
                 await tableService.create(formData);
@@ -404,11 +403,17 @@ const TableManager = ({ table }) => {
 
     const info = tableInfo || { title: 'Tabela', columns: [], displayColumns: [], fields: [] };
 
-    const filteredData = data.filter(item =>
-        Object.values(item).some(value =>
+    const filteredData = data.filter(item => {
+        // Admin secundário não vê o admin master (id=1) na lista
+        if (isUserTable && !isMasterAdmin && String(item.id) === '1') return false;
+        return Object.values(item).some(value =>
             String(value).toLowerCase().includes(searchTerm.toLowerCase())
-        )
-    );
+        );
+    });
+
+    const isUserTable = table === 'user' || table === 'users';
+    // Admin master = id 1. Só ele pode criar admins e ver todos os utilizadores.
+    const isMasterAdmin = String(user?.id) === '1';
 
     return (
         <div className="space-y-6">
@@ -423,6 +428,8 @@ const TableManager = ({ table }) => {
                             Gerencie registros, visualize dados e execute operações CRUD
                         </p>
                     </div>
+                    {/* Botão Adicionar: na tabela de users, só o admin master pode criar */}
+                    {(!isUserTable || isMasterAdmin) && (
                     <button
                         onClick={handleAdd}
                         className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2 whitespace-nowrap"
@@ -430,6 +437,7 @@ const TableManager = ({ table }) => {
                         <Plus className="w-5 h-5" />
                         <span>Adicionar {info.title.slice(0, -1)}</span>
                     </button>
+                    )}
                 </div>
             </div>
 
@@ -533,43 +541,18 @@ const TableManager = ({ table }) => {
                                                         <Edit className="w-4 h-4" />
                                                         <span className="hidden sm:inline">Editar</span>
                                                     </button>
-                                                    {(table === 'user' || table === 'users') && (
-                                                        <>
-                                                            <button
-                                                                onClick={() => { setModalMode('reset-password'); setSelectedItem(item); setShowModal(true); }}
-                                                                className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-1.5 text-xs font-medium"
-                                                                title="Redefinir senha"
-                                                            >
-                                                                <Key className="w-4 h-4" />
-                                                                <span className="hidden sm:inline">Senha</span>
-                                                            </button>
-                                                            {user?.isAdmin && String(user?.id) !== String(item.id) && (
-                                                                <button
-                                                                    onClick={async () => {
-                                                                        if (!window.confirm(`${item.isAdmin ? 'Remover' : 'Conceder'} privilégios de administrador para ${item.nome}?`)) return;
-                                                                        setModalMode('toggle-admin');
-                                                                        setSelectedItem(item);
-                                                                        try { await handleModalSubmit({}); }
-                                                                        catch { /* error shown in table */ }
-                                                                    }}
-                                                                    className={`${item.isAdmin ? 'bg-orange-500 hover:bg-orange-600' : 'bg-purple-500 hover:bg-purple-600'} text-white px-3 py-1.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-1.5 text-xs font-medium`}
-                                                                    title={item.isAdmin ? 'Remover admin' : 'Tornar admin'}
-                                                                >
-                                                                    <span>{item.isAdmin ? <Crown className="w-4 h-4" /> : <ArrowUp className="w-4 h-4" />}</span>
-                                                                    <span className="hidden sm:inline">{item.isAdmin ? 'Remover Admin' : 'Tornar Admin'}</span>
-                                                                </button>
-                                                            )}
-                                                        </>
+                                                    {/* Excluir: nunca para o próprio utilizador nem para o admin master (id=1) */}
+                                                    {!(isUserTable && String(item.id) === '1') && (
+                                                        <button
+                                                            onClick={() => handleDelete(item)}
+                                                            disabled={String(user?.id) === String(item.id)}
+                                                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-1.5 text-xs font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                                                            title={String(user?.id) === String(item.id) ? 'Não pode excluir a própria conta' : 'Excluir'}
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                            <span className="hidden sm:inline">Excluir</span>
+                                                        </button>
                                                     )}
-                                                    <button
-                                                        onClick={() => handleDelete(item)}
-                                                        disabled={String(user?.id) === String(item.id)}
-                                                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-1.5 text-xs font-medium disabled:opacity-40 disabled:cursor-not-allowed"
-                                                        title={String(user?.id) === String(item.id) ? 'Não pode excluir a própria conta' : 'Excluir'}
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                        <span className="hidden sm:inline">Excluir</span>
-                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
