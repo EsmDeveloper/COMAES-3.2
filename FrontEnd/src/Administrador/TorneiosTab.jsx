@@ -72,11 +72,15 @@ export default function TorneiosTab() {
       setLoading(true);
       console.log('[TorneiosTab] Carregando torneios...');
       const data = await TournamentService.fetchAll(token);
-      console.log('[TorneiosTab] Torneios carregados:', data.length);
-      setTorneios(data || []);
+      console.log('[TorneiosTab] Torneios carregados:', data?.length || 0);
+      
+      // Garantir que é array (não é erro)
+      const torneiosData = Array.isArray(data) ? data : [];
+      setTorneios(torneiosData);
     } catch (err) {
       console.error('[TorneiosTab] Erro ao carregar torneios:', err);
-      showToast(err.message || 'Erro ao carregar torneios', 'error');
+      // Apenas mostrar erro se for falha real de rede/servidor
+      // Não mostrar erro se a lista estiver vazia (isso é normal)
       setTorneios([]);
     } finally {
       setLoading(false);
@@ -172,6 +176,49 @@ export default function TorneiosTab() {
     },
     [modalForm.mode, modalForm.data, token, user, handleCloseForm, fetchTorneios, showToast]
   );
+
+  // ============================================
+  // FINALIZAR TORNEIO
+  // ============================================
+  const handleFinalizeTorneio = useCallback(async (torneioId) => {
+    if (!window.confirm('Tem certeza que deseja finalizar este torneio? Esta ação irá gerar certificados para os vencedores.')) {
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      console.log('[TorneiosTab] Finalizando torneio:', torneioId);
+      
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/torneios/${torneioId}/finalizar`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          disciplinas: ['Matemática', 'Programação', 'Inglês']
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao finalizar torneio');
+      }
+
+      console.log('[TorneiosTab] Torneio finalizado:', data);
+
+      // Atualizar lista
+      await fetchTorneios();
+      
+      showToast(`Torneio finalizado! ${data.certificados?.length || 0} certificados gerados.`);
+    } catch (err) {
+      console.error('[TorneiosTab] Erro ao finalizar:', err);
+      showToast(err.message || 'Erro ao finalizar torneio', 'error');
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [token, fetchTorneios, showToast]);
 
   // ============================================
   // EXCLUIR TORNEIO
@@ -318,6 +365,15 @@ export default function TorneiosTab() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
+                        {t.status === 'ativo' && (
+                          <button
+                            onClick={() => handleFinalizeTorneio(t.id)}
+                            className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
+                            title="Finalizar torneio"
+                          >
+                            <CheckCircle size={18} />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleOpenEdit(t)}
                           className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all"

@@ -4,6 +4,7 @@ import CreateQuestaoForm from './CreateQuestaoForm';
 import EditQuestaoForm from './EditQuestaoForm';
 import { Plus, Edit, Trash2, Search, Filter, CheckCircle, AlertCircle } from 'lucide-react';
 import axios from 'axios';
+import ConfirmModal from '../components/ConfirmModal';
 
 /**
  * QuestoesManager
@@ -315,51 +316,16 @@ const QuestoesManager = () => {
       )}
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && questionToDelete && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
-            <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 rounded-t-2xl">
-              <h3 className="text-xl font-bold text-white">Confirmar Exclusão</h3>
-            </div>
-            <div className="p-6">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                  <AlertCircle className="w-6 h-6 text-red-600" />
-                </div>
-                <div>
-                  <p className="text-slate-800 font-semibold mb-2">
-                    Tem certeza que deseja deletar esta questão?
-                  </p>
-                  <p className="text-slate-600 text-sm mb-2">
-                    <strong>Título:</strong> {questionToDelete.titulo}
-                  </p>
-                  <p className="text-slate-500 text-sm">
-                    Esta ação não pode ser desfeita.
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    setShowDeleteModal(false);
-                    setQuestionToDelete(null);
-                  }}
-                  className="flex-1 px-4 py-2 bg-slate-200 text-slate-800 rounded-lg hover:bg-slate-300 transition-colors font-semibold"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={confirmDelete}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold flex items-center justify-center gap-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Deletar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={showDeleteModal && !!questionToDelete}
+        onClose={() => { setShowDeleteModal(false); setQuestionToDelete(null); }}
+        onConfirm={confirmDelete}
+        title="Confirmar Exclusão"
+        message={questionToDelete ? `Tem certeza que deseja deletar a questão "${questionToDelete.titulo}"? Esta ação não pode ser desfeita.` : ''}
+        confirmText="Deletar"
+        cancelText="Cancelar"
+        type="danger"
+      />
     </div>
   );
 };

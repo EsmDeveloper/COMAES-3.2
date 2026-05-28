@@ -403,6 +403,10 @@ const TableManager = ({ table }) => {
 
     const info = tableInfo || { title: 'Tabela', columns: [], displayColumns: [], fields: [] };
 
+    const isUserTable = table === 'user' || table === 'users';
+    // Admin master = id 1. Só ele pode criar admins e ver todos os utilizadores.
+    const isMasterAdmin = String(user?.id) === '1';
+
     const filteredData = data.filter(item => {
         // Admin secundário não vê o admin master (id=1) na lista
         if (isUserTable && !isMasterAdmin && String(item.id) === '1') return false;
@@ -410,10 +414,6 @@ const TableManager = ({ table }) => {
             String(value).toLowerCase().includes(searchTerm.toLowerCase())
         );
     });
-
-    const isUserTable = table === 'user' || table === 'users';
-    // Admin master = id 1. Só ele pode criar admins e ver todos os utilizadores.
-    const isMasterAdmin = String(user?.id) === '1';
 
     return (
         <div className="space-y-6">

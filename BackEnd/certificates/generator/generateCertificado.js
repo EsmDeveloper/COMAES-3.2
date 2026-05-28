@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Certificado from '../../models/Certificado.js';
 import Usuario from '../../models/User.js';
 import Torneio from '../../models/Torneio.js';
+import sequelize from '../../config/db.js';
 import { fileURLToPath } from 'url';
 import QRCode from 'qrcode';
 
@@ -425,16 +426,28 @@ async function getCertificateHTML(data) {
  * Gera um certificado para um participante
  */
 export async function generateCertificate(torneioId, usuarioId, disciplina, posicao, pontuacao, totalParticipantesProp = null) {
+  let browser = null;
+  
   try {
     console.log(`[CERTIFICADO] Iniciando geração para: ${usuarioId}, Posição: ${posicao}`);
+    console.log(`[CERTIFICADO] Parâmetros: torneioId=${torneioId}, disciplina=${disciplina}, pontuacao=${pontuacao}`);
 
     // Buscar dados
     const usuario = await Usuario.findByPk(usuarioId);
     const torneio = await Torneio.findByPk(torneioId);
 
-    if (!usuario || !torneio) {
-      throw new Error('Utilizador ou torneio não encontrado');
+    if (!usuario) {
+      console.error(`[CERTIFICADO] ❌ Usuário não encontrado: ${usuarioId}`);
+      throw new Error('Utilizador não encontrado');
     }
+
+    if (!torneio) {
+      console.error(`[CERTIFICADO] ❌ Torneio não encontrado: ${torneioId}`);
+      throw new Error('Torneio não encontrado');
+    }
+
+    console.log(`[CERTIFICADO] ✅ Usuário: ${usuario.nome}`);
+    console.log(`[CERTIFICADO] ✅ Torneio: ${torneio.titulo}`);
 
     let totalParticipants = totalParticipantesProp;
 
@@ -442,9 +455,10 @@ export async function generateCertificate(torneioId, usuarioId, disciplina, posi
     if (!totalParticipants) {
       if (typeof sequelize !== 'undefined' && sequelize.query) {
         try {
+            console.log('[CERTIFICADO] Consultando total de participantes...');
             const [{ total }] = await sequelize.query(`
               SELECT COUNT(*) as total 
-              FROM participante_torneios 
+              FROM participantes_torneios 
               WHERE torneio_id = :torneioId 
               AND disciplina_competida = :disciplina 
               AND status = 'confirmado'
@@ -453,7 +467,9 @@ export async function generateCertificate(torneioId, usuarioId, disciplina, posi
               type: sequelize.QueryTypes.SELECT 
             });
             totalParticipants = total || 1;
+            console.log(`[CERTIFICADO] Total de participantes: ${totalParticipants}`);
         } catch(e) {
+            console.warn('[CERTIFICADO] ⚠️  Erro ao contar participantes:', e.message);
             totalParticipants = 1;
         }
       } else {
@@ -473,10 +489,18 @@ export async function generateCertificate(torneioId, usuarioId, disciplina, posi
 
     // Gerar código único
     const codigoCertificado = 'CERT-' + torneioId + '-' + usuarioId + '-' + Date.now().toString().slice(-4) + '-' + uuidv4().substring(0, 4).toUpperCase();
+    console.log(`[CERTIFICADO] Código gerado: ${codigoCertificado}`);
 
     // Gerar QR code com link de validação
     const qrData = 'https://comaes.pt/validar-certificado/' + codigoCertificado;
+    console.log('[CERTIFICADO] Gerando QR Code...');
     const qrCode = await generateQRCode(qrData);
+    
+    if (!qrCode) {
+      console.warn('[CERTIFICADO] ⚠️  QR Code não gerado, usando placeholder');
+    } else {
+      console.log('[CERTIFICADO] ✅ QR Code gerado com sucesso');
+    }
 
     // Preparar dados
     const meses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
@@ -497,28 +521,59 @@ export async function generateCertificate(torneioId, usuarioId, disciplina, posi
     };
 
     // Gerar HTML
+    console.log('[CERTIFICADO] Gerando HTML do certificado...');
     const htmlContent = await getCertificateHTML(htmlData);
+    console.log(`[CERTIFICADO] HTML gerado (${htmlContent.length} caracteres)`);
 
     // Criar pasta se não existir
     const uploadsDir = path.join(__dirname, '../../uploads/certificados');
     if (!fs.existsSync(uploadsDir)) {
+      console.log('[CERTIFICADO] Criando diretório de uploads...');
       fs.mkdirSync(uploadsDir, { recursive: true });
+      console.log(`[CERTIFICADO] ✅ Diretório criado: ${uploadsDir}`);
+    } else {
+      console.log(`[CERTIFICADO] ✅ Diretório existe: ${uploadsDir}`);
     }
 
     // Gerar PDF com Puppeteer
-    const browser = await puppeteer.launch({
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+    console.log('[CERTIFICADO] Iniciando Puppeteer...');
+    
+    try {
+      browser = await puppeteer.launch({
+        headless: 'new',
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--disable-gpu'
+        ]
+      });
+      console.log('[CERTIFICADO] ✅ Puppeteer iniciado');
+    } catch (puppeteerError) {
+      console.error('[CERTIFICADO] ❌ Erro ao iniciar Puppeteer:', puppeteerError.message);
+      throw new Error(`Falha ao iniciar navegador: ${puppeteerError.message}`);
+    }
 
     const page = await browser.newPage();
-    // clean duplicates
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+    console.log('[CERTIFICADO] Página criada');
+    
+    // Configurar timeouts
+    page.setDefaultNavigationTimeout(120000);
+    page.setDefaultTimeout(120000);
+    
+    // Carregar conteúdo HTML
+    console.log('[CERTIFICADO] Carregando conteúdo HTML...');
+    await page.setContent(htmlContent, { waitUntil: 'domcontentloaded', timeout: 120000 });
+    console.log('[CERTIFICADO] ✅ HTML carregado');
+    
     await page.setViewport({ width: 1123, height: 794 });
 
     const fileName = 'certificado_' + usuarioId + '_' + posicao + '_' + Date.now() + '.pdf';
     const filePath = path.join(uploadsDir, fileName);
 
+    console.log(`[CERTIFICADO] Gerando PDF: ${fileName}`);
+    
     await page.pdf({
       path: filePath,
       format: 'A4',
@@ -528,8 +583,19 @@ export async function generateCertificate(torneioId, usuarioId, disciplina, posi
     });
 
     await browser.close();
+    browser = null;
+    console.log('[CERTIFICADO] ✅ PDF gerado e navegador fechado');
+
+    // Verificar se o arquivo foi criado
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`Arquivo PDF não foi criado em: ${filePath}`);
+    }
+
+    const fileStats = fs.statSync(filePath);
+    console.log(`[CERTIFICADO] ✅ Arquivo criado: ${fileName} (${fileStats.size} bytes)`);
 
     // Salvar no banco de dados
+    console.log('[CERTIFICADO] Salvando no banco de dados...');
     const medalTipo = posicao === 1 ? 'Ouro' : (posicao === 2 ? 'Prata' : 'Bronze');
     const certificado = await Certificado.create({
       torneio_id: torneioId,
@@ -543,11 +609,14 @@ export async function generateCertificate(torneioId, usuarioId, disciplina, posi
       status: 'gerado',
       metadata: {
         qrData: qrData,
-        generatedAt: new Date().toISOString()
+        generatedAt: new Date().toISOString(),
+        totalParticipants: totalParticipants,
+        percentil: percentilStr
       }
     });
 
-    console.log('[CERTIFICADO] ✅ Certificado gerado com sucesso: ' + codigoCertificado);
+    console.log('[CERTIFICADO] ✅ Certificado salvo no banco de dados (ID: ' + certificado.id + ')');
+    console.log('[CERTIFICADO] ✅ ✅ ✅ Certificado gerado com sucesso: ' + codigoCertificado);
 
     return {
       success: true,
@@ -557,7 +626,19 @@ export async function generateCertificate(torneioId, usuarioId, disciplina, posi
     };
 
   } catch (error) {
-    console.error('[CERTIFICADO] ❌ Erro ao gerar certificado:', error.message);
+    console.error('[CERTIFICADO] ❌ ❌ ❌ Erro ao gerar certificado:', error.message);
+    console.error('[CERTIFICADO] Stack trace:', error.stack);
+    
+    // Fechar navegador se ainda estiver aberto
+    if (browser) {
+      try {
+        await browser.close();
+        console.log('[CERTIFICADO] Navegador fechado após erro');
+      } catch (closeError) {
+        console.error('[CERTIFICADO] Erro ao fechar navegador:', closeError.message);
+      }
+    }
+    
     return {
       success: false,
       error: error.message
@@ -572,8 +653,21 @@ export async function generateCertificatesForTournament(torneioId, disciplina) {
   try {
     console.log('[CERTIFICADOS] Gerando certificados para torneio ' + torneioId + ', disciplina: ' + disciplina);
 
-    // Buscar os 3 primeiros colocados
-    const topParticipants = await sequelize.query('SELECT pt.id, pt.usuario_id, pt.pontuacao, pt.casos_resolvidos FROM participante_torneios pt WHERE pt.torneio_id = ' + torneioId + ' AND pt.disciplina_competida = \'' + disciplina + '\' AND pt.status = \'confirmado\' ORDER BY pt.pontuacao DESC LIMIT 3', { type: sequelize.QueryTypes.SELECT });
+    // Buscar os 3 primeiros colocados com pontuação > 0 (apenas participantes que realmente pontuaram)
+    const topParticipants = await sequelize.query(
+      `SELECT pt.id, pt.usuario_id, pt.pontuacao, pt.casos_resolvidos
+       FROM participantes_torneios pt
+       WHERE pt.torneio_id = :torneioId
+         AND pt.disciplina_competida = :disciplina
+         AND pt.status = 'confirmado'
+         AND pt.pontuacao > 0
+       ORDER BY pt.pontuacao DESC
+       LIMIT 3`,
+      {
+        replacements: { torneioId, disciplina },
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
 
     if (topParticipants.length === 0) {
       console.warn('[CERTIFICADOS] ⚠️ Nenhum participante encontrado');
@@ -582,7 +676,7 @@ export async function generateCertificatesForTournament(torneioId, disciplina) {
 
     const [{ total }] = await sequelize.query(`
       SELECT COUNT(*) as total 
-      FROM participante_torneios 
+      FROM participantes_torneios 
       WHERE torneio_id = :torneioId 
       AND disciplina_competida = :disciplina 
       AND status = 'confirmado'

@@ -166,6 +166,8 @@ export default function Perfil() {
   const [toast, setToast]       = useState({ type: '', message: '' });
   const [stats, setStats]       = useState({ torneios: 0, pontos: 0, premios: 0 });
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [activeTab, setActiveTab] = useState('perfil'); // 'perfil' | 'certificados'
+  const [certificados, setCertificados] = useState([]);
 
   const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
 
@@ -189,6 +191,22 @@ export default function Perfil() {
       })
       .catch(() => {});
   }, [user?.id, apiBase]);
+
+  // Carregar certificados do usuário
+  useEffect(() => {
+    if (!user?.id || activeTab !== 'certificados') return;
+    fetch(`${apiBase}/api/certificados/meus-certificados/${user.id}`)
+      .then(r => r.json())
+      .then(res => {
+        if (res.success) {
+          setCertificados(res.data || []);
+        }
+      })
+      .catch(err => {
+        console.error('Erro ao carregar certificados:', err);
+        setCertificados([]);
+      });
+  }, [user?.id, apiBase, activeTab]);
 
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
 
@@ -297,6 +315,20 @@ export default function Perfil() {
     ? new Date(user.createdAt).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
     : null;
 
+  const getMedalIcon = (posicao) => {
+    if (posicao === 1) return '🥇';
+    if (posicao === 2) return '🥈';
+    if (posicao === 3) return '🥉';
+    return '🏆';
+  };
+
+  const getMedalColor = (posicao) => {
+    if (posicao === 1) return { bg: '#FEF3C7', text: '#92400E', border: '#FCD34D' };
+    if (posicao === 2) return { bg: '#F3F4F6', text: '#374151', border: '#D1D5DB' };
+    if (posicao === 3) return { bg: '#FED7AA', text: '#9A3412', border: '#FDBA74' };
+    return { bg: c.primarySoft, text: c.primary, border: '#A5B4FC' };
+  };
+
   return (
     <Layout>
       <LogoutModal
@@ -306,6 +338,46 @@ export default function Perfil() {
       />
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '32px 20px 72px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
+        {/* ── Tab Navigation ── */}
+        <div style={{ display: 'flex', gap: 8, borderBottom: `2px solid ${c.border}`, marginBottom: 8 }}>
+          <button
+            onClick={() => setActiveTab('perfil')}
+            style={{
+              padding: '12px 20px',
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'perfil' ? `3px solid ${c.primary}` : '3px solid transparent',
+              color: activeTab === 'perfil' ? c.primary : c.muted,
+              fontWeight: activeTab === 'perfil' ? 700 : 500,
+              fontSize: 14,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              marginBottom: -2,
+            }}
+          >
+            Perfil
+          </button>
+          <button
+            onClick={() => setActiveTab('certificados')}
+            style={{
+              padding: '12px 20px',
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'certificados' ? `3px solid ${c.primary}` : '3px solid transparent',
+              color: activeTab === 'certificados' ? c.primary : c.muted,
+              fontWeight: activeTab === 'certificados' ? 700 : 500,
+              fontSize: 14,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              marginBottom: -2,
+            }}
+          >
+            Meus Certificados
+          </button>
+        </div>
+
+        {activeTab === 'perfil' && (
+          <>
         {/* ── Identity card ── */}
         <div style={{ ...card, padding: '24px 28px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap' }}>
@@ -466,6 +538,147 @@ export default function Perfil() {
             <InfoRow label="Último login" value={user.lastLogin ? new Date(user.lastLogin).toLocaleString('pt-BR') : null} last />
           </div>
         </div>
+
+          </>
+        )}
+
+        {/* ── Certificados Tab ── */}
+        {activeTab === 'certificados' && (
+          <div style={{ ...card, padding: '24px 28px' }}>
+            <div style={{ marginBottom: 20 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: c.text, margin: 0 }}>Meus Certificados</h2>
+              <p style={{ fontSize: 13, color: c.muted, margin: '6px 0 0' }}>
+                Certificados conquistados em torneios finalizados
+              </p>
+            </div>
+
+            {certificados.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                <div style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 16,
+                  background: c.primarySoft,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px',
+                  fontSize: 28,
+                }}>
+                  🏆
+                </div>
+                <h3 style={{ fontSize: 16, fontWeight: 600, color: c.text, margin: '0 0 8px' }}>
+                  Nenhum certificado ainda
+                </h3>
+                <p style={{ fontSize: 14, color: c.muted, margin: 0 }}>
+                  Participe de torneios e conquiste o pódio para ganhar certificados!
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: 16 }}>
+                {certificados.map((cert) => {
+                  const medalColor = getMedalColor(cert.posicao);
+                  return (
+                    <div
+                      key={cert.id}
+                      style={{
+                        padding: 20,
+                        borderRadius: 12,
+                        border: `2px solid ${medalColor.border}`,
+                        background: medalColor.bg,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 16,
+                        transition: 'transform 0.2s',
+                      }}
+                    >
+                      {/* Medal Icon */}
+                      <div style={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: 12,
+                        background: c.surface,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 28,
+                        flexShrink: 0,
+                        border: `2px solid ${medalColor.border}`,
+                      }}>
+                        {getMedalIcon(cert.posicao)}
+                      </div>
+
+                      {/* Certificate Info */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h3 style={{
+                          fontSize: 15,
+                          fontWeight: 700,
+                          color: medalColor.text,
+                          margin: 0,
+                          marginBottom: 4,
+                        }}>
+                          {cert.torneio?.titulo || 'Torneio'}
+                        </h3>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+                          <span style={{
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: medalColor.text,
+                            padding: '2px 8px',
+                            borderRadius: 6,
+                            background: c.surface,
+                          }}>
+                            {cert.disciplina}
+                          </span>
+                          <span style={{
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: medalColor.text,
+                            padding: '2px 8px',
+                            borderRadius: 6,
+                            background: c.surface,
+                          }}>
+                            {cert.posicao}º Lugar
+                          </span>
+                          <span style={{ fontSize: 12, color: medalColor.text }}>
+                            {cert.pontuacao} pontos
+                          </span>
+                        </div>
+                        <div style={{ fontSize: 11, color: c.muted }}>
+                          Código: {cert.codigo_certificado}
+                        </div>
+                        <div style={{ fontSize: 11, color: c.muted }}>
+                          Gerado em: {new Date(cert.data_geracao).toLocaleDateString('pt-BR')}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
+                        <Btn
+                          variant="primary"
+                          onClick={() => {
+                            window.open(`${apiBase}/api/certificados/download/${cert.codigo_certificado}`, '_blank');
+                          }}
+                        >
+                          Download
+                        </Btn>
+                        <Btn
+                          variant="secondary"
+                          onClick={() => {
+                            navigator.clipboard.writeText(cert.codigo_certificado);
+                            setToast({ type: 'success', message: 'Código copiado!' });
+                          }}
+                        >
+                          Copiar Código
+                        </Btn>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
       </div>
 

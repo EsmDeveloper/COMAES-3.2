@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { X, Save, AlertCircle, CheckCircle } from 'lucide-react';
 import axios from 'axios';
@@ -156,8 +157,8 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+  return createPortal(
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between border-b border-blue-700">
@@ -416,7 +417,7 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
         </form>
       </div>
     </div>
-  );
+  , document.body);
 };
 
 export default EditQuestaoForm;

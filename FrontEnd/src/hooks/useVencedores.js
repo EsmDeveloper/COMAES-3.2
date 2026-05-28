@@ -31,7 +31,11 @@ export default function useVencedores(disciplina, ranking, torneio, participante
       const algumPontuou = ranking.some(p => parseFloat(p.pontuacao || 0) > 0);
       if (!algumPontuou) return; // torneio sem pontuação válida — não exibir modal de vencedores
 
-      const top3 = ranking.slice(0, 3).map((p, index) => ({
+      // Filtrar apenas participantes com pontuação real (> 0) para o pódio
+      const rankingComPontuacao = ranking.filter(p => parseFloat(p.pontuacao || 0) > 0);
+      if (rankingComPontuacao.length === 0) return;
+
+      const top3 = rankingComPontuacao.slice(0, 3).map((p, index) => ({
         ...p,
         posicao: index + 1,
         total_participantes: ranking.length,

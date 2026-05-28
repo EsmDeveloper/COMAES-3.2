@@ -6,8 +6,8 @@ import TableManager from './TableManager';
 import AdminStats from './AdminStats';
 import TorneiosTab from './TorneiosTab';
 import NotificationsTab from './NotificationsTab';
-import QuestoesManager from './QuestoesManager';
-import TesteConhecimentoManager from './TesteConhecimentoManager';
+import BlocoQuestoesManager from './BlocoQuestoesManager';
+import CertificadosTab from './CertificadosTab';
 import LogoutModal from '../components/LogoutModal';
 import { 
   BarChart3, Trophy, BookOpen, Users, Bell, Settings, 
@@ -50,7 +50,8 @@ const AdminDashboard = () => {
       icon: Trophy,
       color: 'from-yellow-500 to-orange-600',
       items: [
-        { id: 'torneio', label: 'Gerenciar Torneios', icon: Trophy }
+        { id: 'torneio', label: 'Gerenciar Torneios', icon: Trophy },
+        { id: 'certificados', label: 'Gerenciar Certificados', icon: FileText }
         // REMOVIDO por alinhamento - 2026-05-26: participante_torneio - UI quebrada, já existe gestão em TorneiosTab
         // REMOVIDO por alinhamento - 2026-05-26: tentativateste - campos não batem com model real
       ]
@@ -335,12 +336,14 @@ const AdminDashboard = () => {
                 <AdminStats />
               ) : activeTab === 'torneio' ? (
                 <TorneiosTab />
+              ) : activeTab === 'certificados' ? (
+                <CertificadosTab />
               ) : activeTab === 'notificacao' ? (
                 <NotificationsTab token={token} />
               ) : activeTab === 'questoes' ? (
-                <QuestoesManager />
+                <BlocoQuestoesManager contexto="torneio" />
               ) : activeTab === 'teste-conhecimento' ? (
-                <TesteConhecimentoManager />
+                <BlocoQuestoesManager contexto="teste" />
               ) : activeTab === 'user' || activeTab === 'noticia' ? (
                 <TableManager table={activeTab} />
               ) : (

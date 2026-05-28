@@ -37,6 +37,7 @@ import './models/associations.js';
 import iaEvaluators from './services/iaEvaluators.js';
 import adminPanelRoutes from './routes/adminPanelRoutes.js';
 import certificatesRoutes from './routes/certificatesRoutes.js';
+import certificadosRoutes from './routes/certificadosRoutes.js';
 import tournamentsRoutes from './routes/tournamentsRoutes.js';
 import notificacoesRoutes from './routes/notificacoesRoutes.js';
 import questoesRoutesRefactored from './routes/questoesRoutesRefactored.js';
@@ -238,6 +239,7 @@ app.use('/api/admin', adminPanelRoutes);
 
 // Registrar rotas de certificados
 app.use('/api/certificates', certificatesRoutes);
+app.use('/api/certificados', certificadosRoutes);
 
 // Registrar rotas de torneios e ranking
 app.use('/api/tournaments', tournamentsRoutes);
@@ -2009,28 +2011,22 @@ app.post('/api/torneios/:id/finalizar', async (req, res) => {
 
     console.log(`🏆 Torneio ${torneio.titulo} (ID: ${id}) marcado como finalizado`);
 
-    // Gerar certificados para cada disciplina
+    // Gerar certificados para cada disciplina usando o gerador correto
     const certificados = [];
-    const { generateCertificate } = await import('./certificates/generator/index.js');
+    const { generateCertificatesForTournament } = await import('./certificates/generator/generateCertificado.js');
 
     if (disciplinas && Array.isArray(disciplinas)) {
       for (const disciplina of disciplinas) {
         try {
-          const top3 = await ParticipanteTorneio.findAll({
-            where: { torneio_id: id, disciplina_competida: disciplina, status: 'confirmado' },
-            order: [['pontuacao', 'DESC'], ['tempo_total', 'ASC']],
-            limit: 3,
-          });
-
-          for (const p of top3) {
-            const cert = await generateCertificate({
-              userId: p.usuario_id,
-              tournamentId: id,
-              disciplina,
-            });
-            certificados.push(cert);
+          console.log(`📝 Gerando certificados para ${disciplina}...`);
+          const result = await generateCertificatesForTournament(id, disciplina);
+          
+          if (result.success) {
+            certificados.push(...(result.details || []));
+            console.log(`✅ Certificados gerados para ${disciplina}: ${result.certificatesGenerated} certificados`);
+          } else {
+            console.warn(`⚠️ Falha ao gerar certificados para ${disciplina}:`, result.message || result.error);
           }
-          console.log(`✅ Certificados gerados para ${disciplina}: ${top3.length} certificados`);
         } catch (err) {
           console.error(`❌ Erro ao gerar certificados para ${disciplina}:`, err.message);
         }
@@ -2041,7 +2037,8 @@ app.post('/api/torneios/:id/finalizar', async (req, res) => {
       success: true,
       message: 'Torneio finalizado com sucesso',
       torneio: torneio.toJSON(),
-      certificados: certificados
+      certificados: certificados,
+      totalCertificados: certificados.length
     });
   } catch (error) {
     console.error('Erro ao finalizar torneio:', error);

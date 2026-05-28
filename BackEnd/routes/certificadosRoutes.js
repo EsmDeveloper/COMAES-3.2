@@ -188,4 +188,25 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/certificados/admin/todos
+ * Listar todos os certificados (admin only)
+ */
+router.get('/admin/todos', async (req, res) => {
+  try {
+    const certificados = await Certificado.findAll({
+      include: [
+        { model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'email'] },
+        { model: Torneio, as: 'torneio', attributes: ['id', 'titulo', 'termina_em'] }
+      ],
+      order: [['data_geracao', 'DESC']]
+    });
+
+    res.json({ success: true, data: certificados });
+  } catch (error) {
+    console.error('Erro ao listar todos os certificados:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 export default router;

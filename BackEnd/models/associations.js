@@ -92,13 +92,13 @@ export const setupAssociations = () => {
   Usuario.hasMany(ConquistaUsuario, { foreignKey: 'concedido_por', as: 'conquistasConcedidas' });
   ConquistaUsuario.belongsTo(Usuario, { foreignKey: 'concedido_por', as: 'concedidoPor', onDelete: 'SET NULL' });
 
-  // Certificate <-> Usuario
-  Usuario.hasMany(Certificate, { foreignKey: 'user_id', as: 'certificates' });
-  Certificate.belongsTo(Usuario, { foreignKey: 'user_id', as: 'user' });
+  // Certificate <-> Usuario (usando usuario_id no banco)
+  Usuario.hasMany(Certificate, { foreignKey: 'usuario_id', as: 'certificates' });
+  Certificate.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'user' });
 
-  // Certificate <-> Torneio
-  Torneio.hasMany(Certificate, { foreignKey: 'tournament_id', as: 'certificates' });
-  Certificate.belongsTo(Torneio, { foreignKey: 'tournament_id', as: 'tournament' });
+  // Certificate <-> Torneio (usando torneio_id no banco)
+  Torneio.hasMany(Certificate, { foreignKey: 'torneio_id', as: 'certificates' });
+  Certificate.belongsTo(Torneio, { foreignKey: 'torneio_id', as: 'tournament' });
 
   // Certificado <-> Usuario
   Usuario.hasMany(Certificado, { foreignKey: 'usuario_id', as: 'certificados' });

@@ -399,20 +399,20 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
     const certificateCode = `CERT-${uuidv4().substring(0, 8).toUpperCase()}`;
     let certificate = await Certificate.findOne({
       where: {
-        user_id: userId,
-        tournament_id: tournamentId,
+        usuario_id: userId,  // ← Corrigido para usar o nome da coluna no banco
+        torneio_id: tournamentId,  // ← Corrigido para usar o nome da coluna no banco
         disciplina: disciplinaNormalizada
       }
     });
 
     if (!certificate) {
       certificate = await Certificate.create({
-        user_id: userId,
-        tournament_id: tournamentId,
-        score: participation.pontuacao,
-        ranking_position: participation.posicao,
-        certificate_code: certificateCode,
-        certificate_url: '',
+        usuario_id: userId,  // ← Corrigido para usar o nome da coluna no banco
+        torneio_id: tournamentId,  // ← Corrigido para usar o nome da coluna no banco
+        pontuacao: participation.pontuacao,  // ← Corrigido
+        posicao: participation.posicao,  // ← Corrigido
+        codigo_verificacao: certificateCode,  // ← Corrigido
+        url_certificado: '',  // ← Corrigido
         disciplina: disciplinaNormalizada
       });
       console.log('✅ Novo certificado criado:', certificate.id);
@@ -452,11 +452,11 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
     const certificateData = {
       userName: certificate.user?.nome || 'Participante',
       tournamentName: certificate.tournament?.titulo || 'Torneio COMAES',
-      position: certificate.ranking_position,
+      position: certificate.posicao,  // ← Corrigido
       scorePercent,
       scoreRaw,
       disciplina: certificate.disciplina,
-      certificateCode: certificate.certificate_code,
+      certificateCode: certificate.codigo_verificacao,  // ← Corrigido
       totalParticipants: safeTotalParticipants,
       percentile,
       logoDataUri,
@@ -521,16 +521,16 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
 
       // Atualizar URL do certificado no banco
       const certificateURL = `/uploads/certificates/${fileName}`;
-      await certificate.update({ certificate_url: certificateURL });
+      await certificate.update({ url_certificado: certificateURL });  // ← Corrigido
 
       console.log('✅ Certificado gerado com sucesso:', filePath);
 
       return {
         success: true,
         certificateURL,
-        certificateCode: certificate.certificate_code,
+        certificateCode: certificate.codigo_verificacao,  // ← Corrigido
         fileName,
-        position: certificate.ranking_position,
+        position: certificate.posicao,  // ← Corrigido
         totalParticipants: safeTotalParticipants,
         percentile,
         scoreRaw,

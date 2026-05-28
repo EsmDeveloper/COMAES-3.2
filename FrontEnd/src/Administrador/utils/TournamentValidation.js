@@ -56,23 +56,17 @@ export const TournamentValidation = {
       errors.inicia_em = 'Data de início é obrigatória';
     } else {
       const inicioDate = new Date(formData.inicia_em);
-      const agora = new Date();
 
-      // Verificar se a data é válida
       if (isNaN(inicioDate.getTime())) {
         errors.inicia_em = 'Data de início inválida';
-      } else {
-        // Para modo criação, usar minDateTime (agora + 1 minuto)
-        // Para modo edição, permitir datas passadas (torneio já começou)
-        const minDate = minDateTime ? new Date(minDateTime) : null;
-
-        if (mode === 'create' && minDate && inicioDate < minDate) {
-          errors.inicia_em = 'Para criar um torneio ativo, a data de início deve ser pelo menos 1 minuto superior ao horário atual';
-        } else if (inicioDate < new Date(agora.getTime() - 60000)) {
-          // Allow 1 minute tolerance for editing
-          errors.inicia_em = 'Não pode ser no passado';
+      } else if (mode === 'create') {
+        // Na criação, a data deve ser futura
+        const minDate = minDateTime ? new Date(minDateTime) : new Date();
+        if (inicioDate < minDate) {
+          errors.inicia_em = 'Para criar um torneio, a data de início deve ser pelo menos 1 minuto superior ao horário atual';
         }
       }
+      // Na edição, datas passadas são permitidas (torneio já pode ter começado)
     }
 
     // ============================================
@@ -82,24 +76,16 @@ export const TournamentValidation = {
       errors.termina_em = 'Data de término é obrigatória';
     } else {
       const fimDate = new Date(formData.termina_em);
-      const agora = new Date();
 
-      // Verificar se a data é válida
       if (isNaN(fimDate.getTime())) {
         errors.termina_em = 'Data de término inválida';
-      } else {
-        // Data de término não pode ser no passado (com tolerância de 1 minuto)
-        if (fimDate < new Date(agora.getTime() - 60000)) {
-          errors.termina_em = 'Não pode ser no passado';
-        }
-        // Data de término deve ser posterior à data de início
-        else if (formData.inicia_em) {
-          const inicioDate = new Date(formData.inicia_em);
-          if (!isNaN(inicioDate.getTime()) && fimDate <= inicioDate) {
-            errors.termina_em = 'Data de término deve ser posterior à data de início';
-          }
+      } else if (formData.inicia_em) {
+        const inicioDate = new Date(formData.inicia_em);
+        if (!isNaN(inicioDate.getTime()) && fimDate <= inicioDate) {
+          errors.termina_em = 'Data de término deve ser posterior à data de início';
         }
       }
+      // Na edição, datas passadas são permitidas (torneio já pode ter terminado)
     }
 
     // ============================================

@@ -222,13 +222,19 @@ const TableModal = ({ mode, item, tableInfo, onClose, onSubmit }) => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        if (e && e.preventDefault) e.preventDefault();
         
+        console.log('[TableModal] handleSubmit chamado, mode:', mode, 'formData:', formData);
+
         // Exclusão não precisa de validação de formulário
-        if (mode !== 'delete' && !validateForm()) return;
+        if (mode !== 'delete' && !validateForm()) {
+            console.log('[TableModal] validateForm falhou');
+            return;
+        }
 
         // Prepara os dados para envio
         let dataToSubmit = normalizeFormData(formData);
+        console.log('[TableModal] dataToSubmit:', dataToSubmit);
         
         // Remove campos que devem ser preenchidos automaticamente pelo backend
         if (isTorneio) {
@@ -289,7 +295,11 @@ const TableModal = ({ mode, item, tableInfo, onClose, onSubmit }) => {
                     {loading ? <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /><span>Processando...</span></> : <><Trash2 className="w-4 h-4" /><span>Deletar</span></>}
                 </ModalBtnDanger>
             ) : (
-                <ModalBtnPrimary type="submit" form="tableForm" disabled={loading}>
+                <ModalBtnPrimary
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={loading}
+                >
                     {loading ? <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /><span>Processando...</span></>
                         : mode === 'create' ? <><Plus className="w-4 h-4" /><span>Criar</span></>
                         : <><Save className="w-4 h-4" /><span>Atualizar</span></>}

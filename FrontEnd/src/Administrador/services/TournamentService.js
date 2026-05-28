@@ -11,19 +11,37 @@ export const TournamentService = {
    * Buscar todos os torneios
    */
   async fetchAll(token) {
+    console.log('[TournamentService] Fetching all torneios...');
     const res = await fetch(`${apiBaseUrl}/api/admin/torneos`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        'Accept': 'application/json'
+      }
     });
     
+    console.log('[TournamentService] Response status:', res.status);
+    
     if (!res.ok) {
-      throw new Error('Erro ao carregar torneios');
+      const errorText = await res.text();
+      console.error('[TournamentService] Error response:', errorText);
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.message || `Erro ${res.status}: ${res.statusText}`);
+      } catch {
+        throw new Error(`Erro ${res.status}: ${res.statusText}`);
+      }
     }
     
     const data = await res.json();
+    console.log('[TournamentService] Data received:', Array.isArray(data) ? `${data.length} torneios` : data);
+    
     // Controller returns plain array; guard for wrapped responses too
     if (Array.isArray(data)) return data;
     if (Array.isArray(data.data)) return data.data;
     if (Array.isArray(data.tournaments)) return data.tournaments;
+    if (data.success && Array.isArray(data.dados)) return data.dados;
+    
+    console.warn('[TournamentService] Unexpected response format:', data);
     return [];
   },
 
@@ -36,7 +54,8 @@ export const TournamentService = {
     });
     
     if (!res.ok) {
-      throw new Error('Erro ao carregar torneio');
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Erro ao carregar torneio');
     }
     
     return res.json();
@@ -46,19 +65,25 @@ export const TournamentService = {
    * Criar novo torneio
    */
   async create(payload, token) {
+    console.log('[TournamentService] Creating tournament with payload:', payload);
+    
     const res = await fetch(`${apiBaseUrl}/api/admin/torneos`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       body: JSON.stringify(payload)
     });
     
+    console.log('[TournamentService] Create response status:', res.status);
+    
     const data = await res.json();
+    console.log('[TournamentService] Create response:', data);
     
     if (!res.ok) {
-      throw new Error(data.message || 'Erro ao criar torneio');
+      throw new Error(data.message || data.error || 'Erro ao criar torneio');
     }
     
     // Controller returns { message, torneio } — extract the torneio object
@@ -69,11 +94,14 @@ export const TournamentService = {
    * Atualizar torneio existente
    */
   async update(id, payload, token) {
+    console.log('[TournamentService] Updating tournament:', id, payload);
+    
     const res = await fetch(`${apiBaseUrl}/api/admin/torneos/${id}`, {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       body: JSON.stringify(payload)
     });
@@ -92,9 +120,14 @@ export const TournamentService = {
    * Deletar torneio
    */
   async delete(id, token) {
+    console.log('[TournamentService] Deleting tournament:', id);
+    
     const res = await fetch(`${apiBaseUrl}/api/admin/torneos/${id}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        'Accept': 'application/json'
+      }
     });
     
     // Aceitar 200-299 (sucesso) ou especificamente 204 (No Content)

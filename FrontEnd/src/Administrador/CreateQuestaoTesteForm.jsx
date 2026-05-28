@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { X, Save, AlertCircle, CheckCircle, Plus, Trash2 } from 'lucide-react';
 import axios from 'axios';
@@ -90,13 +91,14 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess }) => {
 
       // Enviar para API
       const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
-      await axios.post(`${apiBase}/api/teste-conhecimento/questoes`, dados, {
+      const res = await axios.post(`${apiBase}/api/teste-conhecimento/questoes`, dados, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      // Chamar callback
+      // Chamar callback — passa a questão criada para que o BlocoQuestoesManager possa associá-la
       if (onSuccess) {
-        onSuccess();
+        const questaoCriada = res.data?.data || res.data?.dados || res.data || null;
+        onSuccess(questaoCriada);
       }
     } catch (err) {
       const mensagem = err.response?.data?.error || err.message || 'Erro ao criar questão';
@@ -107,8 +109,8 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess }) => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+  return createPortal(
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full my-8">
         {/* Header */}
         <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex items-center justify-between border-b border-purple-700 rounded-t-2xl">
@@ -280,7 +282,7 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess }) => {
         </form>
       </div>
     </div>
-  );
+  , document.body);
 };
 
 export default CreateQuestaoTesteForm;
