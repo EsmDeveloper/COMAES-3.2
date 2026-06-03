@@ -1,273 +1,258 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Layout from './Layout';
+import NivelBadge from '../../components/NivelBadge';
+import useNivel from '../../hooks/useNivel';
+import StreakBadge from '../../components/StreakBadge';
+import useStreak from '../../hooks/useStreak';
 import LogoutModal from '../../components/LogoutModal';
 import {
   Camera, CheckCircle, AlertCircle, X, Edit2, LogOut,
   Mail, Calendar, Trophy, Star, Award, Save, ChevronRight,
-  LayoutDashboard, Settings,
+  GraduationCap, Phone, User, BookOpen, Clock, Target,
 } from 'lucide-react';
-import {
-  validateNome, validateEmail, validateBio, runValidations, validateFileUpload,
-} from '../../utils/validators';
+import { validateNome, validateEmail, validateBio, validateFileUpload } from '../../utils/validators';
 
-/* ─── Tokens ─────────────────────────────────────────────────── */
-const c = {
-  primary:     '#4F6EF7',
-  primarySoft: '#EEF1FE',
-  success:     '#10B981',
-  successSoft: '#ECFDF5',
-  surface:     '#FFFFFF',
-  bg:          '#F7F8FC',
-  border:      '#E8EAEF',
-  borderFocus: '#A5B4FC',
-  text:        '#0F1117',
-  muted:       '#6B7280',
-  subtle:      '#9CA3AF',
-  red:         '#EF4444',
-  redSoft:     '#FEF2F2',
-  redBorder:   '#FECACA',
-};
+const API = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
 
-/* ─── Shared card style ──────────────────────────────────────── */
-const card = {
-  background: c.surface,
-  borderRadius: 14,
-  border: `1px solid ${c.border}`,
-  boxShadow: '0 1px 3px rgba(15,17,23,0.05)',
-};
-
-/* ─── Micro components ───────────────────────────────────────── */
-
-function Toast({ type, message, onClose }) {
+/* ─── Toast ────────────────────────────────────────────────────── */
+function Toast({ type, msg, onClose }) {
   useEffect(() => {
-    if (!message) return;
-    const id = setTimeout(onClose, 4000);
-    return () => clearTimeout(id);
-  }, [message, onClose]);
-  if (!message) return null;
+    if (!msg) return;
+    const t = setTimeout(onClose, 4000);
+    return () => clearTimeout(t);
+  }, [msg, onClose]);
+  if (!msg) return null;
   const ok = type === 'success';
   return (
-    <div style={{
-      position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
-      display: 'flex', alignItems: 'center', gap: 10,
-      padding: '12px 18px', borderRadius: 12,
-      background: ok ? c.successSoft : c.redSoft,
-      border: `1px solid ${ok ? '#A7F3D0' : c.redBorder}`,
-      color: ok ? '#065F46' : '#991B1B',
-      fontSize: 14, fontWeight: 500,
-      boxShadow: '0 4px 20px rgba(0,0,0,0.10)',
-      maxWidth: 340,
-    }}>
-      {ok ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
-      <span style={{ flex: 1 }}>{message}</span>
-      <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', display: 'flex', padding: 0 }}>
-        <X size={15} />
-      </button>
+    <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium max-w-sm
+      ${ok ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-red-50 border border-red-200 text-red-700'}`}>
+      {ok ? <CheckCircle size={15} /> : <AlertCircle size={15} />}
+      <span className="flex-1">{msg}</span>
+      <button onClick={onClose} className="opacity-60 hover:opacity-100"><X size={14} /></button>
     </div>
   );
 }
 
-function Avatar({ src, initials, size = 72 }) {
+/* ─── StatCard ─────────────────────────────────────────────────── */
+function StatCard({ icon, label, value, colorClass = 'bg-blue-50 text-blue-600' }) {
   return (
-    <div style={{
-      width: size, height: size, borderRadius: '50%',
-      background: src ? 'transparent' : c.primary,
-      overflow: 'hidden', flexShrink: 0,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: size * 0.36, fontWeight: 700, color: '#fff',
-      border: `2px solid ${c.border}`,
-    }}>
-      {src
-        ? <img src={src} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        : initials}
+    <div className="flex-1 min-w-[130px] bg-white rounded-2xl border border-gray-200 p-4 flex items-center gap-3 shadow-sm">
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${colorClass}`}>
+        {icon}
+      </div>
+      <div>
+        <div className="text-xl font-bold text-gray-900 leading-tight">{value}</div>
+        <div className="text-xs text-gray-500 mt-0.5">{label}</div>
+      </div>
     </div>
   );
 }
 
-function Btn({ children, onClick, variant = 'primary', disabled, type = 'button' }) {
-  const variants = {
-    primary:   { background: c.primary, color: '#fff', border: 'none' },
-    secondary: { background: c.surface, color: c.text, border: `1px solid ${c.border}` },
-    ghost:     { background: 'transparent', color: c.muted, border: `1px solid ${c.border}` },
-    danger:    { background: c.redSoft, color: c.red, border: `1px solid ${c.redBorder}` },
-  };
+/* ─── SectionTitle ─────────────────────────────────────────────── */
+function SectionTitle({ children }) {
+  return <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wide mb-3">{children}</h2>;
+}
+
+/* ─── Tab button ────────────────────────────────────────────────── */
+function Tab({ active, onClick, children }) {
   return (
     <button
-      type={type}
       onClick={onClick}
-      disabled={disabled}
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: 7,
-        padding: '8px 16px', borderRadius: 9,
-        fontSize: 13, fontWeight: 600,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.6 : 1,
-        transition: 'opacity 0.15s',
-        ...variants[variant],
-      }}
+      className={`px-5 py-3 text-sm font-semibold border-b-2 transition-all -mb-px
+        ${active ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
     >
       {children}
     </button>
   );
 }
 
-function StatCard({ icon, label, value, accent, accentSoft }) {
+/* ─── Avatar ────────────────────────────────────────────────────── */
+function AvatarBlock({ src, initials, size = 88, editMode, onFile }) {
   return (
-    <div style={{
-      flex: '1 1 120px',
-      padding: '16px 18px',
-      background: c.surface,
-      borderRadius: 12,
-      border: `1px solid ${c.border}`,
-      display: 'flex', alignItems: 'center', gap: 12,
-    }}>
-      <div style={{
-        width: 36, height: 36, borderRadius: 9,
-        background: accentSoft || c.primarySoft,
-        color: accent || c.primary,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0,
-      }}>
-        {icon}
+    <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
+      <div
+        className="rounded-full overflow-hidden border-4 border-white shadow-md flex items-center justify-center bg-blue-600 text-white font-bold"
+        style={{ width: size, height: size, fontSize: size * 0.35 }}
+      >
+        {src
+          ? <img src={src} alt="avatar" className="w-full h-full object-cover" />
+          : initials}
       </div>
-      <div>
-        <div style={{ fontSize: 18, fontWeight: 700, color: c.text, lineHeight: 1.2 }}>{value}</div>
-        <div style={{ fontSize: 12, color: c.muted, marginTop: 1 }}>{label}</div>
+      {editMode && (
+        <label className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center cursor-pointer border-2 border-white shadow">
+          <Camera size={13} />
+          <input type="file" accept="image/*" className="hidden" onChange={onFile} />
+        </label>
+      )}
+    </div>
+  );
+}
+
+/* ─── InfoRow ────────────────────────────────────────────────────── */
+function InfoRow({ icon, label, value }) {
+  if (!value) return null;
+  return (
+    <div className="flex items-start gap-3 py-2.5 border-b border-gray-100 last:border-0">
+      <span className="text-gray-400 mt-0.5 flex-shrink-0">{icon}</span>
+      <div className="flex-1 min-w-0">
+        <div className="text-xs text-gray-400 font-medium">{label}</div>
+        <div className="text-sm text-gray-800 font-medium mt-0.5 break-words">{value}</div>
       </div>
     </div>
   );
 }
 
-function InfoRow({ label, value, last }) {
-  return (
-    <div style={{
-      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      padding: '13px 0', gap: 16,
-      borderBottom: last ? 'none' : `1px solid ${c.border}`,
-    }}>
-      <span style={{ fontSize: 14, color: c.muted }}>{label}</span>
-      <span style={{ fontSize: 14, fontWeight: 500, color: c.text, textAlign: 'right', wordBreak: 'break-all' }}>{value || '—'}</span>
-    </div>
-  );
+/* ─── MedalIcon ──────────────────────────────────────────────────── */
+function MedalIcon({ pos }) {
+  if (pos === 1) return <span>🥇</span>;
+  if (pos === 2) return <span>🥈</span>;
+  if (pos === 3) return <span>🥉</span>;
+  return <span className="text-gray-400 text-xs font-semibold">{pos}º</span>;
 }
 
-/* ─── Main ───────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   MAIN COMPONENT
+═══════════════════════════════════════════════════════════════ */
 export default function Perfil() {
   const { user, token, login, logout } = useAuth();
   const navigate = useNavigate();
 
+  /* ── Tabs: perfil | historico | certificados ── */
+  const [activeTab, setActiveTab] = useState('perfil');
+
+  /* ── Edit form ── */
   const [editMode, setEditMode] = useState(false);
-  const [form, setForm]         = useState({ name: '', email: '', bio: '' });
-  const [file, setFile]         = useState(null);
-  const [preview, setPreview]   = useState(null);
-  const [saving, setSaving]     = useState(false);
-  const [toast, setToast]       = useState({ type: '', message: '' });
-  const [stats, setStats]       = useState({ torneios: 0, pontos: 0, premios: 0 });
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [activeTab, setActiveTab] = useState('perfil'); // 'perfil' | 'certificados'
+  const [form, setForm] = useState({ nome: '', email: '', biografia: '', escola: '', telefone: '' });
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
+
+  /* ── Data ── */
+  const [participacoes, setParticipacoes] = useState([]);
   const [certificados, setCertificados] = useState([]);
+  const [statsLoad, setStatsLoad] = useState(false);
 
-  const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+  /* ── Toast ── */
+  const [toast, setToast] = useState({ type: '', msg: '' });
+  const showToast = (type, msg) => setToast({ type, msg });
 
+  /* ── Modal logout ── */
+  const [showLogout, setShowLogout] = useState(false);
+
+  /* ── Nível do utilizador ── */
+  const { nivel, xpTotal, progresso } = useNivel();
+
+  /* ── Streak do utilizador ── */
+  const { streak, maximo, ativa, mensagem: streakMsg } = useStreak();
+
+  /* ── Populate form when user loads ── */
   useEffect(() => {
-    if (user) setForm({ name: user.fullName || user.name || '', email: user.email || '', bio: user.biografia || user.bio || '' });
+    if (user) {
+      setForm({
+        nome:      user.nome || user.name || user.fullName || '',
+        email:     user.email || '',
+        biografia: user.biografia || user.bio || '',
+        escola:    user.escola || '',
+        telefone:  user.telefone || user.phone || '',
+      });
+    }
   }, [user]);
 
+  /* ── Load participações ── */
   useEffect(() => {
     if (!user?.id) return;
-    fetch(`${apiBase}/usuarios/${user.id}/participacoes`)
+    setStatsLoad(true);
+    fetch(`${API}/usuarios/${user.id}/participacoes`)
       .then(r => r.json())
-      .then(res => {
-        if (res.success) {
-          const p = res.data;
-          setStats({
-            torneios: p.length,
-            pontos:   p.reduce((a, x) => a + Number(x.pontuacao || 0), 0),
-            premios:  p.filter(x => x.posicao && x.posicao <= 3).length,
-          });
-        }
-      })
-      .catch(() => {});
-  }, [user?.id, apiBase]);
+      .then(res => { if (res.success) setParticipacoes(res.data || []); })
+      .catch(() => {})
+      .finally(() => setStatsLoad(false));
+  }, [user?.id]);
 
-  // Carregar certificados do usuário
+  /* ── Load certificados on tab ── */
   useEffect(() => {
     if (!user?.id || activeTab !== 'certificados') return;
-    fetch(`${apiBase}/api/certificados/meus-certificados/${user.id}`)
+    fetch(`${API}/api/certificados/meus-certificados/${user.id}`)
       .then(r => r.json())
-      .then(res => {
-        if (res.success) {
-          setCertificados(res.data || []);
-        }
-      })
-      .catch(err => {
-        console.error('Erro ao carregar certificados:', err);
-        setCertificados([]);
-      });
-  }, [user?.id, apiBase, activeTab]);
+      .then(res => { if (res.success) setCertificados(res.data || []); })
+      .catch(() => {});
+  }, [user?.id, activeTab]);
 
+  /* ── Cleanup preview URL ── */
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
 
-  const handleFile = (e) => {
+  /* ── Computed stats ── */
+  const totalTorneios = participacoes.length;
+  const totalPontos   = participacoes.reduce((a, p) => a + Number(p.pontuacao || 0), 0);
+  const totalPodios   = participacoes.filter(p => p.posicao && p.posicao <= 3).length;
+  const mediaAcertos  = participacoes.length
+    ? Math.round(participacoes.reduce((a, p) => a + Number(p.pontuacao || 0), 0) / participacoes.length)
+    : 0;
+
+  /* ── Handlers ── */
+  const handleFile = useCallback((e) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    const result = validateFileUpload(f, { maxSizeMB: 5, allowedTypes: ['image/jpeg', 'image/png', 'image/webp'] });
-    if (!result.valid) {
-      setToast({ type: 'error', message: result.error });
-      return;
-    }
+    const r = validateFileUpload(f, { maxSizeMB: 5, allowedTypes: ['image/jpeg', 'image/png', 'image/webp'] });
+    if (!r.valid) { showToast('error', r.error); return; }
     setFile(f);
     setPreview(URL.createObjectURL(f));
+  }, []);
+
+  const validate = () => {
+    const errs = {};
+    if (!form.nome.trim()) errs.nome = 'Nome obrigatório';
+    else if (form.nome.trim().length < 2) errs.nome = 'Nome muito curto';
+    if (form.email && !/^[^@]+@[^@]+\.[^@]{2,}$/.test(form.email)) errs.email = 'Email inválido';
+    if (form.biografia && form.biografia.length > 300) errs.biografia = 'Máximo 300 caracteres';
+    return errs;
   };
 
   const onSave = async () => {
-    if (!user) return;
-
-    // Frontend validation before hitting the API
-    const { valid, errors: errs } = runValidations({
-      name:  () => validateNome(form.name),
-      email: () => validateEmail(form.email),
-      bio:   () => validateBio(form.bio),
-    });
-    if (!valid) {
-      const first = Object.values(errs)[0];
-      setToast({ type: 'error', message: first });
-      return;
-    }
-
+    const errs = validate();
+    if (Object.keys(errs).length) { setFormErrors(errs); return; }
+    setFormErrors({});
     setSaving(true);
     try {
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers.Authorization = `Bearer ${token}`;
-      const res  = await fetch(`${apiBase}/usuarios/${user.id}`, {
+
+      const res  = await fetch(`${API}/usuarios/${user.id}`, {
         method: 'PUT', headers,
-        body: JSON.stringify({ nome: form.name, email: form.email, biografia: form.bio }),
+        body: JSON.stringify({
+          nome: form.nome,
+          email: form.email,
+          biografia: form.biografia,
+          escola: form.escola,
+          telefone: form.telefone,
+        }),
       });
       const body = await res.json();
-      if (!res.ok) throw new Error(body.error || 'Erro ao atualizar perfil.');
+      if (!res.ok) throw new Error(body.error || 'Erro ao guardar perfil');
       if (body.data && login) login(body.data, token);
 
       if (file) {
         const fd = new FormData();
         fd.append('avatar', file);
-        const upRes  = await fetch(`${apiBase}/usuarios/${user.id}/avatar`, {
+        const up = await fetch(`${API}/usuarios/${user.id}/avatar`, {
           method: 'POST',
           headers: token ? { Authorization: `Bearer ${token}` } : {},
           body: fd,
         });
-        const upBody = await upRes.json();
-        if (!upRes.ok) throw new Error(upBody.error || 'Falha ao enviar avatar.');
-        if (upBody.data && login) login(upBody.data, token);
+        const upB = await up.json();
+        if (!up.ok) throw new Error(upB.error || 'Erro ao enviar foto');
+        if (upB.data && login) login(upB.data, token);
       }
 
-      setToast({ type: 'success', message: 'Perfil atualizado com sucesso.' });
+      showToast('success', 'Perfil actualizado com sucesso!');
       setEditMode(false);
       setFile(null);
       setPreview(null);
     } catch (err) {
-      setToast({ type: 'error', message: err.message || 'Erro ao salvar.' });
+      showToast('error', err.message || 'Erro ao guardar');
     } finally {
       setSaving(false);
     }
@@ -277,31 +262,30 @@ export default function Perfil() {
     setEditMode(false);
     setFile(null);
     setPreview(null);
-    if (user) setForm({ name: user.fullName || user.name || '', email: user.email || '', bio: user.biografia || user.bio || '' });
-  };
-
-  const inputStyle = {
-    padding: '10px 14px', borderRadius: 9,
-    border: `1px solid ${c.borderFocus}`,
-    background: c.surface, color: c.text,
-    fontSize: 14, outline: 'none',
-    width: '100%', boxSizing: 'border-box',
+    setFormErrors({});
+    if (user) setForm({
+      nome:      user.nome || user.name || user.fullName || '',
+      email:     user.email || '',
+      biografia: user.biografia || user.bio || '',
+      escola:    user.escola || '',
+      telefone:  user.telefone || user.phone || '',
+    });
   };
 
   /* ── Unauthenticated ── */
   if (!user) {
     return (
       <Layout>
-        <div style={{ maxWidth: 420, margin: '80px auto', padding: '0 20px' }}>
-          <div style={{ ...card, padding: 40, textAlign: 'center' }}>
-            <div style={{ width: 52, height: 52, borderRadius: 13, background: c.primarySoft, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: c.primary }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <div className="max-w-md mx-auto mt-20 px-5">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-10 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-5 text-blue-600">
+              <User size={24} />
             </div>
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: c.text, marginBottom: 8 }}>Acesso restrito</h2>
-            <p style={{ fontSize: 14, color: c.muted, marginBottom: 24, lineHeight: 1.6 }}>Faça login para visualizar e editar seu perfil.</p>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-              <Btn onClick={() => navigate('/login')}>Entrar</Btn>
-              <Btn variant="secondary" onClick={() => navigate('/cadastro')}>Cadastrar</Btn>
+            <h2 className="text-lg font-bold text-gray-900 mb-2">Acesso restrito</h2>
+            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Faça login para ver o seu perfil.</p>
+            <div className="flex gap-3 justify-center">
+              <button onClick={() => navigate('/login')} className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition">Entrar</button>
+              <button onClick={() => navigate('/cadastro')} className="px-5 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">Cadastrar</button>
             </div>
           </div>
         </div>
@@ -309,380 +293,330 @@ export default function Perfil() {
     );
   }
 
-  const avatarSrc = preview || user.avatar || null;
-  const initials  = (user.fullName || user.name || user.username || 'U')[0]?.toUpperCase();
+  const avatarSrc = preview || user.avatar || user.imagem || null;
+  const initials  = (user.nome || user.name || user.username || 'U').charAt(0).toUpperCase();
   const joinDate  = user.createdAt
-    ? new Date(user.createdAt).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+    ? new Date(user.createdAt).toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' })
     : null;
 
-  const getMedalIcon = (posicao) => {
-    if (posicao === 1) return '🥇';
-    if (posicao === 2) return '🥈';
-    if (posicao === 3) return '🥉';
-    return '🏆';
-  };
-
-  const getMedalColor = (posicao) => {
-    if (posicao === 1) return { bg: '#FEF3C7', text: '#92400E', border: '#FCD34D' };
-    if (posicao === 2) return { bg: '#F3F4F6', text: '#374151', border: '#D1D5DB' };
-    if (posicao === 3) return { bg: '#FED7AA', text: '#9A3412', border: '#FDBA74' };
-    return { bg: c.primarySoft, text: c.primary, border: '#A5B4FC' };
-  };
+  const inputCls = (field) =>
+    `w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition
+     ${formErrors[field] ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'}`;
 
   return (
     <Layout>
       <LogoutModal
-        isOpen={showLogoutModal}
-        onConfirm={() => { setShowLogoutModal(false); logout(); navigate('/login'); }}
-        onCancel={() => setShowLogoutModal(false)}
+        isOpen={showLogout}
+        onConfirm={() => { setShowLogout(false); logout(); navigate('/login'); }}
+        onCancel={() => setShowLogout(false)}
       />
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: '32px 20px 72px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-        {/* ── Tab Navigation ── */}
-        <div style={{ display: 'flex', gap: 8, borderBottom: `2px solid ${c.border}`, marginBottom: 8 }}>
-          <button
-            onClick={() => setActiveTab('perfil')}
-            style={{
-              padding: '12px 20px',
-              background: 'none',
-              border: 'none',
-              borderBottom: activeTab === 'perfil' ? `3px solid ${c.primary}` : '3px solid transparent',
-              color: activeTab === 'perfil' ? c.primary : c.muted,
-              fontWeight: activeTab === 'perfil' ? 700 : 500,
-              fontSize: 14,
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              marginBottom: -2,
-            }}
-          >
-            Perfil
-          </button>
-          <button
-            onClick={() => setActiveTab('certificados')}
-            style={{
-              padding: '12px 20px',
-              background: 'none',
-              border: 'none',
-              borderBottom: activeTab === 'certificados' ? `3px solid ${c.primary}` : '3px solid transparent',
-              color: activeTab === 'certificados' ? c.primary : c.muted,
-              fontWeight: activeTab === 'certificados' ? 700 : 500,
-              fontSize: 14,
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              marginBottom: -2,
-            }}
-          >
-            Meus Certificados
-          </button>
-        </div>
+      <div className="max-w-3xl mx-auto px-4 py-8 pb-20 flex flex-col gap-5">
 
-        {activeTab === 'perfil' && (
-          <>
-        {/* ── Identity card ── */}
-        <div style={{ ...card, padding: '24px 28px' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap' }}>
+        {/* ───────── HERO CARD ───────── */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
+          <div className="flex items-start gap-5 flex-wrap">
 
-            {/* Avatar */}
-            <div style={{ position: 'relative', flexShrink: 0 }}>
-              <Avatar src={avatarSrc} initials={initials} size={72} />
-              {editMode && (
-                <label style={{
-                  position: 'absolute', bottom: 0, right: 0,
-                  width: 24, height: 24, borderRadius: '50%',
-                  background: c.primary, color: '#fff',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', border: '2px solid #fff',
-                }}>
-                  <Camera size={12} />
-                  <input type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
-                </label>
-              )}
-            </div>
+            <AvatarBlock src={avatarSrc} initials={initials} size={90} editMode={editMode} onFile={handleFile} />
 
-            {/* Identity */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <h1 style={{ fontSize: 19, fontWeight: 700, color: c.text, margin: 0, lineHeight: 1.3 }}>
-                {user.fullName || user.name || user.username || 'Usuário'}
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl font-bold text-gray-900 leading-tight">
+                {user.nome || user.name || user.fullName || 'Utilizador'}
               </h1>
-              <p style={{ fontSize: 13, color: c.muted, margin: '3px 0 0' }}>
-                @{user.username || '—'}
-              </p>
+              <p className="text-sm text-gray-400 mt-0.5">@{user.username || user.email?.split('@')[0] || '—'}</p>
 
-              {/* Bio — view mode */}
+              {/* Badge de nível inline */}
+              {nivel && (
+                <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+                  <NivelBadge nivelObj={nivel} xpTotal={xpTotal} compact />
+                  {streak > 0 && (
+                    <StreakBadge streak={streak} ativa={ativa} compact />
+                  )}
+                </div>
+              )}
+
               {!editMode && (user.biografia || user.bio) && (
-                <p style={{ fontSize: 14, color: c.text, margin: '10px 0 0', lineHeight: 1.65, maxWidth: 460 }}>
+                <p className="text-sm text-gray-600 mt-2 leading-relaxed max-w-lg">
                   {user.biografia || user.bio}
                 </p>
               )}
 
-              {/* Meta chips */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 10 }}>
+              <div className="flex flex-wrap gap-3 mt-3">
                 {user.email && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: c.muted }}>
-                    <Mail size={13} /> {user.email}
+                  <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                    <Mail size={12} /> {user.email}
+                  </span>
+                )}
+                {(user.escola) && (
+                  <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                    <GraduationCap size={12} /> {user.escola}
                   </span>
                 )}
                 {joinDate && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: c.muted }}>
-                    <Calendar size={13} /> Desde {joinDate}
+                  <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                    <Calendar size={12} /> Desde {joinDate}
                   </span>
                 )}
               </div>
             </div>
 
             {/* Action buttons */}
-            <div style={{ display: 'flex', gap: 8, flexShrink: 0, flexWrap: 'wrap', alignSelf: 'flex-start' }}>
+            <div className="flex gap-2 flex-wrap self-start">
               {!editMode ? (
                 <>
-                  <Btn variant="secondary" onClick={() => setEditMode(true)}>
-                    <Edit2 size={13} /> Editar
-                  </Btn>
-                  <Btn variant="ghost" onClick={() => setShowLogoutModal(true)}>
+                  <button onClick={() => setEditMode(true)}
+                    className="flex items-center gap-1.5 px-4 py-2 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">
+                    <Edit2 size={13} /> Editar Perfil
+                  </button>
+                  <button onClick={() => setShowLogout(true)}
+                    className="flex items-center gap-1.5 px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
                     <LogOut size={13} /> Sair
-                  </Btn>
+                  </button>
                 </>
               ) : (
                 <>
-                  <Btn onClick={onSave} disabled={saving}>
-                    <Save size={13} /> {saving ? 'Salvando…' : 'Salvar'}
-                  </Btn>
-                  <Btn variant="ghost" onClick={cancelEdit} disabled={saving}>
+                  <button onClick={onSave} disabled={saving}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50">
+                    <Save size={13} /> {saving ? 'A guardar…' : 'Guardar'}
+                  </button>
+                  <button onClick={cancelEdit} disabled={saving}
+                    className="flex items-center gap-1.5 px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
                     <X size={13} /> Cancelar
-                  </Btn>
+                  </button>
                 </>
               )}
             </div>
           </div>
 
-          {/* Edit form — inline, expands below */}
+          {/* ── Edit form ── */}
           {editMode && (
-            <div style={{ marginTop: 22, paddingTop: 22, borderTop: `1px solid ${c.border}`, display: 'grid', gap: 14 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+            <div className="mt-5 pt-5 border-t border-gray-100 grid gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: c.muted, display: 'block', marginBottom: 6 }}>Nome completo</label>
-                  <input style={inputStyle} value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Seu nome" />
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Nome completo *</label>
+                  <input className={inputCls('nome')} value={form.nome}
+                    onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} placeholder="O seu nome" />
+                  {formErrors.nome && <p className="text-xs text-red-500 mt-1">{formErrors.nome}</p>}
                 </div>
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: c.muted, display: 'block', marginBottom: 6 }}>E-mail</label>
-                  <input style={inputStyle} type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">E-mail</label>
+                  <input className={inputCls('email')} type="email" value={form.email}
+                    onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
+                  {formErrors.email && <p className="text-xs text-red-500 mt-1">{formErrors.email}</p>}
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Telefone</label>
+                  <input className={inputCls('telefone')} value={form.telefone}
+                    onChange={e => setForm(p => ({ ...p, telefone: e.target.value }))} placeholder="9XXXXXXXX" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Instituição de Ensino</label>
+                  <input className={inputCls('escola')} value={form.escola}
+                    onChange={e => setForm(p => ({ ...p, escola: e.target.value }))} placeholder="Nome da sua escola" />
                 </div>
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: c.muted, display: 'block', marginBottom: 6 }}>Biografia</label>
-                <textarea
-                  style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }}
-                  value={form.bio}
-                  onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
-                  placeholder="Conte um pouco sobre você…"
-                  maxLength={200}
-                />
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+                  Biografia <span className="font-normal text-gray-400">({form.biografia.length}/300)</span>
+                </label>
+                <textarea className={`${inputCls('biografia')} resize-none`} rows={3}
+                  value={form.biografia} maxLength={300}
+                  onChange={e => setForm(p => ({ ...p, biografia: e.target.value }))}
+                  placeholder="Apresente-se brevemente…" />
+                {formErrors.biografia && <p className="text-xs text-red-500 mt-1">{formErrors.biografia}</p>}
               </div>
+              <p className="text-xs text-gray-400 flex items-center gap-1">
+                Para alterar a sua senha ou preferências, aceda a{' '}
+                <Link to="/configuracoes" className="text-blue-600 hover:underline font-medium">Configurações</Link>.
+              </p>
             </div>
           )}
         </div>
 
-        {/* ── Stats row ── */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-          <StatCard
-            icon={<Trophy size={16} />}
-            label="Torneios"
-            value={stats.torneios}
-            accent="#D97706"
-            accentSoft="#FFFBEB"
-          />
-          <StatCard
-            icon={<Star size={16} />}
-            label="Pontos"
-            value={stats.pontos.toLocaleString('pt-BR')}
-            accent={c.primary}
-            accentSoft={c.primarySoft}
-          />
-          <StatCard
-            icon={<Award size={16} />}
-            label="Pódios"
-            value={stats.premios}
-            accent="#10B981"
-            accentSoft="#ECFDF5"
-          />
+        {/* ───────── STATS ROW ───────── */}
+        <div className="flex flex-wrap gap-3">
+          <StatCard icon={<Trophy size={16} />} label="Torneios" value={totalTorneios}
+            colorClass="bg-yellow-50 text-yellow-600" />
+          <StatCard icon={<Star size={16} />} label="Pontos totais" value={totalPontos.toLocaleString('pt-PT')}
+            colorClass="bg-blue-50 text-blue-600" />
+          <StatCard icon={<Award size={16} />} label="Pódios" value={totalPodios}
+            colorClass="bg-green-50 text-green-600" />
+          <StatCard icon={<Target size={16} />} label="Média de pts" value={mediaAcertos}
+            colorClass="bg-purple-50 text-purple-600" />
         </div>
 
-        {/* ── Account details ── */}
-        <div style={{ ...card, padding: '20px 24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            <div>
-              <h2 style={{ fontSize: 14, fontWeight: 700, color: c.text, margin: 0 }}>Detalhes da conta</h2>
-              <p style={{ fontSize: 13, color: c.muted, margin: '3px 0 0' }}>Informações vinculadas ao seu perfil.</p>
-            </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <Link
-                to="/configuracoes"
-                style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: c.muted, textDecoration: 'none', fontWeight: 500 }}
-              >
-                <Settings size={13} /> Configurações
-              </Link>
-              <span style={{ color: c.border }}>·</span>
-              <button
-                onClick={() => navigate('/painel')}
-                style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: c.primary, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}
-              >
-                Dashboard <ChevronRight size={13} />
-              </button>
-            </div>
+        {/* ───────── IDENTITY DETAILS + TABS ───────── */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200">
+
+          {/* Tab bar */}
+          <div className="flex border-b border-gray-200 px-2">
+            <Tab active={activeTab === 'perfil'}        onClick={() => setActiveTab('perfil')}>Identidade</Tab>
+            <Tab active={activeTab === 'historico'}     onClick={() => setActiveTab('historico')}>Histórico</Tab>
+            <Tab active={activeTab === 'certificados'}  onClick={() => setActiveTab('certificados')}>Certificados</Tab>
           </div>
 
-          <div style={{ marginTop: 8 }}>
-            <InfoRow label="Nome"         value={form.name} />
-            <InfoRow label="Username"     value={`@${user.username || '—'}`} />
-            <InfoRow label="E-mail"       value={user.email} />
-            <InfoRow label="Nível"        value={user.nivel ? `Nível ${user.nivel}` : null} />
-            <InfoRow label="Último login" value={user.lastLogin ? new Date(user.lastLogin).toLocaleString('pt-BR') : null} last />
-          </div>
-        </div>
+          {/* ── Tab: Identidade ── */}
+          {activeTab === 'perfil' && (
+            <div className="p-6">
+              <SectionTitle>Informações de Identidade</SectionTitle>
 
-          </>
-        )}
-
-        {/* ── Certificados Tab ── */}
-        {activeTab === 'certificados' && (
-          <div style={{ ...card, padding: '24px 28px' }}>
-            <div style={{ marginBottom: 20 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 700, color: c.text, margin: 0 }}>Meus Certificados</h2>
-              <p style={{ fontSize: 13, color: c.muted, margin: '6px 0 0' }}>
-                Certificados conquistados em torneios finalizados
-              </p>
-            </div>
-
-            {certificados.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                <div style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: 16,
-                  background: c.primarySoft,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 16px',
-                  fontSize: 28,
-                }}>
-                  🏆
+              {/* ── Card de Nível COMAES ── */}
+              {nivel && (
+                <div className="mb-5">
+                  <NivelBadge nivelObj={nivel} xpTotal={xpTotal} full />
                 </div>
-                <h3 style={{ fontSize: 16, fontWeight: 600, color: c.text, margin: '0 0 8px' }}>
-                  Nenhum certificado ainda
-                </h3>
-                <p style={{ fontSize: 14, color: c.muted, margin: 0 }}>
-                  Participe de torneios e conquiste o pódio para ganhar certificados!
+              )}
+
+              {/* ── Card de Streak COMAES ── */}
+              {(streak > 0 || !ativa) && (
+                <div className="mb-5">
+                  <StreakBadge streak={streak} maximo={maximo} ativa={ativa} mensagem={streakMsg} card />
+                </div>
+              )}
+
+              <div className="divide-y divide-gray-100">
+                <InfoRow icon={<User size={14} />}          label="Nome completo"    value={user.nome || user.name || user.fullName} />
+                <InfoRow icon={<Mail size={14} />}          label="E-mail"           value={user.email} />
+                <InfoRow icon={<Phone size={14} />}         label="Telefone"         value={user.telefone || user.phone} />
+                <InfoRow icon={<GraduationCap size={14} />} label="Instituição"      value={user.escola} />
+                <InfoRow icon={<BookOpen size={14} />}      label="Sexo"             value={user.sexo} />
+                <InfoRow icon={<Calendar size={14} />}      label="Nascimento"
+                  value={user.nascimento ? new Date(user.nascimento).toLocaleDateString('pt-PT') : null} />
+                <InfoRow icon={<Clock size={14} />}         label="Membro desde"     value={joinDate} />
+              </div>
+
+              <div className="mt-5 pt-4 border-t border-gray-100 flex items-center justify-between">
+                <p className="text-xs text-gray-400">
+                  Preferências de conta em{' '}
+                  <Link to="/configuracoes" className="text-blue-600 hover:underline font-medium">Configurações</Link>
                 </p>
+                <button onClick={() => navigate('/painel')}
+                  className="flex items-center gap-1 text-sm font-semibold text-blue-600 hover:underline">
+                  Dashboard <ChevronRight size={14} />
+                </button>
               </div>
-            ) : (
-              <div style={{ display: 'grid', gap: 16 }}>
-                {certificados.map((cert) => {
-                  const medalColor = getMedalColor(cert.posicao);
-                  return (
-                    <div
-                      key={cert.id}
-                      style={{
-                        padding: 20,
-                        borderRadius: 12,
-                        border: `2px solid ${medalColor.border}`,
-                        background: medalColor.bg,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 16,
-                        transition: 'transform 0.2s',
-                      }}
-                    >
-                      {/* Medal Icon */}
-                      <div style={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: 12,
-                        background: c.surface,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 28,
-                        flexShrink: 0,
-                        border: `2px solid ${medalColor.border}`,
-                      }}>
-                        {getMedalIcon(cert.posicao)}
-                      </div>
+            </div>
+          )}
 
-                      {/* Certificate Info */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <h3 style={{
-                          fontSize: 15,
-                          fontWeight: 700,
-                          color: medalColor.text,
-                          margin: 0,
-                          marginBottom: 4,
-                        }}>
-                          {cert.torneio?.titulo || 'Torneio'}
-                        </h3>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-                          <span style={{
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: medalColor.text,
-                            padding: '2px 8px',
-                            borderRadius: 6,
-                            background: c.surface,
-                          }}>
-                            {cert.disciplina}
-                          </span>
-                          <span style={{
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: medalColor.text,
-                            padding: '2px 8px',
-                            borderRadius: 6,
-                            background: c.surface,
-                          }}>
-                            {cert.posicao}º Lugar
-                          </span>
-                          <span style={{ fontSize: 12, color: medalColor.text }}>
-                            {cert.pontuacao} pontos
-                          </span>
-                        </div>
-                        <div style={{ fontSize: 11, color: c.muted }}>
-                          Código: {cert.codigo_certificado}
-                        </div>
-                        <div style={{ fontSize: 11, color: c.muted }}>
-                          Gerado em: {new Date(cert.data_geracao).toLocaleDateString('pt-BR')}
-                        </div>
-                      </div>
+          {/* ── Tab: Histórico ── */}
+          {activeTab === 'historico' && (
+            <div className="p-6">
+              <SectionTitle>Histórico de Torneios</SectionTitle>
+              {statsLoad ? (
+                <div className="flex justify-center py-10">
+                  <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : participacoes.length === 0 ? (
+                <div className="text-center py-12">
+                  <Trophy size={36} className="mx-auto text-gray-300 mb-3" />
+                  <p className="text-sm text-gray-500">Ainda não participou em nenhum torneio.</p>
+                  <button onClick={() => navigate('/entrar-no-torneio')}
+                    className="mt-4 px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition">
+                    Participar agora
+                  </button>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left text-xs font-semibold text-gray-500 pb-3 pr-4">Torneio</th>
+                        <th className="text-left text-xs font-semibold text-gray-500 pb-3 pr-4">Disciplina</th>
+                        <th className="text-center text-xs font-semibold text-gray-500 pb-3 pr-4">Posição</th>
+                        <th className="text-right text-xs font-semibold text-gray-500 pb-3">Pontos</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {participacoes.map(p => (
+                        <tr key={p.id} className="hover:bg-gray-50 transition">
+                          <td className="py-3 pr-4 font-medium text-gray-800 max-w-[200px] truncate">
+                            {p.torneio?.titulo || `Torneio #${p.torneio_id}`}
+                          </td>
+                          <td className="py-3 pr-4 capitalize text-gray-600">
+                            {p.disciplina_competida || '—'}
+                          </td>
+                          <td className="py-3 pr-4 text-center">
+                            {p.posicao ? <MedalIcon pos={p.posicao} /> : <span className="text-gray-300">—</span>}
+                          </td>
+                          <td className="py-3 text-right font-semibold text-blue-600">
+                            {Number(p.pontuacao || 0).toLocaleString('pt-PT')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
-                      {/* Actions */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
-                        <Btn
-                          variant="primary"
-                          onClick={() => {
-                            window.open(`${apiBase}/api/certificados/download/${cert.codigo_certificado}`, '_blank');
-                          }}
-                        >
-                          Download
-                        </Btn>
-                        <Btn
-                          variant="secondary"
-                          onClick={() => {
-                            navigator.clipboard.writeText(cert.codigo_certificado);
-                            setToast({ type: 'success', message: 'Código copiado!' });
-                          }}
-                        >
-                          Copiar Código
-                        </Btn>
+          {/* ── Tab: Certificados ── */}
+          {activeTab === 'certificados' && (
+            <div className="p-6">
+              <SectionTitle>Meus Certificados</SectionTitle>
+              {certificados.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-5xl mb-3">🏆</div>
+                  <h3 className="font-semibold text-gray-800 mb-1">Nenhum certificado ainda</h3>
+                  <p className="text-sm text-gray-500">Conquiste o pódio em torneios para ganhar certificados!</p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {certificados.map((cert) => {
+                    const medals = {
+                      1: { bg: 'bg-yellow-50', border: 'border-yellow-300', text: 'text-yellow-800', icon: '🥇' },
+                      2: { bg: 'bg-gray-50',   border: 'border-gray-300',   text: 'text-gray-700',   icon: '🥈' },
+                      3: { bg: 'bg-orange-50', border: 'border-orange-300', text: 'text-orange-800', icon: '🥉' },
+                    };
+                    const m = medals[cert.posicao] || { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800', icon: '🏆' };
+                    return (
+                      <div key={cert.id}
+                        className={`flex items-center gap-4 p-4 rounded-xl border-2 ${m.bg} ${m.border}`}>
+                        <div className="text-3xl flex-shrink-0">{m.icon}</div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-bold text-sm ${m.text}`}>
+                            {cert.torneio?.titulo || 'Torneio'}
+                          </p>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full bg-white ${m.text}`}>
+                              {cert.disciplina}
+                            </span>
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full bg-white ${m.text}`}>
+                              {cert.posicao}º lugar
+                            </span>
+                            <span className={`text-xs ${m.text}`}>{cert.pontuacao} pts</span>
+                          </div>
+                          <p className="text-xs text-gray-400 mt-1">
+                            Código: {cert.codigo_certificado} · {new Date(cert.data_geracao).toLocaleDateString('pt-PT')}
+                          </p>
+                        </div>
+                        <div className="flex flex-col gap-2 flex-shrink-0">
+                          <button
+                            onClick={() => window.open(`${API}/api/certificados/download/${cert.codigo_certificado}`, '_blank')}
+                            className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition">
+                            Download
+                          </button>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(cert.codigo_certificado);
+                              showToast('success', 'Código copiado!');
+                            }}
+                            className="px-3 py-1.5 border border-gray-200 text-gray-600 rounded-lg text-xs font-medium hover:bg-white transition">
+                            Copiar
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
       </div>
 
-      <Toast type={toast.type} message={toast.message} onClose={() => setToast({ type: '', message: '' })} />
+      <Toast type={toast.type} msg={toast.msg} onClose={() => setToast({ type: '', msg: '' })} />
     </Layout>
   );
 }

@@ -24,6 +24,13 @@ import QuestaoMatematica from "./QuestaoMatematica.js";
 import QuestaoProgramacao from "./QuestaoProgramacao.js";
 import QuestaoIngles from "./QuestaoIngles.js";
 import ResultadoTeste from "./ResultadoTeste.js";
+import BlocoQuestoes from "./BlocoQuestoes.js";
+import BlocoQuestaoItem from "./BlocoQuestaoItem.js";
+import TorneioBloco from "./TorneioBloco.js";
+import QuestaoTesteConhecimento from "./QuestaoTesteConhecimento.js";
+import SequenciaAprendizagem from "./SequenciaAprendizagem.js";
+import Missao from "./Missao.js";
+import MissaoUsuario from "./MissaoUsuario.js";
 
 // Flag para garantir que setupAssociations só é chamado uma vez
 let associationsConfigured = false;
@@ -120,6 +127,12 @@ export const setupAssociations = () => {
   Questao.hasMany(TentativaResposta, { foreignKey: 'questao_id', as: 'tentativas' });
   TentativaResposta.belongsTo(Questao, { foreignKey: 'questao_id', as: 'questao' });
 
+  // Questao <-> Usuario (colaborador autor / admin revisor)
+  Usuario.hasMany(Questao, { foreignKey: 'autor_id', as: 'questoesCriadas' });
+  Questao.belongsTo(Usuario, { foreignKey: 'autor_id', as: 'autor' });
+  Usuario.hasMany(Questao, { foreignKey: 'revisado_por', as: 'questoesRevisadas' });
+  Questao.belongsTo(Usuario, { foreignKey: 'revisado_por', as: 'revisor' });
+
   // TentativaResposta <-> Torneio
   Torneio.hasMany(TentativaResposta, { foreignKey: 'torneio_id', as: 'tentativas' });
   TentativaResposta.belongsTo(Torneio, { foreignKey: 'torneio_id', as: 'torneio' });
@@ -139,6 +152,62 @@ export const setupAssociations = () => {
   // ResultadoTeste <-> Usuario
   Usuario.hasMany(ResultadoTeste, { foreignKey: 'usuario_id', as: 'resultadosTeste' });
   ResultadoTeste.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
+
+  // ── Blocos de Questões ────────────────────────────────────────────────────
+
+  // BlocoQuestoes <-> Usuario (criador)
+  Usuario.hasMany(BlocoQuestoes, { foreignKey: 'criado_por', as: 'blocosCriados' });
+  BlocoQuestoes.belongsTo(Usuario, { foreignKey: 'criado_por', as: 'criador' });
+
+  // BlocoQuestoes <-> QuestaoTesteConhecimento (N:M via BlocoQuestaoItem)
+  BlocoQuestoes.belongsToMany(QuestaoTesteConhecimento, {
+    through: BlocoQuestaoItem,
+    foreignKey: 'bloco_id',
+    otherKey: 'questao_id',
+    as: 'questoes',
+  });
+  QuestaoTesteConhecimento.belongsToMany(BlocoQuestoes, {
+    through: BlocoQuestaoItem,
+    foreignKey: 'questao_id',
+    otherKey: 'bloco_id',
+    as: 'blocos',
+  });
+
+  // BlocoQuestaoItem direto (para queries com include)
+  BlocoQuestoes.hasMany(BlocoQuestaoItem, { foreignKey: 'bloco_id', as: 'items' });
+  BlocoQuestaoItem.belongsTo(BlocoQuestoes, { foreignKey: 'bloco_id', as: 'bloco' });
+  QuestaoTesteConhecimento.hasMany(BlocoQuestaoItem, { foreignKey: 'questao_id', as: 'blocoItems' });
+  BlocoQuestaoItem.belongsTo(QuestaoTesteConhecimento, { foreignKey: 'questao_id', as: 'questao' });
+
+  // Torneio <-> BlocoQuestoes (N:M via TorneioBloco)
+  Torneio.belongsToMany(BlocoQuestoes, {
+    through: TorneioBloco,
+    foreignKey: 'torneio_id',
+    otherKey: 'bloco_id',
+    as: 'blocos',
+  });
+  BlocoQuestoes.belongsToMany(Torneio, {
+    through: TorneioBloco,
+    foreignKey: 'bloco_id',
+    otherKey: 'torneio_id',
+    as: 'torneios',
+  });
+
+  // TorneioBloco direto (para queries com include)
+  Torneio.hasMany(TorneioBloco, { foreignKey: 'torneio_id', as: 'torneiBlocos' });
+  TorneioBloco.belongsTo(Torneio, { foreignKey: 'torneio_id', as: 'torneio' });
+  BlocoQuestoes.hasMany(TorneioBloco, { foreignKey: 'bloco_id', as: 'torneioAssociacoes' });
+  TorneioBloco.belongsTo(BlocoQuestoes, { foreignKey: 'bloco_id', as: 'bloco' });
+
+  // ── Streak / Sequência de Aprendizagem ────────────────────────────────────
+  Usuario.hasOne(SequenciaAprendizagem, { foreignKey: 'usuario_id', as: 'sequencia' });
+  SequenciaAprendizagem.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
+
+  // ── Missões ────────────────────────────────────────────────────────────────
+  Usuario.hasMany(MissaoUsuario, { foreignKey: 'usuario_id', as: 'missoes_usuario' });
+  MissaoUsuario.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
+  Missao.hasMany(MissaoUsuario, { foreignKey: 'missao_id', as: 'progressos' });
+  MissaoUsuario.belongsTo(Missao, { foreignKey: 'missao_id', as: 'missao' });
 
   associationsConfigured = true;
   console.log('✅ Associações Sequelize configuradas com sucesso!');

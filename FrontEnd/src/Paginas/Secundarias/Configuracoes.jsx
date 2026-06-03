@@ -1,696 +1,513 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+/**
+ * Configuracoes.jsx
+ * Página de configurações pessoais — experiência de uso da conta.
+ *
+ * CONTÉM:  alteração de senha, segurança, idioma, notificações, privacidade
+ * NÃO CONTÉM: nome, foto, biografia, escola, telefone → estão no Perfil (/perfil)
+ */
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Layout from './Layout';
 import LogoutModal from '../../components/LogoutModal';
 import {
-  User, Mail, Phone, Lock, Globe, Shield, Bell,
-  Monitor, Moon, Sun, ChevronRight, Check, X,
-  LogOut, Smartphone, Eye, EyeOff, AlertCircle,
-  CheckCircle, Laptop, Clock,
+  Lock, Globe, Shield, Bell,
+  Check, X, LogOut, Laptop, Eye, EyeOff,
+  AlertCircle, CheckCircle, ChevronRight, User,
 } from 'lucide-react';
-import {
-  validateEmail, validatePhone, validatePassword, validatePasswordConfirm,
-} from '../../utils/validators';
+import { validatePassword } from '../../utils/validators';
 
-/* ─── Tokens ─────────────────────────────────────────────────── */
-const c = {
-  primary:     '#4F6EF7',
-  primaryHover:'#3B5BDB',
-  primarySoft: '#EEF1FE',
-  surface:     '#FFFFFF',
-  bg:          '#F7F8FC',
-  border:      '#E8EAEF',
-  borderFocus: '#A5B4FC',
-  text:        '#0F1117',
-  muted:       '#6B7280',
-  subtle:      '#9CA3AF',
-  success:     '#10B981',
-  successSoft: '#ECFDF5',
-  red:         '#EF4444',
-  redSoft:     '#FEF2F2',
-  redBorder:   '#FECACA',
-};
+const API = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
 
-/* ─── Micro components ───────────────────────────────────────── */
+/* ─── Secções da sidebar ───────────────────────────────────── */
+const SECTIONS = [
+  { id: 'seguranca',    label: 'Segurança',    icon: <Lock size={15} /> },
+  { id: 'preferencias', label: 'Idioma', icon: <Globe size={15} /> },
+  { id: 'privacidade',  label: 'Privacidade',  icon: <Shield size={15} /> },
+  { id: 'notificacoes', label: 'Notificações', icon: <Bell size={15} /> },
+];
 
-function Toast({ type, message, onClose }) {
+/* ─── Toast ─────────────────────────────────────────────────── */
+function Toast({ type, msg, onClose }) {
   useEffect(() => {
-    if (!message) return;
-    const id = setTimeout(onClose, 4000);
-    return () => clearTimeout(id);
-  }, [message, onClose]);
-  if (!message) return null;
+    if (!msg) return;
+    const t = setTimeout(onClose, 4000);
+    return () => clearTimeout(t);
+  }, [msg, onClose]);
+  if (!msg) return null;
   const ok = type === 'success';
   return (
-    <div style={{
-      position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
-      display: 'flex', alignItems: 'center', gap: 10,
-      padding: '12px 18px', borderRadius: 12,
-      background: ok ? c.successSoft : c.redSoft,
-      border: `1px solid ${ok ? '#A7F3D0' : c.redBorder}`,
-      color: ok ? '#065F46' : '#991B1B',
-      fontSize: 14, fontWeight: 500,
-      boxShadow: '0 4px 20px rgba(0,0,0,0.10)',
-      maxWidth: 340,
-    }}>
-      {ok ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
-      <span style={{ flex: 1 }}>{message}</span>
-      <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', display: 'flex', padding: 0 }}>
-        <X size={15} />
-      </button>
+    <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium max-w-sm
+      ${ok ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-red-50 border border-red-200 text-red-700'}`}>
+      {ok ? <CheckCircle size={15} /> : <AlertCircle size={15} />}
+      <span className="flex-1">{msg}</span>
+      <button onClick={onClose} className="opacity-60 hover:opacity-100"><X size={14} /></button>
     </div>
   );
 }
 
-function Toggle({ active, onChange, disabled }) {
+/* ─── Toggle ────────────────────────────────────────────────── */
+function Toggle({ active, onChange }) {
   return (
     <button
       type="button"
-      onClick={() => !disabled && onChange(!active)}
-      aria-checked={active}
       role="switch"
-      style={{
-        width: 40, height: 22, borderRadius: 999,
-        border: 'none', padding: 2, cursor: disabled ? 'default' : 'pointer',
-        background: active ? c.primary : c.border,
-        position: 'relative', transition: 'background 0.2s',
-        flexShrink: 0, opacity: disabled ? 0.5 : 1,
-      }}
+      aria-checked={active}
+      onClick={() => onChange(!active)}
+      className={`relative w-10 h-6 rounded-full transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500
+        ${active ? 'bg-blue-600' : 'bg-gray-200'}`}
     >
-      <span style={{
-        display: 'block', width: 18, height: 18, borderRadius: '50%',
-        background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.18)',
-        transform: active ? 'translateX(18px)' : 'translateX(0)',
-        transition: 'transform 0.2s',
-      }} />
+      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform
+        ${active ? 'translate-x-4' : 'translate-x-0'}`} />
     </button>
   );
 }
 
-/* Inline editable row — shows value + "Alterar" link; expands to input on click */
-function EditableRow({ label, value, type = 'text', placeholder, onSave, hint, sensitive }) {
-  const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState('');
-  const [show, setShow] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const inputRef = useRef(null);
-
-  const open_ = () => { setDraft(''); setOpen(true); setTimeout(() => inputRef.current?.focus(), 50); };
-  const close = () => { setOpen(false); setDraft(''); };
-
-  const save = async () => {
-    if (!draft.trim()) { close(); return; }
-    setSaving(true);
-    await onSave(draft.trim());
-    setSaving(false);
-    close();
-  };
-
-  const displayValue = sensitive
-    ? (value ? '••••••••' : '—')
-    : (value || '—');
-
+/* ─── ToggleRow ─────────────────────────────────────────────── */
+function ToggleRow({ label, desc, active, onChange, last }) {
   return (
-    <div style={{ padding: '16px 0', borderBottom: `1px solid ${c.border}` }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-        <div style={{ minWidth: 0 }}>
-          <p style={{ fontSize: 13, color: c.muted, margin: 0, marginBottom: 2 }}>{label}</p>
-          {!open && (
-            <p style={{ fontSize: 14, fontWeight: 500, color: c.text, margin: 0, wordBreak: 'break-all' }}>
-              {displayValue}
-            </p>
-          )}
-        </div>
-        {!open && (
-          <button onClick={open_} style={{
-            fontSize: 13, fontWeight: 600, color: c.primary,
-            background: 'none', border: 'none', cursor: 'pointer',
-            padding: '4px 8px', borderRadius: 6, flexShrink: 0,
-            transition: 'background 0.15s',
-          }}
-            onMouseEnter={e => e.currentTarget.style.background = c.primarySoft}
-            onMouseLeave={e => e.currentTarget.style.background = 'none'}
-          >
-            Alterar
-          </button>
-        )}
-      </div>
-
-      {open && (
-        <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {hint && <p style={{ fontSize: 12, color: c.muted, margin: 0 }}>{hint}</p>}
-          <div style={{ position: 'relative' }}>
-            <input
-              ref={inputRef}
-              type={sensitive && !show ? 'password' : type}
-              value={draft}
-              onChange={e => setDraft(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') close(); }}
-              placeholder={placeholder || `Novo ${label.toLowerCase()}`}
-              style={{
-                width: '100%', padding: '10px 14px',
-                paddingRight: sensitive ? 44 : 14,
-                borderRadius: 10, border: `1px solid ${c.borderFocus}`,
-                background: c.surface, color: c.text, fontSize: 14,
-                outline: 'none', boxSizing: 'border-box',
-              }}
-            />
-            {sensitive && (
-              <button
-                type="button"
-                onClick={() => setShow(s => !s)}
-                style={{
-                  position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', cursor: 'pointer', color: c.muted, display: 'flex',
-                }}
-              >
-                {show ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            )}
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              onClick={save}
-              disabled={saving || !draft.trim()}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '8px 16px', borderRadius: 8,
-                background: c.primary, color: '#fff',
-                border: 'none', fontSize: 13, fontWeight: 600,
-                cursor: saving || !draft.trim() ? 'not-allowed' : 'pointer',
-                opacity: saving || !draft.trim() ? 0.6 : 1,
-              }}
-            >
-              <Check size={14} /> {saving ? 'Salvando…' : 'Salvar'}
-            </button>
-            <button
-              onClick={close}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '8px 14px', borderRadius: 8,
-                background: 'none', color: c.muted,
-                border: `1px solid ${c.border}`, fontSize: 13, fontWeight: 500,
-                cursor: 'pointer',
-              }}
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* Toggle row with label + description */
-function ToggleRow({ label, description, active, onChange }) {
-  return (
-    <div style={{
-      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      gap: 16, padding: '14px 0', borderBottom: `1px solid ${c.border}`,
-    }}>
-      <div style={{ minWidth: 0 }}>
-        <p style={{ fontSize: 14, fontWeight: 500, color: c.text, margin: 0 }}>{label}</p>
-        {description && <p style={{ fontSize: 13, color: c.muted, margin: '2px 0 0', lineHeight: 1.5 }}>{description}</p>}
+    <div className={`flex items-center justify-between gap-4 py-4 ${last ? '' : 'border-b border-gray-100'}`}>
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-gray-900">{label}</p>
+        {desc && <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{desc}</p>}
       </div>
       <Toggle active={active} onChange={onChange} />
     </div>
   );
 }
 
-/* Section wrapper */
-function Section({ title, description, children }) {
+/* ─── SectionCard ───────────────────────────────────────────── */
+function SectionCard({ title, desc, children }) {
   return (
-    <div style={{
-      background: c.surface, borderRadius: 14,
-      border: `1px solid ${c.border}`,
-      boxShadow: '0 1px 3px rgba(15,17,23,0.05)',
-      overflow: 'hidden',
-    }}>
-      <div style={{ padding: '20px 24px', borderBottom: `1px solid ${c.border}` }}>
-        <h2 style={{ fontSize: 15, fontWeight: 700, color: c.text, margin: 0 }}>{title}</h2>
-        {description && <p style={{ fontSize: 13, color: c.muted, margin: '3px 0 0' }}>{description}</p>}
+    <div className="bg-white rounded-2xl shadow-xl border border-gray-200">
+      <div className="px-6 py-4 border-b border-gray-100">
+        <h2 className="text-sm font-bold text-gray-900">{title}</h2>
+        {desc && <p className="text-xs text-gray-500 mt-0.5">{desc}</p>}
       </div>
-      <div style={{ padding: '0 24px' }}>
-        {children}
-      </div>
+      <div className="px-6">{children}</div>
     </div>
   );
 }
 
-/* Pill selector */
-function PillGroup({ options, value, onChange }) {
-  return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '14px 0', borderBottom: `1px solid ${c.border}` }}>
-      {options.map(opt => {
-        const active = value === opt.value;
-        return (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => onChange(opt.value)}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '7px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500,
-              cursor: 'pointer',
-              border: `1px solid ${active ? c.primary : c.border}`,
-              background: active ? c.primarySoft : c.surface,
-              color: active ? c.primary : c.muted,
-              transition: 'all 0.15s',
-            }}
-          >
-            {opt.icon && opt.icon}
-            {opt.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-/* Sidebar nav item */
-function NavItem({ icon, label, active, onClick, badge }) {
+/* ─── NavItem ────────────────────────────────────────────────── */
+function NavItem({ icon, label, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 10,
-        width: '100%', padding: '9px 14px',
-        background: active ? c.primarySoft : 'transparent',
-        border: 'none', borderRadius: 8,
-        color: active ? c.primary : c.muted,
-        fontSize: 14, fontWeight: active ? 600 : 400,
-        cursor: 'pointer', textAlign: 'left',
-        transition: 'background 0.15s, color 0.15s',
-      }}
+      className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left
+        ${active ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'}`}
     >
-      <span style={{ flexShrink: 0 }}>{icon}</span>
-      <span style={{ flex: 1 }}>{label}</span>
-      {badge && (
-        <span style={{
-          fontSize: 11, fontWeight: 700, padding: '2px 7px',
-          borderRadius: 999, background: c.red, color: '#fff',
-        }}>{badge}</span>
-      )}
+      <span className="flex-shrink-0">{icon}</span>
+      {label}
     </button>
   );
 }
 
-/* ─── Sections config ────────────────────────────────────────── */
-const SECTIONS = [
-  { id: 'conta',        label: 'Conta',         icon: <User size={15} /> },
-  { id: 'seguranca',    label: 'Segurança',      icon: <Lock size={15} /> },
-  { id: 'preferencias', label: 'Preferências',   icon: <Globe size={15} /> },
-  { id: 'privacidade',  label: 'Privacidade',    icon: <Shield size={15} /> },
-  { id: 'notificacoes', label: 'Notificações',   icon: <Bell size={15} /> },
-];
+/* ─── AlterarSenhaForm ───────────────────────────────────────── */
+function AlterarSenhaForm({ token, onSuccess, onError }) {
+  const [form, setForm] = useState({ senhaAtual: '', novaSenha: '', confirmar: '' });
+  const [show, setShow] = useState({ atual: false, nova: false, confirmar: false });
+  const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
 
-/* ─── Main ───────────────────────────────────────────────────── */
+  const toggleShow = (f) => setShow(s => ({ ...s, [f]: !s[f] }));
+
+  const validate = () => {
+    const e = {};
+    if (!form.senhaAtual) e.senhaAtual = 'Obrigatório';
+    if (!form.novaSenha)  e.novaSenha  = 'Obrigatório';
+    else {
+      const r = validatePassword(form.novaSenha);
+      if (!r.valid) e.novaSenha = r.error;
+    }
+    if (!form.confirmar) e.confirmar = 'Obrigatório';
+    else if (form.novaSenha !== form.confirmar) e.confirmar = 'As senhas não coincidem';
+    return e;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+    setErrors({});
+    setSaving(true);
+    try {
+      const res = await fetch(`${API}/auth/alterar-senha`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ senhaAtual: form.senhaAtual, novaSenha: form.novaSenha }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || 'Erro ao alterar senha');
+      setForm({ senhaAtual: '', novaSenha: '', confirmar: '' });
+      onSuccess('Senha alterada com sucesso!');
+    } catch (err) {
+      onError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inputCls = (field) =>
+    `w-full pl-4 pr-10 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition
+     ${errors[field] ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'}`;
+
+  const PasswordInput = ({ field, placeholder }) => (
+    <div className="relative">
+      <input
+        type={show[field] ? 'text' : 'password'}
+        value={form[field]}
+        onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))}
+        placeholder={placeholder}
+        className={inputCls(field)}
+      />
+      <button
+        type="button"
+        onClick={() => toggleShow(field)}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+      >
+        {show[field] ? <EyeOff size={15} /> : <Eye size={15} />}
+      </button>
+      {errors[field] && <p className="text-xs text-red-500 mt-1">{errors[field]}</p>}
+    </div>
+  );
+
+  return (
+    <form onSubmit={handleSubmit} className="py-4 flex flex-col gap-4">
+      <div>
+        <label className="block text-xs font-semibold text-gray-500 mb-1.5">Senha actual</label>
+        <PasswordInput field="senhaAtual" placeholder="A sua senha actual" />
+      </div>
+      <div>
+        <label className="block text-xs font-semibold text-gray-500 mb-1.5">Nova senha</label>
+        <PasswordInput field="novaSenha" placeholder="Mínimo 8 caracteres" />
+        <p className="text-xs text-gray-400 mt-1">Deve conter maiúsculas, minúsculas, número e símbolo.</p>
+      </div>
+      <div>
+        <label className="block text-xs font-semibold text-gray-500 mb-1.5">Confirmar nova senha</label>
+        <PasswordInput field="confirmar" placeholder="Repita a nova senha" />
+      </div>
+      <div className="flex gap-3 pt-1">
+        <button
+          type="submit"
+          disabled={saving}
+          className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+        >
+          <Check size={14} /> {saving ? 'A guardar…' : 'Alterar Senha'}
+        </button>
+        <button
+          type="button"
+          onClick={() => { setForm({ senhaAtual: '', novaSenha: '', confirmar: '' }); setErrors({}); }}
+          className="px-5 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 transition"
+        >
+          Limpar
+        </button>
+      </div>
+    </form>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MAIN COMPONENT
+════════════════════════════════════════════════════════════════ */
 export default function Configuracoes() {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [active, setActive]   = useState('conta');
-  const [toast, setToast]     = useState({ type: '', message: '' });
-  const [fetching, setFetching] = useState(true);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [active, setActive]   = useState('seguranca');
+  const [toast, setToast]     = useState({ type: '', msg: '' });
+  const [loading, setLoading] = useState(true);
+  const [showLogout, setShowLogout] = useState(false);
 
-  /* Settings state */
-  const [conta, setConta]     = useState({ email: '', telefone: '' });
-  const [seg, setSeg]         = useState({ twoFactor: false, loginAlerts: true });
-  const [pref, setPref]       = useState({ tema: 'light', idioma: 'pt-BR' });
-  const [priv, setPriv]       = useState({ perfilPublico: true, mostrarRanking: true, mostrarCertificados: true, mostrarAtividade: true });
-  const [notif, setNotif]     = useState({ email: true, competicoes: true, certificados: true, novidades: false });
+  const [seg,   setSeg]   = useState({ twoFactor: false, loginAlerts: true });
+  const [pref,  setPref]  = useState({ idioma: 'pt-BR' });
+  const [priv,  setPriv]  = useState({ perfilPublico: true, mostrarRanking: true, mostrarCertificados: true, mostrarAtividade: true });
+  const [notif, setNotif] = useState({ email: true, competicoes: true, certificados: true, novidades: false });
 
-  const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+  const showToast = (type, msg) => setToast({ type, msg });
 
-  const showToast = (type, message) => setToast({ type, message });
-  const clearToast = () => setToast({ type: '', message: '' });
+  /* ── Redirect if not logged in ── */
+  useEffect(() => { if (!user) navigate('/login'); }, [user, navigate]);
 
-  /* Redirect */
-  useEffect(() => {
-    if (!user) { setTimeout(() => navigate('/login'), 1200); }
-  }, [user, navigate]);
-
-  /* Load */
+  /* ── Load settings ── */
   useEffect(() => {
     if (!user) return;
-    const load = async () => {
-      try {
-        const res  = await fetch(`${apiBase}/usuarios/${user.id}/configuracao`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const body = await res.json();
-        if (res.ok && body.data) {
+    fetch(`${API}/usuarios/${user.id}/configuracao`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(body => {
+        if (body.success && body.data) {
           const d = body.data;
-          setConta({ email: user.email || d.conta?.email || '', telefone: d.conta?.telefone || '' });
           if (d.seguranca)    setSeg(s  => ({ ...s, ...d.seguranca }));
-          if (d.preferencias) setPref(s => ({ ...s, ...d.preferencias }));
+          if (d.idioma)       setPref(p => ({ ...p, idioma: d.idioma }));
           if (d.privacidade)  setPriv(s => ({ ...s, ...d.privacidade }));
           if (d.notificacoes) setNotif(s => ({ ...s, ...d.notificacoes }));
-        } else {
-          setConta({ email: user.email || '', telefone: '' });
         }
-      } catch { /* silent */ }
-      finally { setFetching(false); }
-    };
-    load();
-  }, [user, token, apiBase]);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [user, token]);
 
-  /* Persist helper */
+  /* ── Persist helper ─────────────────────────────────────────
+     O backend faz merge profundo — só enviar a secção alterada.
+     Estrutura: { seguranca: {...} } | { tema: '...' } | etc.
+  ─────────────────────────────────────────────────────────── */
   const persist = async (patch) => {
     try {
-      const res = await fetch(`${apiBase}/usuarios/${user.id}/configuracao`, {
+      const res = await fetch(`${API}/usuarios/${user.id}/configuracao`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(patch),
+        body: JSON.stringify(patch), // enviar directamente — backend faz merge
       });
       const body = await res.json();
-      if (!res.ok) throw new Error(body.error || 'Erro ao salvar.');
-      showToast('success', 'Alteração salva.');
+      if (!res.ok) throw new Error(body.error || 'Erro ao guardar');
+      showToast('success', 'Preferência guardada.');
     } catch (err) {
-      showToast('error', err.message || 'Erro ao salvar.');
+      showToast('error', err.message || 'Erro ao guardar');
     }
   };
 
-  /* Field savers — validate before persisting */
-  const saveEmail = async (v) => {
-    const r = validateEmail(v);
-    if (!r.valid) { showToast('error', r.error); return; }
-    setConta(s => ({ ...s, email: v }));
-    await persist({ conta: { ...conta, email: v } });
+  const toggleSave = (section, setter, key) => (val) => {
+    setter(s => {
+      const next = { ...s, [key]: val };
+      // Enviar apenas a secção alterada — backend faz merge
+      persist({ [section]: { [key]: val } });
+      return next;
+    });
   };
 
-  const saveTelefone = async (v) => {
-    const r = validatePhone(v);
-    if (!r.valid) { showToast('error', r.error); return; }
-    setConta(s => ({ ...s, telefone: v }));
-    await persist({ conta: { ...conta, telefone: v } });
-  };
-
-  const saveSenha = async (v) => {
-    const r = validatePassword(v);
-    if (!r.valid) { showToast('error', r.error); return; }
-    await persist({ conta: { novaSenha: v } });
-  };
-
-  const saveToggle = (section, setter, key) => async (val) => {
-    setter(s => { const next = { ...s, [key]: val }; persist({ [section]: next }); return next; });
-  };
-
-  const savePref = (key) => async (val) => {
-    setPref(s => { const next = { ...s, [key]: val }; persist({ preferencias: next }); return next; });
-  };
-
-  /* ── Loading ── */
-  if (fetching) {
+  if (loading) {
     return (
       <Layout>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '50vh', gap: 12, color: c.muted, fontSize: 14 }}>
-          <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${c.border}`, borderTopColor: c.primary, animation: 'spin 0.7s linear infinite' }} />
-          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-          Carregando…
+        <div className="flex items-center justify-center h-64 gap-3 text-gray-400 text-sm">
+          <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin" />
+          A carregar…
         </div>
       </Layout>
     );
   }
 
-  if (!user) {
-    return (
-      <Layout>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '50vh', color: c.muted, fontSize: 14 }}>
-          Redirecionando…
-        </div>
-      </Layout>
-    );
-  }
+  if (!user) return null;
 
-  /* ── Panels ── */
+  /* ─── Panels ──────────────────────────────────────────────── */
   const panels = {
-
-    /* ── Conta ── */
-    conta: (
-      <Section title="Conta" description="Gerencie seu e-mail, telefone e acesso.">
-        <EditableRow
-          label="E-mail"
-          value={conta.email}
-          type="email"
-          placeholder="novo@email.com"
-          hint="Você receberá um e-mail de confirmação."
-          onSave={saveEmail}
-        />
-        <EditableRow
-          label="Telefone"
-          value={conta.telefone}
-          type="tel"
-          placeholder="+55 (11) 99999-9999"
-          onSave={saveTelefone}
-        />
-        <div style={{ padding: '20px 0' }}>
-          <button
-            onClick={() => setShowLogoutModal(true)}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              padding: '9px 16px', borderRadius: 9,
-              background: c.redSoft, color: c.red,
-              border: `1px solid ${c.redBorder}`,
-              fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            }}
-          >
-            <LogOut size={14} /> Encerrar sessão
-          </button>
-        </div>
-      </Section>
-    ),
 
     /* ── Segurança ── */
     seguranca: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <Section title="Senha" description="Mantenha sua conta protegida com uma senha forte.">
-          <EditableRow
-            label="Senha"
-            value="definida"
-            sensitive
-            placeholder="Nova senha (mín. 8 caracteres)"
-            hint="Use letras, números e símbolos para maior segurança."
-            onSave={saveSenha}
-          />
-        </Section>
+      <div className="flex flex-col gap-4">
 
-        <Section title="Verificação" description="Camadas adicionais de proteção para sua conta.">
+        {/* Aviso de separação com Perfil */}
+        <div className="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-xl p-4">
+          <User size={16} className="text-blue-500 mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-blue-700">
+            Para alterar nome, foto, escola ou contactos, aceda ao seu{' '}
+            <Link to="/perfil" className="font-semibold underline hover:text-blue-900">Perfil</Link>.
+          </p>
+        </div>
+
+        {/* Alterar senha */}
+        <SectionCard title="Alterar Senha" desc="Escolha uma senha forte e exclusiva para esta conta.">
+          <AlterarSenhaForm
+            token={token}
+            onSuccess={(msg) => showToast('success', msg)}
+            onError={(msg) => showToast('error', msg)}
+          />
+        </SectionCard>
+
+        {/* Verificação */}
+        <SectionCard title="Verificação" desc="Camadas adicionais de segurança para a sua conta.">
           <ToggleRow
             label="Autenticação em dois fatores"
-            description="Exige um código extra ao fazer login."
+            desc="Exige um código adicional ao fazer login."
             active={seg.twoFactor}
-            onChange={saveToggle('seguranca', setSeg, 'twoFactor')}
+            onChange={toggleSave('seguranca', setSeg, 'twoFactor')}
           />
           <ToggleRow
-            label="Alertas de login"
-            description="Receba um e-mail quando um novo acesso for detectado."
+            label="Alertas de novo acesso"
+            desc="Receba um e-mail quando for detectado um novo login."
             active={seg.loginAlerts}
-            onChange={saveToggle('seguranca', setSeg, 'loginAlerts')}
+            onChange={toggleSave('seguranca', setSeg, 'loginAlerts')}
+            last
           />
-        </Section>
+        </SectionCard>
 
-        <Section title="Sessões ativas" description="Dispositivos com acesso à sua conta.">
-          <div style={{ padding: '14px 0', borderBottom: `1px solid ${c.border}` }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 9, background: c.primarySoft, display: 'flex', alignItems: 'center', justifyContent: 'center', color: c.primary, flexShrink: 0 }}>
+        {/* Sessões */}
+        <SectionCard title="Sessões Ativas" desc="Dispositivos com acesso activo à sua conta.">
+          <div className="py-4 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
                 <Laptop size={16} />
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 14, fontWeight: 500, color: c.text, margin: 0 }}>Este dispositivo</p>
-                <p style={{ fontSize: 12, color: c.muted, margin: '2px 0 0' }}>Sessão atual</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-800">Este dispositivo</p>
+                <p className="text-xs text-gray-400 mt-0.5">Sessão atual</p>
               </div>
-              <span style={{ fontSize: 12, color: c.success, fontWeight: 600, background: c.successSoft, padding: '3px 9px', borderRadius: 999 }}>
+              <span className="text-xs font-semibold text-green-700 bg-green-50 px-2.5 py-0.5 rounded-full">
                 Ativo
               </span>
             </div>
           </div>
-          <div style={{ padding: '16px 0' }}>
+          <div className="py-4 flex items-center justify-between">
             <button
-              onClick={() => showToast('success', 'Todas as outras sessões foram encerradas.')}
-              style={{
-                fontSize: 13, fontWeight: 600, color: c.red,
-                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-              }}
+              onClick={() => { logout(); navigate('/login'); }}
+              className="flex items-center gap-2 text-sm font-semibold text-red-600 hover:text-red-700"
             >
-              Encerrar todas as outras sessões
+              <LogOut size={14} /> Terminar sessão
+            </button>
+            <button
+              onClick={() => showToast('success', 'Outras sessões encerradas.')}
+              className="text-xs text-gray-500 hover:text-gray-700 underline"
+            >
+              Encerrar outras sessões
             </button>
           </div>
-        </Section>
+        </SectionCard>
       </div>
     ),
 
     /* ── Preferências ── */
     preferencias: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <Section title="Aparência" description="Personalize como a plataforma é exibida.">
-          <div style={{ padding: '14px 0', borderBottom: `1px solid ${c.border}` }}>
-            <p style={{ fontSize: 13, color: c.muted, margin: '0 0 10px' }}>Tema</p>
-            <PillGroup
-              value={pref.tema}
-              onChange={savePref('tema')}
-              options={[
-                { value: 'light',  label: 'Claro',   icon: <Sun size={13} /> },
-                { value: 'dark',   label: 'Escuro',  icon: <Moon size={13} /> },
-                { value: 'system', label: 'Sistema', icon: <Monitor size={13} /> },
-              ]}
-            />
-          </div>
-          <div style={{ padding: '14px 0' }}>
-            <p style={{ fontSize: 13, color: c.muted, margin: '0 0 10px' }}>Idioma</p>
+      <div className="flex flex-col gap-4">
+        <SectionCard title="Idioma" desc="Escolha o idioma de apresentação da plataforma.">
+          <div className="py-4">
+            <p className="text-xs font-semibold text-gray-500 mb-3">Idioma</p>
             <select
               value={pref.idioma}
-              onChange={e => savePref('idioma')(e.target.value)}
-              style={{
-                padding: '9px 14px', borderRadius: 9,
-                border: `1px solid ${c.border}`, background: c.surface,
-                color: c.text, fontSize: 14, outline: 'none',
-                cursor: 'pointer', maxWidth: 240, width: '100%',
-              }}
+              onChange={e => { const v = e.target.value; setPref(p => ({ ...p, idioma: v })); persist({ idioma: v }); }}
+              className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-xs w-full"
             >
+              <option value="pt-PT">Português (Angola)</option>
               <option value="pt-BR">Português (Brasil)</option>
               <option value="en-US">English (US)</option>
               <option value="es">Español</option>
             </select>
           </div>
-        </Section>
+        </SectionCard>
       </div>
     ),
 
     /* ── Privacidade ── */
     privacidade: (
-      <Section title="Privacidade" description="Controle o que outros usuários podem ver sobre você.">
+      <SectionCard title="Privacidade" desc="Controle o que outros utilizadores podem ver sobre si.">
         <ToggleRow
           label="Perfil público"
-          description="Permite que outros usuários encontrem e visualizem seu perfil."
+          desc="Permite que outros utilizadores encontrem e visualizem o seu perfil."
           active={priv.perfilPublico}
-          onChange={saveToggle('privacidade', setPriv, 'perfilPublico')}
+          onChange={toggleSave('privacidade', setPriv, 'perfilPublico')}
         />
         <ToggleRow
-          label="Exibir ranking"
-          description="Mostra sua posição no ranking público."
+          label="Exibir posição no ranking"
+          desc="Mostra a sua posição no ranking público da plataforma."
           active={priv.mostrarRanking}
-          onChange={saveToggle('privacidade', setPriv, 'mostrarRanking')}
+          onChange={toggleSave('privacidade', setPriv, 'mostrarRanking')}
         />
         <ToggleRow
           label="Exibir certificados"
-          description="Torna seus certificados visíveis no perfil."
+          desc="Torna os seus certificados visíveis no perfil público."
           active={priv.mostrarCertificados}
-          onChange={saveToggle('privacidade', setPriv, 'mostrarCertificados')}
+          onChange={toggleSave('privacidade', setPriv, 'mostrarCertificados')}
         />
         <ToggleRow
-          label="Exibir atividade recente"
-          description="Mostra suas participações e conquistas recentes."
+          label="Exibir actividade recente"
+          desc="Mostra participações e conquistas recentes no perfil."
           active={priv.mostrarAtividade}
-          onChange={saveToggle('privacidade', setPriv, 'mostrarAtividade')}
+          onChange={toggleSave('privacidade', setPriv, 'mostrarAtividade')}
+          last
         />
-      </Section>
+      </SectionCard>
     ),
 
     /* ── Notificações ── */
     notificacoes: (
-      <Section title="Notificações" description="Escolha quais alertas você deseja receber.">
+      <SectionCard title="Notificações" desc="Escolha quais alertas deseja receber.">
         <ToggleRow
-          label="E-mail"
-          description="Notificações gerais enviadas por e-mail."
+          label="Notificações por e-mail"
+          desc="Receba notificações gerais no seu e-mail."
           active={notif.email}
-          onChange={saveToggle('notificacoes', setNotif, 'email')}
+          onChange={toggleSave('notificacoes', setNotif, 'email')}
         />
         <ToggleRow
-          label="Competições"
-          description="Alertas sobre torneios, resultados e convites."
+          label="Competições e torneios"
+          desc="Alertas sobre torneios, resultados e convites."
           active={notif.competicoes}
-          onChange={saveToggle('notificacoes', setNotif, 'competicoes')}
+          onChange={toggleSave('notificacoes', setNotif, 'competicoes')}
         />
         <ToggleRow
           label="Certificados"
-          description="Aviso quando um novo certificado estiver disponível."
+          desc="Aviso quando um novo certificado estiver disponível."
           active={notif.certificados}
-          onChange={saveToggle('notificacoes', setNotif, 'certificados')}
+          onChange={toggleSave('notificacoes', setNotif, 'certificados')}
         />
         <ToggleRow
-          label="Novidades do sistema"
-          description="Atualizações, melhorias e comunicados da plataforma."
+          label="Novidades da plataforma"
+          desc="Actualizações e comunicados da COMAES."
           active={notif.novidades}
-          onChange={saveToggle('notificacoes', setNotif, 'novidades')}
+          onChange={toggleSave('notificacoes', setNotif, 'novidades')}
+          last
         />
-      </Section>
+      </SectionCard>
     ),
   };
 
   return (
     <Layout>
       <LogoutModal
-        isOpen={showLogoutModal}
-        onConfirm={() => { setShowLogoutModal(false); logout(); navigate('/login'); }}
-        onCancel={() => setShowLogoutModal(false)}
+        isOpen={showLogout}
+        onConfirm={() => { setShowLogout(false); logout(); navigate('/login'); }}
+        onCancel={() => setShowLogout(false)}
       />
-      <div style={{ maxWidth: 860, margin: '0 auto', padding: '32px 20px 80px' }}>
 
-        {/* Page title */}
-        <div style={{ marginBottom: 28 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: c.text, margin: 0 }}>Configurações</h1>
-          <p style={{ fontSize: 14, color: c.muted, margin: '4px 0 0' }}>
-            Gerencie sua conta, segurança e preferências.
+      <div className="max-w-4xl mx-auto px-4 py-8 pb-20">
+
+        {/* Page header */}
+        <div className="mb-7">
+          <h1 className="text-2xl font-bold text-gray-900">Configurações</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Gerencie a sua segurança, preferências e privacidade.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+        <div className="flex gap-6 items-start">
 
-          {/* ── Sidebar ── */}
-          <aside style={{
-            width: 192, flexShrink: 0,
-            background: c.surface, borderRadius: 14,
-            border: `1px solid ${c.border}`,
-            boxShadow: '0 1px 3px rgba(15,17,23,0.05)',
-            padding: 8,
-            position: 'sticky', top: 80,
-          }} className="cfg-sidebar">
+          {/* ── Sidebar (desktop) ── */}
+          <aside className="hidden md:flex flex-col gap-1 w-48 flex-shrink-0 bg-white rounded-2xl shadow-xl border border-gray-200 p-2 sticky top-20">
             {SECTIONS.map(s => (
-              <NavItem
-                key={s.id}
-                icon={s.icon}
-                label={s.label}
-                active={active === s.id}
-                onClick={() => setActive(s.id)}
-              />
+              <NavItem key={s.id} icon={s.icon} label={s.label} active={active === s.id} onClick={() => setActive(s.id)} />
             ))}
+
+            {/* Divider + link para Perfil */}
+            <div className="border-t border-gray-100 mt-2 pt-2">
+              <button
+                onClick={() => navigate('/perfil')}
+                className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition"
+              >
+                <User size={14} />
+                <span>Ir para Perfil</span>
+                <ChevronRight size={12} className="ml-auto" />
+              </button>
+            </div>
           </aside>
 
-          {/* ── Content ── */}
-          <main style={{ flex: 1, minWidth: 0 }}>
-            {/* Mobile section picker */}
-            <div className="cfg-mobile-select" style={{ display: 'none', marginBottom: 16 }}>
-              <select
-                value={active}
-                onChange={e => setActive(e.target.value)}
-                style={{
-                  width: '100%', padding: '10px 14px', borderRadius: 10,
-                  border: `1px solid ${c.border}`, background: c.surface,
-                  color: c.text, fontSize: 14, outline: 'none',
-                }}
-              >
-                {SECTIONS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
-              </select>
-            </div>
+          {/* ── Mobile section picker ── */}
+          <div className="md:hidden w-full mb-4">
+            <select
+              value={active}
+              onChange={e => setActive(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {SECTIONS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+            </select>
+          </div>
 
+          {/* ── Main panel ── */}
+          <main className="flex-1 min-w-0">
             {panels[active]}
           </main>
         </div>
       </div>
 
-      <Toast type={toast.type} message={toast.message} onClose={clearToast} />
-
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @media (max-width: 600px) {
-          .cfg-sidebar       { display: none !important; }
-          .cfg-mobile-select { display: block !important; }
-        }
-      `}</style>
+      <Toast type={toast.type} msg={toast.msg} onClose={() => setToast({ type: '', msg: '' })} />
     </Layout>
   );
 }

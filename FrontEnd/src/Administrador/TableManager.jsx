@@ -10,8 +10,8 @@ export const STATIC_TABLE_DEFS = {
     user: {
         title: 'Usuários',
         icon: Users,
-        columns: ['id', 'nome', 'email', 'telefone', 'isAdmin'],
-        displayColumns: ['ID', 'Nome', 'Email', 'Telefone', 'Admin'],
+        columns: ['id', 'nome', 'email', 'telefone', 'role', 'disciplina_colaborador', 'isAdmin'],
+        displayColumns: ['ID', 'Nome', 'Email', 'Telefone', 'Perfil', 'Disciplina', 'Admin'],
         fields: [
             { name: 'nome',       label: 'Nome',              type: 'text',     required: true },
             { name: 'email',      label: 'Email',             type: 'email',    required: true },

@@ -7,6 +7,7 @@
 
 import Torneio from '../models/Torneio.js';
 import ParticipanteTorneio from '../models/ParticipanteTorneio.js';
+import { incrementarXP, calcularXPTorneioFinalizado } from '../services/xpService.js';
 import cron from 'node-cron';
 
 const FINALIZATION_DELAY_MS = 24 * 60 * 60 * 1000; // 24 horas
@@ -116,7 +117,29 @@ class TournamentFinalizerService {
         }
       }
 
-      // 3. Confirmar transação
+      // 3. Atribuir XP a todos os participantes confirmados com base na posição final
+      try {
+        const participantes = await ParticipanteTorneio.findAll({
+          where: { torneio_id: torneoId, status: 'confirmado' },
+          attributes: ['usuario_id', 'posicao', 'disciplina_competida'],
+        });
+
+        await Promise.all(participantes.map(p => {
+          const xp = calcularXPTorneioFinalizado(p.posicao);
+          return incrementarXP(
+            p.usuario_id,
+            xp,
+            `torneio-finalizado|torneio#${torneoId}|${p.disciplina_competida}|pos=${p.posicao || '?'}`
+          );
+        }));
+
+        console.log(`✅ XP atribuído a ${participantes.length} participantes do torneio ${torneoId}`);
+      } catch (xpErr) {
+        // XP é não-crítico — nunca deve reverter a transação principal
+        console.warn(`⚠️ Erro ao atribuir XP de finalização do torneio ${torneoId}:`, xpErr.message);
+      }
+
+      // 4. Confirmar transação
       await transaction.commit();
       console.log(`🏁 Torneio ${titulo} finalizado com sucesso!`);
 

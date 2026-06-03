@@ -138,6 +138,30 @@ export default function Home() {
                 transition={{ delay: 0.6, duration: 0.5 }}
                 className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-2"
               >
+                {/* CTA diferenciado para colaboradores */}
+                {user?.role === 'colaborador' ? (
+                  <>
+                    <button 
+                      onClick={() => navigate('/colaborador/questoes')}
+                      className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 md:px-8 rounded-full text-sm sm:text-base md:text-lg transition-all duration-300 transform hover:scale-105 shadow-2xl flex items-center gap-2 w-auto justify-center"
+                    >
+                      <span>Minhas Questões</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </button>
+                    <button 
+                      onClick={() => navigate('/colaborador/dashboard')}
+                      className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 md:px-8 rounded-full text-sm sm:text-base md:text-lg transition-all duration-300 transform hover:scale-105 shadow-2xl flex items-center gap-2 w-auto justify-center"
+                    >
+                      <span>Meu Painel</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </button>
+                  </>
+                ) : (
+                  <>
                 {/* Botão Entrar no Torneio */}
                 <button 
                   onClick={() => navigate('/entrar-no-torneio')}
@@ -181,6 +205,8 @@ export default function Home() {
                     />
                   </svg>
                 </button>
+                  </>
+                )}
               </motion.div>
             </div>
           </div>

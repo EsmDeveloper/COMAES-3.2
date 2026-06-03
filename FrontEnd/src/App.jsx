@@ -1,19 +1,19 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import PageTransition from "./components/PageTransition";
 
-//import Login from "./Paginas/Primarias/Login";
-//import Cadastro from "./Paginas/Primarias/Cadastro"
-
 import AuthContainer from "./Paginas/Primarias/AuthContainer";
 import Recuperar from "./Paginas/Primarias/Recuperar";
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, getPostLoginRoute } from './context/AuthContext';
 
 import Layout from "./Paginas/Secundarias/Layout";
 import AdminDashboard from './Administrador/AdminDashboard';
 import ProtectedAdminRoute from './context/ProtectedAdminRoute';
+import ProtectedColaboradorRoute from './context/ProtectedColaboradorRoute';
+import ProtectedEstudanteRoute from './context/ProtectedEstudanteRoute';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-// module wrappers will be lazy-loaded via routes below
+import MinhasQuestoes from './Paginas/Secundarias/MinhasQuestoes';
+import ColaboradorDashboard from './Paginas/Secundarias/ColaboradorDashboard';
 import Home from "./Paginas/Secundarias/Home";
 import EntrarTorneio from "./Paginas/Secundarias/EntrarTorneio";
 import Configuracoes from "./Paginas/Secundarias/Configuracoes";
@@ -34,45 +34,113 @@ import InglesOriginal from "./Paginas/Tercearios.jsx/ModeloOriginal/InglesOrigin
 import NotFoundPage from "./Paginas/Secundarias/NotFoundPage";
 import NavbarDemo from "./components/ui/resizable-navbar-demo";
 
+import { useAuth } from './context/AuthContext';
+
+/**
+ * SmartHome — rota "/" inteligente.
+ * - Admin           → /administrador
+ * - Colaborador     → /colaborador/dashboard
+ * - Estudante auth. → /painel
+ * - Público         → Home
+ */
+function SmartHome() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user) return <Navigate to={getPostLoginRoute(user)} replace />;
+  return <PageTransition><Home /></PageTransition>;
+}
+
 function AnimatedRoutes() {
   const location = useLocation();
-  
+
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        {/* Depois (mantenha ambas as rotas apontando para o mesmo componente): */}
-        <Route path="/login" element={<PageTransition><AuthContainer /></PageTransition>} />
-        <Route path="/cadastro" element={<PageTransition><AuthContainer initialMode="cadastro" /></PageTransition>} />
+
+        {/* ── ROTAS PÚBLICAS ─────────────────────────────────────────── */}
+        <Route path="/login"          element={<PageTransition><AuthContainer /></PageTransition>} />
+        <Route path="/cadastro"       element={<PageTransition><AuthContainer initialMode="cadastro" /></PageTransition>} />
         <Route path="/recuperar-senha" element={<PageTransition><Recuperar /></PageTransition>} />
         <Route path="/redefinir-senha" element={<PageTransition><ResetPasswordPage /></PageTransition>} />
-
-        <Route path="/layout" element={<PageTransition><Layout /></PageTransition>} />
-        <Route path="/" element={<PageTransition><Home /></PageTransition>} />
-        <Route path="/entrar-no-torneio" element={<PageTransition><EntrarTorneio /></PageTransition>} />
-        <Route path="/configuracoes" element={<PageTransition><Configuracoes /></PageTransition>} />
-        <Route path="/painel" element={<PageTransition><Dashboard /></PageTransition>} />
-        <Route path="/administrador" element={<ProtectedAdminRoute><PageTransition><AdminDashboard /></PageTransition></ProtectedAdminRoute>} />
+        <Route path="/sobre-nos"      element={<PageTransition><Sobre /></PageTransition>} />
         <Route path="/portal-de-noticias" element={<PageTransition><Noticias /></PageTransition>} />
-        <Route path="/perfil" element={<PageTransition><Perfil /></PageTransition>} />
-        <Route path="/sobre-nos" element={<PageTransition><Sobre /></PageTransition>} />
-        <Route path="/suporte" element={<PageTransition><Suporte /></PageTransition>} />
-        <Route path="/teste-seu-conhecimento" element={<PageTransition><Teste /></PageTransition>} />
-        <Route path="/ranking" element={<PageTransition><Ranking /></PageTransition>} />
-        <Route path="/ranking/:tournamentId" element={<PageTransition><RankingCompleto /></PageTransition>} />
-        <Route path="/notificacoes" element={<PageTransition><NotificacoesPage /></PageTransition>} />
 
-        <Route path="/matematica-original/:username" element={<PageTransition><MatematicaOriginal /></PageTransition>} />
-        <Route path="/programacao-original/:username" element={<PageTransition><ProgramacaoOriginal /></PageTransition>} />
-        <Route path="/ingles-original/:username" element={<PageTransition><InglesOriginal /></PageTransition>} />
+        {/* Raiz inteligente — redireciona com base no papel */}
+        <Route path="/" element={<SmartHome />} />
 
-        {/* Rota temporária para testar navbar sem animações */}
-        <Route path="/test-navbar" element={<PageTransition><NavbarDemo /></PageTransition>} />
+        {/* ── AMBIENTE DO ADMINISTRADOR (/administrador e alias /admin/*) ── */}
+        {/* Toda a gestão administrativa fica dentro deste escopo            */}
+        <Route
+          path="/administrador"
+          element={
+            <ProtectedAdminRoute>
+              <PageTransition><AdminDashboard /></PageTransition>
+            </ProtectedAdminRoute>
+          }
+        />
+        {/* Alias /admin/dashboard → /administrador para clareza de URL */}
+        <Route path="/admin"           element={<Navigate to="/administrador" replace />} />
+        <Route path="/admin/dashboard" element={<Navigate to="/administrador" replace />} />
+        <Route path="/admin/*"         element={<Navigate to="/administrador" replace />} />
 
-        {/* Rota 404 Específica (para usar com Navigate) */}
-        <Route path="/404" element={<PageTransition><NotFoundPage /></PageTransition>} />
+        {/* ── AMBIENTE DO COLABORADOR ───────────────────────────────── */}
+        <Route
+          path="/colaborador/dashboard"
+          element={
+            <ProtectedColaboradorRoute>
+              <PageTransition><ColaboradorDashboard /></PageTransition>
+            </ProtectedColaboradorRoute>
+          }
+        />
+        <Route
+          path="/colaborador/questoes"
+          element={
+            <ProtectedColaboradorRoute>
+              <PageTransition><MinhasQuestoes /></PageTransition>
+            </ProtectedColaboradorRoute>
+          }
+        />
 
-        {/* Rota de Fallback para qualquer Caminho Inexistente */}
-        <Route path="*" element={<PageTransition><NotFoundPage /></PageTransition>} />
+        {/* ── AMBIENTE DO ESTUDANTE (exclusivo — admin e colaborador bloqueados) ── */}
+        <Route path="/painel"
+          element={<ProtectedEstudanteRoute><PageTransition><Dashboard /></PageTransition></ProtectedEstudanteRoute>}
+        />
+        <Route path="/entrar-no-torneio"
+          element={<ProtectedEstudanteRoute><PageTransition><EntrarTorneio /></PageTransition></ProtectedEstudanteRoute>}
+        />
+        <Route path="/ranking"
+          element={<ProtectedEstudanteRoute><PageTransition><Ranking /></PageTransition></ProtectedEstudanteRoute>}
+        />
+        <Route path="/ranking/:tournamentId"
+          element={<ProtectedEstudanteRoute><PageTransition><RankingCompleto /></PageTransition></ProtectedEstudanteRoute>}
+        />
+        <Route path="/teste-seu-conhecimento"
+          element={<ProtectedEstudanteRoute><PageTransition><Teste /></PageTransition></ProtectedEstudanteRoute>}
+        />
+        <Route path="/matematica-original/:username"
+          element={<ProtectedEstudanteRoute><PageTransition><MatematicaOriginal /></PageTransition></ProtectedEstudanteRoute>}
+        />
+        <Route path="/programacao-original/:username"
+          element={<ProtectedEstudanteRoute><PageTransition><ProgramacaoOriginal /></PageTransition></ProtectedEstudanteRoute>}
+        />
+        <Route path="/ingles-original/:username"
+          element={<ProtectedEstudanteRoute><PageTransition><InglesOriginal /></PageTransition></ProtectedEstudanteRoute>}
+        />
+
+        {/* ── ROTAS PARTILHADAS (autenticação obrigatória, qualquer papel) ── */}
+        <Route path="/perfil"         element={<PageTransition><Perfil /></PageTransition>} />
+        <Route path="/suporte"        element={<PageTransition><Suporte /></PageTransition>} />
+        <Route path="/notificacoes"   element={<PageTransition><NotificacoesPage /></PageTransition>} />
+        <Route path="/configuracoes"  element={<PageTransition><Configuracoes /></PageTransition>} />
+
+        {/* ── UTILITÁRIO ────────────────────────────────────────────── */}
+        <Route path="/layout"         element={<PageTransition><Layout /></PageTransition>} />
+        <Route path="/test-navbar"    element={<PageTransition><NavbarDemo /></PageTransition>} />
+
+        {/* ── ERROS ─────────────────────────────────────────────────── */}
+        <Route path="/404"            element={<PageTransition><NotFoundPage /></PageTransition>} />
+        <Route path="*"               element={<PageTransition><NotFoundPage /></PageTransition>} />
+
       </Routes>
     </AnimatePresence>
   );

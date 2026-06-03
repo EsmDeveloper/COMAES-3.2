@@ -62,7 +62,7 @@ export default function NavbarDemo() {
                 key={`mobile-link-${idx}`}
                 href={item.link}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="relative text-neutral-600 dark:text-neutral-300"
+                className="relative text-neutral-600"
               >
                 <span className="block">{item.name}</span>
               </a>
@@ -112,70 +112,70 @@ const DummyContent = () => {
             title: "The",
             width: "md:col-span-1",
             height: "h-60",
-            bg: "bg-neutral-100 dark:bg-neutral-800",
+            bg: "bg-neutral-100",
           },
           {
             id: 2,
             title: "First",
             width: "md:col-span-2",
             height: "h-60",
-            bg: "bg-neutral-100 dark:bg-neutral-800",
+            bg: "bg-neutral-100",
           },
           {
             id: 3,
             title: "Rule",
             width: "md:col-span-1",
             height: "h-60",
-            bg: "bg-neutral-100 dark:bg-neutral-800",
+            bg: "bg-neutral-100",
           },
           {
             id: 4,
             title: "Of",
             width: "md:col-span-3",
             height: "h-60",
-            bg: "bg-neutral-100 dark:bg-neutral-800",
+            bg: "bg-neutral-100",
           },
           {
             id: 5,
             title: "F",
             width: "md:col-span-1",
             height: "h-60",
-            bg: "bg-neutral-100 dark:bg-neutral-800",
+            bg: "bg-neutral-100",
           },
           {
             id: 6,
             title: "Club",
             width: "md:col-span-2",
             height: "h-60",
-            bg: "bg-neutral-100 dark:bg-neutral-800",
+            bg: "bg-neutral-100",
           },
           {
             id: 7,
             title: "Is",
             width: "md:col-span-2",
             height: "h-60",
-            bg: "bg-neutral-100 dark:bg-neutral-800",
+            bg: "bg-neutral-100",
           },
           {
             id: 8,
             title: "You",
             width: "md:col-span-1",
             height: "h-60",
-            bg: "bg-neutral-100 dark:bg-neutral-800",
+            bg: "bg-neutral-100",
           },
           {
             id: 9,
             title: "Do NOT TALK about",
             width: "md:col-span-2",
             height: "h-60",
-            bg: "bg-neutral-100 dark:bg-neutral-800",
+            bg: "bg-neutral-100",
           },
           {
             id: 10,
             title: "F Club",
             width: "md:col-span-1",
             height: "h-60",
-            bg: "bg-neutral-100 dark:bg-neutral-800",
+            bg: "bg-neutral-100",
           },
         ].map((box) => (
           <div

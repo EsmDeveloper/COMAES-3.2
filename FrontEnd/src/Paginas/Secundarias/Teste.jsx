@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Layout from './Layout';
-import { Calculator, Code2, Languages, Trophy, Clock, Zap, Target, RotateCcw, ChevronLeft, CheckCircle2, XCircle } from 'lucide-react';
+import { Calculator, Code2, Languages, Trophy, Clock, Zap, Target, RotateCcw, ChevronLeft, CheckCircle2, XCircle, Square, ChevronDown } from 'lucide-react';
 
 // ─── Constants ────────────────────────────────────────────────────
 
@@ -54,6 +54,13 @@ const WRONG_MSGS = [
 const TIMEOUT_MSGS = [
   'Tempo esgotado! Mais rapidez na próxima.',
   'O tempo acabou! Não desistas.',
+];
+
+const NIVEIS = [
+  { key: '', label: 'Todos os níveis', color: 'bg-slate-100 text-slate-700', dot: 'bg-slate-400' },
+  { key: 'facil', label: 'Fácil', color: 'bg-green-100 text-green-700', dot: 'bg-green-500' },
+  { key: 'medio', label: 'Médio', color: 'bg-yellow-100 text-yellow-700', dot: 'bg-yellow-500' },
+  { key: 'dificil', label: 'Difícil', color: 'bg-red-100 text-red-700', dot: 'bg-red-500' },
 ];
 
 const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -116,6 +123,90 @@ function motivationalMsg(pct) {
   return 'Não desistas! Cada tentativa é um passo para a excelência!';
 }
 
+// ─── Score Popup (feedback visual de pontuação) ───────────────────
+
+function ScorePopup({ points, visible }) {
+  if (!visible || !points) return null;
+  return (
+    <div className="absolute top-0 right-0 -translate-y-full animate-bounce pointer-events-none z-10">
+      <span className="bg-green-500 text-white text-sm font-bold px-3 py-1 rounded-full shadow-lg">
+        +{points} pts
+      </span>
+    </div>
+  );
+}
+
+// ─── Nivel Selector ───────────────────────────────────────────────
+
+function NivelSelector({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const current = NIVEIS.find(n => n.key === value) || NIVEIS[0];
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${current.color} border-current/20`}
+      >
+        <span className={`w-2 h-2 rounded-full ${current.dot}`} />
+        {current.label}
+        <ChevronDown className="w-3 h-3 opacity-60" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border border-slate-200 z-20 min-w-[140px] overflow-hidden">
+          {NIVEIS.map(n => (
+            <button
+              key={n.key}
+              onClick={() => { onChange(n.key); setOpen(false); }}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold hover:bg-slate-50 transition-colors ${value === n.key ? 'bg-slate-50' : ''}`}
+            >
+              <span className={`w-2 h-2 rounded-full ${n.dot}`} />
+              {n.label}
+              {value === n.key && <span className="ml-auto text-blue-600">✓</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Stop Confirm Modal ───────────────────────────────────────────
+
+function StopConfirmModal({ isOpen, onConfirm, onCancel, score, answered }) {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+        <div className="text-center mb-5">
+          <div className="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <Square className="w-7 h-7 text-orange-600" />
+          </div>
+          <h3 className="text-lg font-bold text-slate-800 mb-1">Parar o Quiz?</h3>
+          <p className="text-sm text-slate-500">
+            Respondeste a <strong>{answered}</strong> questão{answered !== 1 ? 's' : ''} e acumulaste <strong>{score} pontos</strong>.
+            O resultado será calculado com base nas questões respondidas.
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 px-4 py-2.5 border border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50 text-sm"
+          >
+            Continuar
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 px-4 py-2.5 bg-orange-600 text-white rounded-xl font-medium hover:bg-orange-700 text-sm"
+          >
+            Parar e Ver Resultado
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────
 
 export default function Teste() {
@@ -125,6 +216,7 @@ export default function Teste() {
   // phase: 'select' | 'quiz' | 'result'
   const [phase, setPhase] = useState('select');
   const [selectedArea, setSelectedArea] = useState(null);
+  const [selectedNivel, setSelectedNivel] = useState(''); // '' = all levels
   const [areaCounts, setAreaCounts] = useState({ matematica: null, programacao: null, ingles: null });
   const [bestPerformances, setBestPerformances] = useState({ matematica: null, programacao: null, ingles: null });
 
@@ -132,14 +224,19 @@ export default function Teste() {
   const [questions, setQuestions] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState([]);
+  const [questoesRespondidas, setQuestoesRespondidas] = useState(new Set()); // Track answered questions to prevent double scoring
   const [timeLeft, setTimeLeft] = useState(TIME_PER_QUESTION);
   const [loadingQuiz, setLoadingQuiz] = useState(false);
   const [quizError, setQuizError] = useState(null);
+  const [stoppedEarly, setStoppedEarly] = useState(false); // flag for early stop
+  const [showStopModal, setShowStopModal] = useState(false);
 
   // feedback
   const [feedback, setFeedback] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
   const [answered, setAnswered] = useState(false);
+  const [lastEarned, setLastEarned] = useState(0);   // points earned on last answer
+  const [showScorePopup, setShowScorePopup] = useState(false);
 
   // gamification
   const [score, setScore] = useState(0);
@@ -153,6 +250,7 @@ export default function Teste() {
 
   const timerRef = useRef(null);
   const feedbackTimerRef = useRef(null);
+  const scorePopupTimerRef = useRef(null);
   const startTimeRef = useRef(null);
 
   // Load area counts and best performances
@@ -173,7 +271,7 @@ export default function Teste() {
     // Load best performances
     const loadBestPerformances = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('comaes_token');
         const res = await fetch(`${API_BASE}/api/usuarios/me/melhores-desempenhos`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -202,6 +300,7 @@ export default function Teste() {
   const clearAllTimers = useCallback(() => {
     clearMainTimer();
     clearFeedbackTimer();
+    if (scorePopupTimerRef.current) clearTimeout(scorePopupTimerRef.current);
   }, [clearMainTimer, clearFeedbackTimer]);
 
   const saveTestResult = useCallback(async () => {
@@ -212,7 +311,7 @@ export default function Teste() {
     const pct = totalQ > 0 ? Math.round((correctCount / totalQ) * 100) : 0;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('comaes_token');
       const res = await fetch(`${API_BASE}/api/resultados`, {
         method: 'POST',
         headers: {
@@ -257,7 +356,11 @@ export default function Teste() {
   }, [questions.length, clearMainTimer, clearFeedbackTimer, saveTestResult]);
 
   const handleTimeout = useCallback(() => {
-    if (answered) return;
+    if (answered || questoesRespondidas.has(currentIdx)) return;
+    
+    // Mark this question as answered to prevent double scoring
+    setQuestoesRespondidas(prev => new Set([...prev, currentIdx]));
+    
     clearMainTimer();
     setAnswered(true);
     setSelectedOption(null);
@@ -266,8 +369,10 @@ export default function Teste() {
     setAssistantMsg(msg);
     setStreak(0);
     setAnswers(prev => [...prev, { idx: currentIdx, selected: null, correct: false, points: 0 }]);
+    
+    // Auto-advance to next question
     feedbackTimerRef.current = setTimeout(() => advanceQuestion(), 2500);
-  }, [answered, currentIdx, clearMainTimer, advanceQuestion]);
+  }, [answered, questoesRespondidas, currentIdx, clearMainTimer, advanceQuestion]);
 
   // Countdown — only clears main timer, never feedback timer
   useEffect(() => {
@@ -292,13 +397,14 @@ export default function Teste() {
   useEffect(() => () => clearAllTimers(), [clearAllTimers]);
 
   // Start quiz
-  const startQuiz = async (areaKey) => {
+  const startQuiz = async (areaKey, nivelKey = selectedNivel) => {
     setSelectedArea(areaKey);
     setLoadingQuiz(true);
     setQuizError(null);
     setQuestions([]);
     setCurrentIdx(0);
     setAnswers([]);
+    setQuestoesRespondidas(new Set()); // Reset tracking of answered questions
     setScore(0);
     setStreak(0);
     setBestStreak(0);
@@ -308,12 +414,17 @@ export default function Teste() {
     setSelectedOption(null);
     setAnswered(false);
     setAssistantMsg('');
+    setStoppedEarly(false);
+    setLastEarned(0);
+    setShowScorePopup(false);
     setPhase('quiz');
     try {
-      const res = await fetch(`${API_BASE}/api/questoes/quiz/${areaKey}?limit=10`);
+      const nivelParam = nivelKey ? `&dificuldade=${nivelKey}` : '';
+      const res = await fetch(`${API_BASE}/api/questoes/quiz/${areaKey}?limit=10${nivelParam}`);
       const json = await res.json();
       if (!json.success || !Array.isArray(json.data) || json.data.length === 0) {
-        setQuizError('Nenhuma questão disponível para esta área. O administrador ainda não criou questões.');
+        const nivelLabel = nivelKey ? ` no nível "${NIVEIS.find(n => n.key === nivelKey)?.label}"` : '';
+        setQuizError(`Nenhuma questão disponível para esta área${nivelLabel}. Tenta outro nível ou aguarda o administrador criar questões.`);
         setLoadingQuiz(false);
         return;
       }
@@ -325,33 +436,70 @@ export default function Teste() {
     }
   };
 
+  // Stop quiz early — show confirm modal
+  const handleStopQuiz = () => {
+    setShowStopModal(true);
+  };
+
+  // Confirm stop — save partial result and go to result screen
+  const confirmStopQuiz = useCallback(() => {
+    clearAllTimers();
+    setShowStopModal(false);
+    setStoppedEarly(true);
+    saveTestResult();
+    setPhase('result');
+  }, [clearAllTimers, saveTestResult]);
+
   // Handle answer
   const handleAnswer = useCallback((optionText) => {
-    if (answered || feedback) return;
+    // Prevent multiple answers for the same question
+    if (answered || feedback || questoesRespondidas.has(currentIdx)) return;
+    
+    // Mark this question as answered to prevent double scoring
+    setQuestoesRespondidas(prev => new Set([...prev, currentIdx]));
+    
     clearMainTimer();
     setAnswered(true);
     setSelectedOption(optionText);
 
     const q = questions[currentIdx];
     const isCorrect = optionText.trim().toLowerCase() === q.resposta_correta.trim().toLowerCase();
-    const timeBonus = Math.max(0, timeLeft - 5);
-    const earned = isCorrect ? (q.pontos || 10) + Math.floor(timeBonus / 3) : 0;
-    const earnedXp = isCorrect ? 15 + Math.floor(timeBonus / 5) : 2;
-    const newStreak = isCorrect ? streak + 1 : 0;
+    
+    // Only add points if this question hasn't been answered before
+    const alreadyAnswered = questoesRespondidas.has(currentIdx);
+    
+    if (!alreadyAnswered) {
+      const timeBonus = Math.max(0, timeLeft - 5);
+      const earned = isCorrect ? (q.pontos || 10) + Math.floor(timeBonus / 3) : 0;
+      const earnedXp = isCorrect ? 15 + Math.floor(timeBonus / 5) : 2;
+      const newStreak = isCorrect ? streak + 1 : 0;
 
-    setScore(prev => prev + earned);
-    setXp(prev => prev + earnedXp);
-    setStreak(newStreak);
-    setBestStreak(prev => Math.max(prev, newStreak));
-    setAnswers(prev => [...prev, { idx: currentIdx, selected: optionText, correct: isCorrect, points: earned }]);
+      setScore(prev => prev + earned);
+      setXp(prev => prev + earnedXp);
+      setStreak(newStreak);
+      setBestStreak(prev => Math.max(prev, newStreak));
+      setAnswers(prev => [...prev, { idx: currentIdx, selected: optionText, correct: isCorrect, points: earned }]);
+
+      // Show score popup for correct answers
+      if (isCorrect && earned > 0) {
+        setLastEarned(earned);
+        setShowScorePopup(true);
+        if (scorePopupTimerRef.current) clearTimeout(scorePopupTimerRef.current);
+        scorePopupTimerRef.current = setTimeout(() => setShowScorePopup(false), 2000);
+      }
+    } else {
+      // Still track the answer but without points (shouldn't happen with our guard above)
+      setAnswers(prev => [...prev, { idx: currentIdx, selected: optionText, correct: isCorrect, points: 0 }]);
+    }
 
     const msg = isCorrect ? pickRandom(CORRECT_MSGS) : pickRandom(WRONG_MSGS);
     setFeedback({ type: isCorrect ? 'correct' : 'wrong', msg });
     setAssistantMsg(msg);
 
+    // Auto-advance to next question after feedback
     clearFeedbackTimer();
     feedbackTimerRef.current = setTimeout(() => advanceQuestion(), 2500);
-  }, [answered, feedback, questions, currentIdx, timeLeft, streak, clearMainTimer, clearFeedbackTimer, advanceQuestion]);
+  }, [answered, feedback, questoesRespondidas, questions, currentIdx, timeLeft, streak, clearMainTimer, clearFeedbackTimer, advanceQuestion]);
 
   // ─── Not logged in ────────────────────────────────────────────────
   if (!user) {
@@ -387,7 +535,7 @@ export default function Teste() {
         <div className="max-w-7xl mx-auto w-full px-6 py-8">
 
           {/* Header */}
-          <div className="text-center mb-10">
+          <div className="text-center mb-8">
             <h1 className="text-4xl md:text-5xl font-extrabold text-slate-800 mb-3">
               Testa o teu Conhecimento
             </h1>
@@ -397,16 +545,36 @@ export default function Teste() {
             </p>
           </div>
 
-          {/* Cards */}
+          {/* Difficulty selector */}
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <span className="text-sm font-semibold text-slate-600">Nível de dificuldade:</span>
+            <div className="flex gap-2">
+              {NIVEIS.map(n => (
+                <button
+                  key={n.key}
+                  onClick={() => setSelectedNivel(n.key)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border-2 transition-all ${
+                    selectedNivel === n.key
+                      ? `${n.color} border-current shadow-sm scale-105`
+                      : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${n.dot}`} />
+                  {n.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             {Object.values(AREAS).map((area) => {
               const count = areaCounts[area.key];
               const bestPct = bestPerformances[area.key];
               const { Icon } = area;
+              const nivelLabel = NIVEIS.find(n => n.key === selectedNivel)?.label;
               return (
                 <div
                   key={area.key}
-                  onClick={() => startQuiz(area.key)}
+                  onClick={() => startQuiz(area.key, selectedNivel)}
                   className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6 cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl"
                 >
                   {/* Icon */}
@@ -440,7 +608,7 @@ export default function Teste() {
                   </div>
 
                   <button className={`w-full py-2.5 rounded-xl bg-gradient-to-r ${area.btnGradient} text-white font-semibold text-sm hover:opacity-90 transition`}>
-                    Iniciar →
+                    {selectedNivel ? `Iniciar · ${nivelLabel} →` : 'Iniciar →'}
                   </button>
                 </div>
               );
@@ -525,6 +693,15 @@ export default function Teste() {
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-6">
           <div className="max-w-2xl mx-auto">
 
+            {/* Stop confirm modal */}
+            <StopConfirmModal
+              isOpen={showStopModal}
+              onConfirm={confirmStopQuiz}
+              onCancel={() => setShowStopModal(false)}
+              score={score}
+              answered={answers.length}
+            />
+
             {/* Top bar */}
             <div className="flex items-center justify-between mb-5">
               <button
@@ -534,6 +711,8 @@ export default function Teste() {
                 <ChevronLeft className="w-4 h-4" /> Sair
               </button>
               <div className="flex items-center gap-2">
+                {/* Difficulty selector in-quiz */}
+                <NivelSelector value={selectedNivel} onChange={(v) => startQuiz(selectedArea, v)} />
                 {streak > 1 && (
                   <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-700">
                     🔥 {streak}x
@@ -542,9 +721,21 @@ export default function Teste() {
                 <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
                   ⚡ {xp} XP
                 </span>
-                <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-700">
-                  🏆 {score} pts
-                </span>
+                {/* Score with popup */}
+                <div className="relative">
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-700">
+                    🏆 {score} pts
+                  </span>
+                  <ScorePopup points={lastEarned} visible={showScorePopup} />
+                </div>
+                {/* Stop button */}
+                <button
+                  onClick={handleStopQuiz}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 text-xs font-bold hover:bg-orange-200 transition"
+                  title="Parar quiz e ver resultado"
+                >
+                  <Square className="w-3 h-3" /> Parar
+                </button>
               </div>
             </div>
 
@@ -679,12 +870,16 @@ export default function Teste() {
   if (phase === 'result') {
     const area = AREAS[selectedArea] || AREAS.matematica;
     const totalQ = questions.length;
+    const answeredCount = answers.length;
     const correctCount = answers.filter(a => a.correct).length;
     const wrongCount = answers.filter(a => !a.correct).length;
-    const pct = totalQ > 0 ? Math.round((correctCount / totalQ) * 100) : 0;
+    // If stopped early, base percentage on answered questions only
+    const baseDenominator = stoppedEarly ? answeredCount : totalQ;
+    const pct = baseDenominator > 0 ? Math.round((correctCount / baseDenominator) * 100) : 0;
     const mins = Math.floor(totalTime / 60);
     const secs = totalTime % 60;
     const timeStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+    const nivelAtual = NIVEIS.find(n => n.key === selectedNivel);
 
     return (
       <Layout>
@@ -694,8 +889,22 @@ export default function Teste() {
             {/* Header */}
             <div className="text-center mb-8 animate-fade-in">
               <Medal pct={pct} />
-              <h1 className="text-4xl font-extrabold text-slate-800 mt-4 mb-1">Teste Concluído!</h1>
-              <p className="text-base text-gray-500">{area.title}</p>
+              <h1 className="text-4xl font-extrabold text-slate-800 mt-4 mb-1">
+                {stoppedEarly ? 'Quiz Interrompido' : 'Teste Concluído!'}
+              </h1>
+              <p className="text-base text-gray-500">
+                {area.title}
+                {nivelAtual?.key && (
+                  <span className={`ml-2 text-xs font-semibold px-2 py-0.5 rounded-full ${nivelAtual.color}`}>
+                    {nivelAtual.label}
+                  </span>
+                )}
+              </p>
+              {stoppedEarly && (
+                <p className="text-sm text-orange-600 mt-2 font-medium">
+                  Respondeste a {answeredCount} de {totalQ} questões
+                </p>
+              )}
             </div>
 
             {/* Score highlight */}
@@ -751,7 +960,7 @@ export default function Teste() {
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-3 animate-fade-in">
               <button
-                onClick={() => startQuiz(selectedArea)}
+                onClick={() => startQuiz(selectedArea, selectedNivel)}
                 className="flex-1 flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition shadow-md text-sm"
               >
                 <RotateCcw className="w-4 h-4" /> Tentar novamente
@@ -760,8 +969,23 @@ export default function Teste() {
                 onClick={() => setPhase('select')}
                 className="flex-1 py-3 bg-white text-blue-600 border border-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition text-sm"
               >
-                ← Voltar para áreas
+                ← Trocar área / nível
               </button>
+            </div>
+
+            {/* Quick level switcher on result */}
+            <div className="mt-4 flex items-center justify-center gap-2 animate-fade-in">
+              <span className="text-xs text-slate-500 font-medium">Tentar com outro nível:</span>
+              {NIVEIS.filter(n => n.key !== selectedNivel).map(n => (
+                <button
+                  key={n.key}
+                  onClick={() => { setSelectedNivel(n.key); startQuiz(selectedArea, n.key); }}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold border-2 transition-all ${n.color} border-current/20 hover:scale-105`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${n.dot}`} />
+                  {n.label}
+                </button>
+              ))}
             </div>
 
           </div>

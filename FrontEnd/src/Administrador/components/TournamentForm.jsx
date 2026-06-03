@@ -19,8 +19,13 @@ import {
   CheckCircle2,
   Info,
   Lock,
+  Layers,
+  Plus,
+  X as XIcon,
 } from 'lucide-react';
 import { TournamentValidation } from '../utils/TournamentValidation';
+import BlocosService from '../services/BlocosService';
+import { useAuth } from '../../context/AuthContext';
 
 // ============================================
 // CONFIGURAÇÃO DE STATUS
@@ -70,6 +75,8 @@ export default function TournamentForm({
   onCancel = () => {},
   isLoading = false,
 }) {
+  const { token } = useAuth();
+
   // Estado do formulário
   const [formData, setFormData] = useState({
     titulo: '',
@@ -84,6 +91,12 @@ export default function TournamentForm({
   // Estado de erros e campos tocados
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+
+  // ── Estado de Blocos ──────────────────────────────────────────────────────
+  const [blocosDisponiveis, setBlocosDisponiveis] = useState([]);   // todos os blocos publicados
+  const [blocosAssociados, setBlocosAssociados] = useState([]);     // IDs dos blocos já no torneio
+  const [loadingBlocos, setLoadingBlocos] = useState(false);
+  const [blocoError, setBlocoError] = useState('');
 
   // Calcular data mínima (agora + 1 minuto)
   const minDateTime = useMemo(() => {
@@ -107,9 +120,51 @@ export default function TournamentForm({
     return ['finalizado', 'cancelado'].includes(initialData.status);
   }, [mode, initialData]);
 
-  // ============================================
-  // CARREGAR DADOS INICIAIS (MODO EDIÇÃO)
-  // ============================================
+  // ── Carregar blocos publicados disponíveis ────────────────────────────────
+  useEffect(() => {
+    if (!token) return;
+    setLoadingBlocos(true);
+    BlocosService.listar(token, { status: 'publicado', limit: 100 })
+      .then(res => setBlocosDisponiveis(res.data?.blocos || []))
+      .catch(() => setBlocoError('Não foi possível carregar os blocos.'))
+      .finally(() => setLoadingBlocos(false));
+  }, [token]);
+
+  // ── Carregar blocos já associados ao torneio (modo edição) ────────────────
+  useEffect(() => {
+    if (mode !== 'edit' || !initialData?.id || !token) return;
+    BlocosService.listarBlocosDoTorneio(token, initialData.id)
+      .then(res => setBlocosAssociados((res.data?.blocos || []).map(b => b.id)))
+      .catch(() => {});
+  }, [mode, initialData?.id, token]);
+
+  // ── Toggle associação de bloco ────────────────────────────────────────────
+  const handleToggleBloco = useCallback(async (blocoId) => {
+    if (!initialData?.id) {
+      // Modo criação: apenas marcar localmente (associar após criar o torneio)
+      setBlocosAssociados(prev =>
+        prev.includes(blocoId) ? prev.filter(id => id !== blocoId) : [...prev, blocoId]
+      );
+      return;
+    }
+    // Modo edição: persistir imediatamente
+    const jaAssociado = blocosAssociados.includes(blocoId);
+    try {
+      if (jaAssociado) {
+        await BlocosService.desassociar(token, initialData.id, blocoId);
+      } else {
+        await BlocosService.associar(token, initialData.id, blocoId);
+      }
+      setBlocosAssociados(prev =>
+        jaAssociado ? prev.filter(id => id !== blocoId) : [...prev, blocoId]
+      );
+    } catch (e) {
+      setBlocoError(e.message);
+      setTimeout(() => setBlocoError(''), 4000);
+    }
+  }, [blocosAssociados, initialData?.id, token]);
+
+  // ── Carregar dados iniciais (modo edição) ─────────────────────────────────
   useEffect(() => {
     if (mode === 'edit' && initialData) {
       console.log('[TournamentForm] Carregando dados para edição:', {
@@ -213,6 +268,8 @@ export default function TournamentForm({
       status: formData.status,
       público: formData.público,
       slug: formData.slug || TournamentValidation.generateSlug(formData.titulo),
+      // Blocos selecionados (apenas em modo criação — edição persiste em tempo real)
+      _blocosParaAssociar: mode === 'create' ? blocosAssociados : [],
     };
 
     console.log('[TournamentForm] Enviando payload:', payload);
@@ -559,6 +616,72 @@ export default function TournamentForm({
                 <CheckCircle2 size={18} className="text-blue-500" />
               )}
             </label>
+          </div>
+
+          {/* ── Seleção de Blocos de Questões ─────────────────────────────── */}
+          <div className="pt-2 space-y-2">
+            <div className="flex items-center gap-2">
+              <Layers size={16} className="text-indigo-600" />
+              <span className="text-sm font-semibold text-gray-700">Blocos de Questões</span>
+              {blocosAssociados.length > 0 && (
+                <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">
+                  {blocosAssociados.length} selecionado(s)
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-400 flex items-center gap-1">
+              <Info size={12} />
+              {mode === 'create'
+                ? 'Selecione blocos publicados. A associação será feita ao criar o torneio.'
+                : 'Alterações são salvas imediatamente. Apenas torneios em rascunho ou ativos aceitam blocos.'}
+            </p>
+
+            {blocoError && (
+              <div className="flex items-center gap-2 text-rose-600 text-xs bg-rose-50 border border-rose-200 px-3 py-2 rounded-lg">
+                <AlertCircle size={13} /> {blocoError}
+              </div>
+            )}
+
+            {loadingBlocos ? (
+              <div className="flex items-center gap-2 text-gray-400 text-xs py-2">
+                <Loader2 size={14} className="animate-spin" /> Carregando blocos...
+              </div>
+            ) : blocosDisponiveis.length === 0 ? (
+              <div className="text-xs text-gray-400 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                Nenhum bloco publicado disponível. Crie e publique blocos em <strong>Questões (Torneios)</strong>.
+              </div>
+            ) : (
+              <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
+                {blocosDisponiveis.map(bloco => {
+                  const selecionado = blocosAssociados.includes(bloco.id);
+                  return (
+                    <label
+                      key={bloco.id}
+                      className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                        selecionado
+                          ? 'border-indigo-300 bg-indigo-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      } ${isReadOnly ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selecionado}
+                        disabled={isLoading || isReadOnly}
+                        onChange={() => handleToggleBloco(bloco.id)}
+                        className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-800 truncate">{bloco.titulo}</p>
+                        <p className="text-xs text-gray-400">
+                          {bloco.disciplina} · {bloco.dificuldade} · {bloco.total_questoes ?? 0} questões
+                        </p>
+                      </div>
+                      {selecionado && <CheckCircle2 size={16} className="text-indigo-500 flex-shrink-0" />}
+                    </label>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 

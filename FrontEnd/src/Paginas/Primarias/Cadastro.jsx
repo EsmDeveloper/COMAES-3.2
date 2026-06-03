@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from 'framer-motion';
-import { useAuth } from "../../context/AuthContext";
+import { useAuth, getPostLoginRoute } from "../../context/AuthContext";
 import logotipo from "../../assets/logotipo.png";
 import Cartaz from "../../assets/Cartaz.jpeg";
 import {
@@ -95,7 +95,8 @@ function Cadastro() {
       const loginBody = await loginRes.json();
       if (loginRes.ok) {
         login(loginBody.data, loginBody.token);
-        navigate('/');
+        // Redirecionar para o destino correto com base no papel — registo público cria estudantes
+        navigate(getPostLoginRoute(loginBody.data), { replace: true });
       } else {
         navigate('/login');
       }

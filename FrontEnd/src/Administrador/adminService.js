@@ -53,6 +53,25 @@ const adminService = (token) => {
         return serviceCache[key];
     };
 
+    // Métodos específicos para gestão de colaboradores
+    const colaboradorService = {
+        // Listar colaboradores pendentes
+        listarColaboradoresPendentes: () => 
+            apiClient.get('colaboradores-pendentes').then(res => res.data),
+        
+        // Listar todos os colaboradores
+        listarColaboradores: () =>
+            apiClient.get('colaboradores').then(res => res.data),
+        
+        // Aprovar colaborador
+        aprovarColaborador: (id, disciplina = '') =>
+            apiClient.patch(`users/${id}/aprovar-colaborador`, { disciplina_colaborador: disciplina }).then(res => res.data),
+        
+        // Rejeitar colaborador
+        rejeitarColaborador: (id, { motivo = '' } = {}) =>
+            apiClient.patch(`users/${id}/rejeitar-colaborador`, { motivo }).then(res => res.data)
+    };
+
     // proxy allows accessing services via property access (e.g. svc.users)
     const serviceProxy = new Proxy({}, {
         get(_, prop) {
@@ -68,7 +87,14 @@ const adminService = (token) => {
             if (Array.isArray(d)) return d;
             return [];
         }),
-        getService
+        getService,
+        // Adicionar service de colaboradores
+        colaboradores: colaboradorService,
+        // Métodos diretos (para compatibilidade)
+        listarColaboradoresPendentes: colaboradorService.listarColaboradoresPendentes,
+        listarColaboradores: colaboradorService.listarColaboradores,
+        aprovarColaborador: colaboradorService.aprovarColaborador,
+        rejeitarColaborador: colaboradorService.rejeitarColaborador
     };
     // copy proxy getters onto result so you can do adminService(token).users or adminService(token).torneio
     return new Proxy(result, {

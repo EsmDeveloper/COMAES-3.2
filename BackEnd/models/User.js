@@ -81,10 +81,37 @@ const Usuario = sequelize.define('Usuario', {
     allowNull: true,
     defaultValue: ''
   },
+  role: {
+    type: DataTypes.ENUM('estudante', 'colaborador', 'admin'),
+    allowNull: false,
+    defaultValue: 'estudante',
+  },
+  disciplina_colaborador: {
+    type: DataTypes.ENUM('matematica', 'ingles', 'programacao'),
+    allowNull: true,
+  },
+  status_colaborador: {
+    type: DataTypes.ENUM('pendente', 'aprovado', 'rejeitado'),
+    allowNull: false,
+    defaultValue: 'pendente',
+  },
   isAdmin: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
     allowNull: false,
+  },
+  // ── Sistema de Níveis COMAES ──────────────────────────────────
+  xp_total: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+    comment: 'XP acumulado baseado em desempenho académico real',
+  },
+  nivel_atual: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 1,
+    comment: 'Número do nível actual do utilizador (1–10)',
   },
 }, {
   tableName: "usuarios",

@@ -21,6 +21,8 @@ const isEmpty = (v) => v === undefined || v === null || String(v).trim() === '';
 
 function validateAdminUserPayload(data, isCreate = true) {
   const errors = {};
+  const rolesValidos = ['estudante', 'colaborador', 'admin'];
+  const disciplinasValidas = ['matematica', 'ingles', 'programacao'];
 
   // nome
   if (isCreate || data.nome !== undefined) {
@@ -98,6 +100,20 @@ function validateAdminUserPayload(data, isCreate = true) {
     }
   }
 
+  if (data.role !== undefined && !rolesValidos.includes(data.role)) {
+    errors.role = 'Perfil inválido.';
+  }
+
+  const role = data.role || (data.isAdmin ? 'admin' : 'estudante');
+  if (data.disciplina_colaborador !== undefined && data.disciplina_colaborador !== null && data.disciplina_colaborador !== '') {
+    if (!disciplinasValidas.includes(data.disciplina_colaborador)) {
+      errors.disciplina_colaborador = 'Disciplina inválida.';
+    }
+  }
+  if (role === 'colaborador' && isEmpty(data.disciplina_colaborador)) {
+    errors.disciplina_colaborador = 'A disciplina é obrigatória para colaborador.';
+  }
+
   return errors;
 }
 
@@ -128,7 +144,8 @@ const createUser = async (req, res) => {
     }
 
     // Only super-admin (first admin / isAdmin from DB) can create other admins
-    if (body.isAdmin && !requestingUser?.isAdmin) {
+    const requestedRole = body.isAdmin ? 'admin' : (body.role || 'estudante');
+    if ((body.isAdmin || requestedRole === 'admin') && !requestingUser?.isAdmin) {
       return res.status(403).json({
         message: 'Apenas o Administrador Supremo pode criar outros administradores.',
         fieldErrors: { isAdmin: 'Sem permissão para criar administradores.' },
@@ -158,7 +175,11 @@ const createUser = async (req, res) => {
       escola:     body.escola?.trim() || null,
       biografia:  body.biografia?.trim() || '',
       password:   hashedPassword,
-      isAdmin:    requestingUser?.isAdmin ? Boolean(body.isAdmin) : false,
+      isAdmin:    requestingUser?.isAdmin ? requestedRole === 'admin' : false,
+      role:       requestingUser?.isAdmin ? requestedRole : 'estudante',
+      disciplina_colaborador: requestedRole === 'colaborador' ? body.disciplina_colaborador : null,
+      // Admin cria colaboradores diretamente aprovados
+      status_colaborador: requestedRole === 'colaborador' ? 'aprovado' : 'aprovado',
     });
 
     const { password: _, ...userSafe } = newUser.get({ plain: true });
@@ -237,6 +258,8 @@ const createAdminUser = async (req, res) => {
       biografia:  '',
       password:   hashedPassword,
       isAdmin:    true,
+      role:       'admin',
+      disciplina_colaborador: null,
     });
 
     const { password: _, ...adminSafe } = newAdmin.get({ plain: true });
@@ -267,7 +290,7 @@ const updateUser = async (req, res) => {
     }
 
     // Only super-admin can change isAdmin flag
-    if (body.isAdmin !== undefined && !requestingUser?.isAdmin) {
+    if ((body.isAdmin !== undefined || body.role !== undefined || body.disciplina_colaborador !== undefined) && !requestingUser?.isAdmin) {
       return res.status(403).json({
         message: 'Apenas o Administrador Supremo pode alterar privilégios administrativos.',
         fieldErrors: { isAdmin: 'Sem permissão para alterar privilégios.' },
@@ -309,7 +332,16 @@ const updateUser = async (req, res) => {
     if (body.sexo      !== undefined) updateData.sexo      = body.sexo;
     if (body.escola    !== undefined) updateData.escola    = body.escola?.trim() || null;
     if (body.biografia !== undefined) updateData.biografia = body.biografia?.trim() || '';
-    if (body.isAdmin   !== undefined && requestingUser?.isAdmin) updateData.isAdmin = Boolean(body.isAdmin);
+    if (requestingUser?.isAdmin) {
+      if (body.role !== undefined || body.isAdmin !== undefined) {
+        const nextRole = body.isAdmin ? 'admin' : (body.role || (user.isAdmin ? 'admin' : user.role || 'estudante'));
+        updateData.role = nextRole;
+        updateData.isAdmin = nextRole === 'admin';
+        updateData.disciplina_colaborador = nextRole === 'colaborador' ? (body.disciplina_colaborador || user.disciplina_colaborador) : null;
+      } else if (body.disciplina_colaborador !== undefined) {
+        updateData.disciplina_colaborador = (user.role === 'colaborador') ? body.disciplina_colaborador : null;
+      }
+    }
 
     // Hash new password if provided
     if (!isEmpty(body.password)) {
@@ -387,7 +419,8 @@ const toggleAdmin = async (req, res) => {
     const user = await Usuario.unscoped().findByPk(id);
     if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
 
-    await user.update({ isAdmin: !user.isAdmin });
+    const nextIsAdmin = !user.isAdmin;
+    await user.update({ isAdmin: nextIsAdmin, role: nextIsAdmin ? 'admin' : 'estudante', disciplina_colaborador: null });
 
     const { password: _, ...userSafe } = user.get({ plain: true });
     res.status(200).json({
@@ -432,4 +465,182 @@ const resetPassword = async (req, res) => {
   }
 };
 
-export default { getAllUsers, createUser, createAdminUser, updateUser, deleteUser, toggleAdmin, resetPassword };
+// ── GET /api/admin/colaboradores-pendentes ──────────────────────────────────
+const getColaboradoresPendentes = async (req, res) => {
+  try {
+    const colaboradoresPendentes = await Usuario.unscoped().findAll({
+      where: {
+        role: 'colaborador',
+        status_colaborador: 'pendente'
+      },
+      attributes: { exclude: ['password'] },
+      order: [['createdAt', 'ASC']],
+    });
+    
+    res.status(200).json({
+      message: 'Colaboradores pendentes obtidos com sucesso',
+      data: colaboradoresPendentes,
+      total: colaboradoresPendentes.length
+    });
+  } catch (error) {
+    console.error('Erro ao obter colaboradores pendentes:', error);
+    res.status(500).json({ message: 'Erro ao obter colaboradores pendentes.', error: error.message });
+  }
+};
+
+// ── PATCH /api/admin/users/:id/aprovar-colaborador ──────────────────────────
+const aprovarColaborador = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { disciplina_colaborador, motivo } = req.body;
+    const requestingUser = req.user;
+
+    // Validar disciplina
+    const disciplinasValidas = ['matematica', 'ingles', 'programacao'];
+    if (!disciplina_colaborador || !disciplinasValidas.includes(disciplina_colaborador)) {
+      return res.status(422).json({
+        message: 'Disciplina inválida.',
+        fieldErrors: { disciplina_colaborador: 'A disciplina deve ser: matematica, ingles ou programacao.' }
+      });
+    }
+
+    const user = await Usuario.unscoped().findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: 'Colaborador não encontrado.' });
+    }
+
+    if (user.role !== 'colaborador') {
+      return res.status(400).json({ message: 'O usuário não é um colaborador.' });
+    }
+
+    if (user.status_colaborador !== 'pendente') {
+      return res.status(400).json({ message: 'Este colaborador já foi processado.' });
+    }
+
+    // Aprovar colaborador
+    await user.update({
+      status_colaborador: 'aprovado',
+      disciplina_colaborador,
+      updatedAt: new Date()
+    });
+
+    console.log(`✅ Colaborador ${user.email} aprovado por admin ${requestingUser?.id}`);
+
+    // Notificar via socket
+    if (req.io) {
+      req.io.emit('colaborador_aprovado', {
+        id: user.id,
+        email: user.email,
+        nome: user.nome,
+        disciplina_colaborador,
+        aprovado_por: requestingUser?.id,
+        data_aprovacao: new Date()
+      });
+    }
+
+    const { password: _, ...userSafe } = user.get({ plain: true });
+    
+    res.status(200).json({
+      message: 'Colaborador aprovado com sucesso',
+      data: userSafe
+    });
+  } catch (error) {
+    console.error('Erro ao aprovar colaborador:', error);
+    res.status(500).json({ message: 'Erro ao aprovar colaborador.', error: error.message });
+  }
+};
+
+// ── PATCH /api/admin/users/:id/rejeitar-colaborador ──────────────────────────
+const rejeitarColaborador = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { motivo } = req.body;
+    const requestingUser = req.user;
+
+    const user = await Usuario.unscoped().findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: 'Colaborador não encontrado.' });
+    }
+
+    if (user.role !== 'colaborador') {
+      return res.status(400).json({ message: 'O usuário não é um colaborador.' });
+    }
+
+    if (user.status_colaborador !== 'pendente') {
+      return res.status(400).json({ message: 'Este colaborador já foi processado.' });
+    }
+
+    // Rejeitar colaborador
+    await user.update({
+      status_colaborador: 'rejeitado',
+      disciplina_colaborador: null,
+      updatedAt: new Date()
+    });
+
+    console.log(`❌ Colaborador ${user.email} rejeitado por admin ${requestingUser?.id}`);
+
+    // Notificar via socket
+    if (req.io) {
+      req.io.emit('colaborador_rejeitado', {
+        id: user.id,
+        email: user.email,
+        nome: user.nome,
+        motivo,
+        rejeitado_por: requestingUser?.id,
+        data_rejeicao: new Date()
+      });
+    }
+
+    const { password: _, ...userSafe } = user.get({ plain: true });
+    
+    res.status(200).json({
+      message: 'Colaborador rejeitado com sucesso',
+      data: userSafe
+    });
+  } catch (error) {
+    console.error('Erro ao rejeitar colaborador:', error);
+    res.status(500).json({ message: 'Erro ao rejeitar colaborador.', error: error.message });
+  }
+};
+
+// ── GET /api/admin/colaboradores ─────────────────────────────────────────────
+const getColaboradores = async (req, res) => {
+  try {
+    const colaboradores = await Usuario.unscoped().findAll({
+      where: {
+        role: 'colaborador'
+      },
+      attributes: { exclude: ['password'] },
+      order: [['createdAt', 'DESC']],
+    });
+    
+    // Estatísticas
+    const total = colaboradores.length;
+    const aprovados = colaboradores.filter(c => c.status_colaborador === 'aprovado').length;
+    const pendentes = colaboradores.filter(c => c.status_colaborador === 'pendente').length;
+    const rejeitados = colaboradores.filter(c => c.status_colaborador === 'rejeitado').length;
+    
+    res.status(200).json({
+      message: 'Colaboradores obtidos com sucesso',
+      data: colaboradores,
+      estatisticas: { total, aprovados, pendentes, rejeitados }
+    });
+  } catch (error) {
+    console.error('Erro ao obter colaboradores:', error);
+    res.status(500).json({ message: 'Erro ao obter colaboradores.', error: error.message });
+  }
+};
+
+export default { 
+  getAllUsers, 
+  createUser, 
+  createAdminUser, 
+  updateUser, 
+  deleteUser, 
+  toggleAdmin, 
+  resetPassword,
+  getColaboradoresPendentes,
+  aprovarColaborador,
+  rejeitarColaborador,
+  getColaboradores
+};

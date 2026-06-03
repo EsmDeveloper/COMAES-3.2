@@ -1,0 +1,27 @@
+{
+  "development": {
+    "username": "root",
+    "password": "",
+    "database": "comaes_db",
+    "host": "localhost",
+    "dialect": "mysql",
+    "port": 3306,
+    "logging": false
+  },
+  "test": {
+    "username": "root",
+    "password": "",
+    "database": "comaes_db_test",
+    "host": "localhost",
+    "dialect": "mysql",
+    "port": 3306
+  },
+  "production": {
+    "username": "root",
+    "password": "",
+    "database": "comaes_db_prod",
+    "host": "localhost",
+    "dialect": "mysql",
+    "port": 3306
+  }
+}

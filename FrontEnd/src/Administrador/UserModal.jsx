@@ -11,7 +11,7 @@ import {
 } from '../utils/validators.js';
 import {
   Eye, EyeOff, Crown, Lock, AlertCircle,
-  User, ShieldCheck, Plus, Edit, Trash2, Key, Save,
+  User, ShieldCheck, Plus, Edit, Trash2, Key, Save, GraduationCap,
 } from 'lucide-react';
 import ComaesModal, { ModalBtnCancel, ModalBtnPrimary, ModalBtnDanger } from '../components/ComaesModal';
 
@@ -73,6 +73,14 @@ function AccountTypeToggle({ value, onChange, disabled }) {
       iconClass: 'text-blue-500',
     },
     {
+      id: 'colaborador',
+      label: 'Colaborador',
+      desc: 'Professor por disciplina',
+      icon: GraduationCap,
+      activeClass: 'border-teal-500 bg-teal-50 text-teal-700',
+      iconClass: 'text-teal-500',
+    },
+    {
       id: 'admin',
       label: 'Administrador',
       desc: 'Acesso ao painel de gestão',
@@ -83,7 +91,7 @@ function AccountTypeToggle({ value, onChange, disabled }) {
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       {opts.map(opt => {
         const Icon = opt.icon;
         const active = value === opt.id;
@@ -106,7 +114,7 @@ function AccountTypeToggle({ value, onChange, disabled }) {
               <p className="text-xs opacity-70 mt-0.5 leading-tight">{opt.desc}</p>
             </div>
             {active && (
-              <div className={`ml-auto w-2 h-2 rounded-full flex-shrink-0 ${opt.id === 'admin' ? 'bg-purple-500' : 'bg-blue-500'}`} />
+              <div className={`ml-auto w-2 h-2 rounded-full flex-shrink-0 ${opt.id === 'admin' ? 'bg-purple-500' : opt.id === 'colaborador' ? 'bg-teal-500' : 'bg-blue-500'}`} />
             )}
           </button>
         );
@@ -166,6 +174,7 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
   const [form, setForm] = useState({
     nome: '', email: '', telefone: '', nascimento: '',
     sexo: '', escola: '', biografia: '',
+    role: 'estudante', disciplina_colaborador: '',
     password: '', confirmPassword: '',
   });
   const [errors, setErrors]   = useState({});
@@ -197,6 +206,8 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
         sexo:       item.sexo       || '',
         escola:     item.escola     || '',
         biografia:  item.biografia  || '',
+        role:       item.role || (item.isAdmin ? 'admin' : 'estudante'),
+        disciplina_colaborador: item.disciplina_colaborador || '',
         password: '', confirmPassword: '',
       }));
     }
@@ -208,7 +219,7 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
     setErrors({});
     setTouched({});
     setServerError('');
-    setForm(prev => ({ ...prev, password: '', confirmPassword: '' }));
+    setForm(prev => ({ ...prev, role: type === 'user' ? 'estudante' : type, password: '', confirmPassword: '' }));
   };
 
   // ── Per-field validation ──────────────────────────────────
@@ -226,6 +237,13 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
       case 'sexo':
         if (isAdminCreate) return '';
         return isCreate && !value ? 'O sexo é obrigatório.' : '';
+      case 'role':
+        return ['estudante', 'colaborador', 'admin'].includes(value) ? '' : 'Perfil inválido.';
+      case 'disciplina_colaborador':
+        if ((isCreate && accountType === 'colaborador') || formState.role === 'colaborador') {
+          return value ? '' : 'A disciplina é obrigatória para colaborador.';
+        }
+        return '';
       case 'password':
         if (isCreate && !value) return 'A senha é obrigatória.';
         if (value) return validatePassword(value).error || '';
@@ -264,8 +282,11 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
       fields = ['password', 'confirmPassword'];
     } else if (isCreate && accountType === 'admin') {
       fields = ['email', 'password', 'confirmPassword'];
+    } else if (isCreate && accountType === 'colaborador') {
+      fields = ['nome', 'email', 'telefone', 'nascimento', 'sexo', 'disciplina_colaborador', 'password', 'confirmPassword'];
     } else {
-      fields = ['nome', 'email', 'telefone', 'nascimento', 'sexo', 'password', 'confirmPassword'];
+      fields = ['nome', 'email', 'telefone', 'nascimento', 'sexo', 'role', 'password', 'confirmPassword'];
+      if (form.role === 'colaborador') fields.push('disciplina_colaborador');
     }
     const newErrors = {};
     const newTouched = {};

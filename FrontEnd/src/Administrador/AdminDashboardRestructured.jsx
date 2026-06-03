@@ -114,7 +114,7 @@ const AdminDashboardRestructured = () => {
 
   const confirmLogout = () => {
     setShowLogoutModal(false);
-    navigate('/');
+    navigate('/login');
   };
 
   const toggleSection = (sectionId) => {

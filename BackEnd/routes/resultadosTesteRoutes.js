@@ -9,12 +9,15 @@ import express from 'express';
 import { Op } from 'sequelize';
 import ResultadoTeste from '../models/ResultadoTeste.js';
 import auth from '../middlewares/auth.js';
+import isNotColaborador from '../middlewares/isNotColaborador.js';
+import { incrementarXP, calcularXPTeste } from '../services/xpService.js';
+import { registarAtividade } from '../services/streakService.js';
 
 const router = express.Router();
 
 // ── POST /api/resultados ──────────────────────────────────────────
 // Salva o resultado de um teste concluído e devolve o melhor desempenho atualizado
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, isNotColaborador, async (req, res) => {
   try {
     const usuario_id = req.user?.id;
     if (!usuario_id) {
@@ -39,6 +42,17 @@ router.post('/', auth, async (req, res) => {
       total_questoes: parseInt(total_questoes) || 0,
       acertos: parseInt(acertos) || 0,
     });
+
+    // ── Atribuir XP pelo desempenho no teste (não bloqueia resposta) ──
+    const xpGanho = calcularXPTeste(parseInt(pontos) || 0, pct);
+    if (xpGanho > 0) {
+      setImmediate(() =>
+        incrementarXP(usuario_id, xpGanho, `teste-conhecimento|area=${area}|pct=${pct}%`)
+      );
+    }
+
+    // ── Registar atividade para streak (idempotente por dia) ──
+    setImmediate(() => registarAtividade(usuario_id));
 
     // Calcular melhor desempenho por área para devolver ao frontend
     const melhores = await getMelhoresDesempenhos(usuario_id);

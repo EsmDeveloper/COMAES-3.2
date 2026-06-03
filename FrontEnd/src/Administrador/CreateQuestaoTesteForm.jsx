@@ -7,9 +7,15 @@ import axios from 'axios';
 /**
  * CreateQuestaoTesteForm
  * Formulário para criar questões do Teste de Conhecimento
+ * 
+ * Props:
+ * - onClose: função para fechar o modal
+ * - onSuccess: função chamada quando a questão é criada
+ * - categoriaFixa: (opcional) fixa a categoria se fornecida
+ * - dificuldadeFixa: (opcional) fixa a dificuldade se fornecida
  */
 
-const CreateQuestaoTesteForm = ({ onClose, onSuccess }) => {
+const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldadeFixa }) => {
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -18,8 +24,8 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess }) => {
     enunciado: '',
     opcoes: ['', '', '', ''],
     resposta_correta: '',
-    dificuldade: 'medio',
-    categoria: 'matematica',
+    dificuldade: dificuldadeFixa || 'medio',
+    categoria: categoriaFixa || 'matematica',
     pontos: 10
   });
 
@@ -137,35 +143,52 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess }) => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Categoria *
+                Categoria * {categoriaFixa && <span className="text-xs text-green-600 ml-2">(Fixa para este bloco)</span>}
               </label>
-              <select
-                name="categoria"
-                value={formData.categoria}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="matematica">Matemática</option>
-                <option value="programacao">Programação</option>
-                <option value="ingles">Inglês</option>
-                <option value="cultura_geral">Cultura Geral</option>
-              </select>
+              {categoriaFixa ? (
+                <div className="px-4 py-2 bg-green-50 border border-green-200 rounded-lg text-green-800 font-medium">
+                  {formData.categoria === 'matematica' ? 'Matemática' :
+                   formData.categoria === 'programacao' ? 'Programação' :
+                   formData.categoria === 'ingles' ? 'Inglês' : 'Cultura Geral'}
+                  <input type="hidden" name="categoria" value={formData.categoria} />
+                </div>
+              ) : (
+                <select
+                  name="categoria"
+                  value={formData.categoria}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="matematica">Matemática</option>
+                  <option value="programacao">Programação</option>
+                  <option value="ingles">Inglês</option>
+                  <option value="cultura_geral">Cultura Geral</option>
+                </select>
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Dificuldade *
+                Dificuldade * {dificuldadeFixa && <span className="text-xs text-green-600 ml-2">(Fixa para este bloco)</span>}
               </label>
-              <select
-                name="dificuldade"
-                value={formData.dificuldade}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="facil">Fácil</option>
-                <option value="medio">Médio</option>
-                <option value="dificil">Difícil</option>
-              </select>
+              {dificuldadeFixa ? (
+                <div className="px-4 py-2 bg-green-50 border border-green-200 rounded-lg text-green-800 font-medium">
+                  {formData.dificuldade === 'facil' ? 'Fácil' :
+                   formData.dificuldade === 'medio' ? 'Médio' : 'Difícil'}
+                  <input type="hidden" name="dificuldade" value={formData.dificuldade} />
+                </div>
+              ) : (
+                <select
+                  name="dificuldade"
+                  value={formData.dificuldade}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="facil">Fácil</option>
+                  <option value="medio">Médio</option>
+                  <option value="dificil">Difícil</option>
+                </select>
+              )}
             </div>
           </div>
 

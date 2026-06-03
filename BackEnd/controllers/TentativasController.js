@@ -3,6 +3,8 @@ import Questao from '../models/Questao.js';
 import ParticipanteTorneio from '../models/ParticipanteTorneio.js';
 import User from '../models/User.js';
 import Torneio from '../models/Torneio.js';
+import { incrementarXP, calcularXPResposta } from '../services/xpService.js';
+import { registarAtividade } from '../services/streakService.js';
 
 /**
  * Salvar uma tentativa de resposta
@@ -140,6 +142,27 @@ export const salvarTentativa = async (req, res) => {
 
     const totalAcertos = todasAsTentativas.filter(t => t.correta).length;
     const totalPontos = todasAsTentativas.reduce((sum, t) => sum + t.pontos_obtidos, 0);
+
+    // ===== ATRIBUIR XP (não bloqueia resposta) =====
+    // Calcular streak de acertos consecutivos nesta sessão
+    const tentativasOrdenadas = [...todasAsTentativas].sort(
+      (a, b) => new Date(a.criado_em) - new Date(b.criado_em)
+    );
+    let streak = 0;
+    for (let i = tentativasOrdenadas.length - 1; i >= 0; i--) {
+      if (tentativasOrdenadas[i].correta) streak++;
+      else break;
+    }
+
+    const xpGanho = calcularXPResposta(questao.pontos, correta, streak);
+    if (xpGanho > 0) {
+      setImmediate(() =>
+        incrementarXP(usuario_id, xpGanho, `torneio-resposta|torneio#${torneio_id}|questao#${questao_id}|streak=${streak}`)
+      );
+    }
+
+    // ── Registar atividade para streak (idempotente por dia) ──
+    setImmediate(() => registarAtividade(usuario_id));
 
     // ===== RESPOSTA =====
 

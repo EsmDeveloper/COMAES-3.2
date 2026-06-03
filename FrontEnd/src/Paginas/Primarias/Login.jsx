@@ -1,8 +1,7 @@
-// pages/Login.jsx
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth, getPostLoginRoute } from "../../context/AuthContext";
 import logotipo from "../../assets/logotipo.png";
 import Cartaz from "../../assets/Cartaz.jpeg";
 
@@ -52,8 +51,12 @@ function Login() {
       } else {
         const user = body.data;
         const token = body.token || null;
+        // Limpar sessão anterior antes de guardar nova
+        localStorage.removeItem('comaes_user');
+        localStorage.removeItem('comaes_token');
         login(user, token);
-        navigate('/');
+        // Redirecionar para o destino correto com base no papel do utilizador
+        navigate(getPostLoginRoute(user), { replace: true });
       }
     } catch (error) {
       console.error("Erro no login:", error);

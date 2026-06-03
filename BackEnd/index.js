@@ -27,6 +27,10 @@ import Conquista from "./models/Conquista.js";
 import ConquistaUsuario from "./models/ConquistaUsuario.js";
 import Certificate from "./models/Certificate.js";
 import Certificado from "./models/Certificado.js";
+import Nivel from "./models/Nivel.js";
+import SequenciaAprendizagem from "./models/SequenciaAprendizagem.js";
+import Missao from "./models/Missao.js";
+import MissaoUsuario from "./models/MissaoUsuario.js";
 
 // ===== CONFIGURAR ASSOCIA��ES ANTES DE IMPORTAR ROTAS =====
 // CR�TICO: Este import deve vir ANTES das rotas para garantir que
@@ -38,16 +42,23 @@ import iaEvaluators from './services/iaEvaluators.js';
 import adminPanelRoutes from './routes/adminPanelRoutes.js';
 import certificatesRoutes from './routes/certificatesRoutes.js';
 import certificadosRoutes from './routes/certificadosRoutes.js';
+import supportRoutes from './routes/supportRoutes.js';
 import tournamentsRoutes from './routes/tournamentsRoutes.js';
 import notificacoesRoutes from './routes/notificacoesRoutes.js';
 import questoesRoutesRefactored from './routes/questoesRoutesRefactored.js';
 import tentativasRoutes from './routes/tentativasRoutes.js';
 import testeConhecimentoRoutes from './routes/testeConhecimentoRoutes.js';
 import resultadosTesteRoutes from './routes/resultadosTesteRoutes.js';
+import colaboradorRoutes from './routes/colaboradorRoutes.js';
+import blocosRoutes, { torneiBlocosRouter } from './routes/blocosRoutes.js';
+import nivelRoutes from './routes/nivelRoutes.js';
+import streakRoutes from './routes/streakRoutes.js';
+import { missoesRouter, dashboardGamificacaoRouter } from './routes/missoesRoutes.js';
 import { sendResetEmail, sendWelcomeEmail } from './services/emailService.js';
 import { setIO } from './services/socketService.js';
 import auth from './middlewares/auth.js';
 import isAdmin from './middlewares/isAdmin.js';
+import isNotColaborador from './middlewares/isNotColaborador.js';
 import { baseSanitizer } from './middlewares/security/sanitizer.js';
 import validate, { rules } from './middlewares/validate.js';
 import { startTorneioCron } from './services/torneioCron.js';
@@ -117,59 +128,7 @@ const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/;
 const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 const ANGOLA_PHONE_LOCAL_REGEX = /^9[1-9]\d{7}$/;
 
-const validateRegistrationPayload = ({ nome, telefone, email, nascimento, sexo, password }) => {
-  const fieldErrors = {};
 
-  if (!nome || !nome.trim()) {
-    fieldErrors.nome = 'O nome é obrigatório.';
-  } else {
-    const trimmedName = nome.trim();
-    if (trimmedName.length < 2) {
-      fieldErrors.nome = 'O nome deve ter pelo menos 2 caracteres.';
-    } else if (!NAME_REGEX.test(trimmedName)) {
-      fieldErrors.nome = 'O nome deve conter apenas letras e espaços.';
-    }
-  }
-
-  if (!telefone || !telefone.trim()) {
-    fieldErrors.telefone = 'O telefone é obrigatório.';
-  } else if (!ANGOLA_PHONE_LOCAL_REGEX.test(telefone.trim())) {
-    fieldErrors.telefone = 'O telefone deve ter 9 dígitos válidos e começar com 9.';
-  }
-
-  if (!email || !email.trim()) {
-    fieldErrors.email = 'O email é obrigatório.';
-  } else {
-    const normalizedEmail = email.trim().toLowerCase();
-    if (!EMAIL_REGEX.test(normalizedEmail) || /@{2,}|^@|@$/.test(normalizedEmail)) {
-      fieldErrors.email = 'Digite um email válido.';
-    }
-  }
-
-  if (!nascimento) {
-    fieldErrors.nascimento = 'A data de nascimento é obrigatória.';
-  } else {
-    const birthDate = new Date(nascimento);
-    const today = new Date();
-    if (Number.isNaN(birthDate.getTime())) {
-      fieldErrors.nascimento = 'Data de nascimento inválida.';
-    } else if (birthDate > today) {
-      fieldErrors.nascimento = 'A data de nascimento não pode estar no futuro.';
-    }
-  }
-
-  if (!sexo) {
-    fieldErrors.sexo = 'O sexo é obrigatório.';
-  }
-
-  if (!password) {
-    fieldErrors.senha = 'A senha é obrigatória.';
-  } else if (!STRONG_PASSWORD_REGEX.test(password)) {
-    fieldErrors.senha = 'A senha deve ter no mínimo 8 caracteres, com maiúscula, minúscula, número e símbolo.';
-  }
-
-  return fieldErrors;
-};
 
 
 const buildSlug = (value = '') => value
@@ -237,6 +196,9 @@ app.get("/", async (req, res) => {
 // Registrar rotas administrativas do painel (CRUD genérico + rotas específicas)
 app.use('/api/admin', adminPanelRoutes);
 
+// Registrar rotas específicas para colaboradores
+app.use('/api/colaborador', colaboradorRoutes);
+
 // Registrar rotas de certificados
 app.use('/api/certificates', certificatesRoutes);
 app.use('/api/certificados', certificadosRoutes);
@@ -246,6 +208,12 @@ app.use('/api/tournaments', tournamentsRoutes);
 
 // Registrar rotas de questões (especializado - REFATORADO para Questao.js)
 app.use('/api/questoes', questoesRoutesRefactored);
+
+// Registrar rotas de Blocos de Questões
+app.use('/api/blocos', blocosRoutes);
+
+// Registrar rotas de associação Torneio ↔ Bloco
+app.use('/api/torneios/:id/blocos', torneiBlocosRouter);
 
 // Registrar rotas de tentativas (persistência de respostas)
 app.use('/api/tentativas', tentativasRoutes);
@@ -261,6 +229,20 @@ app.use('/api/usuarios', resultadosTesteRoutes);
 // Registrar rotas de notificações
 app.use('/api/notificacoes', notificacoesRoutes);
 app.use('/api/usuarios/:usuarioId/notificacoes', notificacoesRoutes);
+
+// Registrar rotas de nível e XP
+app.use('/api/usuarios', nivelRoutes);
+
+// Registrar rotas de streak (sequência de aprendizagem)
+app.use('/api/usuarios', streakRoutes);
+
+// Registrar rotas de missões e dashboard agregado de gamificação
+app.use('/api/missoes', missoesRouter);
+app.use('/api/usuarios', dashboardGamificacaoRouter);
+
+// Registrar rotas de suporte (chat IA + tickets)
+app.use('/api/support', supportRoutes);
+app.use('/suporte', supportRoutes); // alias para compatibilidade com Suporte.jsx
 
 app.get("/health", async (req, res) => {
   try {
@@ -341,17 +323,64 @@ app.post('/auth/login', validate(rules.login), async (req, res) => {
       });
     }
 
-    // Buscar usuario por email OU telefone
+    // Buscar usuario por email OU telefone - usando query SQL direta
     let user;
     try {
-      user = await Usuario.unscoped().findOne({
-        where: {
-          [Op.or]: [
-            { email: usuario.toLowerCase() },
-            { telefone: usuario }
-          ]
+      // Query SQL direta para evitar problemas com o modelo
+      const [results] = await sequelize.query(
+        `SELECT id, nome, telefone, email, nascimento, sexo, password, escola, imagem, biografia, isAdmin, role, disciplina_colaborador, status_colaborador, createdAt, updatedAt, funcao_id 
+         FROM usuarios 
+         WHERE email = :email OR telefone = :telefone 
+         LIMIT 1`,
+        {
+          replacements: {
+            email: usuario.toLowerCase(),
+            telefone: usuario
+          },
+          type: sequelize.QueryTypes.SELECT
         }
-      });
+      );
+      
+      user = results ? { 
+        id: results.id,
+        nome: results.nome,
+        telefone: results.telefone,
+        email: results.email,
+        nascimento: results.nascimento,
+        sexo: results.sexo,
+        password: results.password,
+        escola: results.escola,
+        imagem: results.imagem,
+        biografia: results.biografia,
+        isAdmin: results.isAdmin,
+        role: results.role || (results.isAdmin ? 'admin' : 'estudante'),
+        disciplina_colaborador: results.disciplina_colaborador || null,
+        status_colaborador: results.status_colaborador || 'aprovado',
+        createdAt: results.createdAt,
+        updatedAt: results.updatedAt,
+        funcao_id: results.funcao_id,
+        // Métodos simulados para compatibilidade
+        get: (options) => ({ 
+          plain: options?.plain ? {
+            id: results.id,
+            nome: results.nome,
+            telefone: results.telefone,
+            email: results.email,
+            nascimento: results.nascimento,
+            sexo: results.sexo,
+            escola: results.escola,
+            imagem: results.imagem,
+            biografia: results.biografia,
+            isAdmin: results.isAdmin,
+            role: results.role || (results.isAdmin ? 'admin' : 'estudante'),
+            disciplina_colaborador: results.disciplina_colaborador || null,
+            status_colaborador: results.status_colaborador || 'aprovado',
+            createdAt: results.createdAt,
+            updatedAt: results.updatedAt,
+            funcao_id: results.funcao_id
+          } : this
+        })
+      } : null;
     } catch (dbError) {
       console.error('Erro de banco de dados no login:', dbError.message);
       return res.status(503).json({
@@ -377,19 +406,46 @@ app.post('/auth/login', validate(rules.login), async (req, res) => {
       });
     }
 
+    // Verificar status do colaborador
+    const userStatus = user.status_colaborador || 'aprovado';
+    
+    // Para colaboradores, verificar se estão aprovados
+    if (user.role === 'colaborador' && userStatus !== 'aprovado') {
+      if (userStatus === 'pendente') {
+        return res.status(403).json({
+          success: false,
+          error: 'Aguardando aprovação do administrador.',
+          userStatus: 'pendente'
+        });
+      } else if (userStatus === 'rejeitado') {
+        return res.status(403).json({
+          success: false,
+          error: 'Solicitação de colaborador rejeitada.',
+          userStatus: 'rejeitado'
+        });
+      }
+    }
+
     // Gerar token JWT
     const token = jwt.sign(
       {
         id: user.id,
         email: user.email,
-        isAdmin: user.isAdmin
+        isAdmin: user.isAdmin,
+        role: user.role || (user.isAdmin ? 'admin' : 'estudante'),
+        disciplina_colaborador: user.disciplina_colaborador || null,
+        status_colaborador: userStatus
       },
       process.env.JWT_SECRET || 'secret',
       { expiresIn: '7d' }
     );
 
-    // Remover senha do objeto de retorno
-    const { password, ...userSafe } = user.get({ plain: true });
+    // Extrair dados do utilizador sem a password
+    // user.get({ plain: true }) devolve o objecto interno - extrair correctamente
+    const userPlain = user.get({ plain: true });
+    // userPlain pode ser { plain: {...} } (objeto simulado) ou directamente o objeto
+    const userRaw = userPlain?.plain || userPlain;
+    const { password: _pw, ...userSafe } = userRaw;
 
     console.log('Login bem-sucedido para:', user.email);
 
@@ -438,16 +494,41 @@ app.post('/auth/registro', validate(rules.register), async (req, res) => {
     const sexo = req.body.sexo;
     const escola = typeof req.body.escola === 'string' ? req.body.escola.trim() : '';
     const password = req.body.password;
+    const role = req.body.role || 'estudante'; // Default para estudante
+    const disciplina_colaborador = req.body.disciplina_colaborador;
 
-    console.log('📝 Tentativa de registro:', { nome, email, telefone });
+    console.log('📝 Tentativa de registro:', { nome, email, telefone, role, disciplina_colaborador });
 
-    const fieldErrors = validateRegistrationPayload({ nome, telefone, email, nascimento, sexo, password });
+    const fieldErrors = validateRegistrationPayload({ 
+      nome, 
+      telefone, 
+      email, 
+      nascimento, 
+      sexo, 
+      password, 
+      role,
+      disciplina_colaborador 
+    });
     if (Object.keys(fieldErrors).length > 0) {
       return res.status(422).json({
         success: false,
         error: 'Verifique os campos do cadastro.',
         fieldErrors
       });
+    }
+
+    // Verificar permissões: apenas admin pode criar colaboradores diretamente aprovados
+    const isPublicRegistration = !req.user; // Registro público (sem token)
+    if (role === 'colaborador' && isPublicRegistration) {
+      // Registro público de colaborador - não pode definir disciplina diretamente
+      // A disciplina será atribuída após aprovação pelo admin
+      if (disciplina_colaborador) {
+        return res.status(422).json({
+          success: false,
+          error: 'Disciplina não pode ser definida no registro público.',
+          fieldErrors: { disciplina_colaborador: 'A disciplina será atribuída após aprovação pelo administrador.' }
+        });
+      }
     }
 
     // Verificar se usuário já existe
@@ -474,6 +555,16 @@ app.post('/auth/registro', validate(rules.register), async (req, res) => {
 
     // Criar usuário
     const hash_senha = await bcrypt.hash(password, 10);
+    
+    // Determinar status e role
+    const finalRole = role === 'colaborador' && isPublicRegistration ? 'colaborador' : 'estudante';
+    
+    // Determinar status do colaborador
+    const statusColaborador = finalRole === 'colaborador' ? 'pendente' : 'aprovado';
+    
+    // Determinar disciplina
+    const finalDisciplina = finalRole === 'colaborador' && req.user ? disciplina_colaborador : null;
+
     const novoUsuario = await Usuario.create({
       nome,
       telefone,
@@ -483,38 +574,66 @@ app.post('/auth/registro', validate(rules.register), async (req, res) => {
       escola: escola || null,
       password: hash_senha,
       isAdmin: false,
+      role: finalRole,
+      disciplina_colaborador: finalDisciplina,
+      status_colaborador: statusColaborador,
       pontos_totais: 0,
       nivel: 1
     });
 
-    // Gerar token automaticamente após registro
-    const token = jwt.sign(
-      {
-        id: novoUsuario.id,
-        email: novoUsuario.email,
-        isAdmin: novoUsuario.isAdmin
-      },
-      process.env.JWT_SECRET || 'secret',
-      { expiresIn: '7d' }
-    );
+    // Se for colaborador pendente, não gerar token automaticamente
+    if (finalRole === 'colaborador' && statusColaborador === 'pendente') {
+      console.log('✅ Colaborador criado com sucesso (pendente de aprovação):', novoUsuario.email);
 
-    // Remover senha do retorno
-    const { password: _, ...userSafe } = novoUsuario.get({ plain: true });
+      // Notificar administradores sobre novo colaborador pendente
+      if (io) {
+        io.emit('novo_colaborador_pendente', {
+          id: novoUsuario.id,
+          nome: novoUsuario.nome,
+          email: novoUsuario.email,
+          createdAt: novoUsuario.createdAt
+        });
+      }
 
-    console.log('✅ Usuário criado com sucesso:', novoUsuario.email);
+      res.status(201).json({
+        success: true,
+        message: 'Solicitação de colaborador enviada com sucesso. Aguarde aprovação do administrador.',
+        data: { ...novoUsuario.get({ plain: true }), password: undefined },
+        requiresApproval: true
+      });
+    } else {
+      // Gerar token automaticamente após registro (para estudantes e colaboradores criados por admin)
+      const token = jwt.sign(
+        {
+          id: novoUsuario.id,
+          email: novoUsuario.email,
+          isAdmin: novoUsuario.isAdmin,
+          role: novoUsuario.role,
+          disciplina_colaborador: novoUsuario.disciplina_colaborador,
+          status_colaborador: novoUsuario.status_colaborador
+        },
+        process.env.JWT_SECRET || 'secret',
+        { expiresIn: '7d' }
+      );
 
-    // Emitir atualização de total de usuários
-    if (io) {
-      const totalUsuarios = await Usuario.count();
-      io.emit('stats_update', { totalUsuarios });
+      // Remover senha do retorno
+      const { password: _, ...userSafe } = novoUsuario.get({ plain: true });
+
+      console.log('✅ Usuário criado com sucesso:', novoUsuario.email);
+
+      // Emitir atualização de total de usuários
+      if (io) {
+        const totalUsuarios = await Usuario.count();
+        io.emit('stats_update', { totalUsuarios });
+      }
+
+      res.status(201).json({
+        success: true,
+        message: 'Usuário criado com sucesso',
+        data: userSafe,
+        token
+      });
     }
-
-    res.status(201).json({
-      success: true,
-      message: 'Usuário criado com sucesso',
-      data: userSafe,
-      token
-    });
   } catch (error) {
     console.error('❌ Erro no registro:', error);
     res.status(500).json({
@@ -788,7 +907,7 @@ app.post('/api/participantes/registrar', async (req, res) => {
     // Helper: buscar participante com dados do usuario incluidos
     const buscarComUsuario = (where) => ParticipanteTorneio.findOne({
       where,
-      include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'imagem', 'email'] }]
+      include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'imagem', 'email', 'nivel_atual', 'xp_total'] }]
     });
 
     // Verificar se ja existe
@@ -832,7 +951,7 @@ app.post('/api/participantes/registrar', async (req, res) => {
     if (io) {
       const rankingAtualizado = await ParticipanteTorneio.findAll({
         where: { torneio_id: torneio.id, disciplina_competida: disciplinaFormatada, status: 'confirmado' },
-        include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'imagem', 'email'] }],
+        include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'imagem', 'email', 'nivel_atual', 'xp_total'] }],
         order: [['pontuacao', 'DESC'], ['entrou_em', 'ASC']]
       });
       io.emit('ranking_update', {
@@ -1113,7 +1232,7 @@ app.post('/api/participantes/atualizar-pontuacao', async (req, res) => {
       if (io) {
         const participantes = await ParticipanteTorneio.findAll({
           where: { torneio_id: torneio.id, disciplina_competida: participante.disciplina_competida, status: 'confirmado' },
-          include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'imagem', 'email'] }],
+          include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'imagem', 'email', 'nivel_atual', 'xp_total'] }],
           order: [['pontuacao', 'DESC']],
           limit: 20
         });
@@ -1256,7 +1375,7 @@ app.post('/api/avaliar', async (req, res) => {
       if (io) {
         const participantes = await ParticipanteTorneio.findAll({
           where: { torneio_id: torneio.id, disciplina_competida: disciplina, status: 'confirmado' },
-          include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'imagem', 'email'] }],
+          include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'imagem', 'email', 'nivel_atual', 'xp_total'] }],
           order: [['pontuacao', 'DESC']],
           limit: 20
         });
@@ -1597,31 +1716,81 @@ app.get('/usuarios/:id/notificacoes/nao-lidas/count', auth, async (req, res) => 
 });
 
 // Configurações do usuário
+// Configurações do usuário — GET
 app.get('/usuarios/:id/configuracao', async (req, res) => {
   try {
     const usuarioId = req.params.id;
     const configuracao = await ConfiguracaoUsuario.findOne({
       where: { usuario_id: usuarioId }
     });
-    res.json({ success: true, data: configuracao || { usuario_id: usuarioId, preferencias: {} } });
+
+    // Defaults completos para todas as secções
+    const defaults = {
+      seguranca:    { twoFactor: false, loginAlerts: true },
+      tema:         'light',
+      idioma:       'pt-PT',
+      privacidade:  { perfilPublico: true, mostrarRanking: true, mostrarCertificados: true, mostrarAtividade: true },
+      notificacoes: { email: true, competicoes: true, certificados: true, novidades: false },
+    };
+
+    let preferencias = defaults;
+    if (configuracao?.preferencias) {
+      // Merge profundo: defaults + dados guardados
+      const saved = typeof configuracao.preferencias === 'string'
+        ? JSON.parse(configuracao.preferencias)
+        : configuracao.preferencias;
+      preferencias = {
+        seguranca:    { ...defaults.seguranca,    ...(saved.seguranca    || {}) },
+        tema:         saved.tema    || defaults.tema,
+        idioma:       saved.idioma  || defaults.idioma,
+        privacidade:  { ...defaults.privacidade,  ...(saved.privacidade  || {}) },
+        notificacoes: { ...defaults.notificacoes, ...(saved.notificacoes || {}) },
+      };
+    }
+
+    res.json({ success: true, data: preferencias });
   } catch (error) {
+    console.error('Erro ao carregar configurações:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
+// Configurações do usuário — PUT
 app.put('/usuarios/:id/configuracao', async (req, res) => {
   try {
     const usuarioId = req.params.id;
-    const { preferencias } = req.body;
 
-    const [config, created] = await ConfiguracaoUsuario.upsert({
+    // Aceita tanto { preferencias: {...} } (legado) como o objecto directo
+    const payload = req.body.preferencias || req.body;
+
+    // Carregar configuração existente para merge
+    const existente = await ConfiguracaoUsuario.findOne({ where: { usuario_id: usuarioId } });
+    let atual = {};
+    if (existente?.preferencias) {
+      atual = typeof existente.preferencias === 'string'
+        ? JSON.parse(existente.preferencias)
+        : existente.preferencias;
+    }
+
+    // Merge profundo para evitar sobrescrever secções não enviadas
+    const merged = { ...atual };
+    for (const [key, val] of Object.entries(payload)) {
+      if (val !== null && typeof val === 'object' && !Array.isArray(val)) {
+        merged[key] = { ...(atual[key] || {}), ...val };
+      } else {
+        merged[key] = val;
+      }
+    }
+
+    await ConfiguracaoUsuario.upsert({
       usuario_id: usuarioId,
-      preferencias: preferencias,
-      atualizado_em: new Date()
+      preferencias: merged,
+      atualizado_em: new Date(),
     });
 
-    res.json({ success: true, data: config, created });
+    res.json({ success: true, data: merged });
   } catch (error) {
+    console.error('Erro ao guardar configurações:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -1708,7 +1877,7 @@ app.get('/torneios/:id', async (req, res) => {
 });
 
 // ===== TORNEIOS: JOIN, PARTICIPANTES, RANKING, SUBMIT respostas =====
-app.post('/torneios/:id/join', async (req, res) => {
+app.post('/torneios/:id/join', isNotColaborador, async (req, res) => {
   try {
     const torneioId = req.params.id;
     const { usuario_id, disciplina_competida } = req.body;
@@ -1769,7 +1938,8 @@ app.get('/torneios/:id/questoes/matematica', async (req, res) => {
     const questoes = await Questao.findAll({
       where: { 
         torneio_id: torneioId,
-        disciplina: 'matematica'
+        disciplina: 'matematica',
+        status_aprovacao: 'aprovada' // Apenas questões aprovadas
       },
       attributes: ['id', 'titulo', 'descricao', 'dificuldade', 'pontos', 'opcoes', 'midia', 'tipo', 'resposta_correta', 'explicacao']
     });
@@ -1786,7 +1956,8 @@ app.get('/torneios/:id/questoes/programacao', async (req, res) => {
     const questoes = await Questao.findAll({
       where: { 
         torneio_id: torneioId,
-        disciplina: 'programacao'
+        disciplina: 'programacao',
+        status_aprovacao: 'aprovada' // Apenas questões aprovadas
       },
       attributes: ['id', 'titulo', 'descricao', 'dificuldade', 'pontos', 'opcoes', 'midia', 'linguagem', 'tipo', 'resposta_correta', 'explicacao']
     });
@@ -1803,7 +1974,8 @@ app.get('/torneios/:id/questoes/ingles', async (req, res) => {
     const questoes = await Questao.findAll({
       where: { 
         torneio_id: torneioId,
-        disciplina: 'ingles'
+        disciplina: 'ingles',
+        status_aprovacao: 'aprovada' // Apenas questões aprovadas
       },
       attributes: ['id', 'titulo', 'descricao', 'dificuldade', 'pontos', 'opcoes', 'midia', 'tipo', 'resposta_correta', 'explicacao']
     });
@@ -1862,7 +2034,7 @@ app.get('/torneios/:id/ranking', async (req, res) => {
     const torneioId = req.params.id;
     const participantes = await ParticipanteTorneio.findAll({
       where: { torneio_id: torneioId, status: 'confirmado' },
-      include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'imagem', 'email'] }],
+      include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'imagem', 'email', 'nivel_atual', 'xp_total'] }],
       order: [['pontuacao', 'DESC']]
     });
 
@@ -2073,6 +2245,72 @@ async function startServer() {
           }
         } catch (migErr) {
           console.warn("⚠️ Não foi possível verificar/adicionar coluna visualizacoes:", migErr?.message);
+        }
+
+        // Garantir colunas do sistema de níveis na tabela usuarios (migração segura)
+        try {
+          const [xpCol] = await sequelize.query("SHOW COLUMNS FROM `usuarios` LIKE 'xp_total'");
+          if (xpCol.length === 0) {
+            await sequelize.query("ALTER TABLE `usuarios` ADD COLUMN `xp_total` INT NOT NULL DEFAULT 0 COMMENT 'XP acumulado por desempenho académico'");
+            console.log("✅ Coluna 'xp_total' adicionada à tabela usuarios");
+          }
+          const [nivelCol] = await sequelize.query("SHOW COLUMNS FROM `usuarios` LIKE 'nivel_atual'");
+          if (nivelCol.length === 0) {
+            await sequelize.query("ALTER TABLE `usuarios` ADD COLUMN `nivel_atual` INT NOT NULL DEFAULT 1 COMMENT 'Nível actual do utilizador (1-10)'");
+            console.log("✅ Coluna 'nivel_atual' adicionada à tabela usuarios");
+          }
+        } catch (migErr) {
+          console.warn("⚠️ Não foi possível verificar/adicionar colunas de nível:", migErr?.message);
+        }
+
+        // Garantir tabela sequencias_aprendizagem para o sistema de streak
+        try {
+          const [streakTable] = await sequelize.query("SHOW TABLES LIKE 'sequencias_aprendizagem'");
+          if (streakTable.length === 0) {
+            await sequelize.query(`CREATE TABLE IF NOT EXISTS \`sequencias_aprendizagem\` (
+              \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+              \`usuario_id\` INT NOT NULL UNIQUE,
+              \`streak_atual\` INT NOT NULL DEFAULT 0,
+              \`streak_maximo\` INT NOT NULL DEFAULT 0,
+              \`ultima_data_atividade\` DATE DEFAULT NULL,
+              \`criado_em\` DATETIME DEFAULT CURRENT_TIMESTAMP,
+              \`atualizado_em\` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              CONSTRAINT \`fk_seq_usuario\` FOREIGN KEY (\`usuario_id\`) REFERENCES \`usuarios\`(\`id\`) ON DELETE CASCADE ON UPDATE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
+            console.log("✅ Tabela 'sequencias_aprendizagem' criada com sucesso");
+          }
+        } catch (migErr) {
+          console.warn("⚠️ Não foi possível verificar/criar tabela sequencias_aprendizagem:", migErr?.message);
+        }
+        try {
+          const [nivelRows] = await sequelize.query("SHOW TABLES LIKE 'niveis'");
+          if (nivelRows.length === 0) {
+            await sequelize.query(`CREATE TABLE IF NOT EXISTS \`niveis\` (
+              \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+              \`numero\` INT NOT NULL UNIQUE,
+              \`titulo\` VARCHAR(100) NOT NULL,
+              \`xp_minimo\` INT NOT NULL DEFAULT 0,
+              \`icone\` VARCHAR(10),
+              \`descricao\` TEXT,
+              \`cor\` VARCHAR(20),
+              \`criado_em\` DATETIME DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
+            // Inserir os 10 níveis
+            await sequelize.query(`INSERT INTO \`niveis\` (numero,titulo,xp_minimo,icone,descricao,cor) VALUES
+              (1,'Filhote de Coruja',0,'🐣','Cada grande jornada começa com um primeiro passo. Bem-vindo à COMAES!','#94A3B8'),
+              (2,'Coruja Curiosa',200,'🦉','A curiosidade é o motor do conhecimento.','#64748B'),
+              (3,'Coruja Aprendiz',500,'📚','O aprendizado consistente está a moldar a tua mente académica.','#3B82F6'),
+              (4,'Coruja Estudiosa',1000,'✏️','A disciplina e o esforço estão a produzir resultados visíveis.','#6366F1'),
+              (5,'Coruja Estrategista',2000,'🎯','Resolves problemas com método e raciocínio estratégico.','#8B5CF6'),
+              (6,'Coruja Competidora',3500,'🏅','O espírito competitivo eleva o teu desempenho a novos patamares.','#EC4899'),
+              (7,'Coruja Especialista',5500,'🔬','O domínio técnico distingue-te no campo académico.','#14B8A6'),
+              (8,'Coruja Sábia',8000,'🌟','A sabedoria acumulada transforma conhecimento em excelência.','#F59E0B'),
+              (9,'Coruja Mestre',12000,'👑','Atingiste um domínio raro que poucos alcançam. És uma referência.','#EF4444'),
+              (10,'Coruja Lendária',18000,'🔥','O topo da excelência académica COMAES. A tua jornada inspira outros.','#7C3AED')`);
+            console.log("✅ Tabela 'niveis' criada e populada com os 10 níveis COMAES");
+          }
+        } catch (migErr) {
+          console.warn("⚠️ Não foi possível verificar/criar tabela niveis:", migErr?.message);
         }
       } else {
         console.warn("Banco de dados indisponivel - iniciando em modo degradado (sem sincronizacao)");

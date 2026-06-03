@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Trophy, Medal, Crown, ArrowLeft } from 'lucide-react';
 import Layout from './Layout';
 import socket from '../../socket';
+import NivelBadge, { getNivelMeta } from '../../components/NivelBadge';
 
 /* ─── Design tokens ──────────────────────────────────────────── */
 const c = {
@@ -391,9 +392,19 @@ export default function Ranking() {
                         </span>
                       )}
                     </p>
-                    {p.disciplina_competida && !disciplinaFilter && (
-                      <p style={{ fontSize: 12, color: c.muted, margin: '2px 0 0' }}>{p.disciplina_competida}</p>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
+                      {p.disciplina_competida && !disciplinaFilter && (
+                        <p style={{ fontSize: 12, color: c.muted, margin: 0 }}>{p.disciplina_competida}</p>
+                      )}
+                      {/* Badge de nível do participante */}
+                      {p.usuario?.nivel_atual && (
+                        <NivelBadge
+                          nivelNumero={p.usuario.nivel_atual}
+                          xpTotal={p.usuario.xp_total || 0}
+                          compact
+                        />
+                      )}
+                    </div>
                   </div>
 
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>

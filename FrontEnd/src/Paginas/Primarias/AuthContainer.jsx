@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth, getPostLoginRoute } from "../../context/AuthContext";
 import imgPreview from "../../assets/celebring.jpeg";
 import logotipo from "../../assets/logotipo.png";
 import { validateNome, validateEmail, validatePassword } from "../../utils/validators";
@@ -50,10 +50,10 @@ function AuthContainer({ initialMode = "login" }) {
     "Instituto Médio Politécnico Alda Lara - IMPAL",
   ];
 
-  // Redireciona se já estiver logado
+  // Redireciona se já estiver logado — para o destino correto do seu papel
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate(getPostLoginRoute(user), { replace: true });
     }
   }, [user, navigate]);
 
@@ -114,8 +114,12 @@ function AuthContainer({ initialMode = "login" }) {
       if (!res.ok) {
         setLoginError(body.error || 'Erro ao fazer login');
       } else {
+        // Limpar qualquer sessão anterior antes de guardar a nova
+        localStorage.removeItem('comaes_user');
+        localStorage.removeItem('comaes_token');
         login(body.data, body.token);
-        navigate('/');
+        // Redirecionar para o destino correto com base no papel do utilizador
+        navigate(getPostLoginRoute(body.data), { replace: true });
       }
     } catch (error) {
       console.error('Erro no login:', error);
@@ -307,7 +311,8 @@ function AuthContainer({ initialMode = "login" }) {
 
       setCadastroErrors({ geral: 'Cadastro realizado com sucesso! Redirecionando...' });
       login(body.data, body.token);
-      setTimeout(() => navigate('/'), 1500);
+      // Registo público cria sempre estudantes — mas usar getPostLoginRoute por segurança
+      setTimeout(() => navigate(getPostLoginRoute(body.data), { replace: true }), 1500);
     } catch (error) {
       console.error('Erro no cadastro:', error);
       setCadastroErrors({ geral: 'Erro ao realizar cadastro. Verifique se o servidor está rodando.' });

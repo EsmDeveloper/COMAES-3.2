@@ -18,7 +18,7 @@ import axios from 'axios';
  * - Pontos
  */
 
-const CreateQuestaoForm = ({ torneioId, onClose, onSuccess }) => {
+const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) => {
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -29,7 +29,7 @@ const CreateQuestaoForm = ({ torneioId, onClose, onSuccess }) => {
     torneio_id: torneioId || '',
     titulo: '',
     descricao: '',
-    disciplina: 'matematica',
+    disciplina: disciplinaFixa || 'matematica',
     tipo: 'multipla_escolha',
     dificuldade: 'facil',
     resposta_correta: '',
@@ -146,7 +146,7 @@ const CreateQuestaoForm = ({ torneioId, onClose, onSuccess }) => {
         torneio_id: torneioId || '',
         titulo: '',
         descricao: '',
-        disciplina: 'matematica',
+        disciplina: disciplinaFixa || 'matematica',
         tipo: 'multipla_escolha',
         dificuldade: 'facil',
         resposta_correta: '',
@@ -229,12 +229,18 @@ const CreateQuestaoForm = ({ torneioId, onClose, onSuccess }) => {
                 name="disciplina"
                 value={formData.disciplina}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!!disciplinaFixa}
+                className={`w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${disciplinaFixa ? 'bg-slate-100 cursor-not-allowed opacity-75' : ''}`}
               >
                 <option value="matematica">Matemática</option>
                 <option value="ingles">Inglês</option>
                 <option value="programacao">Programação</option>
               </select>
+              {disciplinaFixa && (
+                <p className="text-xs text-slate-500 mt-1">
+                  Disciplina definida pelo bloco — não pode ser alterada.
+                </p>
+              )}
             </div>
 
             <div>

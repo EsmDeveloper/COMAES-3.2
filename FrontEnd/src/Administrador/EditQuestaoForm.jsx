@@ -217,12 +217,16 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
                 name="disciplina"
                 value={formData.disciplina}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-100 cursor-not-allowed opacity-75"
               >
                 <option value="matematica">Matemática</option>
                 <option value="ingles">Inglês</option>
                 <option value="programacao">Programação</option>
               </select>
+              <p className="text-xs text-slate-500 mt-1">
+                A disciplina não pode ser alterada após a criação.
+              </p>
             </div>
 
             <div>

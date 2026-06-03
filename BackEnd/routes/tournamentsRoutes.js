@@ -24,7 +24,7 @@ const fetchRanking = async (where) => {
     include: [{
       model: Usuario,
       as: 'usuario',
-      attributes: ['id', 'nome', 'imagem', 'email'],
+      attributes: ['id', 'nome', 'imagem', 'email', 'nivel_atual', 'xp_total'],
     }],
     order: [
       ['pontuacao', 'DESC'],

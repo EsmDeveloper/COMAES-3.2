@@ -6,11 +6,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   FaBars, FaUserCircle, FaChartLine, FaBell, FaBook, FaTrophy, FaBullhorn,
   FaHeadset, FaCogs, FaInfoCircle, FaFacebook, FaInstagram,
-  FaWhatsapp, FaLinkedin, FaHome, FaTimes
+  FaWhatsapp, FaLinkedin, FaHome, FaTimes, FaQuestionCircle
 } from "react-icons/fa";
+// FaHeadset mantido apenas no menuItems mobile — botão flutuante antigo removido
 import { useAuth } from "../../context/AuthContext";
 import NotificacoesModal from "./Notificacoes";
 import LogoutModal from "../../components/LogoutModal";
+import SupportChat from "../../components/SupportChat";
 import logotipo from "../../assets/logotipo.png";
 import logo from "../../assets/logo.png";
 import logoShort from "../../assets/iso_icon.png";
@@ -29,7 +31,21 @@ export default function Layout({ children }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const dropdownRef = useRef(null);
 
-  const menuItems = [
+  const isColaborador = user?.role === 'colaborador';
+
+  // Menu para colaboradores (acesso restrito)
+  const collaboratorMenuItems = [
+    { icon: <FaHome />, text: "Home", link: "/" },
+    { icon: <FaQuestionCircle />, text: "Minhas Questões", link: "/colaborador/questoes" },
+    { icon: <FaBullhorn />, text: "Portal de Notícias", link: "/portal-de-noticias" },
+    { icon: <FaUserCircle />, text: "Perfil do Usuário", link: "/perfil" },
+    { icon: <FaCogs />, text: "Configurações", link: "/configuracoes" },
+    { icon: <FaInfoCircle />, text: "Sobre nós", link: "/sobre-nos" },
+    { icon: <FaHeadset />, text: "Suporte", link: "/suporte" },
+  ];
+
+  // Menu padrão para estudantes e outros
+  const standardMenuItems = [
     { icon: <FaHome />, text: "Home", link: "/" },
     { icon: <FaTrophy />, text: "Entrar no Torneio", link: "/entrar-no-torneio" },
     { icon: <FaBook />, text: "Teste seu Conhecimento", link: "/teste-seu-conhecimento" },
@@ -41,13 +57,27 @@ export default function Layout({ children }) {
     { icon: <FaHeadset />, text: "Suporte", link: "/suporte" },
   ];
 
-  const desktopNavItems = [
+  // Usar menu apropriado conforme o perfil
+  const menuItems = isColaborador ? collaboratorMenuItems : standardMenuItems;
+  const allMenuItems = menuItems;
+
+  // Desktop nav para colaboradores (versão restrita)
+  const collaboratorDesktopNav = [
+    { icon: <FaQuestionCircle />, text: "Minhas Questões", link: "/colaborador/questoes" },
+    { icon: <FaBullhorn />, text: "Notícias", link: "/portal-de-noticias" },
+    { icon: <FaInfoCircle />, text: "Sobre nós", link: "/sobre-nos" },
+  ];
+
+  // Desktop nav padrão
+  const standardDesktopNav = [
     { icon: <FaTrophy />, text: "Entrar no Torneio", link: "/entrar-no-torneio" },
     { icon: <FaBook />, text: "Teste seu Conhecimento", link: "/teste-seu-conhecimento" },
     { icon: <FaChartLine />, text: "Dashboard", link: "/painel" },
     { icon: <FaBullhorn />, text: "Notícias", link: "/portal-de-noticias" },
     { icon: <FaInfoCircle />, text: "Sobre nós", link: "/sobre-nos" },
   ];
+
+  const desktopNavItems = isColaborador ? collaboratorDesktopNav : standardDesktopNav;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -56,9 +86,9 @@ export default function Layout({ children }) {
   }, []);
 
   useEffect(() => {
-    const index = menuItems.findIndex(i => i.link === location.pathname);
+    const index = allMenuItems.findIndex(i => i.link === location.pathname);
     setActiveItem(index);
-  }, [location.pathname]);
+  }, [location.pathname, allMenuItems]);
 
   useEffect(() => {
     const fetchNotificationCount = async () => {
@@ -105,7 +135,8 @@ export default function Layout({ children }) {
   const confirmLogout = () => {
     setShowLogoutModal(false);
     logout();
-    navigate("/");
+    // Após logout, sempre para o login — não para a Home pública
+    navigate("/login");
   };
 
   return (
@@ -149,7 +180,7 @@ export default function Layout({ children }) {
               </button>
             </div>
             <nav className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-0.5">
-              {menuItems.map((item, index) => {
+              {allMenuItems.map((item, index) => {
                 const isActive = activeItem === index;
                 return (
                   <motion.div
@@ -363,13 +394,8 @@ export default function Layout({ children }) {
         {children}
       </motion.main>
 
-      <Link
-        to="/suporte"
-        className="fixed bottom-6 right-6 z-50 bg-blue-600 text-white p-2 sm:p-3 rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 animate-pulse outline-none focus:outline-none"
-        style={{ boxShadow: '0 0 0 0 rgba(59, 130, 246, 0.5)' }}
-      >
-        <FaHeadset className="text-xl sm:text-2xl md:text-3xl" />
-      </Link>
+      {/* Assistente de suporte com IA — único ponto de entrada flutuante */}
+      <SupportChat />
 
       <footer className="bg-gray-900 text-gray-300 mt-auto w-full">
         <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8 flex flex-col items-center gap-5">

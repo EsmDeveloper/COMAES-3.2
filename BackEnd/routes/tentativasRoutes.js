@@ -1,5 +1,6 @@
 import express from 'express';
 import auth from '../middlewares/auth.js';
+import isNotColaborador from '../middlewares/isNotColaborador.js';
 import {
   salvarTentativa,
   obterHistorico,
@@ -11,9 +12,9 @@ const router = express.Router();
 /**
  * POST /api/tentativas
  * Salvar uma tentativa de resposta
- * Requer autenticação
+ * Requer autenticação e não pode ser colaborador
  */
-router.post('/', auth, salvarTentativa);
+router.post('/', auth, isNotColaborador, salvarTentativa);
 
 /**
  * GET /api/tentativas/:torneio_id/:disciplina

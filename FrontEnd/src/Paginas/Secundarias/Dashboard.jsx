@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Layout from './Layout';
+import NivelBadge, { getNivelMeta } from '../../components/NivelBadge';
+import useNivel from '../../hooks/useNivel';
+import StreakBadge from '../../components/StreakBadge';
+import useStreak from '../../hooks/useStreak';
 import { 
   LayoutDashboard, 
   Trophy, 
@@ -197,6 +201,8 @@ function GoalCard({ title, subtitle, progress, current, target, accent, accentSo
 function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { nivel, xpTotal, progresso } = useNivel();
+  const { streak, maximo, ativa, mensagem: streakMsg } = useStreak();
   
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [showAllTournaments, setShowAllTournaments] = useState(false);
@@ -811,12 +817,16 @@ function Dashboard() {
             <div style={{ display: 'flex', gap: 16, marginTop: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Zap size={14} />
-                <span>Nível {userData.currentLevel}</span>
+                <span>Nível {nivel?.numero || userData.currentLevel}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Brain size={14} />
                 <span>{userData.bestDiscipline || "Geral"} Specialist</span>
               </div>
+              {/* Streak inline no Hero */}
+              {streak > 0 && (
+                <StreakBadge streak={streak} ativa={ativa} compact />
+              )}
             </div>
           </div>
 
@@ -824,6 +834,12 @@ function Dashboard() {
             display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6,
             position: 'relative',
           }}>
+            {/* Card de nível com barra — exibido no hero do dashboard */}
+            {nivel && (
+              <div style={{ marginBottom: 4 }}>
+                <NivelBadge nivelObj={nivel} xpTotal={xpTotal} showBar />
+              </div>
+            )}
             <div style={{
               background: 'rgba(255,255,255,0.15)', borderRadius: 10,
               padding: '10px 16px', backdropFilter: 'blur(8px)',
@@ -1272,6 +1288,17 @@ function Dashboard() {
             accent="#D97706"
             accentSoft={tokens.amberSoft}
           />
+
+          {/* ── Card de Streak ── */}
+          <div style={{ marginTop: 4 }}>
+            <StreakBadge
+              streak={streak}
+              maximo={maximo}
+              ativa={ativa}
+              mensagem={streakMsg}
+              card
+            />
+          </div>
 
           {recentAchievements.length > 0 && (
             <div style={{ marginTop: 16 }}>

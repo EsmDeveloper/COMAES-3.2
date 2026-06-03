@@ -9,7 +9,7 @@ const Questao = sequelize.define('Questao', {
   },
   torneio_id: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
     references: { model: 'torneios', key: 'id' },
     onDelete: 'CASCADE'
   },
@@ -57,6 +57,31 @@ const Questao = sequelize.define('Questao', {
     type: DataTypes.JSON,
     allowNull: true,
   },
+  autor_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: { model: 'usuarios', key: 'id' },
+    onDelete: 'SET NULL'
+  },
+  status_aprovacao: {
+    type: DataTypes.ENUM('pendente', 'aprovada', 'rejeitada'),
+    allowNull: false,
+    defaultValue: 'aprovada',
+  },
+  revisado_por: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: { model: 'usuarios', key: 'id' },
+    onDelete: 'SET NULL'
+  },
+  revisado_em: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  motivo_rejeicao: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
 }, {
   tableName: 'questoes',
   timestamps: true,
@@ -66,6 +91,8 @@ const Questao = sequelize.define('Questao', {
     { fields: ['torneio_id'] },
     { fields: ['disciplina'] },
     { fields: ['tipo'] },
+    { fields: ['autor_id'] },
+    { fields: ['status_aprovacao'] },
   ]
 });
 

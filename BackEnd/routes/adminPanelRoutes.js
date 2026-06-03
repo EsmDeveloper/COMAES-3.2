@@ -32,6 +32,12 @@ router.delete('/users/:id', isAdmin, UserController.deleteUser);
 router.patch('/users/:id/toggle-admin', isAdmin, UserController.toggleAdmin);
 router.patch('/users/:id/reset-password', isAdmin, UserController.resetPassword);
 
+// Novas rotas para aprovação de colaboradores
+router.get('/colaboradores-pendentes', isAdmin, UserController.getColaboradoresPendentes);
+router.get('/colaboradores', isAdmin, UserController.getColaboradores);
+router.patch('/users/:id/aprovar-colaborador', isAdmin, UserController.aprovarColaborador);
+router.patch('/users/:id/rejeitar-colaborador', isAdmin, UserController.rejeitarColaborador);
+
 router.get('/torneos', isAdmin, TorneoController.getAllTorneos);
 router.post('/torneos', isAdmin, TorneoController.createTorneo);
 router.put('/torneos/:id', isAdmin, TorneoController.updateTorneo);

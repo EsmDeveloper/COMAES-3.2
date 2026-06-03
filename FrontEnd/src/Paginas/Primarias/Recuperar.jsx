@@ -42,7 +42,8 @@ function Recuperar() {
           return;
         }
         setSucesso(body.message || 'Enviamos um código de confirmação para o seu email.');
-        setTimeout(() => navigate('/'), 2000);
+        // Após recuperação bem-sucedida, redirecionar para login — não para Home
+        setTimeout(() => navigate('/login'), 2000);
       } catch (err) {
         setErrors({ geral: 'Erro ao processar recuperação. Tente novamente.' });
       }

@@ -22,6 +22,7 @@ import { useAuth } from '../context/AuthContext';
 import TournamentForm from './components/TournamentForm';
 import { ModalOverlay, DeleteConfirmationModal, ViewDetailsModal } from './components/TournamentModal';
 import { TournamentService } from './services/TournamentService';
+import BlocosService from './services/BlocosService';
 
 // Mapeamento de status para configuração visual
 const STATUS_CONFIG = {
@@ -138,13 +139,35 @@ export default function TorneiosTab() {
           // Adicionar criador
           payload.criado_por = user?.id;
 
+          // Extrair blocos antes de enviar ao backend (campo interno do form)
+          const blocosParaAssociar = payload._blocosParaAssociar || [];
+          delete payload._blocosParaAssociar;
+
           // Criar torneio
           const novoTorneio = await TournamentService.create(payload, token);
           console.log('[TorneiosTab] Torneio criado:', novoTorneio);
 
+          // Associar blocos selecionados (se houver e o torneio foi criado com sucesso)
+          const torneioId = novoTorneio?.torneio?.id || novoTorneio?.id;
+          if (torneioId && blocosParaAssociar.length > 0) {
+            const resultados = await Promise.allSettled(
+              blocosParaAssociar.map(blocoId =>
+                BlocosService.associar(token, torneioId, blocoId)
+              )
+            );
+            const falhas = resultados.filter(r => r.status === 'rejected');
+            if (falhas.length > 0) {
+              console.warn('[TorneiosTab] Alguns blocos não foram associados:', falhas);
+              showToast(`Torneio criado, mas ${falhas.length} bloco(s) não foram associados.`, 'warning');
+            } else {
+              showToast(`Torneio criado com ${blocosParaAssociar.length} bloco(s) associado(s)!`);
+            }
+          } else {
+            showToast('Torneio criado com sucesso!');
+          }
+
           // Atualizar lista completa
           await fetchTorneios();
-          showToast('Torneio criado com sucesso!');
         } else {
           // Atualizar torneio existente
           const updatedTorneio = await TournamentService.update(

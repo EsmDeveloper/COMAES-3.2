@@ -287,7 +287,7 @@ export const TorneoController = {
 
       const participantes = await ParticipanteTorneio.findAll({
         where,
-        include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'imagem', 'email'] }],
+        include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'imagem', 'email', 'nivel_atual', 'xp_total'] }],
         order: [['pontuacao', 'DESC'], ['tempo_total', 'ASC'], ['entrou_em', 'ASC']]
       });
 

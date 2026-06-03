@@ -8,10 +8,12 @@ import TorneiosTab from './TorneiosTab';
 import NotificationsTab from './NotificationsTab';
 import BlocoQuestoesManager from './BlocoQuestoesManager';
 import CertificadosTab from './CertificadosTab';
+import QuestoesPendentesTab from './QuestoesPendentesTab';
+import ColaboradoresPendentesTab from './ColaboradoresPendentesTab';
 import LogoutModal from '../components/LogoutModal';
 import { 
   BarChart3, Trophy, BookOpen, Users, Bell, Settings, 
-  Zap, FileText, X, Menu, ArrowLeft, UserCircle, LogOut
+  Zap, FileText, X, Menu, ArrowLeft, UserCircle, LogOut, Clock
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -63,6 +65,7 @@ const AdminDashboard = () => {
       color: 'from-purple-500 to-pink-600',
       items: [
         { id: 'questoes', label: 'Questões (Torneios)', icon: BookOpen },
+        { id: 'questoes-pendentes', label: 'Revisar Questões', icon: FileText },
         { id: 'teste-conhecimento', label: 'Teste de Conhecimento', icon: FileText }
       ]
     },
@@ -72,7 +75,8 @@ const AdminDashboard = () => {
       icon: Users,
       color: 'from-green-500 to-emerald-600',
       items: [
-        { id: 'user', label: 'Gerenciar Usuários', icon: Users }
+        { id: 'user', label: 'Gerenciar Usuários', icon: Users },
+        { id: 'colaboradores-pendentes', label: 'Pedidos de Colaboradores', icon: Clock }
         // REMOVIDO por alinhamento - 2026-05-26: funcao - CRUD genérico muito cru, sem matriz de permissões
       ]
     },
@@ -127,7 +131,8 @@ const AdminDashboard = () => {
   const confirmLogout = () => {
     logout();
     setShowLogoutModal(false);
-    navigate('/');
+    // Após logout, sempre para a página de login — nunca para a Home de estudante
+    navigate('/login');
   };
 
   const AvatarButton = ({ compact = false }) => (
@@ -316,14 +321,8 @@ const AdminDashboard = () => {
                 <AvatarButton compact />
               </div>
               
-              {/* Back to site button - navigates without logging out */}
-              <button
-                onClick={() => navigate('/')}
-                className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl whitespace-nowrap flex items-center gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Voltar ao site</span>
-              </button>
+              {/* O admin não navega para o ambiente do estudante — botão removido intencionalmente.
+                  Toda a saída do painel é feita via logout (botão no sidebar/avatar menu). */}
             </div>
           </div>
         </header>
@@ -341,9 +340,13 @@ const AdminDashboard = () => {
               ) : activeTab === 'notificacao' ? (
                 <NotificationsTab token={token} />
               ) : activeTab === 'questoes' ? (
-                <BlocoQuestoesManager contexto="torneio" />
+                <BlocoQuestoesManager />
+              ) : activeTab === 'questoes-pendentes' ? (
+                <QuestoesPendentesTab />
               ) : activeTab === 'teste-conhecimento' ? (
-                <BlocoQuestoesManager contexto="teste" />
+                <BlocoQuestoesManager />
+              ) : activeTab === 'colaboradores-pendentes' ? (
+                <ColaboradoresPendentesTab />
               ) : activeTab === 'user' || activeTab === 'noticia' ? (
                 <TableManager table={activeTab} />
               ) : (
