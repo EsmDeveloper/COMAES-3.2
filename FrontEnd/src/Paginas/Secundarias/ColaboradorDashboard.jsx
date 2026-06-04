@@ -137,7 +137,7 @@ export default function ColaboradorDashboard() {
       <PageTransition>
         <div className="min-h-screen bg-slate-50 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-slate-600">Carregando dashboard...</p>
           </div>
         </div>
@@ -171,7 +171,7 @@ export default function ColaboradorDashboard() {
     <PageTransition>
       <div className="min-h-screen bg-slate-50 pb-12">
         {/* Header */}
-        <div className="bg-gradient-to-r from-teal-600 to-teal-800 text-white py-8">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-8">
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
@@ -179,7 +179,7 @@ export default function ColaboradorDashboard() {
                   <BookOpen className="w-10 h-10" />
                   <div>
                     <h1 className="text-2xl font-bold">Painel do Colaborador</h1>
-                    <p className="text-teal-100">
+                    <p className="text-blue-100">
                       {user?.nome} - {user?.disciplina_colaborador}
                     </p>
                   </div>
@@ -201,7 +201,7 @@ export default function ColaboradorDashboard() {
                     navigate('/colaborador/questoes');
                     // Em uma implementação real, abriria o modal diretamente
                   }}
-                  className="px-4 py-2 bg-white text-teal-700 rounded-xl font-medium hover:bg-teal-50 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-white text-blue-700 rounded-xl font-medium hover:bg-blue-50 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   Nova Questão
@@ -317,7 +317,7 @@ export default function ColaboradorDashboard() {
                         onClick={() => setActiveTab(tab)}
                         className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                           activeTab === tab
-                            ? 'bg-white text-teal-700 shadow-sm'
+                            ? 'bg-white text-blue-700 shadow-sm'
                             : 'text-slate-600 hover:text-slate-800'
                         }`}
                       >
@@ -345,7 +345,7 @@ export default function ColaboradorDashboard() {
                 </p>
                 <Link
                   to="/colaborador/questoes"
-                  className="px-5 py-2.5 bg-teal-600 text-white rounded-xl font-medium hover:bg-teal-700 inline-flex items-center gap-2"
+                  className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 inline-flex items-center gap-2"
                 >
                   <Plus className="w-5 h-5" />
                   Criar Primeira Questão
@@ -403,7 +403,7 @@ export default function ColaboradorDashboard() {
                 </p>
                 <Link
                   to="/colaborador/questoes"
-                  className="text-sm text-teal-600 hover:text-teal-700 font-medium"
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                 >
                   Ver todas as questões →
                 </Link>
@@ -437,19 +437,19 @@ export default function ColaboradorDashboard() {
               </Link>
             </div>
 
-            <div className="bg-gradient-to-r from-teal-50 to-teal-100 border border-teal-200 rounded-xl p-5">
+            <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-teal-200 rounded-xl p-5">
               <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 bg-teal-100 rounded-lg">
-                  <FileText className="w-6 h-6 text-teal-600" />
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <FileText className="w-6 h-6 text-blue-600" />
                 </div>
-                <h3 className="font-semibold text-teal-800">Gerenciar Questões</h3>
+                <h3 className="font-semibold text-blue-800">Gerenciar Questões</h3>
               </div>
-              <p className="text-sm text-teal-700 mb-4">
+              <p className="text-sm text-blue-700 mb-4">
                 Veja e edite todas as suas questões em uma única página.
               </p>
               <Link
                 to="/colaborador/questoes"
-                className="inline-flex items-center gap-2 text-sm font-medium text-teal-700 hover:text-teal-800"
+                className="inline-flex items-center gap-2 text-sm font-medium text-blue-700 hover:text-blue-800"
               >
                 <Search className="w-4 h-4" />
                 Ver Todas as Questões

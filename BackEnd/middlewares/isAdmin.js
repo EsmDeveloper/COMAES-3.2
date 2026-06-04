@@ -31,18 +31,10 @@ export const isAdmin = async (req, res, next) => {
   // the token was issued or the project uses a role table instead of
   // the boolean flag.
   try {
-    const user = await Usuario.findByPk(decoded.id, {
-      include: [{ model: Funcao, as: 'funcao' }]
-    });
+    const user = await Usuario.unscoped().findByPk(decoded.id).catch(() => null);
 
-    if (user && (user.isAdmin || user.funcao?.nome === 'Administrador' || user.role === 'admin')) {
-      // attach resolved information to request
-      req.user = {
-        ...decoded,
-        isAdmin: true,
-        funcao: user.funcao,
-        role: user.role
-      };
+    if (user && (user.isAdmin || user.role === 'admin')) {
+      req.user = { ...decoded, isAdmin: true, role: user.role };
       return next();
     }
   } catch (dbErr) {

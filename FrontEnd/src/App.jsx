@@ -42,13 +42,19 @@ import { useAuth } from './context/AuthContext';
  * SmartHome — rota "/" inteligente.
  * - Admin           → /administrador
  * - Colaborador     → /colaborador/dashboard
- * - Estudante auth. → /painel
+ * - Estudante auth. → Home (página principal)
  * - Público         → Home
  */
 function SmartHome() {
   const { user, loading } = useAuth();
   if (loading) return null;
-  if (user) return <Navigate to={getPostLoginRoute(user)} replace />;
+  // Apenas admin e colaborador são redirecionados — estudantes ficam na Home
+  if (user) {
+    const isAdmin = user.isAdmin === true || user.isAdmin === 1 || user.role === 'admin';
+    const isColaborador = user.role === 'colaborador';
+    if (isAdmin) return <Navigate to="/administrador" replace />;
+    if (isColaborador) return <Navigate to="/colaborador/dashboard" replace />;
+  }
   return <PageTransition><Home /></PageTransition>;
 }
 

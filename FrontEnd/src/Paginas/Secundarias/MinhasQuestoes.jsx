@@ -299,7 +299,7 @@ function QuestaoModal({ questao, isOpen, onClose, onSave, disciplinaColaborador 
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-2.5 bg-teal-600 text-white rounded-xl font-medium hover:bg-teal-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               {saving ? (
                 <>Salvando...</>
@@ -419,7 +419,7 @@ export default function MinhasQuestoes() {
       <PageTransition>
         <div className="min-h-screen bg-slate-50 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-slate-600">Carregando suas questões...</p>
           </div>
         </div>
@@ -453,13 +453,19 @@ export default function MinhasQuestoes() {
     <PageTransition>
       <div className="min-h-screen bg-slate-50">
         {/* Header */}
-        <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-8">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-8">
           <div className="container mx-auto px-4">
+            <button
+              onClick={() => navigate('/colaborador/dashboard')}
+              className="flex items-center gap-2 text-blue-100 hover:text-white text-sm font-medium mb-4 transition-colors"
+            >
+              ← Voltar ao Painel
+            </button>
             <div className="flex items-center gap-3 mb-2">
               <BookOpen className="w-8 h-8" />
               <h1 className="text-2xl font-bold">Minhas Questões</h1>
             </div>
-            <p className="text-teal-100">
+            <p className="text-blue-100">
               Gerencie suas questões de {user?.disciplina_colaborador || 'sua disciplina'}
             </p>
           </div>
@@ -478,7 +484,7 @@ export default function MinhasQuestoes() {
                   placeholder="Buscar por título ou descrição..."
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
@@ -486,7 +492,7 @@ export default function MinhasQuestoes() {
               <select
                 value={filtroDificuldade}
                 onChange={(e) => setFiltroDificuldade(e.target.value)}
-                className="px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Todas as dificuldades</option>
                 <option value="facil">Fácil</option>
@@ -497,7 +503,7 @@ export default function MinhasQuestoes() {
               {/* Botão criar */}
               <button
                 onClick={openCreate}
-                className="px-5 py-2.5 bg-teal-600 text-white rounded-xl font-medium hover:bg-teal-700 transition-colors flex items-center gap-2 justify-center"
+                className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 justify-center"
               >
                 <Plus className="w-5 h-5" />
                 Nova Questão
@@ -518,7 +524,7 @@ export default function MinhasQuestoes() {
               {!busca && !filtroDificuldade && (
                 <button
                   onClick={openCreate}
-                  className="px-5 py-2.5 bg-teal-600 text-white rounded-xl font-medium hover:bg-teal-700 inline-flex items-center gap-2"
+                  className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 inline-flex items-center gap-2"
                 >
                   <Plus className="w-5 h-5" />
                   Criar Primeira Questão
@@ -577,7 +583,7 @@ export default function MinhasQuestoes() {
                               <>
                                 <button
                                   onClick={() => openEdit(questao)}
-                                  className="p-2 text-slate-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
+                                  className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                   title="Editar"
                                 >
                                   <Edit className="w-4 h-4" />

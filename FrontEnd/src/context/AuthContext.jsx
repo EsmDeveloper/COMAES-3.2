@@ -3,14 +3,14 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 
 /**
  * Devolve a rota de destino após login com base no papel do utilizador.
- * Admin → /administrador  |  colaborador → /colaborador/dashboard  |  estudante → /painel
+ * Admin → /administrador  |  colaborador → /colaborador/dashboard  |  estudante → /
  */
 export const getPostLoginRoute = (user) => {
   if (!user) return '/login';
   const role = user.role || (user.isAdmin ? 'admin' : 'estudante');
   if (role === 'admin' || user.isAdmin === true || user.isAdmin === 1) return '/administrador';
   if (role === 'colaborador') return '/colaborador/dashboard';
-  return '/painel';
+  return '/';
 };
 
 const AuthContext = createContext({});

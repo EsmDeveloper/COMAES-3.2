@@ -6,8 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   FaBars, FaUserCircle, FaChartLine, FaBell, FaBook, FaTrophy, FaBullhorn,
   FaHeadset, FaCogs, FaInfoCircle, FaFacebook, FaInstagram,
-  FaWhatsapp, FaLinkedin, FaHome, FaTimes, FaQuestionCircle, FaChartBar,
-  FaMedal, FaAward, FaListOl
+  FaWhatsapp, FaLinkedin, FaHome, FaTimes, FaQuestionCircle,
 } from "react-icons/fa";
 // FaHeadset mantido apenas no menuItems mobile — botão flutuante antigo removido
 import { useAuth } from "../../context/AuthContext";
@@ -41,7 +40,6 @@ export default function Layout({ children }) {
     { icon: <FaHome />, text: "Home", link: "/" },
     { icon: <FaQuestionCircle />, text: "Minhas Questões", link: "/colaborador/questoes" },
     { icon: <FaBullhorn />, text: "Portal de Notícias", link: "/portal-de-noticias" },
-    { icon: <FaMedal />, text: "Ranking Global", link: "/ranking-global" },
     { icon: <FaUserCircle />, text: "Perfil do Usuário", link: "/perfil" },
     { icon: <FaCogs />, text: "Configurações", link: "/configuracoes" },
     { icon: <FaInfoCircle />, text: "Sobre nós", link: "/sobre-nos" },
@@ -55,8 +53,6 @@ export default function Layout({ children }) {
     { icon: <FaBook />, text: "Teste seu Conhecimento", link: "/teste-seu-conhecimento" },
     { icon: <FaBullhorn />, text: "Portal de Notícias", link: "/portal-de-noticias" },
     { icon: <FaChartLine />, text: "Dashboard", link: "/painel" },
-    { icon: <FaChartBar />, text: "Minha Jornada", link: "/minha-jornada" },
-    { icon: <FaMedal />, text: "Ranking Global", link: "/ranking-global" },
     { icon: <FaUserCircle />, text: "Perfil do Usuário", link: "/perfil" },
     { icon: <FaCogs />, text: "Configurações", link: "/configuracoes" },
     { icon: <FaInfoCircle />, text: "Sobre nós", link: "/sobre-nos" },
@@ -71,7 +67,6 @@ export default function Layout({ children }) {
   const collaboratorDesktopNav = [
     { icon: <FaQuestionCircle />, text: "Questões", link: "/colaborador/questoes" },
     { icon: <FaBullhorn />, text: "Notícias", link: "/portal-de-noticias" },
-    { icon: <FaMedal />, text: "Rankings", link: "/ranking-global" },
     { icon: <FaInfoCircle />, text: "Sobre", link: "/sobre-nos" },
   ];
 
@@ -79,9 +74,8 @@ export default function Layout({ children }) {
   const standardDesktopNav = [
     { icon: <FaTrophy />, text: "Torneios", link: "/entrar-no-torneio" },
     { icon: <FaBook />, text: "Testes", link: "/teste-seu-conhecimento" },
-    { icon: <FaMedal />, text: "Rankings", link: "/ranking-global" },
+    { icon: <FaBullhorn />, text: "Notícias", link: "/portal-de-noticias" },
     { icon: <FaChartLine />, text: "Dashboard", link: "/painel" },
-    { icon: <FaChartBar />, text: "Jornada", link: "/minha-jornada" },
     { icon: <FaInfoCircle />, text: "Sobre", link: "/sobre-nos" },
   ];
 
