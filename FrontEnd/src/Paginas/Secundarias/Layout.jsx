@@ -32,6 +32,8 @@ export default function Layout({ children }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const dropdownRef = useRef(null);
 
+  // Detectar role
+  const isAdmin       = user?.isAdmin === true || user?.isAdmin === 1 || user?.role === 'admin';
   const isColaborador = user?.role === 'colaborador';
 
   // Menu para colaboradores (acesso restrito)
@@ -144,6 +146,28 @@ export default function Layout({ children }) {
     // Após logout, sempre para o login — não para a Home pública
     navigate("/login");
   };
+
+  // Admin não deve ver a navbar educacional — wrapper mínimo sem navbar
+  if (isAdmin) {
+    return (
+      <div className="flex flex-col min-h-screen bg-gray-50 font-sans text-gray-900">
+        <div className="bg-gray-900 text-white px-6 py-3 flex items-center justify-between shadow-sm">
+          <span className="text-xs font-semibold tracking-widest uppercase text-gray-400">
+            Área Administrativa
+          </span>
+          <button
+            onClick={() => navigate('/administrador')}
+            className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg font-semibold transition"
+          >
+            ← Painel Admin
+          </button>
+        </div>
+        <main className="flex-1 px-4 py-6 sm:px-6 md:px-8 max-w-7xl mx-auto w-full">
+          {children}
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 font-sans text-gray-900 overflow-x-hidden">

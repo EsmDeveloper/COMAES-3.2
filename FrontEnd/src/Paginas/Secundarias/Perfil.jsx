@@ -11,6 +11,8 @@ import {
   Camera, CheckCircle, AlertCircle, X, Edit2, LogOut,
   Mail, Calendar, Trophy, Star, Award, Save, ChevronRight,
   GraduationCap, Phone, User, BookOpen, Clock, Target,
+  Shield, Users, BarChart3, FileText, Settings, ArrowLeft,
+  BookMarked, CheckSquare, Code,
 } from 'lucide-react';
 import { validateNome, validateEmail, validateBio, validateFileUpload } from '../../utils/validators';
 
@@ -113,10 +115,372 @@ function MedalIcon({ pos }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   PERFIL DO ADMINISTRADOR
+═══════════════════════════════════════════════════════════════ */
+function AdminPerfilLayout({ user, token, onLogout, navigate }) {
+  const [stats, setStats] = useState(null);
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  const joinDate = user.createdAt
+    ? new Date(user.createdAt).toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' })
+    : '—';
+
+  useEffect(() => {
+    if (!token) return;
+    setLoadingStats(true);
+    Promise.all([
+      fetch(`${API}/api/admin/stats`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => null),
+      fetch(`${API}/api/admin/atividades-recentes`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => null),
+    ]).then(([statsRes, activityRes]) => {
+      if (statsRes?.success !== false) setStats(statsRes);
+      if (activityRes?.success !== false) setRecentActivity(activityRes?.data || activityRes || []);
+    }).finally(() => setLoadingStats(false));
+  }, [token]);
+
+  const initials = (user.nome || user.name || 'A').charAt(0).toUpperCase();
+  const avatarSrc = user.avatar || user.imagem || null;
+
+  return (
+    <Layout>
+      <div className="max-w-3xl mx-auto px-4 py-8 flex flex-col gap-5">
+
+        {/* Hero card */}
+        <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl shadow-xl p-6 text-white">
+          <div className="flex items-center gap-5 flex-wrap">
+            <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center font-bold text-2xl overflow-hidden flex-shrink-0 border-4 border-white/20">
+              {avatarSrc
+                ? <img src={avatarSrc} alt={user.nome} className="w-full h-full object-cover" />
+                : initials}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl font-bold">{user.nome || user.name || 'Administrador'}</h1>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-blue-500/30 border border-blue-400/40 rounded-full text-xs font-semibold text-blue-200">
+                  <Shield size={11} /> Administrador
+                </span>
+              </div>
+              <p className="text-gray-400 text-sm mt-0.5">{user.email}</p>
+              <p className="text-gray-500 text-xs mt-1 flex items-center gap-1">
+                <Calendar size={11} /> Conta criada em {joinDate}
+              </p>
+            </div>
+            <div className="flex gap-2 self-start">
+              <button
+                onClick={() => navigate('/administrador')}
+                className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition"
+              >
+                <BarChart3 size={14} /> Painel Admin
+              </button>
+              <button
+                onClick={onLogout}
+                className="flex items-center gap-1.5 px-3 py-2 border border-white/20 text-gray-300 hover:bg-white/10 rounded-xl text-sm transition"
+              >
+                <LogOut size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats administrativas */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            {
+              icon: <Users size={16} />,
+              label: 'Utilizadores',
+              value: loadingStats ? '…' : (stats?.totalUsuarios ?? '—'),
+              color: 'bg-blue-50 text-blue-600',
+            },
+            {
+              icon: <Trophy size={16} />,
+              label: 'Torneios',
+              value: loadingStats ? '…' : (stats?.totalTorneios ?? '—'),
+              color: 'bg-amber-50 text-amber-600',
+            },
+            {
+              icon: <FileText size={16} />,
+              label: 'Questões',
+              value: loadingStats ? '…' : (stats?.totalQuestoes ?? '—'),
+              color: 'bg-purple-50 text-purple-600',
+            },
+            {
+              icon: <GraduationCap size={16} />,
+              label: 'Colaboradores',
+              value: loadingStats ? '…' : (stats?.totalColaboradores ?? '—'),
+              color: 'bg-green-50 text-green-600',
+            },
+          ].map(s => (
+            <StatCard key={s.label} icon={s.icon} label={s.label} value={s.value} colorClass={s.color} />
+          ))}
+        </div>
+
+        {/* Detalhes da conta */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+          <SectionTitle>Informações da Conta Administrativa</SectionTitle>
+          <div className="divide-y divide-gray-100">
+            <InfoRow icon={<User size={14} />}     label="Nome"             value={user.nome || user.name} />
+            <InfoRow icon={<Mail size={14} />}     label="E-mail"           value={user.email} />
+            <InfoRow icon={<Shield size={14} />}   label="Papel"            value="Administrador do sistema" />
+            <InfoRow icon={<Calendar size={14} />} label="Membro desde"     value={joinDate} />
+            <InfoRow icon={<Clock size={14} />}    label="Último acesso"    value={user.updatedAt ? new Date(user.updatedAt).toLocaleString('pt-PT') : '—'} />
+          </div>
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <p className="text-xs text-gray-400">
+              Para editar o seu perfil ou alterar a senha, aceda às{' '}
+              <Link to="/configuracoes" className="text-blue-600 hover:underline font-medium">Configurações</Link>.
+            </p>
+          </div>
+        </div>
+
+        {/* Atividade recente */}
+        {recentActivity.length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <SectionTitle>Actividade Recente do Sistema</SectionTitle>
+            <div className="space-y-2">
+              {recentActivity.slice(0, 5).map((act, i) => (
+                <div key={i} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
+                  <div className="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <BarChart3 size={12} className="text-blue-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-700">{act.descricao || act.mensagem || JSON.stringify(act)}</p>
+                    {act.data && (
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {new Date(act.data).toLocaleString('pt-PT')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
+    </Layout>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PERFIL DO COLABORADOR
+═══════════════════════════════════════════════════════════════ */
+function ColaboradorPerfilLayout({ user, token, onSave, saving, editMode, setEditMode, form, setForm, formErrors, cancelEdit, handleFile, preview, onLogout, navigate, toast, setToast, showLogout, setShowLogout, logout, inputCls, avatarSrc, initials, joinDate }) {
+  const [questoes, setQuestoes]     = useState([]);
+  const [loadingQ, setLoadingQ]     = useState(true);
+
+  useEffect(() => {
+    if (!token) return;
+    setLoadingQ(true);
+    fetch(`${API}/api/colaborador/questoes`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(r => r.json())
+      .then(res => setQuestoes(res.data || res.questoes || []))
+      .catch(() => {})
+      .finally(() => setLoadingQ(false));
+  }, [token]);
+
+  const totalQuestoes  = questoes.length;
+  const aprovadas      = questoes.filter(q => q.status_aprovacao === 'aprovada').length;
+  const taxaAprovacao  = totalQuestoes > 0 ? Math.round((aprovadas / totalQuestoes) * 100) : 0;
+  const pendentes      = questoes.filter(q => !q.status_aprovacao || q.status_aprovacao === 'pendente').length;
+
+  const DISCIPLINA_LABELS = { matematica: 'Matemática', programacao: 'Programação', ingles: 'Inglês' };
+  const NIVEIS_LABELS = {
+    estudante_universitario: 'Estudante universitário', tecnico: 'Técnico', licenciado: 'Licenciado',
+    mestre: 'Mestre', doutor: 'Doutor', professor: 'Professor', profissional: 'Profissional', outro: 'Outro',
+  };
+
+  const statusBadgeCls = {
+    pendente:  'bg-amber-100 text-amber-800',
+    aprovado:  'bg-green-100 text-green-800',
+    rejeitado: 'bg-red-100 text-red-700',
+  };
+
+  return (
+    <Layout>
+      <LogoutModal
+        isOpen={showLogout}
+        onConfirm={() => { setShowLogout(false); logout(); navigate('/login'); }}
+        onCancel={() => setShowLogout(false)}
+      />
+
+      <div className="max-w-3xl mx-auto px-4 py-8 flex flex-col gap-5">
+
+        {/* Hero card */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
+          <div className="flex items-start gap-5 flex-wrap">
+            <AvatarBlock src={avatarSrc} initials={initials} size={88} editMode={editMode} onFile={handleFile} />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl font-bold text-gray-900">
+                  {user.nome || user.name || 'Colaborador'}
+                </h1>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-teal-100 text-teal-800 rounded-full text-xs font-semibold">
+                  <GraduationCap size={11} /> Colaborador
+                </span>
+                {user.status_colaborador && (
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${statusBadgeCls[user.status_colaborador] || 'bg-gray-100 text-gray-600'}`}>
+                    {user.status_colaborador === 'aprovado' ? 'Aprovado' : user.status_colaborador === 'pendente' ? 'Pendente' : 'Suspenso'}
+                  </span>
+                )}
+              </div>
+              <p className="text-gray-400 text-sm mt-0.5">@{user.username || user.email?.split('@')[0]}</p>
+              {user.disciplina_colaborador && (
+                <p className="text-sm text-teal-600 font-medium mt-1 flex items-center gap-1">
+                  <Code size={13} /> {DISCIPLINA_LABELS[user.disciplina_colaborador] || user.disciplina_colaborador}
+                </p>
+              )}
+              {(user.biografia || user.bio) && !editMode && (
+                <p className="text-sm text-gray-600 mt-2 leading-relaxed max-w-lg">{user.biografia || user.bio}</p>
+              )}
+            </div>
+
+            <div className="flex gap-2 self-start">
+              {!editMode ? (
+                <>
+                  <button onClick={() => setEditMode(true)}
+                    className="flex items-center gap-1.5 px-4 py-2 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">
+                    <Edit2 size={13} /> Editar
+                  </button>
+                  <button onClick={() => setShowLogout(true)}
+                    className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 text-gray-500 rounded-xl text-sm hover:bg-gray-50 transition">
+                    <LogOut size={13} />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button onClick={onSave} disabled={saving}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50">
+                    <Save size={13} /> {saving ? 'A guardar…' : 'Guardar'}
+                  </button>
+                  <button onClick={cancelEdit} disabled={saving}
+                    className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 text-gray-500 rounded-xl text-sm hover:bg-gray-50 transition">
+                    <X size={13} />
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Formulário de edição */}
+          {editMode && (
+            <div className="mt-5 pt-5 border-t border-gray-100 grid gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Nome completo *</label>
+                  <input className={inputCls('nome')} value={form.nome}
+                    onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} />
+                  {formErrors.nome && <p className="text-xs text-red-500 mt-1">{formErrors.nome}</p>}
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">E-mail</label>
+                  <input className={inputCls('email')} type="email" value={form.email}
+                    onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
+                  {formErrors.email && <p className="text-xs text-red-500 mt-1">{formErrors.email}</p>}
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+                  Biografia profissional <span className="font-normal text-gray-400">({form.biografia.length}/300)</span>
+                </label>
+                <textarea className={`${inputCls('biografia')} resize-none`} rows={3}
+                  value={form.biografia} maxLength={300}
+                  onChange={e => setForm(p => ({ ...p, biografia: e.target.value }))}
+                  placeholder="Descreva a sua experiência…" />
+                {formErrors.biografia && <p className="text-xs text-red-500 mt-1">{formErrors.biografia}</p>}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Stats pedagógicas */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <StatCard icon={<BookMarked size={16} />} label="Questões criadas"  value={totalQuestoes}            colorClass="bg-teal-50 text-teal-600" />
+          <StatCard icon={<CheckSquare size={16} />} label="Taxa de aprovação" value={`${taxaAprovacao}%`}     colorClass="bg-green-50 text-green-600" />
+          <StatCard icon={<Clock size={16} />}       label="Pendentes"        value={pendentes}                colorClass="bg-amber-50 text-amber-600" />
+        </div>
+
+        {/* Dados académicos + identidade */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <SectionTitle>Dados Académicos e Profissionais</SectionTitle>
+          <div className="divide-y divide-gray-100">
+            <InfoRow icon={<User size={14} />}         label="Nome completo"      value={user.nome || user.name} />
+            <InfoRow icon={<Mail size={14} />}         label="E-mail"             value={user.email} />
+            <InfoRow icon={<GraduationCap size={14} />} label="Área de especialidade"
+              value={DISCIPLINA_LABELS[user.disciplina_colaborador] || user.disciplina_colaborador} />
+            <InfoRow icon={<BookOpen size={14} />}     label="Nível académico"
+              value={NIVEIS_LABELS[user.nivel_academico] || user.nivel_academico} />
+            <InfoRow icon={<Calendar size={14} />}     label="Colaborador desde"  value={joinDate} />
+            <InfoRow icon={<Shield size={14} />}       label="Estado da conta"
+              value={user.status_colaborador === 'aprovado' ? 'Aprovado pelo administrador' : user.status_colaborador} />
+          </div>
+        </div>
+
+        {/* Questões recentes */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <SectionTitle>Questões Submetidas</SectionTitle>
+          {loadingQ ? (
+            <div className="flex justify-center py-8">
+              <div className="w-7 h-7 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : questoes.length === 0 ? (
+            <div className="text-center py-10">
+              <BookMarked size={32} className="mx-auto text-gray-200 mb-2" />
+              <p className="text-sm text-gray-500">Ainda não submeteu questões.</p>
+              <button onClick={() => navigate('/colaborador/questoes')}
+                className="mt-3 px-4 py-2 bg-teal-600 text-white rounded-xl text-sm font-semibold hover:bg-teal-700 transition">
+                Criar questão
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="text-left text-xs font-semibold text-gray-400 pb-2 pr-4">Enunciado</th>
+                    <th className="text-left text-xs font-semibold text-gray-400 pb-2 pr-4">Dificuldade</th>
+                    <th className="text-left text-xs font-semibold text-gray-400 pb-2">Estado</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {questoes.slice(0, 8).map(q => (
+                    <tr key={q.id} className="hover:bg-gray-50">
+                      <td className="py-2.5 pr-4 max-w-[200px] truncate font-medium text-gray-800">
+                        {q.enunciado || q.texto_pergunta || `Questão #${q.id}`}
+                      </td>
+                      <td className="py-2.5 pr-4 capitalize text-gray-500 text-xs">
+                        {q.dificuldade || '—'}
+                      </td>
+                      <td className="py-2.5">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${statusBadgeCls[q.status_aprovacao] || 'bg-gray-100 text-gray-600'}`}>
+                          {q.status_aprovacao || 'pendente'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {questoes.length > 8 && (
+                <button onClick={() => navigate('/colaborador/questoes')}
+                  className="mt-3 text-sm text-teal-600 hover:underline font-medium flex items-center gap-1">
+                  Ver todas ({questoes.length}) <ChevronRight size={14} />
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+      </div>
+      <Toast type={toast.type} msg={toast.msg} onClose={() => setToast({ type: '', msg: '' })} />
+    </Layout>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
    MAIN COMPONENT
 ═══════════════════════════════════════════════════════════════ */
-export default function Perfil() {
-  const { user, token, login, logout } = useAuth();
+export default function Perfil() {  const { user, token, login, logout } = useAuth();
   const navigate = useNavigate();
 
   /* ── Tabs: perfil | historico | certificados ── */
@@ -293,16 +657,29 @@ export default function Perfil() {
     );
   }
 
+  // ─── Perfil do ADMINISTRADOR ─────────────────────────────────────────────
+  const isAdmin = user.isAdmin === true || user.isAdmin === 1 || user.role === 'admin';
+
+  // Calcular valores comuns (usados tanto no perfil de colaborador como de estudante)
   const avatarSrc = preview || user.avatar || user.imagem || null;
   const initials  = (user.nome || user.name || user.username || 'U').charAt(0).toUpperCase();
   const joinDate  = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' })
     : null;
-
   const inputCls = (field) =>
     `w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition
      ${formErrors[field] ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'}`;
 
+  if (isAdmin) {
+    return <AdminPerfilLayout user={user} token={token} onLogout={() => { logout(); navigate('/login'); }} navigate={navigate} />;
+  }
+
+  // ─── Perfil do COLABORADOR ───────────────────────────────────────────────
+  if (user.role === 'colaborador') {
+    return <ColaboradorPerfilLayout user={user} token={token} onSave={onSave} saving={saving} editMode={editMode} setEditMode={setEditMode} form={form} setForm={setForm} formErrors={formErrors} cancelEdit={cancelEdit} handleFile={handleFile} preview={preview} onLogout={() => { setShowLogout(true); }} navigate={navigate} toast={toast} setToast={setToast} showLogout={showLogout} setShowLogout={setShowLogout} logout={logout} inputCls={inputCls} avatarSrc={avatarSrc} initials={initials} joinDate={joinDate} />;
+  }
+
+  // ─── Perfil do ESTUDANTE (padrão) ─────────────────────────────────────────
   return (
     <Layout>
       <LogoutModal
