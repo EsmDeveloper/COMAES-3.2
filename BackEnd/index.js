@@ -64,6 +64,8 @@ import isNotColaborador from './middlewares/isNotColaborador.js';
 import { baseSanitizer } from './middlewares/security/sanitizer.js';
 import validate, { rules } from './middlewares/validate.js';
 import { startTorneioCron } from './services/torneioCron.js';
+import { registrarColaborador, suspenderColaborador, getDocumentosColaborador } from './controllers/colaboradorRegistroController.js';
+import { uploadColaboradorDocs, handleColaboradorUploadErrors } from './middlewares/security/colaboradorUpload.js';
 
 dotenv.config();
 
@@ -200,6 +202,19 @@ app.use('/api/admin', adminPanelRoutes);
 
 // Registrar rotas específicas para colaboradores
 app.use('/api/colaborador', colaboradorRoutes);
+
+// REGISTRO PÚBLICO DE COLABORADORES (com upload de documentos)
+// Endpoint separado do /auth/registro de estudantes para manter arquitetura limpa
+app.post(
+  '/auth/registro-colaborador',
+  uploadColaboradorDocs.array('documentos', 5),
+  handleColaboradorUploadErrors,
+  registrarColaborador
+);
+
+// ADMIN — documentos e suspensão de colaboradores
+app.get('/api/admin/colaboradores/:id/documentos', isAdmin, getDocumentosColaborador);
+app.patch('/api/admin/colaboradores/:id/suspender', isAdmin, suspenderColaborador);
 
 // Registrar rotas de certificados
 app.use('/api/certificates', certificatesRoutes);
@@ -489,7 +504,7 @@ app.post('/auth/login', validate(rules.login), async (req, res) => {
   }
 });
 
-// REGISTRO
+// REGISTRO DE ESTUDANTES (mantido intacto)
 app.post('/auth/registro', validate(rules.register), async (req, res) => {
   try {
     const nome = typeof req.body.nome === 'string' ? req.body.nome.trim() : '';

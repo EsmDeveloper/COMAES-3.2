@@ -10,10 +10,11 @@ import BlocoQuestoesManager from './BlocoQuestoesManager';
 import CertificadosTab from './CertificadosTab';
 import QuestoesPendentesTab from './QuestoesPendentesTab';
 import ColaboradoresPendentesTab from './ColaboradoresPendentesTab';
+import ColaboradoresTab from './ColaboradoresTab';
 import LogoutModal from '../components/LogoutModal';
 import { 
   BarChart3, Trophy, BookOpen, Users, Bell, Settings, 
-  Zap, FileText, X, Menu, UserCircle, LogOut, Clock
+  Zap, FileText, X, Menu, UserCircle, LogOut, Clock, GraduationCap
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -76,7 +77,8 @@ const AdminDashboard = () => {
       color: 'from-green-500 to-emerald-600',
       items: [
         { id: 'user', label: 'Gerenciar Usuários', icon: Users },
-        { id: 'colaboradores-pendentes', label: 'Pedidos de Colaboradores', icon: Clock }
+        { id: 'colaboradores-pendentes', label: 'Pedidos de Colaboradores', icon: Clock },
+        { id: 'colaboradores', label: 'Todos os Colaboradores', icon: GraduationCap }
         // REMOVIDO por alinhamento - 2026-05-26: funcao - CRUD genérico muito cru, sem matriz de permissões
       ]
     },
@@ -347,6 +349,8 @@ const AdminDashboard = () => {
                 <BlocoQuestoesManager />
               ) : activeTab === 'colaboradores-pendentes' ? (
                 <ColaboradoresPendentesTab />
+              ) : activeTab === 'colaboradores' ? (
+                <ColaboradoresTab />
               ) : activeTab === 'user' || activeTab === 'noticia' ? (
                 <TableManager table={activeTab} />
               ) : (

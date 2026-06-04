@@ -332,6 +332,8 @@ const updateUser = async (req, res) => {
     if (body.sexo      !== undefined) updateData.sexo      = body.sexo;
     if (body.escola    !== undefined) updateData.escola    = body.escola?.trim() || null;
     if (body.biografia !== undefined) updateData.biografia = body.biografia?.trim() || '';
+    if (body.username  !== undefined) updateData.username  = body.username?.trim() || null;
+    if (body.nivel_academico !== undefined) updateData.nivel_academico = body.nivel_academico || null;
     if (requestingUser?.isAdmin) {
       if (body.role !== undefined || body.isAdmin !== undefined) {
         const nextRole = body.isAdmin ? 'admin' : (body.role || (user.isAdmin ? 'admin' : user.role || 'estudante'));

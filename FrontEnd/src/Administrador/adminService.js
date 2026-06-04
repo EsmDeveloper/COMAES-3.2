@@ -69,7 +69,15 @@ const adminService = (token) => {
         
         // Rejeitar colaborador
         rejeitarColaborador: (id, { motivo = '' } = {}) =>
-            apiClient.patch(`users/${id}/rejeitar-colaborador`, { motivo }).then(res => res.data)
+            apiClient.patch(`users/${id}/rejeitar-colaborador`, { motivo }).then(res => res.data),
+
+        // Suspender colaborador
+        suspenderColaborador: (id) =>
+            apiClient.patch(`../colaboradores/${id}/suspender`).then(res => res.data),
+
+        // Obter documentos do colaborador
+        getDocumentos: (id) =>
+            apiClient.get(`../colaboradores/${id}/documentos`).then(res => res.data),
     };
 
     // proxy allows accessing services via property access (e.g. svc.users)
@@ -94,7 +102,9 @@ const adminService = (token) => {
         listarColaboradoresPendentes: colaboradorService.listarColaboradoresPendentes,
         listarColaboradores: colaboradorService.listarColaboradores,
         aprovarColaborador: colaboradorService.aprovarColaborador,
-        rejeitarColaborador: colaboradorService.rejeitarColaborador
+        rejeitarColaborador: colaboradorService.rejeitarColaborador,
+        suspenderColaborador: colaboradorService.suspenderColaborador,
+        getDocumentosColaborador: colaboradorService.getDocumentos,
     };
     // copy proxy getters onto result so you can do adminService(token).users or adminService(token).torneio
     return new Proxy(result, {

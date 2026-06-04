@@ -22,6 +22,17 @@ const Usuario = sequelize.define('Usuario', {
       }
     }
   },
+  username: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    unique: 'usuarios_username_unique',
+    validate: {
+      is: {
+        args: [/^[a-zA-Z0-9_-]{3,30}$/],
+        msg: 'O username pode conter apenas letras, números, _ e - (3-30 caracteres).'
+      }
+    }
+  },
   telefone: {
     type: DataTypes.STRING(20),
     allowNull: false,
@@ -89,6 +100,20 @@ const Usuario = sequelize.define('Usuario', {
   disciplina_colaborador: {
     type: DataTypes.ENUM('matematica', 'ingles', 'programacao'),
     allowNull: true,
+  },
+  nivel_academico: {
+    type: DataTypes.ENUM(
+      'estudante_universitario', 'tecnico', 'licenciado', 'mestre',
+      'doutor', 'professor', 'profissional', 'outro'
+    ),
+    allowNull: true,
+    comment: 'Nível académico/profissional do colaborador',
+  },
+  documentos_colaborador: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: null,
+    comment: 'Documentos enviados pelo colaborador',
   },
   status_colaborador: {
     type: DataTypes.ENUM('pendente', 'aprovado', 'rejeitado'),

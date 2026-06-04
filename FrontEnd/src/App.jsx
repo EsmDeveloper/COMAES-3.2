@@ -62,6 +62,7 @@ function AnimatedRoutes() {
         {/* ── ROTAS PÚBLICAS ─────────────────────────────────────────── */}
         <Route path="/login"          element={<PageTransition><AuthContainer /></PageTransition>} />
         <Route path="/cadastro"       element={<PageTransition><AuthContainer initialMode="cadastro" /></PageTransition>} />
+        <Route path="/cadastro-colaborador" element={<PageTransition><AuthContainer initialMode="colaborador" /></PageTransition>} />
         <Route path="/recuperar-senha" element={<PageTransition><Recuperar /></PageTransition>} />
         <Route path="/redefinir-senha" element={<PageTransition><ResetPasswordPage /></PageTransition>} />
         <Route path="/sobre-nos"      element={<PageTransition><Sobre /></PageTransition>} />

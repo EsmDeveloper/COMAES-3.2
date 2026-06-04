@@ -1,16 +1,25 @@
 ﻿import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth, getPostLoginRoute } from "../../context/AuthContext";
 import imgPreview from "../../assets/celebring.jpeg";
 import logotipo from "../../assets/logotipo.png";
 import { validateNome, validateEmail, validatePassword } from "../../utils/validators";
+import CollaboratorRegisterForm from "./CollaboratorRegisterForm";
+import ApprovalPending from "./ApprovalPending";
 
+// mode: "login" | "cadastro" | "colaborador" | "aprovacao-pendente"
 function AuthContainer({ initialMode = "login" }) {
   const { login, user } = useAuth();
   const navigate = useNavigate();
-  
-  // Estados para controle da transição
+
+  // Modo actual (pode ser alterado dinamicamente)
+  const [mode, setMode] = useState(initialMode);
+  // Dados do colaborador após registo bem-sucedido (para exibir na tela de aprovação)
+  const [pendingEmail, setPendingEmail] = useState('');
+
+  // isLogin mantido para compatibilidade com a animação desktop existente
   const [isLogin, setIsLogin] = useState(initialMode === "login");
   const [isAnimating, setIsAnimating] = useState(false);
   
@@ -38,6 +47,11 @@ function AuthContainer({ initialMode = "login" }) {
   const [cadastroTouched, setCadastroTouched] = useState({});
   const [isCadastroLoading, setIsCadastroLoading] = useState(false);
 
+  // Estados de visibilidade das senhas
+  const [showLoginSenha, setShowLoginSenha]           = useState(false);
+  const [showCadastroSenha, setShowCadastroSenha]     = useState(false);
+  const [showConfirmaSenha, setShowConfirmaSenha]     = useState(false);
+
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.includes(':3001')
     ? `http://${window.location.hostname}:3000`
     : (import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`);
@@ -64,7 +78,9 @@ function AuthContainer({ initialMode = "login" }) {
     setIsAnimating(true);
     
     setTimeout(() => {
-      setIsLogin(!isLogin);
+      const next = !isLogin;
+      setIsLogin(next);
+      setMode(next ? 'cadastro' : 'login');
       // Limpar erros ao trocar
       setLoginError("");
       setLoginErrors({});
@@ -72,6 +88,17 @@ function AuthContainer({ initialMode = "login" }) {
       setCadastroTouched({});
       setTimeout(() => setIsAnimating(false), 400);
     }, 400);
+  };
+
+  // Mudar para formulário de colaborador
+  const handleSwitchToColaborador = () => {
+    setMode('colaborador');
+  };
+
+  // Callback após registo de colaborador bem-sucedido
+  const handleColaboradorSuccess = (json) => {
+    setPendingEmail(json.data?.email || '');
+    setMode('aprovacao-pendente');
   };
 
   // ========== HANDLERS DO LOGIN ==========
@@ -331,6 +358,82 @@ function AuthContainer({ initialMode = "login" }) {
     return telefone;
   };
 
+  // ── Modos especiais (colaborador e aprovação pendente) ──────────
+  if (mode === 'aprovacao-pendente') {
+    return (
+      <ApprovalPending
+        email={pendingEmail}
+        onBackToLogin={() => { setMode('login'); setIsLogin(true); }}
+      />
+    );
+  }
+
+  if (mode === 'colaborador') {
+    return (
+      <div className="w-full min-h-screen bg-white text-black overflow-x-hidden">
+        {/* DESKTOP */}
+        <div className="hidden md:block relative w-full min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="flex w-full max-w-5xl mx-auto shadow-2xl rounded-2xl overflow-hidden min-h-[600px]">
+            {/* Painel lateral */}
+            <div className="w-2/5 bg-blue-600 flex flex-col items-center justify-center p-10 text-white">
+              <img src={imgPreview} alt="COMAES" className="w-full max-w-xs rounded-xl shadow-xl mb-6" />
+              <h2 className="text-2xl font-bold mb-2">Torne-se Colaborador</h2>
+              <p className="text-white/90 text-sm text-center leading-relaxed">
+                Partilhe o seu conhecimento com estudantes da COMAES. Crie questões, contribua para torneios e faça parte da nossa comunidade educativa.
+              </p>
+            </div>
+            {/* Formulário */}
+            <div className="flex-1 bg-white flex flex-col justify-center p-8 overflow-y-auto max-h-screen">
+              <div className="flex justify-center mb-5">
+                <img src={logotipo} alt="COMAES" className="h-16 w-auto" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-1">Candidatura a Colaborador</h3>
+              <p className="text-sm text-gray-500 mb-5">
+                Preencha os dados abaixo. A sua candidatura será analisada pelo administrador.
+              </p>
+              <CollaboratorRegisterForm
+                onSuccess={handleColaboradorSuccess}
+                onSwitchToLogin={() => { setMode('login'); setIsLogin(true); }}
+              />
+              <p className="mt-4 text-center text-sm text-gray-500">
+                Quer registar-se como estudante?{' '}
+                <button type="button" onClick={() => { setMode('cadastro'); setIsLogin(false); }}
+                  className="text-blue-600 font-semibold hover:underline">
+                  Criar conta de estudante
+                </button>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* MOBILE */}
+        <div className="md:hidden min-h-screen bg-white">
+          <div className="bg-blue-600 p-5 text-white text-center">
+            <img src={logotipo} alt="COMAES" className="h-10 w-auto mx-auto mb-1" />
+            <p className="text-white/90 text-sm">Candidatura a Colaborador</p>
+          </div>
+          <div className="px-4 py-6">
+            <div className="bg-white p-5 rounded-2xl shadow-lg border border-gray-200 max-w-md mx-auto">
+              <h3 className="text-lg font-bold text-gray-800 mb-1">Criar conta de colaborador</h3>
+              <p className="text-sm text-gray-500 mb-4">A sua candidatura será analisada pelo administrador.</p>
+              <CollaboratorRegisterForm
+                onSuccess={handleColaboradorSuccess}
+                onSwitchToLogin={() => { setMode('login'); setIsLogin(true); }}
+              />
+              <p className="mt-4 text-center text-sm text-gray-500">
+                Estudante?{' '}
+                <button type="button" onClick={() => { setMode('cadastro'); setIsLogin(false); }}
+                  className="text-blue-600 font-semibold hover:underline">
+                  Criar conta de estudante
+                </button>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full min-h-screen bg-white text-black overflow-x-hidden">
       {/* DESKTOP VERSION */}
@@ -410,15 +513,25 @@ function AuthContainer({ initialMode = "login" }) {
                   </div>
 
                   <div>
-                    <input
-                      type="password"
-                      name="senha"
-                      placeholder="Senha"
-                      value={loginForm.senha}
-                      onChange={handleLoginChange}
-                      className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                      disabled={isLoginLoading}
-                    />
+                    <div className="relative">
+                      <input
+                        type={showLoginSenha ? "text" : "password"}
+                        name="senha"
+                        placeholder="Senha"
+                        value={loginForm.senha}
+                        onChange={handleLoginChange}
+                        className="w-full p-3 pr-11 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                        disabled={isLoginLoading}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowLoginSenha(v => !v)}
+                        tabIndex={-1}
+                        className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600"
+                      >
+                        {showLoginSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                     {loginErrors.senha && (
                       <p className="text-red-600 text-sm mt-1">{loginErrors.senha}</p>
                     )}
@@ -613,35 +726,55 @@ function AuthContainer({ initialMode = "login" }) {
                   </div>
 
                   <div>
-                    <input
-                      type="password"
-                      name="senha"
-                      placeholder="Palavra Passe (ex: Senha@123)"
-                      value={cadastroForm.senha}
-                      onChange={handleCadastroChange}
-                      onBlur={handleCadastroBlur}
-                      className={`w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
-                        cadastroErrors.senha && cadastroTouched.senha ? 'border-red-500' : ''
-                      }`}
-                      disabled={isCadastroLoading}
-                    />
+                    <div className="relative">
+                      <input
+                        type={showCadastroSenha ? "text" : "password"}
+                        name="senha"
+                        placeholder="Palavra Passe (ex: Senha@123)"
+                        value={cadastroForm.senha}
+                        onChange={handleCadastroChange}
+                        onBlur={handleCadastroBlur}
+                        className={`w-full p-3 pr-11 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
+                          cadastroErrors.senha && cadastroTouched.senha ? 'border-red-500' : ''
+                        }`}
+                        disabled={isCadastroLoading}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCadastroSenha(v => !v)}
+                        tabIndex={-1}
+                        className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600"
+                      >
+                        {showCadastroSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                     {cadastroErrors.senha && cadastroTouched.senha && <p className="text-red-600 text-sm mt-1">{cadastroErrors.senha}</p>}
                     {isCadastroFieldValid('senha') && <p className="text-green-600 text-sm mt-1">✓ Senha forte</p>}
                   </div>
 
                   <div>
-                    <input
-                      type="password"
-                      name="confirmaSenha"
-                      placeholder="Confirmação da Palavra Passe"
-                      value={cadastroForm.confirmaSenha}
-                      onChange={handleCadastroChange}
-                      onBlur={handleCadastroBlur}
-                      className={`w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
-                        cadastroErrors.confirmaSenha && cadastroTouched.confirmaSenha ? 'border-red-500' : ''
-                      }`}
-                      disabled={isCadastroLoading}
-                    />
+                    <div className="relative">
+                      <input
+                        type={showConfirmaSenha ? "text" : "password"}
+                        name="confirmaSenha"
+                        placeholder="Confirmação da Palavra Passe"
+                        value={cadastroForm.confirmaSenha}
+                        onChange={handleCadastroChange}
+                        onBlur={handleCadastroBlur}
+                        className={`w-full p-3 pr-11 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
+                          cadastroErrors.confirmaSenha && cadastroTouched.confirmaSenha ? 'border-red-500' : ''
+                        }`}
+                        disabled={isCadastroLoading}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmaSenha(v => !v)}
+                        tabIndex={-1}
+                        className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600"
+                      >
+                        {showConfirmaSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                     {cadastroErrors.confirmaSenha && cadastroTouched.confirmaSenha && (
                       <p className="text-red-600 text-sm mt-1">{cadastroErrors.confirmaSenha}</p>
                     )}
@@ -672,6 +805,16 @@ function AuthContainer({ initialMode = "login" }) {
                     className="text-blue-600 font-semibold hover:underline focus:outline-none disabled:opacity-50"
                   >
                     Entrar
+                  </button>
+                </p>
+                <p className="mt-2 text-center text-xs text-gray-500">
+                  É professor ou profissional?{" "}
+                  <button
+                    type="button"
+                    onClick={handleSwitchToColaborador}
+                    className="text-blue-600 font-semibold hover:underline focus:outline-none"
+                  >
+                    Candidatar-se como colaborador
                   </button>
                 </p>
               </div>
@@ -759,15 +902,25 @@ function AuthContainer({ initialMode = "login" }) {
                 </div>
 
                 <div>
-                  <input
-                    type="password"
-                    name="senha"
-                    placeholder="Senha"
-                    value={loginForm.senha}
-                    onChange={handleLoginChange}
-                    className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    disabled={isLoginLoading}
-                  />
+                  <div className="relative">
+                    <input
+                      type={showLoginSenha ? "text" : "password"}
+                      name="senha"
+                      placeholder="Senha"
+                      value={loginForm.senha}
+                      onChange={handleLoginChange}
+                      className="w-full p-3 pr-11 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled={isLoginLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginSenha(v => !v)}
+                      tabIndex={-1}
+                      className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600"
+                    >
+                      {showLoginSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                   {loginErrors.senha && (
                     <p className="text-red-600 text-sm mt-1">{loginErrors.senha}</p>
                   )}
@@ -939,17 +1092,27 @@ function AuthContainer({ initialMode = "login" }) {
                 </div>
 
                 <div>
-                  <input
-                    type="password"
-                    name="senha"
-                    placeholder="Palavra Passe"
-                    value={cadastroForm.senha}
-                    onChange={handleCadastroChange}
-                    onBlur={handleCadastroBlur}
-                    className={`w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      cadastroErrors.senha && cadastroTouched.senha ? 'border-red-500' : ''
-                    }`}
-                  />
+                  <div className="relative">
+                    <input
+                      type={showCadastroSenha ? "text" : "password"}
+                      name="senha"
+                      placeholder="Palavra Passe"
+                      value={cadastroForm.senha}
+                      onChange={handleCadastroChange}
+                      onBlur={handleCadastroBlur}
+                      className={`w-full p-3 pr-11 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        cadastroErrors.senha && cadastroTouched.senha ? 'border-red-500' : ''
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCadastroSenha(v => !v)}
+                      tabIndex={-1}
+                      className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600"
+                    >
+                      {showCadastroSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                   {cadastroErrors.senha && cadastroTouched.senha && (
                     <p className="text-red-600 text-sm mt-1">{cadastroErrors.senha}</p>
                   )}
@@ -957,17 +1120,27 @@ function AuthContainer({ initialMode = "login" }) {
                 </div>
 
                 <div>
-                  <input
-                    type="password"
-                    name="confirmaSenha"
-                    placeholder="Confirmação da Palavra Passe"
-                    value={cadastroForm.confirmaSenha}
-                    onChange={handleCadastroChange}
-                    onBlur={handleCadastroBlur}
-                    className={`w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      cadastroErrors.confirmaSenha && cadastroTouched.confirmaSenha ? 'border-red-500' : ''
-                    }`}
-                  />
+                  <div className="relative">
+                    <input
+                      type={showConfirmaSenha ? "text" : "password"}
+                      name="confirmaSenha"
+                      placeholder="Confirmação da Palavra Passe"
+                      value={cadastroForm.confirmaSenha}
+                      onChange={handleCadastroChange}
+                      onBlur={handleCadastroBlur}
+                      className={`w-full p-3 pr-11 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        cadastroErrors.confirmaSenha && cadastroTouched.confirmaSenha ? 'border-red-500' : ''
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmaSenha(v => !v)}
+                      tabIndex={-1}
+                      className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600"
+                    >
+                      {showConfirmaSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                   {cadastroErrors.confirmaSenha && cadastroTouched.confirmaSenha && (
                     <p className="text-red-600 text-sm mt-1">{cadastroErrors.confirmaSenha}</p>
                   )}
@@ -998,6 +1171,16 @@ function AuthContainer({ initialMode = "login" }) {
                   Entrar
                 </button>
               </p>
+              <p className="mt-2 text-center text-xs text-gray-500">
+                É professor ou profissional?{" "}
+                <button
+                  type="button"
+                  onClick={handleSwitchToColaborador}
+                  className="text-blue-600 font-semibold hover:underline"
+                >
+                  Candidatar-se como colaborador
+                </button>
+              </p>
             </div>
           </div>
         </div>
@@ -1012,7 +1195,7 @@ function AuthContainer({ initialMode = "login" }) {
 }
 
 AuthContainer.propTypes = {
-  initialMode: PropTypes.oneOf(["login", "cadastro"]),
+  initialMode: PropTypes.oneOf(["login", "cadastro", "colaborador"]),
 };
 
 export default AuthContainer;
