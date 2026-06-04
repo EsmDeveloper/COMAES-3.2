@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import { useAuth, getPostLoginRoute } from "../../context/AuthContext";
 import imgPreview from "../../assets/celebring.jpeg";
@@ -85,8 +86,8 @@ function AuthContainer({ initialMode = "login" }) {
     setLoginError("");
     let newErrors = {};
 
-    if (!loginForm.usuario.trim()) newErrors.usuario = "Este campo � obrigat�rio";
-    if (!loginForm.senha.trim()) newErrors.senha = "Este campo � obrigat�rio";
+    if (!loginForm.usuario.trim()) newErrors.usuario = "Este campo é obrigatório";
+    if (!loginForm.senha.trim()) newErrors.senha = "Este campo é obrigatório";
 
     if (Object.keys(newErrors).length > 0) {
       setLoginErrors(newErrors);
@@ -321,7 +322,7 @@ function AuthContainer({ initialMode = "login" }) {
     }
   };
 
-  // Formatar telefone para exibi��o (opcional)
+  // Formatar telefone para exibição (opcional)
   const formatarTelefoneParaExibicao = (telefone) => {
     if (!telefone) return "";
     if (telefone.length === 9) {
@@ -1009,6 +1010,10 @@ function AuthContainer({ initialMode = "login" }) {
     </div>
   );
 }
+
+AuthContainer.propTypes = {
+  initialMode: PropTypes.oneOf(["login", "cadastro"]),
+};
 
 export default AuthContainer;
 

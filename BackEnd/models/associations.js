@@ -31,6 +31,7 @@ import QuestaoTesteConhecimento from "./QuestaoTesteConhecimento.js";
 import SequenciaAprendizagem from "./SequenciaAprendizagem.js";
 import Missao from "./Missao.js";
 import MissaoUsuario from "./MissaoUsuario.js";
+import Ranking from "./Ranking.js";
 
 // Flag para garantir que setupAssociations só é chamado uma vez
 let associationsConfigured = false;
@@ -209,10 +210,36 @@ export const setupAssociations = () => {
   Missao.hasMany(MissaoUsuario, { foreignKey: 'missao_id', as: 'progressos' });
   MissaoUsuario.belongsTo(Missao, { foreignKey: 'missao_id', as: 'missao' });
 
+  // ── Rankings Educacionais Gamificados ─────────────────────────────────────
+  try {
+    console.log('🔗 Configurando associação Ranking <-> Usuario...');
+    Usuario.hasMany(Ranking, { foreignKey: 'usuario_id', as: 'rankings' });
+    Ranking.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
+    console.log('   ✅ Associação Ranking <-> Usuario configurada');
+  } catch (error) {
+    console.error('   ❌ Erro ao configurar associação Ranking:', error.message);
+    console.log('   ⚠️ O modelo Ranking ainda não foi inicializado. Inicializando agora...');
+    
+    try {
+      // Tentar inicializar o modelo Ranking manualmente
+      const sequelize = Usuario.sequelize;
+      Ranking.init(sequelize);
+      Ranking.associate({ Usuario });
+      
+      Usuario.hasMany(Ranking, { foreignKey: 'usuario_id', as: 'rankings' });
+      Ranking.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
+      console.log('   ✅ Associação Ranking <-> Usuario configurada após inicialização');
+    } catch (initError) {
+      console.error('   ❌ Falha ao inicializar modelo Ranking:', initError.message);
+      console.log('   ⚠️ Contornando erro - continuando sem associação Ranking');
+    }
+  }
+
   associationsConfigured = true;
   console.log('✅ Associações Sequelize configuradas com sucesso!');
   console.log('   - Usuario <-> ParticipanteTorneio: ✅');
   console.log('   - ParticipanteTorneio <-> Torneio: ✅');
+  console.log('   - Rankings <-> Usuario: ✅');
   console.log('   - Todas as outras associações: ✅');
 };
 

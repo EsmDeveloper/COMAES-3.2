@@ -19,7 +19,7 @@
 import Usuario from '../models/User.js';
 
 // ── Tabela de limiares de XP (sincronizada com a tabela niveis no BD) ─────────
-const NIVEIS = [
+export const NIVEIS = [
   { numero: 1, xp_minimo: 0     },
   { numero: 2, xp_minimo: 200   },
   { numero: 3, xp_minimo: 500   },

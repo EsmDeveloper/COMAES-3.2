@@ -13,7 +13,7 @@ import ColaboradoresPendentesTab from './ColaboradoresPendentesTab';
 import LogoutModal from '../components/LogoutModal';
 import { 
   BarChart3, Trophy, BookOpen, Users, Bell, Settings, 
-  Zap, FileText, X, Menu, ArrowLeft, UserCircle, LogOut, Clock
+  Zap, FileText, X, Menu, UserCircle, LogOut, Clock
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -135,7 +135,7 @@ const AdminDashboard = () => {
     navigate('/login');
   };
 
-  const AvatarButton = ({ compact = false }) => (
+  const renderAvatarButton = (compact = false) => (
     <div className="relative">
       <button
         type="button"
@@ -244,7 +244,7 @@ const AdminDashboard = () => {
 
         {/* Sidebar Footer - Dados dinâmicos do usuário */}
         <div className="border-t border-slate-200 p-6 flex-shrink-0 bg-white">
-          <AvatarButton />
+          {renderAvatarButton()}
         </div>
       </div>
 
@@ -318,7 +318,7 @@ const AdminDashboard = () => {
 
             <div className="flex items-center gap-4">
               <div className="md:hidden">
-                <AvatarButton compact />
+                {renderAvatarButton(true)}
               </div>
               
               {/* O admin não navega para o ambiente do estudante — botão removido intencionalmente.

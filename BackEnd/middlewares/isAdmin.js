@@ -6,7 +6,7 @@ import Funcao from '../models/Funcao.js';
 // The logic first tries to rely on the jwt payload (fast path) and
 // then falls back to a database lookup so that role/flag changes
 // take effect immediately without requiring the user to re‑login.
-const isAdmin = async (req, res, next) => {
+export const isAdmin = async (req, res, next) => {
   const authHeader = req.headers['authorization'] || '';
   const token = authHeader.split(' ')[1];
 

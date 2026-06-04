@@ -20,8 +20,6 @@ import {
   Info,
   Lock,
   Layers,
-  Plus,
-  X as XIcon,
 } from 'lucide-react';
 import { TournamentValidation } from '../utils/TournamentValidation';
 import BlocosService from '../services/BlocosService';
@@ -274,7 +272,7 @@ export default function TournamentForm({
 
     console.log('[TournamentForm] Enviando payload:', payload);
     onSubmit(payload);
-  }, [formData, mode, minDateTime, onSubmit]);
+  }, [formData, mode, minDateTime, onSubmit, blocosAssociados]);
 
   // ============================================
   // RENDERIZAR CAMPO DE INPUT

@@ -834,12 +834,7 @@ function Dashboard() {
             display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6,
             position: 'relative',
           }}>
-            {/* Card de nível com barra — exibido no hero do dashboard */}
-            {nivel && (
-              <div style={{ marginBottom: 4 }}>
-                <NivelBadge nivelObj={nivel} xpTotal={xpTotal} showBar />
-              </div>
-            )}
+            {/* ID do Usuário - mantido */}
             <div style={{
               background: 'rgba(255,255,255,0.15)', borderRadius: 10,
               padding: '10px 16px', backdropFilter: 'blur(8px)',

@@ -31,6 +31,7 @@ import Nivel from "./models/Nivel.js";
 import SequenciaAprendizagem from "./models/SequenciaAprendizagem.js";
 import Missao from "./models/Missao.js";
 import MissaoUsuario from "./models/MissaoUsuario.js";
+import Ranking from "./models/Ranking.js";
 
 // ===== CONFIGURAR ASSOCIA��ES ANTES DE IMPORTAR ROTAS =====
 // CR�TICO: Este import deve vir ANTES das rotas para garantir que
@@ -54,6 +55,7 @@ import blocosRoutes, { torneiBlocosRouter } from './routes/blocosRoutes.js';
 import nivelRoutes from './routes/nivelRoutes.js';
 import streakRoutes from './routes/streakRoutes.js';
 import { missoesRouter, dashboardGamificacaoRouter } from './routes/missoesRoutes.js';
+import rankingRoutes from './routes/rankingRoutes.js';
 import { sendResetEmail, sendWelcomeEmail } from './services/emailService.js';
 import { setIO } from './services/socketService.js';
 import auth from './middlewares/auth.js';
@@ -239,6 +241,9 @@ app.use('/api/usuarios', streakRoutes);
 // Registrar rotas de missões e dashboard agregado de gamificação
 app.use('/api/missoes', missoesRouter);
 app.use('/api/usuarios', dashboardGamificacaoRouter);
+
+// Registrar rotas de rankings educacionais gamificados
+app.use('/api/rankings', rankingRoutes);
 
 // Registrar rotas de suporte (chat IA + tickets)
 app.use('/api/support', supportRoutes);
@@ -2351,11 +2356,30 @@ async function startServer() {
       io = null;
     }
 
+    // Iniciar cron jobs do sistema de rankings
+    try {
+      const { iniciarCronJobsRanking } = await import('./scripts/rankingCron.js');
+      iniciarCronJobsRanking();
+      console.log('✅ Cron jobs do sistema de rankings iniciados');
+    } catch (error) {
+      console.warn('⚠️ Não foi possível iniciar cron jobs de ranking:', error.message);
+    }
+
+    // Configurar hooks automáticos de ranking
+    try {
+      const { setupRankingHooks } = await import('./middlewares/rankingEvents.js');
+      setupRankingHooks(app);
+      console.log('✅ Hooks automáticos de ranking configurados');
+    } catch (error) {
+      console.warn('⚠️ Não foi possível configurar hooks de ranking:', error.message);
+    }
+
     server.listen(port, '0.0.0.0', () => {
       console.log(`🚀 Servidor rodando: http://0.0.0.0:${port}`);
       console.log(`📡 Health: http://localhost:${port}/health`);
       console.log(`🏆 Torneio Ativo: http://localhost:${port}/api/torneios/ativo`);
       console.log(`📊 Dashboard: http://localhost:${port}/api/torneios/dashboard`);
+      console.log(`🏅 Rankings: http://localhost:${port}/api/rankings/public`);
       console.log(`🐛 Debug Torneios: http://localhost:${port}/api/debug/torneios`);
     });
   } catch (error) {

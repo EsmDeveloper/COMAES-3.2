@@ -25,7 +25,9 @@ import Suporte from "./Paginas/Secundarias/Suporte";
 import Teste from "./Paginas/Secundarias/Teste";
 import Ranking from "./Paginas/Secundarias/Ranking";
 import RankingCompleto from "./Paginas/Secundarias/RankingCompleto";
+import RankingGlobal from "./Paginas/Secundarias/RankingGlobal";
 import NotificacoesPage from "./Paginas/Secundarias/NotificacoesPage";
+import MinhaJornada from "./Paginas/Secundarias/MinhaJornada";
 
 import MatematicaOriginal from "./Paginas/Tercearios.jsx/ModeloOriginal/MatematicaOriginal";
 import ProgramacaoOriginal from "./Paginas/Tercearios.jsx/ModeloOriginal/ProgramacaoOriginal";
@@ -110,6 +112,12 @@ function AnimatedRoutes() {
         />
         <Route path="/ranking"
           element={<ProtectedEstudanteRoute><PageTransition><Ranking /></PageTransition></ProtectedEstudanteRoute>}
+        />
+        <Route path="/ranking-global"
+          element={<PageTransition><RankingGlobal /></PageTransition>}
+        />
+        <Route path="/minha-jornada"
+          element={<ProtectedEstudanteRoute><PageTransition><MinhaJornada /></PageTransition></ProtectedEstudanteRoute>}
         />
         <Route path="/ranking/:tournamentId"
           element={<ProtectedEstudanteRoute><PageTransition><RankingCompleto /></PageTransition></ProtectedEstudanteRoute>}

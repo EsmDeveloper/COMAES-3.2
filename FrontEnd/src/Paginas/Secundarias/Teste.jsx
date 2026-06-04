@@ -262,7 +262,7 @@ export default function Teste() {
       try {
         const res = await fetch(`${API_BASE}/api/questoes/quiz/${area}?limit=20`);
         const json = await res.json();
-        if (json.success) setAreaCounts(prev => ({ ...prev, [area]: json.total }));
+        if (json.success) setAreaCounts(prev => ({ ...prev, [area]: json.data?.length || 0 }));
       } catch {
         setAreaCounts(prev => ({ ...prev, [area]: 0 }));
       }
@@ -428,7 +428,24 @@ export default function Teste() {
         setLoadingQuiz(false);
         return;
       }
-      setQuestions(json.data);
+      
+      // Mapear dados da API para formato esperado pelo frontend
+      const questoesMapeadas = json.data.map(q => ({
+        id: q.id,
+        enunciado: q.texto_pergunta || q.enunciado || '',  // Mapear texto_pergunta para enunciado
+        opcao_a: q.opcao_a,
+        opcao_b: q.opcao_b,
+        opcao_c: q.opcao_c,
+        opcao_d: q.opcao_d,
+        resposta_correta: q.resposta_correta || q.respostaCorreta || '',
+        pontos: q.pontos || 10,
+        dificuldade: q.dificuldade || 'medio',
+        tipo: q.tipo,
+        // Criar array opcoes para compatibilidade
+        opcoes: [q.opcao_a, q.opcao_b, q.opcao_c, q.opcao_d].filter(Boolean)
+      }));
+      
+      setQuestions(questoesMapeadas);
     } catch {
       setQuizError('Erro ao carregar questões. Verifica a ligação ao servidor.');
     } finally {
