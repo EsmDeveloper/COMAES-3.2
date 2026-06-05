@@ -241,6 +241,7 @@ const TableManager = ({ table }) => {
     const [selectedItem, setSelectedItem] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [tableInfo, setTableInfo] = useState(null);
+    const [userTypeFilter, setUserTypeFilter] = useState('todos');
     const pkField = useMemo(() => {
         if (!tableInfo || !tableInfo.columns) return 'id';
         return tableInfo.columns.includes('id') ? 'id' : tableInfo.columns[0];
@@ -410,6 +411,14 @@ const TableManager = ({ table }) => {
     const filteredData = data.filter(item => {
         // Admin secundário não vê o admin master (id=1) na lista
         if (isUserTable && !isMasterAdmin && String(item.id) === '1') return false;
+        
+        // Aplicar filtro de tipo de usuário
+        if (isUserTable && userTypeFilter !== 'todos') {
+            if (userTypeFilter === 'estudante' && (item.isAdmin || item.role === 'admin' || item.role === 'colaborador')) return false;
+            if (userTypeFilter === 'colaborador' && item.role !== 'colaborador') return false;
+            if (userTypeFilter === 'admin' && !item.isAdmin && item.role !== 'admin') return false;
+        }
+        
         return Object.values(item).some(value =>
             String(value).toLowerCase().includes(searchTerm.toLowerCase())
         );
@@ -457,6 +466,24 @@ const TableManager = ({ table }) => {
                             className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md"
                         />
                     </div>
+                    {/* Filtro de tipo de usuário - apenas para tabela de usuários */}
+                    {isUserTable && (
+                        <div className="w-full sm:w-auto">
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                Filtrar por tipo
+                            </label>
+                            <select
+                                value={userTypeFilter}
+                                onChange={(e) => setUserTypeFilter(e.target.value)}
+                                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md bg-white"
+                            >
+                                <option value="todos">Todos os tipos</option>
+                                <option value="estudante">Estudante</option>
+                                <option value="colaborador">Professor/Colaborador</option>
+                                <option value="admin">Administrador</option>
+                            </select>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -565,7 +592,7 @@ const TableManager = ({ table }) => {
             )}
 
             {/* Modal */}
-            {showModal && (table === 'user' || table === 'users') ? (
+            {showModal && (table === 'user' || table === 'users') && (
                 <UserModal
                     mode={modalMode}
                     item={selectedItem}
@@ -573,7 +600,8 @@ const TableManager = ({ table }) => {
                     onClose={handleModalClose}
                     onSubmit={handleModalSubmit}
                 />
-            ) : showModal ? (
+            )}
+            {showModal && table !== 'user' && table !== 'users' && (
                 <TableModal
                     mode={modalMode}
                     item={selectedItem}
@@ -581,7 +609,7 @@ const TableManager = ({ table }) => {
                     onClose={handleModalClose}
                     onSubmit={handleModalSubmit}
                 />
-            ) : null}
+            )}
         </div>
     );
 };
