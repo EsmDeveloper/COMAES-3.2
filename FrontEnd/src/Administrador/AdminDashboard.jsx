@@ -7,10 +7,13 @@ import AdminStats from './AdminStats';
 import TorneiosTab from './TorneiosTab';
 import NotificationsTab from './NotificationsTab';
 import BlocoQuestoesManager from './BlocoQuestoesManager';
+import QuestoesBlocosUnificadas from './QuestoesBlocosUnificadas';
 import CertificadosTab from './CertificadosTab';
 import QuestoesPendentesTab from './QuestoesPendentesTab';
 import ColaboradoresPendentesTab from './ColaboradoresPendentesTab';
 import ColaboradoresTab from './ColaboradoresTab';
+import BlocosColaboradoresTab from './BlocosColaboradoresTab';
+import QuestionsColaboradorPendentesTab from './QuestionsColaboradorPendentesTab';
 import LogoutModal from '../components/LogoutModal';
 import { 
   BarChart3, Trophy, BookOpen, Users, Bell, Settings, 
@@ -65,7 +68,7 @@ const AdminDashboard = () => {
       icon: BookOpen,
       color: 'from-purple-500 to-pink-600',
       items: [
-        { id: 'questoes', label: 'Questões (Torneios)', icon: BookOpen },
+        { id: 'blocos-questoes', label: 'Blocos de Questões', icon: BookOpen },
         { id: 'questoes-pendentes', label: 'Revisar Questões', icon: FileText },
         { id: 'teste-conhecimento', label: 'Teste de Conhecimento', icon: FileText }
       ]
@@ -341,8 +344,8 @@ const AdminDashboard = () => {
                 <CertificadosTab />
               ) : activeTab === 'notificacao' ? (
                 <NotificationsTab token={token} />
-              ) : activeTab === 'questoes' ? (
-                <BlocoQuestoesManager />
+              ) : activeTab === 'blocos-questoes' ? (
+                <QuestoesBlocosUnificadas />
               ) : activeTab === 'questoes-pendentes' ? (
                 <QuestoesPendentesTab />
               ) : activeTab === 'teste-conhecimento' ? (
