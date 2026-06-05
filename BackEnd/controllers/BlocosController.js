@@ -91,7 +91,7 @@ export const listarBlocos = async (req, res) => {
  */
 export const criarBloco = async (req, res) => {
   try {
-    const { titulo, descricao, disciplina, dificuldade, status = 'rascunho' } = req.body;
+    const { titulo, descricao, disciplina, dificuldade, status } = req.body;
 
     if (!titulo?.trim()) return err(res, 'Título é obrigatório');
     if (!disciplina) return err(res, 'Disciplina é obrigatória');
@@ -99,22 +99,25 @@ export const criarBloco = async (req, res) => {
 
     const disciplinasValidas = ['matematica', 'ingles', 'programacao'];
     const dificuldadesValidas = ['facil', 'medio', 'dificil'];
+    const statusValidos = ['rascunho', 'publicado'];
 
     if (!disciplinasValidas.includes(disciplina))
       return err(res, `Disciplina inválida. Use: ${disciplinasValidas.join(', ')}`);
     if (!dificuldadesValidas.includes(dificuldade))
       return err(res, `Dificuldade inválida. Use: ${dificuldadesValidas.join(', ')}`);
+    if (status && !statusValidos.includes(status))
+      return err(res, `Status inválido. Use: ${statusValidos.join(', ')}`);
 
     const bloco = await BlocoQuestoes.create({
       titulo: titulo.trim(),
       descricao: descricao?.trim() || null,
       disciplina,
       dificuldade,
-      status,
+      status: status || 'rascunho',
       criado_por: req.user.id,
     });
 
-    console.log(`✅ Bloco criado: ID ${bloco.id} — "${bloco.titulo}"`);
+    console.log(`✅ Bloco criado: ID ${bloco.id} — "${bloco.titulo}" (status: ${bloco.status})`);
     return ok(res, { ...bloco.toJSON(), total_questoes: 0 }, 'Bloco criado com sucesso', 201);
   } catch (error) {
     console.error('❌ Erro ao criar bloco:', error);

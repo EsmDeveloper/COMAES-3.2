@@ -49,6 +49,29 @@ const BlocoQuestoes = sequelize.define('BlocoQuestoes', {
     type: DataTypes.ENUM('rascunho', 'publicado'),
     allowNull: false,
     defaultValue: 'rascunho',
+    comment: 'Status de publicação do bloco: rascunho (não publicado), publicado (pronto para usar em torneios)',
+  },
+  aprovado_por_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: { model: 'usuarios', key: 'id' },
+    onDelete: 'SET NULL',
+    comment: 'ID do admin que aprovou o bloco',
+  },
+  data_aprovacao: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: 'Data e hora da aprovação',
+  },
+  motivo_rejeicao: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'Motivo da rejeição (se aplicável)',
+  },
+  observacoes_admin: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'Observações do admin sobre o bloco',
   },
   criado_por: {
     type: DataTypes.INTEGER,
@@ -66,6 +89,7 @@ const BlocoQuestoes = sequelize.define('BlocoQuestoes', {
     { fields: ['dificuldade'] },
     { fields: ['status'] },
     { fields: ['criado_por'] },
+    { fields: ['aprovado_por_id'] },
   ],
 });
 
