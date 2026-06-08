@@ -1,6 +1,9 @@
 import React from 'react';
 import Layout from './Layout';
-import { Zap, Globe, CheckCircle, Sparkles, ArrowRight } from 'lucide-react';
+import { Zap, Globe, CheckCircle, Sparkles } from 'lucide-react';
+import cornelioImg from '../../assets/cornelio.jpg';
+import esmImg from '../../assets/esm.png';
+import maricheImg from '../../assets/mariche.png';
 
 /* ─── Design tokens ──────────────────────────────────────────── */
 const t = {
@@ -42,7 +45,7 @@ const founders = [
     name: 'Cornélio Mbongo',
     role: 'Arquiteto de Sistemas',
     description: 'Especialista em backend e arquitetura de dados, responsável por construir a base robusta e escalável que sustenta toda a plataforma.',
-    img: 'https://nappy.co/photo/N_Ayxnji-zQ9w0r_QKQj5',
+    img: cornelioImg,
     accent: t.primary,
     soft: t.primarySoft,
   },
@@ -50,7 +53,7 @@ const founders = [
     name: 'Esménio Manuel',
     role: 'Designer de Experiência',
     description: 'Com foco na UX e no design de interfaces, moldou a jornada visual e interativa que torna o aprendizado no COMAES envolvente e intuitivo.',
-    img: 'https://nappy.co/photo/wd7DvPDbBGNmhFy-qQ_qY',
+    img: esmImg,
     accent: t.purple,
     soft: t.purpleSoft,
   },
@@ -58,23 +61,25 @@ const founders = [
     name: 'José Mariche',
     role: 'Especialista em Conteúdo',
     description: 'Pedagogo e pesquisador que desenvolveu a metodologia dos testes, garantindo a qualidade e relevância acadêmica de todo o conteúdo.',
-    img: 'https://nappy.co/photo/etcnq-2iS4xaqRQ3SQWvj',
+    img: maricheImg,
     accent: t.success,
     soft: t.successSoft,
   },
 ];
 
 const timeline = [
-  { num: '01', title: 'O Início',    text: 'Fundado em 2023 por estudantes universitários que identificaram a necessidade de uma plataforma prática para testar conhecimentos acadêmicos.', accent: t.primary },
+  { num: '01', title: 'O Início',    text: 'Fundado em 2025 por estudantes universitários que identificaram a necessidade de uma plataforma prática para testar conhecimentos acadêmicos.', accent: t.primary },
   { num: '02', title: 'Crescimento', text: 'Em menos de um ano, alcançamos milhares de usuários em diversas universidades, expandindo para múltiplas áreas do conhecimento.',              accent: t.purple  },
   { num: '03', title: 'Hoje',        text: 'Continuamos inovando, adicionando novos recursos e mantendo nosso compromisso com a educação acessível e de qualidade.',                      accent: t.success },
 ];
 
 const values = [
-  { title: 'Acessibilidade', desc: 'Educação gratuita e de qualidade para todos',                    accent: t.primary },
-  { title: 'Inovação',       desc: 'Sempre buscando novas formas de melhorar a aprendizagem',        accent: t.purple  },
-  { title: 'Comunidade',     desc: 'Juntos aprendemos mais e melhor',                                accent: t.success },
-  { title: 'Qualidade',      desc: 'Conteúdo rigoroso e atualizado constantemente',                  accent: t.amber   },
+  { title: 'Autoconhecimento', desc: 'Ajudar o estudante a reconhecer o seu real potencial, identificando forças e áreas de melhoria.', accent: t.primary },
+  { title: 'Inovação Pedagógica', desc: 'Utilizar IA, gamificação e avaliação prática para ir além das perguntas de escolha múltipla.', accent: t.purple },
+  { title: 'Supervisão e Credibilidade', desc: 'Todo conteúdo pedagógico passa por revisão administrativa antes de ser disponibilizado.', accent: t.success },
+  { title: 'Inclusão Digital', desc: 'Interface responsiva, acessível e pensada para a realidade angolana (inclusive zonas com conectividade limitada).', accent: t.amber },
+  { title: 'Transparência', desc: 'Feedback claro e detalhado gerado por IA, com possibilidade de supervisão humana.', accent: t.red },
+  { title: 'Excelência Técnica', desc: 'Utilizar tecnologias modernas (React, Node, MySQL) e boas práticas de engenharia de software.', accent: t.primary },
 ];
 
 /* ─── Section header helper ──────────────────────────────────── */
@@ -188,11 +193,23 @@ export default function About() {
               <div key={f.name} className="card-hover" style={{  ...card, padding: '28px 22px', textAlign: 'center'  }}>
                 {/* Avatar */}
                 <div style={{  position: 'relative', display: 'inline-block', marginBottom: 16  }}>
-                  <img src={f.img} alt={f.name} style={{ 
-                    width: 84, height: 84, borderRadius: '50%', objectFit: 'cover',
-                    border: `3px solid ${t.surface}`,
-                    boxShadow: `0 0 0 3px ${f.accent}30`,
-                   }} />
+                  <img 
+                    src={f.img} 
+                    alt={f.name} 
+                    style={{ 
+                      width: 84, height: 84, borderRadius: '50%', objectFit: 'cover',
+                      border: `3px solid ${t.surface}`,
+                      boxShadow: `0 0 0 3px ${f.accent}30`,
+                    }}
+                    onError={(e) => {
+                      e.target.style.background = f.soft;
+                      e.target.style.display = 'flex';
+                      e.target.style.alignItems = 'center';
+                      e.target.style.justifyContent = 'center';
+                      e.target.style.fontSize = '28px';
+                      e.target.innerHTML = '👤';
+                    }}
+                  />
                 </div>
                 <h3 style={{  fontSize: 16, fontWeight: 800, color: t.text, marginBottom: 4  }}>{f.name}</h3>
                 <div style={{ 
@@ -204,13 +221,7 @@ export default function About() {
                   {f.role}
                 </div>
                 <p style={{  fontSize: 13, color: t.muted, lineHeight: 1.65, marginBottom: 16  }}>{f.description}</p>
-                <a href="#" style={{ 
-                  display: 'inline-flex', alignItems: 'center', gap: 5,
-                  fontSize: 13, fontWeight: 600, color: f.accent,
-                  textDecoration: 'none',
-                 }}>
-                  Conhecer mais <ArrowRight size={12} />
-                </a>
+                
               </div>
             ))}
           </div>
@@ -283,6 +294,19 @@ export default function About() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* ── Diferencial Central ── */}
+        <div className="anim" style={{  marginBottom: 36, animationDelay: '210ms'  }}>
+          <div style={{  ...card, padding: '36px 40px', background: `linear-gradient(135deg, ${t.purpleSoft} 0%, ${t.primarySoft} 100%)`, border: `2px solid ${t.purple}` }}>
+            <div style={{  display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16  }}>
+              <div style={{  fontSize: 32  }}>🧠</div>
+              <h2 style={{  fontSize: 20, fontWeight: 800, color: t.text  }}>Diferencial Central</h2>
+            </div>
+            <p style={{  fontSize: 15, color: t.muted, lineHeight: 1.8, maxWidth: 600  }}>
+              A COMAES não é apenas uma plataforma de competições – é um <strong>"espelho" para o estudante descobrir o seu potencial</strong>, aliando tecnologia, pedagogia e inteligência artificial.
+            </p>
           </div>
         </div>
 
