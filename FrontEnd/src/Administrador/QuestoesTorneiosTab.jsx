@@ -139,6 +139,48 @@ const QuestoesTorneiosTab = () => {
     }
   };
 
+  // ✅ Editar Questão
+  const handleEditarQuestao = (questao) => {
+    setQuestaoSelecionada(questao);
+    setModalEditarAberto(true);
+  };
+
+  // ✅ Salvar Edição da Questão
+  const handleSalvarEdicaoQuestao = async (dadosEditados) => {
+    if (!questaoSelecionada) return;
+    
+    setSalvando(true);
+    try {
+      const token = localStorage.getItem('comaes_token');
+      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+      
+      const response = await fetch(`${apiBase}/api/questoes/${questaoSelecionada.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dadosEditados)
+      });
+
+      if (response.ok) {
+        showFeedback('success', `✅ Questão atualizada!`);
+        setModalEditarAberto(false);
+        setQuestaoSelecionada(null);
+        setTimeout(() => {
+          fetchQuestoesIndividuais();
+        }, 1500);
+      } else {
+        const errorData = await response.json();
+        showFeedback('error', `❌ Erro: ${errorData?.mensagem || 'Erro ao editar'}`);
+      }
+    } catch (error) {
+      showFeedback('error', `❌ Erro: ${error.message}`);
+    } finally {
+      setSalvando(false);
+    }
+  };
+
   // ✅ Deletar Questão
   const handleDeletarQuestao = async () => {
     if (!questaoSelecionada) return;
@@ -354,7 +396,7 @@ const QuestoesTorneiosTab = () => {
                                 <Layers className="w-4 h-4" />
                               </button>
                               <button 
-                                onClick={() => setModalEditarAberto(true)}
+                                onClick={() => handleEditarQuestao(questao)}
                                 className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors" 
                                 title="Editar"
                               >
@@ -456,6 +498,105 @@ const QuestoesTorneiosTab = () => {
             >
               Cancelar
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Editar Questão */}
+      {modalEditarAberto && questaoSelecionada && (
+        <div className="fixed inset-0 top-0 left-0 w-full h-screen bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full my-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <Edit2 className="w-5 h-5 text-blue-600" />
+                Editar Questão
+              </h2>
+              <button
+                onClick={() => {
+                  setModalEditarAberto(false);
+                  setQuestaoSelecionada(null);
+                }}
+                className="p-1 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-6 h-6 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Título */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Título</label>
+                <textarea
+                  defaultValue={questaoSelecionada.titulo}
+                  onChange={(e) => {
+                    questaoSelecionada.titulo = e.target.value;
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={4}
+                />
+              </div>
+
+              {/* Disciplina */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Disciplina</label>
+                <select
+                  defaultValue={questaoSelecionada.disciplina}
+                  onChange={(e) => {
+                    questaoSelecionada.disciplina = e.target.value;
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option>MATEMATICA</option>
+                  <option>PORTUGUES</option>
+                  <option>HISTORIA</option>
+                  <option>GEOGRAFIA</option>
+                  <option>CIENCIAS</option>
+                  <option>INGLES</option>
+                </select>
+              </div>
+
+              {/* Dificuldade */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Dificuldade</label>
+                <select
+                  defaultValue={questaoSelecionada.dificuldade}
+                  onChange={(e) => {
+                    questaoSelecionada.dificuldade = e.target.value;
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="facil">Fácil</option>
+                  <option value="medio">Médio</option>
+                  <option value="dificil">Difícil</option>
+                </select>
+              </div>
+
+              {/* Botões */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => {
+                    setModalEditarAberto(false);
+                    setQuestaoSelecionada(null);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => {
+                    handleSalvarEdicaoQuestao({
+                      titulo: questaoSelecionada.titulo,
+                      disciplina: questaoSelecionada.disciplina,
+                      dificuldade: questaoSelecionada.dificuldade
+                    });
+                  }}
+                  disabled={salvando}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {salvando ? 'Salvando...' : 'Salvar'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
