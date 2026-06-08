@@ -87,11 +87,14 @@ const QuestoesTestesTab = () => {
       }
       
       const data = await response.json();
-      const blocosData = data.dados || data.data || [];
+      // O backend retorna: { blocos: Array, total: number, page: number, limit: number, totalPages: number }
+      // ou: { data: { ... } } ou { dados: [...] }
+      const blocosData = data.blocos || data.data?.blocos || data.dados || data.data || [];
       
       // Validar que é um array
       if (!Array.isArray(blocosData)) {
         console.warn('⚠️ blocosData não é um array:', typeof blocosData, blocosData);
+        console.warn('📋 Resposta completa:', data);
         setBlocos([]);
         return;
       }

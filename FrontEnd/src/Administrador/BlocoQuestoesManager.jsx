@@ -522,15 +522,23 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
           console.log(`📋 Resposta do backend:`, res);
           
           // ✅ Acessar blocos corretamente da resposta
-          const blocosBackend = res.data?.blocos || res.blocos || [];
+          // O backend pode retornar em vários formatos:
+          // 1. { blocos: Array, total, page, ... } - direto
+          // 2. { data: { blocos: Array } } - aninhado em data
+          // 3. { dados: [...] } - direto como array em dados
+          // 4. { data: [...] } - direto como array em data
+          const blocosBackend = res?.blocos || res?.data?.blocos || res?.dados || res?.data || [];
           console.log(`📋 Blocos extraídos:`, blocosBackend);
           
-          if (blocosBackend.length > 0) {
-            dispatch({ type: 'SET_BLOCOS', payload: blocosBackend });
+          // Se ainda não é um array, tenta verificar se é array diretamente
+          const blocoArray = Array.isArray(blocosBackend) ? blocosBackend : [];
+          
+          if (blocoArray.length > 0) {
+            dispatch({ type: 'SET_BLOCOS', payload: blocoArray });
             
             // Carregar questões para cada bloco (evitar N+1)
             const questoesMap = new Map();
-            for (const bloco of blocosBackend) {
+            for (const bloco of blocoArray) {
               if (bloco.questoes && bloco.questoes.length > 0) {
                 bloco.questoes.forEach(q => questoesMap.set(q.id, q));
               }
@@ -539,7 +547,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
             if (questoesUnicas.length > 0) {
               dispatch({ type: 'SET_QUESTOES', payload: questoesUnicas });
             }
-            console.log(`✅ Blocos carregados com sucesso do backend:`, blocosBackend.length);
+            console.log(`✅ Blocos carregados com sucesso do backend:`, blocoArray.length);
             return;
           } else {
             console.log(`⚠️ Backend retornou vazio, usando padrão`);
