@@ -156,6 +156,26 @@ const ParticipanteTorneio = sequelize.define('ParticipanteTorneio', {
     defaultValue: null,
     comment: 'Timestamp de quando a posição foi congelada'
   },
+  // ✨ NEW: Tournament Completion Tracking (Sistema de Torneios)
+  encerrado_operacionalmente: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+    comment: 'Indica se torneio foi encerrado operacionalmente para este participante (data passou)'
+  },
+  data_encerramento_operacional: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    defaultValue: null,
+    comment: 'Timestamp de quando o torneio foi encerrado operacionalmente'
+  },
+  // ✨ NEW: Certificate Eligibility (Sistema de Torneios)
+  elegivel_certificado: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+    comment: 'Indica se participante é elegível para receber certificado (top 3)'
+  },
 }, {
   tableName: 'participantes_torneios',
   timestamps: true,
@@ -184,7 +204,13 @@ const ParticipanteTorneio = sequelize.define('ParticipanteTorneio', {
     },
     { 
       fields: ['disciplina_competida'] 
-    }
+    },
+    // ✨ NEW: Index for tournament participation control (Sistema de Torneios)
+    { 
+      fields: ['usuario_id', 'status', 'posicao_congelada'],
+      name: 'idx_participacao_ativa',
+      comment: 'Índice para verificar participação ativa de usuário'
+    },
   ],
   hooks: {
     beforeCreate: async (participante) => {
