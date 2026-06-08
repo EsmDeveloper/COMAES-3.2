@@ -863,23 +863,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
         </div>
       )}
 
-      {/* Abas */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit">
-        {[
-          { id: 'blocos', icon: Layers, label: 'Blocos de Questões' },
-          { id: 'auditoria', icon: List, label: 'Visualizar Todas as Questões' },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setAba(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-              aba === tab.id ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            <tab.icon className="w-4 h-4" /> {tab.label}
-          </button>
-        ))}
-      </div>
+      {/* Abas removidas - Os botões principais acima já fazem esse trabalho */}
 
       {/* Filtros */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4">
