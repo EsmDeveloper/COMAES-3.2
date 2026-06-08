@@ -14,6 +14,7 @@ import ProtectedEstudanteRoute from './context/ProtectedEstudanteRoute';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import MinhasQuestoes from './Paginas/Secundarias/MinhasQuestoes';
 import ColaboradorDashboard from './Paginas/Secundarias/ColaboradorDashboard';
+import ColaboradorBlocosTab from './Paginas/Secundarias/ColaboradorBlocosTab';
 import Home from "./Paginas/Secundarias/Home";
 import EntrarTorneio from "./Paginas/Secundarias/EntrarTorneio";
 import Configuracoes from "./Paginas/Secundarias/Configuracoes";
@@ -106,6 +107,14 @@ function AnimatedRoutes() {
           element={
             <ProtectedColaboradorRoute>
               <PageTransition><MinhasQuestoes /></PageTransition>
+            </ProtectedColaboradorRoute>
+          }
+        />
+        <Route
+          path="/colaborador/blocos"
+          element={
+            <ProtectedColaboradorRoute>
+              <PageTransition><ColaboradorBlocosTab /></PageTransition>
             </ProtectedColaboradorRoute>
           }
         />

@@ -10,6 +10,9 @@ import BlocoQuestoesManager from './BlocoQuestoesManager';
 import QuestoesBlocosUnificadas from './QuestoesBlocosUnificadas';
 import CertificadosTab from './CertificadosTab';
 import QuestoesPendentesTab from './QuestoesPendentesTab';
+import QuestoesTorneiosTab from './QuestoesTorneiosTab';
+import QuestoesTestesTab from './QuestoesTestesTab';
+import QuestoesColaboradoresTab from './QuestoesColaboradoresTab';
 import ColaboradoresPendentesTab from './ColaboradoresPendentesTab';
 import ColaboradoresTab from './ColaboradoresTab';
 import BlocosColaboradoresTab from './BlocosColaboradoresTab';
@@ -68,9 +71,10 @@ const AdminDashboard = () => {
       icon: BookOpen,
       color: 'from-purple-500 to-pink-600',
       items: [
-        { id: 'blocos-questoes', label: 'Blocos de Questões', icon: BookOpen },
-        { id: 'questoes-pendentes', label: 'Revisar Questões', icon: FileText },
-        { id: 'teste-conhecimento', label: 'Teste de Conhecimento', icon: FileText }
+        { id: 'questoes-torneios', label: 'Questões de Torneios', icon: Trophy },
+        { id: 'questoes-testes', label: 'Questões dos Testes', icon: BookOpen },
+        { id: 'questoes-pendentes', label: 'Questões Pendentes', icon: Clock },
+        { id: 'questoes-colaboradores', label: 'Questões dos Colaboradores', icon: GraduationCap }
       ]
     },
     {
@@ -344,12 +348,14 @@ const AdminDashboard = () => {
                 <CertificadosTab />
               ) : activeTab === 'notificacao' ? (
                 <NotificationsTab token={token} />
-              ) : activeTab === 'blocos-questoes' ? (
-                <QuestoesBlocosUnificadas />
+              ) : activeTab === 'questoes-torneios' ? (
+                <QuestoesTorneiosTab />
+              ) : activeTab === 'questoes-testes' ? (
+                <QuestoesTestesTab />
               ) : activeTab === 'questoes-pendentes' ? (
                 <QuestoesPendentesTab />
-              ) : activeTab === 'teste-conhecimento' ? (
-                <BlocoQuestoesManager />
+              ) : activeTab === 'questoes-colaboradores' ? (
+                <QuestoesColaboradoresTab />
               ) : activeTab === 'colaboradores-pendentes' ? (
                 <ColaboradoresPendentesTab />
               ) : activeTab === 'colaboradores' ? (

@@ -9,7 +9,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-const API = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+const API = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
 
 export default function useStreak() {
   const { user, token } = useAuth();

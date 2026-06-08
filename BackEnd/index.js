@@ -46,12 +46,13 @@ import certificadosRoutes from './routes/certificadosRoutes.js';
 import supportRoutes from './routes/supportRoutes.js';
 import tournamentsRoutes from './routes/tournamentsRoutes.js';
 import notificacoesRoutes from './routes/notificacoesRoutes.js';
-import questoesRoutesRefactored from './routes/questoesRoutesRefactored.js';
+import questoesRoutes from './routes/questoesRoutes.js';
 import tentativasRoutes from './routes/tentativasRoutes.js';
 import testeConhecimentoRoutes from './routes/testeConhecimentoRoutes.js';
 import resultadosTesteRoutes from './routes/resultadosTesteRoutes.js';
 import colaboradorRoutes from './routes/colaboradorRoutes.js';
 import blocosRoutes, { torneiBlocosRouter } from './routes/blocosRoutes.js';
+import colaboradorBlocosQuestoesRoutes from './routes/colaboradorBlocosQuestoesRoutes.js';
 import nivelRoutes from './routes/nivelRoutes.js';
 import streakRoutes from './routes/streakRoutes.js';
 import { missoesRouter, dashboardGamificacaoRouter } from './routes/missoesRoutes.js';
@@ -224,10 +225,14 @@ app.use('/api/certificados', certificadosRoutes);
 app.use('/api/tournaments', tournamentsRoutes);
 
 // Registrar rotas de questões (especializado - REFATORADO para Questao.js)
-app.use('/api/questoes', questoesRoutesRefactored);
+app.use('/api/questoes', questoesRoutes);
 
 // Registrar rotas de Blocos de Questões
 app.use('/api/blocos', blocosRoutes);
+
+// Registrar rotas de Colaborador - Blocos e Questões (com aprovação)
+app.use('/api/colaborador', colaboradorBlocosQuestoesRoutes);
+app.use('/api/admin', colaboradorBlocosQuestoesRoutes);
 
 // Registrar rotas de associação Torneio ↔ Bloco
 app.use('/api/torneios/:id/blocos', torneiBlocosRouter);
@@ -2405,9 +2410,10 @@ async function startServer() {
 
 startServer();
 
-
-
-
+// ✅ TRIGGER RELOAD: Backend fixes applied successfully
+// - Fixed SQL order clause: changed createdAt to created_at
+// - Updated minhasQuestoes method with proper error logging
+// - Verified routes are registered in colaboradorRoutes.js
 
 
 

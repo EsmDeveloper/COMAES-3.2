@@ -16,7 +16,7 @@ export default function useCertificado(disciplina, participante, ranking) {
 
       try {
         // Buscar status do torneio
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/torneios/ativo`);
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/api/torneios/ativo`);
         const data = await response.json();
 
         if (data.ativo && data.torneio) {

@@ -20,10 +20,10 @@ import {
 
 /* ─── helpers ─────────────────────────────────────────────────── */
 const STATUS_CONFIG = {
-  pendente:  { label: 'Pendente',   cls: 'bg-amber-100 text-amber-800'  },
-  aprovado:  { label: 'Aprovado',   cls: 'bg-green-100 text-green-800'  },
-  rejeitado: { label: 'Rejeitado',  cls: 'bg-red-100 text-red-800'      },
-  suspenso:  { label: 'Suspenso',   cls: 'bg-gray-200 text-gray-700'    },
+  pendente:  { label: 'Pendente',   cls: 'bg-blue-100 text-blue-800'  },
+  aprovado:  { label: 'Aprovado',   cls: 'bg-blue-200 text-blue-900'  },
+  rejeitado: { label: 'Rejeitado',  cls: 'bg-blue-300 text-blue-900'      },
+  suspenso:  { label: 'Suspenso',   cls: 'bg-slate-200 text-slate-700'    },
 };
 
 const DISCIPLINA_ICONS = {
@@ -79,6 +79,10 @@ function ModalDetalhes({ colaborador, onClose, onAprovar, onRejeitar, onSuspende
   const [docs, setDocs]         = useState([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
+  
+  const [questoes, setQuestoes]         = useState([]);
+  const [loadingQuestoes, setLoadingQuestoes] = useState(false);
+  const [showQuestoes, setShowQuestoes] = useState(false);
 
   const carregarDocs = async () => {
     if (showDocs) { setShowDocs(false); return; }
@@ -88,6 +92,19 @@ function ModalDetalhes({ colaborador, onClose, onAprovar, onRejeitar, onSuspende
       setDocs(res.data || []);
     } catch { setDocs([]); }
     finally { setLoadingDocs(false); setShowDocs(true); }
+  };
+
+  const carregarQuestoes = async () => {
+    if (showQuestoes) { setShowQuestoes(false); return; }
+    setLoadingQuestoes(true);
+    try {
+      const res = await svc.colaboradores.getQuestoes(colaborador.id, { limite: 100 });
+      setQuestoes(res.dados?.questoes || []);
+    } catch (err) { 
+      console.error('Erro ao carregar questões:', err);
+      setQuestoes([]); 
+    }
+    finally { setLoadingQuestoes(false); setShowQuestoes(true); }
   };
 
   const c = colaborador;
@@ -194,6 +211,47 @@ function ModalDetalhes({ colaborador, onClose, onAprovar, onRejeitar, onSuspende
                       </li>
                     ))}
                   </ul>
+                )
+            )}
+          </div>
+
+          {/* Questões Criadas */}
+          <div>
+            <button onClick={carregarQuestoes}
+              className="flex items-center gap-2 text-sm text-blue-600 font-semibold hover:underline">
+              {loadingQuestoes
+                ? <><RefreshCw size={14} className="animate-spin" /> Carregando questões...</>
+                : showQuestoes
+                ? <><EyeOff size={14} /> Ocultar questões</>
+                : <><Eye size={14} /> Ver questões criadas</>}
+            </button>
+
+            {showQuestoes && (
+              questoes.length === 0
+                ? <p className="text-xs text-gray-400 mt-2">Nenhuma questão criada.</p>
+                : (
+                  <div className="mt-2 space-y-2 max-h-64 overflow-y-auto">
+                    {questoes.map((q, i) => (
+                      <div key={i} className="px-3 py-2.5 bg-blue-50 border border-blue-200 rounded-lg text-xs">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <p className="font-medium text-gray-800 flex-1 truncate">{q.enunciado}</p>
+                          <span className={`px-2 py-0.5 rounded text-xs font-semibold flex-shrink-0 ${
+                            q.status_aprovacao === 'aprovada' ? 'bg-green-100 text-green-700' :
+                            q.status_aprovacao === 'rejeitada' ? 'bg-red-100 text-red-700' :
+                            'bg-amber-100 text-amber-700'
+                          }`}>
+                            {q.status_aprovacao === 'aprovada' ? 'Aprovada' :
+                             q.status_aprovacao === 'rejeitada' ? 'Rejeitada' : 'Pendente'}
+                          </span>
+                        </div>
+                        <div className="flex gap-3 text-gray-500">
+                          {q.tipo && <span>📝 {q.tipo}</span>}
+                          {q.dificuldade && <span>📊 {q.dificuldade}</span>}
+                          {q.bloco?.titulo && <span>📦 {q.bloco.titulo}</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )
             )}
           </div>
@@ -460,10 +518,10 @@ export default function ColaboradoresTab() {
         <div className="mt-4 flex flex-wrap gap-2">
           {[
             { key: 'todos',    label: 'Todos',    val: stats.total,    cls: 'bg-slate-100 text-slate-700' },
-            { key: 'pendente', label: 'Pendentes', val: stats.pendente, cls: 'bg-amber-100 text-amber-800' },
-            { key: 'aprovado', label: 'Aprovados', val: stats.aprovado, cls: 'bg-green-100 text-green-800' },
-            { key: 'rejeitado',label: 'Rejeitados',val: stats.rejeitado,cls: 'bg-red-100 text-red-700' },
-            { key: 'suspenso', label: 'Suspensos', val: stats.suspenso, cls: 'bg-gray-100 text-gray-700' },
+            { key: 'pendente', label: 'Pendentes', val: stats.pendente, cls: 'bg-blue-100 text-blue-800' },
+            { key: 'aprovado', label: 'Aprovados', val: stats.aprovado, cls: 'bg-blue-200 text-blue-900' },
+            { key: 'rejeitado',label: 'Rejeitados',val: stats.rejeitado,cls: 'bg-blue-300 text-blue-900' },
+            { key: 'suspenso', label: 'Suspensos', val: stats.suspenso, cls: 'bg-slate-100 text-slate-700' },
           ].map(s => (
             <button key={s.key}
               onClick={() => setFiltroStatus(s.key)}

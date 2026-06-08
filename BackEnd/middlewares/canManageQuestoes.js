@@ -15,7 +15,7 @@ const canManageQuestoes = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
     const dbUser = await Usuario.unscoped().findByPk(decoded.id, {
-      attributes: ['id', 'email', 'isAdmin', 'role', 'disciplina_colaborador']
+      attributes: ['id', 'email', 'isAdmin', 'role', 'disciplina_colaborador', 'status_colaborador']
     });
 
     if (!dbUser) {
@@ -29,6 +29,10 @@ const canManageQuestoes = async (req, res, next) => {
 
     if (isCollaborator(user) && !user.disciplina_colaborador) {
       return res.status(403).json({ message: 'Colaborador sem disciplina atribuida.' });
+    }
+
+    if (isCollaborator(user) && user.status_colaborador !== 'aprovado') {
+      return res.status(403).json({ message: 'Colaborador ainda nao aprovado.' });
     }
 
     req.user = {

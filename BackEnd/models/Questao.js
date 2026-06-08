@@ -13,6 +13,12 @@ const Questao = sequelize.define('Questao', {
     references: { model: 'torneios', key: 'id' },
     onDelete: 'CASCADE'
   },
+  bloco_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: { model: 'blocos_questoes', key: 'id' },
+    onDelete: 'CASCADE'
+  },
   titulo: {
     type: DataTypes.STRING(255),
     allowNull: false,
@@ -89,6 +95,7 @@ const Questao = sequelize.define('Questao', {
   updatedAt: 'updated_at',
   indexes: [
     { fields: ['torneio_id'] },
+    { fields: ['bloco_id'] },
     { fields: ['disciplina'] },
     { fields: ['tipo'] },
     { fields: ['autor_id'] },

@@ -37,11 +37,17 @@ const err = (res, msg, status = 400, details = null) =>
 /**
  * GET /api/blocos
  * Lista blocos. Admin vê todos; colaborador vê apenas da sua disciplina.
+ * Suporta filtro por contexto (torneio/teste)
  */
 export const listarBlocos = async (req, res) => {
   try {
-    const { disciplina, dificuldade, status, page = 1, limit = 50 } = req.query;
+    const { disciplina, dificuldade, status, contexto, page = 1, limit = 50 } = req.query;
     const where = {};
+
+    // Filtrar por contexto se fornecido
+    if (contexto) {
+      where.contexto = contexto;  // ✅ NOVO: Filtrar por contexto
+    }
 
     // Colaborador só vê sua disciplina
     if (req.user?.isColaborador) {
@@ -88,10 +94,11 @@ export const listarBlocos = async (req, res) => {
 /**
  * POST /api/blocos
  * Cria um novo bloco. Admin only.
+ * Suporta contexto (torneio/teste) para organizar blocos
  */
 export const criarBloco = async (req, res) => {
   try {
-    const { titulo, descricao, disciplina, dificuldade, status } = req.body;
+    const { titulo, descricao, disciplina, dificuldade, status, contexto = 'torneio' } = req.body;
 
     if (!titulo?.trim()) return err(res, 'Título é obrigatório');
     if (!disciplina) return err(res, 'Disciplina é obrigatória');
@@ -114,10 +121,11 @@ export const criarBloco = async (req, res) => {
       disciplina,
       dificuldade,
       status: status || 'rascunho',
+      contexto: contexto || 'torneio',  // ✅ NOVO: Armazenar contexto
       criado_por: req.user.id,
     });
 
-    console.log(`✅ Bloco criado: ID ${bloco.id} — "${bloco.titulo}" (status: ${bloco.status})`);
+    console.log(`✅ Bloco criado: ID ${bloco.id} — "${bloco.titulo}" (contexto: ${contexto}, status: ${bloco.status})`);
     return ok(res, { ...bloco.toJSON(), total_questoes: 0 }, 'Bloco criado com sucesso', 201);
   } catch (error) {
     console.error('❌ Erro ao criar bloco:', error);
@@ -152,11 +160,30 @@ export const obterBloco = async (req, res) => {
       order: [['ordem', 'ASC']],
     });
 
-    const questoes = items.map(item => ({
-      item_id: item.id,
-      ordem: item.ordem,
-      ...item.questao.toJSON(),
-    }));
+    // ✅ Normalizar opcoes antes de retornar
+    const questoes = items.map(item => {
+      const questaoData = item.questao.toJSON();
+      
+      // Normalizar opcoes
+      if (questaoData.opcoes) {
+        if (typeof questaoData.opcoes === 'string') {
+          try {
+            questaoData.opcoes = JSON.parse(questaoData.opcoes);
+          } catch (e) {
+            questaoData.opcoes = [];
+          }
+        }
+        if (!Array.isArray(questaoData.opcoes)) {
+          questaoData.opcoes = [];
+        }
+      }
+
+      return {
+        item_id: item.id,
+        ordem: item.ordem,
+        ...questaoData,
+      };
+    });
 
     return ok(res, { ...bloco.toJSON(), questoes, total_questoes: questoes.length });
   } catch (error) {

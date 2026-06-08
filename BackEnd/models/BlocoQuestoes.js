@@ -46,10 +46,10 @@ const BlocoQuestoes = sequelize.define('BlocoQuestoes', {
     },
   },
   status: {
-    type: DataTypes.ENUM('rascunho', 'publicado'),
+    type: DataTypes.ENUM('pendente', 'aprovado', 'rejeitado'),
     allowNull: false,
-    defaultValue: 'rascunho',
-    comment: 'Status de publicação do bloco: rascunho (não publicado), publicado (pronto para usar em torneios)',
+    defaultValue: 'pendente',
+    comment: 'Status do bloco: pendente (aguardando aprovação), aprovado (pronto para usar), rejeitado (recusado pelo admin)',
   },
   aprovado_por_id: {
     type: DataTypes.INTEGER,
@@ -72,6 +72,12 @@ const BlocoQuestoes = sequelize.define('BlocoQuestoes', {
     type: DataTypes.TEXT,
     allowNull: true,
     comment: 'Observações do admin sobre o bloco',
+  },
+  contexto: {
+    type: DataTypes.ENUM('torneio', 'teste'),
+    allowNull: true,
+    defaultValue: 'torneio',
+    comment: 'Contexto do bloco: torneio (para competições) ou teste (para testes de conhecimento)',
   },
   criado_por: {
     type: DataTypes.INTEGER,

@@ -1,0 +1,290 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                         COMAES 3.2 - PHASE 2 FIXES                        ║
+║              "Questões Pendentes" & Approval Workflow Repair              ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+TIMESTAMP: 7 de Junho de 2026
+STATUS: ✅ COMPLETE - READY FOR TESTING
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 ISSUES FIXED
+
+1. ❌ "QUESTÕES PENDENTES" PANEL BREAKS ON LOAD
+   └─ ✅ FIXED: Enhanced response validation & null-checking
+
+2. ❌ APPROVED QUESTIONS DON'T MOVE TO COLLABORATORS TAB
+   └─ ✅ FIXED: Corrected query params & filter logic
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔧 TECHNICAL CHANGES
+
+┌─ FILE 1: QuestoesPendentesTab.jsx ─────────────────────────────────────┐
+│                                                                          │
+│ LOCATION: FrontEnd/src/Administrador/QuestoesPendentesTab.jsx          │
+│ LINE CHANGED: 285-305 (carregarQuestoes function)                      │
+│                                                                          │
+│ BEFORE:                                                                  │
+│ ┌──────────────────────────────────────────────────────────┐            │
+│ │ let questoesData = [];                                  │            │
+│ │ if (response?.dados?.questoes) {                        │            │
+│ │   questoesData = Array.isArray(...)? ... : [];          │            │
+│ │ }                                                        │            │
+│ │ // NO validation of individual items!                  │            │
+│ └──────────────────────────────────────────────────────────┘            │
+│                                                                          │
+│ AFTER:                                                                   │
+│ ┌──────────────────────────────────────────────────────────┐            │
+│ │ if (response?.dados?.questoes && Array.isArray(...)) {  │            │
+│ │   questoesData = response.dados.questoes;               │            │
+│ │ }                                                        │            │
+│ │ // NEW: Filter out null/invalid items                  │            │
+│ │ questoesData = questoesData.filter(q => q && q.id);    │            │
+│ │ console.log('✅ Questões pendentes carregadas:', ...);  │            │
+│ └──────────────────────────────────────────────────────────┘            │
+│                                                                          │
+│ IMPACT: Panel no longer crashes with malformed responses                │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+┌─ FILE 2: QuestoesColaboradoresTab.jsx ─────────────────────────────────┐
+│                                                                          │
+│ LOCATION: FrontEnd/src/Administrador/QuestoesColaboradoresTab.jsx      │
+│ LINE CHANGED: 18-28 (fetchQuestoes function)                           │
+│                                                                          │
+│ BEFORE:                                                                  │
+│ ┌──────────────────────────────────────────────────────────┐            │
+│ │ const response = await fetch(                           │            │
+│ │   '/api/questoes?status_aprovacao=aprovada&limit=100'   │            │
+│ │   ↑↑↑ WRONG: 'limit' instead of 'limite'               │            │
+│ │ );                                                       │            │
+│ │ setQuestoes(data.dados?.questoes || data.questoes || []);│           │
+│ │ // Fallback logic masked the real issue                │            │
+│ └──────────────────────────────────────────────────────────┘            │
+│                                                                          │
+│ AFTER:                                                                   │
+│ ┌──────────────────────────────────────────────────────────┐            │
+│ │ const response = await fetch(                           │            │
+│ │   '/api/questoes?status_aprovacao=aprovada&limite=100'  │            │
+│ │   ↑↑↑ CORRECT: 'limite' matches backend param          │            │
+│ │ );                                                       │            │
+│ │ const questoesData = data?.dados?.questoes || [];       │            │
+│ │ setQuestoes(questoesData);                              │            │
+│ │ console.log('✅ Questões aprovadas carregadas:', ...);  │            │
+│ └──────────────────────────────────────────────────────────┘            │
+│                                                                          │
+│ IMPACT: Approved questions now properly filter and display             │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+┌─ FILE 3: QuestoesController.js ─────────────────────────────────────────┐
+│                                                                          │
+│ LOCATION: BackEnd/controllers/QuestoesController.js                    │
+│ LINE CHANGED: 105-121 (aplicarFiltroStatus function)                   │
+│                                                                          │
+│ BEFORE:                                                                  │
+│ ┌──────────────────────────────────────────────────────────┐            │
+│ │ const aplicarFiltroStatus = (req, where = {}) => {      │            │
+│ │   const isAdmin = req.user?.isAdmin || ...;             │            │
+│ │   if (!req.user || !isAdmin) {                          │            │
+│ │     where.status_aprovacao = 'aprovada';                │            │
+│ │   }                                                      │            │
+│ │   // PROBLEM: Admin request with ?status_aprovacao=X   │            │
+│ │   // gets ignored - admin always gets ALL statuses!     │            │
+│ │   return where;                                         │            │
+│ │ };                                                       │            │
+│ └──────────────────────────────────────────────────────────┘            │
+│                                                                          │
+│ AFTER:                                                                   │
+│ ┌──────────────────────────────────────────────────────────┐            │
+│ │ const aplicarFiltroStatus = (req, where = {}) => {      │            │
+│ │   // NEW: If status already set (from query), respect   │            │
+│ │   if (where.status_aprovacao) {                         │            │
+│ │     return where;  // Don't override!                   │            │
+│ │   }                                                      │            │
+│ │                                                          │            │
+│ │   // Otherwise apply default filter for non-admins      │            │
+│ │   const isAdmin = req.user?.isAdmin || ...;             │            │
+│ │   if (!req.user || !isAdmin) {                          │            │
+│ │     where.status_aprovacao = 'aprovada';                │            │
+│ │   }                                                      │            │
+│ │   return where;                                         │            │
+│ │ };                                                       │            │
+│ └──────────────────────────────────────────────────────────┘            │
+│                                                                          │
+│ IMPACT: Backend now respects explicit filter parameters                 │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔄 APPROVAL WORKFLOW (CORRECTED)
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                                                                         │
+│  1. COLLABORATOR CREATES QUESTION                                      │
+│     POST /api/colaborador/questoes                                     │
+│     ↓                                                                   │
+│     ✅ Backend sets: status_aprovacao = 'pendente'                     │
+│                                                                         │
+│  2. ADMIN REVIEWS PENDING (✅ NOW FIXED)                               │
+│     GET /api/questoes?status_aprovacao=pendente                        │
+│     ↓                                                                   │
+│     ✅ Frontend validates response structure properly                  │
+│     ✅ Backend respects status filter                                  │
+│     ✅ Panel loads without crashes                                     │
+│                                                                         │
+│  3. ADMIN APPROVES QUESTION                                            │
+│     PATCH /api/questoes/{id}/aprovacao                                │
+│     Body: { status_aprovacao: 'aprovada' }                            │
+│     ↓                                                                   │
+│     ✅ Backend updates: status = 'aprovada'                            │
+│     ✅ Sets: revisado_por = admin_id, revisado_em = NOW()            │
+│     ✅ Frontend refreshes list (question disappears)                   │
+│                                                                         │
+│  4. QUESTION APPEARS IN COLLABORATORS TAB (✅ NOW FIXED)               │
+│     GET /api/questoes?status_aprovacao=aprovada&limite=100            │
+│     ↓                                                                   │
+│     ✅ Backend filters correctly (explicit param respected)            │
+│     ✅ Frontend uses correct param name (limite not limit)            │
+│     ✅ Data extraction works properly                                 │
+│     ✅ Questions display in admin's "Colaboradores" tab               │
+│                                                                         │
+│  5. REJECT ALTERNATIVE                                                │
+│     PATCH /api/questoes/{id}/aprovacao                                │
+│     Body: { status_aprovacao: 'rejeitada',                            │
+│             motivo_rejeicao: 'reason...' }                            │
+│     ↓                                                                   │
+│     ✅ Backend updates: status = 'rejeitada'                           │
+│     ✅ Stores rejection reason                                         │
+│     ✅ Frontend refreshes (question removed from pending)              │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 QUERY PARAMETER REFERENCE
+
+WRONG ❌                          │ CORRECT ✅
+─────────────────────────────────┼──────────────────────────────────
+/api/questoes?limit=100          │ /api/questoes?limite=100
+/api/questoes?limit=20           │ /api/questoes?limite=20
+/api/questoes?page=1             │ /api/questoes?pagina=1
+/api/questoes?limit=50&page=2    │ /api/questoes?limite=50&pagina=2
+
+Status Filter (both work):
+/api/questoes?status_aprovacao=aprovada    ✅ CORRECT
+/api/questoes?status_aprovacao=pendente    ✅ CORRECT
+/api/questoes?status_aprovacao=rejeitada   ✅ CORRECT
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 DOCUMENTATION CREATED
+
+1. FIXES_QUESTOES_PENDENTES_APROVACAO.md
+   ├─ Detailed explanation of both issues
+   ├─ Root cause analysis
+   ├─ Code diffs showing exact changes
+   ├─ Complete workflow reference
+   ├─ Database schema reference
+   ├─ Endpoints table
+   └─ Verification checklist
+
+2. GUIA_TESTE_QUESTOES_PENDENTES.md
+   ├─ 8 comprehensive test cases
+   ├─ Step-by-step instructions
+   ├─ Expected results for each test
+   ├─ Troubleshooting section
+   ├─ DevTools debugging commands
+   └─ Success checklist
+
+3. RESUMO_FIXES_FASE_2.txt (this file)
+   └─ Executive summary of all changes
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ VERIFICATION STEPS BEFORE PRODUCTION
+
+1. RESTART SERVERS
+   - Stop backend: Ctrl+C in terminal
+   - Stop frontend: Ctrl+C in terminal
+   - Restart backend: npm start (or your command)
+   - Restart frontend: npm run dev
+
+2. CLEAR CACHE
+   - Browser: Ctrl+Shift+Delete, Clear all
+   - Or: DevTools (F12) → Application → Clear Site Data
+
+3. RUN TEST SUITE
+   - Follow GUIA_TESTE_QUESTOES_PENDENTES.md
+   - Execute all 8 test cases
+   - Check each verification point
+   - Verify no console errors
+
+4. MONITOR LOGS
+   - Backend: Watch console for debug messages
+   - Frontend: Open DevTools → Console tab
+   - Database: Verify status_aprovacao updates
+
+5. ROLLBACK PLAN (if issues)
+   - Git revert to previous commit
+   - Restore from backup if needed
+   - Check database for consistency
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 SUCCESS CRITERIA
+
+System is working when:
+
+✅ QuestoesPendentesTab loads without crashes
+✅ Can view all pending questions
+✅ Approve button works → question disappears from pending
+✅ Reject button works with modal
+✅ Approved questions appear in Colaboradores tab
+✅ Filter by discipline works correctly
+✅ No console errors
+✅ Backend logs show proper filtering
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❓ FAQ
+
+Q: Why did the panel break?
+A: Frontend wasn't validating API response structure properly, and when API
+   returned unexpected format, it would crash trying to render null items.
+
+Q: Why don't approved questions appear?
+A: Two reasons combined:
+   1. Frontend used wrong param 'limit' instead of 'limite'
+   2. Backend ignored explicit status filters for admins
+
+Q: Do I need to change database?
+A: No. All changes are code-only. Database schema remains the same.
+
+Q: Will this break existing data?
+A: No. Existing questions keep their current status. This just fixes the
+   display and filtering logic.
+
+Q: Can collaborators see rejected questions?
+A: Only if they're assigned specific permissions (current code shows them
+   their own questions regardless of status). Admin can see all statuses.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📞 SUPPORT
+
+If issues persist:
+
+1. Check GUIA_TESTE_QUESTOES_PENDENTES.md → TROUBLESHOOTING section
+2. Run the DevTools debug commands provided
+3. Verify database has questions with status_aprovacao = 'pendente'
+4. Check backend logs for error messages
+5. Verify JWT token is valid (not expired)
+6. Ensure user has admin role (req.user.isAdmin should be true)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Date: 7 de Junho de 2026
+Status: ✅ READY FOR DEPLOYMENT

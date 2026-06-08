@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import adminService from './adminService';
 import TableModal from './TableModal';
 import UserModal from './UserModal';
 import { useAuth } from '../context/AuthContext';
-import { Users, Trophy, Newspaper, Ticket, Briefcase, HelpCircle, Calculator, Code, Globe, FileText, Target, Bell, Award, Medal, Key, Settings, Plus, Edit, Trash2, Search, CheckCircle, AlertCircle, Inbox, Crown, ArrowUp } from 'lucide-react';
+import { Users, Trophy, Newspaper, Ticket, Briefcase, HelpCircle, Calculator, Code, Globe, FileText, Target, Bell, Award, Medal, Key, Settings, Plus, Edit, Trash2, Search, CheckCircle, AlertCircle, Inbox } from 'lucide-react';
 
 // shared static definitions used by both dashboard and table manager
 export const STATIC_TABLE_DEFS = {
@@ -414,9 +414,18 @@ const TableManager = ({ table }) => {
         
         // Aplicar filtro de tipo de usuário
         if (isUserTable && userTypeFilter !== 'todos') {
-            if (userTypeFilter === 'estudante' && (item.isAdmin || item.role === 'admin' || item.role === 'colaborador')) return false;
-            if (userTypeFilter === 'colaborador' && item.role !== 'colaborador') return false;
-            if (userTypeFilter === 'admin' && !item.isAdmin && item.role !== 'admin') return false;
+            if (userTypeFilter === 'estudante') {
+                // Estudante: não é admin e não é colaborador
+                return !item.isAdmin && item.role !== 'colaborador';
+            }
+            if (userTypeFilter === 'colaborador') {
+                // Professor/Colaborador: role é 'colaborador'
+                return item.role === 'colaborador';
+            }
+            if (userTypeFilter === 'admin') {
+                // Administrador: isAdmin é true ou role é 'admin'
+                return item.isAdmin || item.role === 'admin';
+            }
         }
         
         return Object.values(item).some(value =>
@@ -468,19 +477,20 @@ const TableManager = ({ table }) => {
                     </div>
                     {/* Filtro de tipo de usuário - apenas para tabela de usuários */}
                     {isUserTable && (
-                        <div className="w-full sm:w-auto">
+                        <div className="w-full sm:w-auto sm:min-w-64">
                             <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                <Users className="w-4 h-4 inline mr-2" />
                                 Filtrar por tipo
                             </label>
                             <select
                                 value={userTypeFilter}
                                 onChange={(e) => setUserTypeFilter(e.target.value)}
-                                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md bg-white"
+                                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md bg-white font-medium text-slate-700"
                             >
-                                <option value="todos">Todos os tipos</option>
-                                <option value="estudante">Estudante</option>
-                                <option value="colaborador">Professor/Colaborador</option>
-                                <option value="admin">Administrador</option>
+                                <option value="todos">📋 Todos os tipos ({data.length})</option>
+                                <option value="estudante">👨‍🎓 Estudante ({data.filter(u => !u.isAdmin && u.role !== 'colaborador').length})</option>
+                                <option value="colaborador">👨‍🏫 Professor/Colaborador ({data.filter(u => u.role === 'colaborador').length})</option>
+                                <option value="admin">👑 Administrador ({data.filter(u => u.isAdmin || u.role === 'admin').length})</option>
                             </select>
                         </div>
                     )}

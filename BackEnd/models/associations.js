@@ -132,7 +132,7 @@ export const setupAssociations = () => {
   Usuario.hasMany(Questao, { foreignKey: 'autor_id', as: 'questoesCriadas' });
   Questao.belongsTo(Usuario, { foreignKey: 'autor_id', as: 'autor' });
   Usuario.hasMany(Questao, { foreignKey: 'revisado_por', as: 'questoesRevisadas' });
-  Questao.belongsTo(Usuario, { foreignKey: 'revisado_por', as: 'revisor' });
+  Questao.belongsTo(Usuario, { foreignKey: 'revisado_por', as: 'revisadoPor' });
 
   // TentativaResposta <-> Torneio
   Torneio.hasMany(TentativaResposta, { foreignKey: 'torneio_id', as: 'tentativas' });
@@ -159,6 +159,10 @@ export const setupAssociations = () => {
   // BlocoQuestoes <-> Usuario (criador)
   Usuario.hasMany(BlocoQuestoes, { foreignKey: 'criado_por', as: 'blocosCriados' });
   BlocoQuestoes.belongsTo(Usuario, { foreignKey: 'criado_por', as: 'criador' });
+
+  // BlocoQuestoes <-> Usuario (aprovadorAdmin)
+  Usuario.hasMany(BlocoQuestoes, { foreignKey: 'aprovado_por_id', as: 'blocosAprovados' });
+  BlocoQuestoes.belongsTo(Usuario, { foreignKey: 'aprovado_por_id', as: 'aprovadorAdmin' });
 
   // BlocoQuestoes <-> QuestaoTesteConhecimento (N:M via BlocoQuestaoItem)
   BlocoQuestoes.belongsToMany(QuestaoTesteConhecimento, {

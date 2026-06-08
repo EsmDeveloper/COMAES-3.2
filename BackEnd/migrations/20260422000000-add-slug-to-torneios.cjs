@@ -3,6 +3,13 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
+    // Check if column already exists
+    const table = await queryInterface.describeTable('torneios');
+    if (table.slug) {
+      console.log('✅ Column slug already exists, skipping...');
+      return;
+    }
+
     // First add the column as nullable
     await queryInterface.addColumn('torneios', 'slug', {
       type: Sequelize.STRING(255),

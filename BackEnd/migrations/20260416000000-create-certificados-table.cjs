@@ -3,6 +3,13 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
+    // Check if table already exists
+    const tableExists = await queryInterface.showAllTables();
+    if (tableExists.includes('certificados')) {
+      console.log('⚠️ certificados table already exists, skipping creation');
+      return;
+    }
+
     await queryInterface.createTable('certificados', {
       id: {
         type: Sequelize.INTEGER,
@@ -73,14 +80,33 @@ module.exports = {
       },
     });
 
-    // Criar índices
-    await queryInterface.addIndex('certificados', ['torneio_id']);
-    await queryInterface.addIndex('certificados', ['usuario_id']);
-    await queryInterface.addIndex('certificados', ['codigo_certificado']);
-    await queryInterface.addIndex('certificados', ['torneio_id', 'usuario_id', 'disciplina']);
+    // Criar índices - but check if they already exist
+    try {
+      await queryInterface.addIndex('certificados', ['torneio_id']);
+    } catch (err) {
+      console.log('⚠️ Index on torneio_id already exists');
+    }
+    try {
+      await queryInterface.addIndex('certificados', ['usuario_id']);
+    } catch (err) {
+      console.log('⚠️ Index on usuario_id already exists');
+    }
+    try {
+      await queryInterface.addIndex('certificados', ['codigo_certificado']);
+    } catch (err) {
+      console.log('⚠️ Index on codigo_certificado already exists');
+    }
+    try {
+      await queryInterface.addIndex('certificados', ['torneio_id', 'usuario_id', 'disciplina']);
+    } catch (err) {
+      console.log('⚠️ Composite index already exists');
+    }
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('certificados');
+    const tableExists = await queryInterface.showAllTables();
+    if (tableExists.includes('certificados')) {
+      await queryInterface.dropTable('certificados');
+    }
   }
 };

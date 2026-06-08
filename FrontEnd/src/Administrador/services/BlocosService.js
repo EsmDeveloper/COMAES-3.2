@@ -4,7 +4,7 @@
  * Substitui a persistência em localStorage do BlocoQuestoesManager anterior.
  */
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
 
 const headers = (token) => ({
   'Content-Type': 'application/json',

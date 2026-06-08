@@ -36,8 +36,8 @@ const card = {
 const offerings = [
   { emoji: '📚', title: 'Testes Diversificados',       description: 'Questões em múltiplas áreas do conhecimento, desde programação até história, com diferentes níveis de dificuldade.', accent: t.primary,  soft: t.primarySoft },
   { emoji: '📊', title: 'Acompanhamento de Progresso', description: 'Dashboard completo com gráficos e estatísticas para monitorar seu desenvolvimento ao longo do tempo.',                accent: t.success,  soft: t.successSoft },
-  { emoji: '🏆', title: 'Sistema de Ranking',          description: 'Competição saudável com rankings globais e por áreas, incentivando a superação pessoal.',                            accent: t.amber,    soft: t.amberSoft   },
-  { emoji: '👥', title: 'Comunidade Ativa',            description: 'Conecte-se com outros estudantes, compartilhe conhecimentos e aprenda em conjunto.',                                  accent: t.purple,   soft: t.purpleSoft  },
+  { emoji: '🏆', title: 'Sistema de Ranking',          description: 'Competição saudável com rankings por áreas, incentivando a superação pessoal.',                            accent: t.amber,    soft: t.amberSoft   },
+
 ];
 
 const founders = [
@@ -68,8 +68,8 @@ const founders = [
 ];
 
 const timeline = [
-  { num: '01', title: 'O Início',    text: 'Fundado em 2025 por estudantes universitários que identificaram a necessidade de uma plataforma prática para testar conhecimentos acadêmicos.', accent: t.primary },
-  { num: '02', title: 'Crescimento', text: 'Em menos de um ano, alcançamos milhares de usuários em diversas universidades, expandindo para múltiplas áreas do conhecimento.',              accent: t.purple  },
+  { num: '01', title: 'O Início',    text: 'Fundado em 2025 por estudantes do ensino médio técnico que identificaram a necessidade de uma plataforma prática para testar conhecimentos acadêmicos.', accent: t.primary },
+  { num: '02', title: 'Crescimento', text: 'Em menos de 6 meses, alargamos os nossos conhecimentos técnicos para construir a melhor plataforma que nós poderiamos entregar aos estudantes!',              accent: t.purple  },
   { num: '03', title: 'Hoje',        text: 'Continuamos inovando, adicionando novos recursos e mantendo nosso compromisso com a educação acessível e de qualidade.',                      accent: t.success },
 ];
 
@@ -108,7 +108,7 @@ export default function About() {
         {/* ── Hero header ── */}
         <div className="anim" style={{  marginBottom: 28, animationDelay: '0ms'  }}>
           <div style={{ 
-            background: `linear-gradient(135deg, ${t.primary} 0%, #6B8BF5 100%)`,
+            background: `linear-gradient(135deg, ${t.primary} 0%, #446ffdff 100%)`,
             borderRadius: 24, padding: '44px 48px', color: '#fff',
             textAlign: 'center', position: 'relative', overflow: 'hidden',
            }}>
@@ -311,32 +311,7 @@ export default function About() {
         </div>
 
         {/* ── CTA ── */}
-        <div className="anim" style={{  animationDelay: '220ms'  }}>
-          <div style={{ 
-            borderRadius: 24, padding: '44px 48px', textAlign: 'center',
-            background: `linear-gradient(135deg, ${t.primary} 0%, ${t.purple} 100%)`,
-            color: '#fff', position: 'relative', overflow: 'hidden',
-           }}>
-            <div style={{  position: 'absolute', top: -40, right: -40,  width: 180, height: 180, borderRadius: '50%', background: 'rgba(255,255,255,0.07)'  }} />
-            <div style={{  position: 'absolute', bottom: -50, left: -20, width: 150, height: 150, borderRadius: '50%', background: 'rgba(255,255,255,0.05)'  }} />
-            <div style={{  position: 'relative'  }}>
-              <h2 style={{  fontSize: 26, fontWeight: 800, marginBottom: 10  }}>Junte-se à Nossa Comunidade</h2>
-              <p style={{  fontSize: 15, opacity: 0.82, marginBottom: 28  }}>Comece sua jornada de aprendizado hoje mesmo</p>
-              <button style={{ 
-                padding: '13px 32px',
-                background: 'rgba(255,255,255,0.95)', color: t.text,
-                border: 'none', borderRadius: 14,
-                fontSize: 15, fontWeight: 700, cursor: 'pointer',
-                transition: 'opacity 0.15s',
-               }}
-              onMouseEnter={e => e.target.style.opacity = 0.88}
-              onMouseLeave={e => e.target.style.opacity = 1}>
-                Começar Agora →
-              </button>
-            </div>
-          </div>
-        </div>
-
+        
       </div>
     </Layout>
   );

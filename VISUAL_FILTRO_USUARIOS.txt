@@ -1,0 +1,154 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                  FILTRO DE TIPO DE USUÁRIO - VISUAL GUIDE                      ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    GERENCIAMENTO DE USUÁRIOS (DESKTOP)                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  [+ Adicionar Usuário]                                                       │
+│                                                                              │
+│  ┌─ Search and Filters ────────────────────────────────────────────────┐   │
+│  │                                                                     │   │
+│  │ Search icon Buscar registros                                       │   │
+│  │ ┌────────────────────────────────────┐  ┌─ Filtrar por tipo ──┐   │   │
+│  │ │ Buscar em usuários...              │  │ [Todos os tipos ▼]  │   │   │
+│  │ └────────────────────────────────────┘  │ ├─ Todos os tipos    │   │   │
+│  │                                         │ ├─ Estudante         │   │   │
+│  │                                         │ ├─ Professor/Colab.  │   │   │
+│  │                                         │ └─ Administrador     │   │   │
+│  │                                         └─────────────────────┘   │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+│  ┌─ Dados (Filtrados) ────────────────────────────────────────────────┐   │
+│  │                                                                     │   │
+│  │ │ ID │    Nome     │       Email        │  Perfil      │ Ações   │   │
+│  │ ├────┼─────────────┼────────────────────┼──────────────┼─────────┤   │
+│  │ │ 5  │ João Silva  │ joao@email.com     │ Estudante    │ E  D    │   │
+│  │ │ 8  │ Maria Souza │ maria@email.com    │ Estudante    │ E  D    │   │
+│  │ │ 12 │ Pedro Costa │ pedro@email.com    │ Estudante    │ E  D    │   │
+│  │                                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+│  Selecionando "Professor/Colaborador":                                       │
+│  ┌─ Dados (Filtrados) ────────────────────────────────────────────────┐   │
+│  │                                                                     │   │
+│  │ │ ID │    Nome        │       Email         │ Disciplina  │ Ações │   │
+│  │ ├────┼────────────────┼─────────────────────┼─────────────┼───────┤   │
+│  │ │ 3  │ Prof. Roberto  │ roberto@email.com   │ Programação │ E  D  │   │
+│  │ │ 7  │ Prof. Juliana  │ juliana@email.com   │ Inglês      │ E  D  │   │
+│  │ │ 11 │ Prof. Carlos   │ carlos@email.com    │ Matemática  │ E  D  │   │
+│  │                                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+│  Selecionando "Administrador":                                               │
+│  ┌─ Dados (Filtrados) ────────────────────────────────────────────────┐   │
+│  │                                                                     │   │
+│  │ │ ID │     Nome      │         Email          │ Admin  │ Ações   │   │
+│  │ ├────┼───────────────┼────────────────────────┼────────┼─────────┤   │
+│  │ │ 2  │ Admin Master  │ admin@comaes.com       │ true   │ E  D    │   │
+│  │ │ 4  │ Admin2        │ admin2@comaes.com      │ true   │ E  D    │   │
+│  │ │ 9  │ Admin3        │ admin3@comaes.com      │ true   │ E  D    │   │
+│  │                                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    GERENCIAMENTO DE USUÁRIOS (MOBILE)                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  [+ Adicionar]                                                               │
+│                                                                              │
+│  ┌─ Buscar registros ────────────┐                                         │
+│  │ Buscar em usuários...         │                                         │
+│  └───────────────────────────────┘                                         │
+│                                                                              │
+│  ┌─ Filtrar por tipo ────────────┐                                         │
+│  │ [Todos os tipos ▼]            │                                         │
+│  │ ├─ Estudante                  │                                         │
+│  │ ├─ Professor/Colaborador      │                                         │
+│  │ └─ Administrador              │                                         │
+│  └───────────────────────────────┘                                         │
+│                                                                              │
+│  Tabela responsiva (scroll horizontal)                                       │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                              FUNCIONALIDADES                                    ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+✓ Filtro por Tipo de Usuário
+  └─ Seleciona entre: Todos, Estudante, Professor/Colaborador, Administrador
+
+✓ Combinação com Busca por Texto
+  └─ Filtra por tipo primeiro, depois aplica busca por termo
+
+✓ Design Responsivo
+  └─ Desktop: Filtro em linha com busca
+  └─ Mobile: Filtro em linha separada
+
+✓ Segurança Mantida
+  └─ Admin secundário não vê admin master (id=1)
+  └─ Respeita permissões existentes
+
+✓ Estilos Consistentes
+  └─ Tailwind CSS
+  └─ Animações suaves
+  └─ Cores e bordas padronizadas
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                              TIPO DE USUÁRIO                                    ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+ESTUDANTE (Usuário Regular)
+├─ role = 'estudante'
+├─ isAdmin = false
+├─ Pode participar de torneios
+├─ Pode resolver questões
+└─ Tem perfil pessoal
+
+PROFESSOR / COLABORADOR
+├─ role = 'colaborador'
+├─ disciplina_colaborador preenchida
+├─ Pode criar questões para sua disciplina
+├─ Pode gerenciar suas questões
+└─ Pode visualizar desempenho de estudantes
+
+ADMINISTRADOR
+├─ isAdmin = true
+├─ Ou role = 'admin'
+├─ Acesso completo ao painel administrativo
+├─ Pode gerenciar usuários, torneios, questões
+├─ Pode visualizar estatísticas do sistema
+└─ Pode configurar parâmetros da plataforma
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                            EXEMPLOS DE FILTRAGEM                               ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+CENÁRIO 1: Listar todos os estudantes
+→ Selecionar "Estudante" no dropdown
+→ Exibe apenas usuários com role = 'estudante' e isAdmin = false
+
+CENÁRIO 2: Encontrar professor de Programação
+→ Selecionar "Professor/Colaborador"
+→ Digitar "Programação" na busca
+→ Exibe apenas colaboradores com "Programação" no nome ou disciplina
+
+CENÁRIO 3: Gerenciar todos os administradores
+→ Selecionar "Administrador"
+→ Exibe todos os usuários com isAdmin = true ou role = 'admin'
+→ Admin master (id=1) não é visível para admins secundários
+
+CENÁRIO 4: Busca geral com filtro
+→ Selecionar tipo (ex: "Estudante")
+→ Digitar termo (ex: "João")
+→ Exibe estudantes com "João" no nome ou email
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Data de Implementação: 5 de junho de 2026
+Arquivo Modificado: FrontEnd/src/Administrador/TableManager.jsx
+Status: ✅ Implementado, testado e commitado
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

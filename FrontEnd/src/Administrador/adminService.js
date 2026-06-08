@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}`;
+const API_BASE = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}`;
 // Trailing slash required so relative paths (e.g. 'users') resolve to /api/admin/users
 const API_URL = `${API_BASE}/api/admin/`;
 
@@ -63,6 +63,19 @@ const adminService = (token) => {
         listarColaboradores: () =>
             apiClient.get('colaboradores').then(res => res.data),
         
+        // Obter questões de um colaborador (admin view)
+        getQuestoes: (colaboradorId, { status = '', tipo = '', dificuldade = '', pagina = 1, limite = 20 } = {}) => {
+            const params = new URLSearchParams();
+            if (status) params.append('status', status);
+            if (tipo) params.append('tipo', tipo);
+            if (dificuldade) params.append('dificuldade', dificuldade);
+            params.append('pagina', pagina);
+            params.append('limite', limite);
+            
+            const queryString = params.toString() ? `?${params.toString()}` : '';
+            return apiClient.get(`colaboradores/${colaboradorId}/questoes${queryString}`).then(res => res.data);
+        },
+        
         // Aprovar colaborador
         aprovarColaborador: (id, disciplina = '') =>
             apiClient.patch(`users/${id}/aprovar-colaborador`, { disciplina_colaborador: disciplina }).then(res => res.data),
@@ -101,6 +114,7 @@ const adminService = (token) => {
         // Métodos diretos (para compatibilidade)
         listarColaboradoresPendentes: colaboradorService.listarColaboradoresPendentes,
         listarColaboradores: colaboradorService.listarColaboradores,
+        getQuestoesColaborador: colaboradorService.getQuestoes,
         aprovarColaborador: colaboradorService.aprovarColaborador,
         rejeitarColaborador: colaboradorService.rejeitarColaborador,
         suspenderColaborador: colaboradorService.suspenderColaborador,

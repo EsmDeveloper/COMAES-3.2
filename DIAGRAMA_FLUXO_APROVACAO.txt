@@ -1,0 +1,475 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║          DIAGRAMA VISUAL: FLUXO COMPLETO DE APROVAÇÃO DE QUESTÕES        ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════════
+  FLUXO 1: COLLABORADOR CRIA QUESTÃO
+═══════════════════════════════════════════════════════════════════════════════
+
+┌──────────────────────┐
+│  COLLABORADOR       │
+│  Login + Dashboard  │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ "/colaborador/questoes" page                            │
+│ Click: "Criar Questão"                                 │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ CreateQuestaoForm.jsx                                   │
+│ ├─ Título                                              │
+│ ├─ Descrição                                           │
+│ ├─ Disciplina (matematica, ingles, programacao)        │
+│ ├─ Dificuldade (facil, medio, dificil)                │
+│ ├─ Opções (A, B, C, D)                                │
+│ ├─ Resposta Correta (marcada com radio button)        │
+│ └─ Pontos                                              │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ POST /api/colaborador/questoes                          │
+│ Body: { titulo, descricao, disciplina, ... }           │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ Backend: ColaboradorBlocosQuestoesController.criar()    │
+│                                                         │
+│ Sets automatically:                                     │
+│ ├─ status_aprovacao = 'pendente' ✅                    │
+│ ├─ autor_id = req.user.id                              │
+│ └─ disciplina = req.user.disciplina_colaborador        │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ MySQL: INSERT INTO questoes                             │
+│ (titulo, descricao, status_aprovacao='pendente', ...)  │
+│                                                         │
+│ ✅ Questão agora em estado "pendente"                  │
+└──────────────────────────────────────────────────────────┘
+
+STATUS NO BANCO: status_aprovacao = 'pendente'
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  FLUXO 2: ADMIN REVISA QUESTÕES PENDENTES (✅ FIXED)
+═══════════════════════════════════════════════════════════════════════════════
+
+┌──────────────────────┐
+│  ADMIN              │
+│  Login + Dashboard  │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ Admin Dashboard                                         │
+│ Questões & Conteúdo → Questões Pendentes               │
+│ (⏰ clock icon in sidebar)                              │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ QuestoesPendentesTab.jsx                                │
+│ useEffect → carregarQuestoes()                          │
+│                                                         │
+│ Calls: questoesService.listar({                         │
+│   status_aprovacao: 'pendente'                          │
+│ })                                                      │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼ 
+┌──────────────────────────────────────────────────────────┐
+│ questoesService.js                                      │
+│                                                         │
+│ getApiRoute() checks:                                   │
+│ ├─ Token exists? YES                                  │
+│ ├─ Decode JWT to check role                           │
+│ ├─ Admin? → Returns '/api/questoes' ✅                │
+│ └─ Colaborador? → Returns '/api/colaborador/questoes'  │
+│                                                         │
+│ Calls: GET /api/questoes?status_aprovacao=pendente     │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ Backend: questoesRoutes.js                              │
+│                                                         │
+│ GET /api/questoes                                       │
+│ ├─ Middleware: canManageQuestoes ✅                    │
+│ ├─ Controller: QuestoesController.listarTodas()        │
+│ └─ [Route matches - proceed]                           │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ Backend: QuestoesController.listarTodas()               │
+│                                                         │
+│ 1. Parse query params:                                  │
+│    { status_aprovacao: 'pendente' }                     │
+│                                                         │
+│ 2. Build WHERE clause:                                  │
+│    where = {}                                           │
+│    if (status_aprovacao) {                              │
+│      where.status_aprovacao = 'pendente' ✅            │
+│    }                                                    │
+│                                                         │
+│ 3. Call aplicarEscopoColaborador()                     │
+│    └─ Admin? Skip (no disciplina filter)               │
+│                                                         │
+│ 4. Call aplicarFiltroStatus() ✅ FIXED                 │
+│    OLD BUG: Would bypass explicit filter               │
+│    NEW: Checks if status already set in WHERE          │
+│    if (where.status_aprovacao) return where;           │
+│    └─ Returns without override ✅                      │
+│                                                         │
+│ 5. Query database:                                      │
+│    SELECT * FROM questoes                              │
+│    WHERE status_aprovacao = 'pendente'                 │
+│    ORDER BY created_at DESC                            │
+│                                                         │
+│ 6. Build response:                                      │
+│    {                                                    │
+│      sucesso: true,                                    │
+│      dados: {                                          │
+│        questoes: [ {...}, {...}, ... ],                │
+│        total: 5,                                       │
+│        pagina: 1,                                      │
+│        limite: 20                                      │
+│      }                                                 │
+│    }                                                   │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ Frontend: QuestoesPendentesTab.jsx                      │
+│                                                         │
+│ Receives response:                                      │
+│ {                                                       │
+│   sucesso: true,                                       │
+│   dados: { questoes: [...], total: 5 }                 │
+│ }                                                       │
+│                                                         │
+│ OLD CODE: ❌                                            │
+│ ├─ if (response?.dados?.questoes)                      │
+│ │   questoesData = Array.isArray(...) ? ... : []       │
+│ │   // Could fail if response is malformed             │
+│ │   // No item validation                              │
+│ │   // Panel breaks on render                          │
+│                                                         │
+│ NEW CODE: ✅ FIXED                                      │
+│ ├─ if (response?.dados?.questoes &&                    │
+│ │    Array.isArray(response.dados.questoes))           │
+│ │  questoesData = response.dados.questoes              │
+│ │                                                      │
+│ ├─ questoesData =                                      │
+│ │  questoesData.filter(q => q && q.id)               │
+│ │  // Remove any null/invalid items                    │
+│ │  // Prevent rendering errors                        │
+│ │                                                      │
+│ └─ setQuestoes(questoesData)                           │
+│    // Panel renders successfully ✅                    │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ UI: QuestoesPendentesTab Panel                          │
+│                                                         │
+│ ✅ NO LONGER CRASHES                                   │
+│ ✅ Displays all pending questions                       │
+│ ✅ Shows filters, search, buttons                       │
+│ ✅ Console has no errors                                │
+│                                                         │
+│ Admin sees:                                             │
+│ ┌───────────────────────────────────────────────────┐  │
+│ │ 📖 Revisão de Questões                           │  │
+│ │                                                  │  │
+│ │ ┌─ Question 1 ─────────────────────────────────┐ │  │
+│ │ │ Título: "Capital da França"                 │ │  │
+│ │ │ Disciplina: [Programação] Dificuldade: [Fácil]
+│ │ │ Opções: A, B, C, D (com resposta em verde)  │ │  │
+│ │ │ [Ver detalhes] [❌ Rejeitar] [✅ Aprovar]   │ │  │
+│ │ └─────────────────────────────────────────────┘ │  │
+│ │                                                  │  │
+│ │ [Similar items...]                              │  │
+│ │                                                  │  │
+│ │ Total: 5 questões pendentes                     │  │
+│ └───────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────┘
+
+STATUS: ✅ Admin pode revisar questões pendentes
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  FLUXO 3: ADMIN APROVA QUESTÃO
+═══════════════════════════════════════════════════════════════════════════════
+
+┌──────────────────────────────────────────────────────────┐
+│ Admin clicks: ✅ APROVAR button on a question          │
+│                                                         │
+│ onClick handler: handleAprovar(questao.id)              │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ questoesService.aprovar(id)                             │
+│                                                         │
+│ Calls: this.revisar(id, 'aprovada', null)              │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ HTTP Request:                                           │
+│ PATCH /api/questoes/{id}/aprovacao                      │
+│                                                         │
+│ Headers:                                                │
+│ ├─ Content-Type: application/json                       │
+│ ├─ Authorization: Bearer [token]                        │
+│ └─ Accept: application/json                             │
+│                                                         │
+│ Body:                                                   │
+│ {                                                       │
+│   status_aprovacao: 'aprovada',                         │
+│   motivo_rejeicao: null                                 │
+│ }                                                       │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ Backend: questoesRoutes.js                              │
+│                                                         │
+│ PATCH /:id/aprovacao                                    │
+│ ├─ Middleware: isAdmin ✅ (must be admin)              │
+│ ├─ Controller: QuestoesController.revisar()            │
+│ └─ [Only admins can reach this]                        │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ Backend: QuestoesController.revisar()                   │
+│                                                         │
+│ 1. Get question by ID:                                  │
+│    questao = Questao.findByPk(id)                       │
+│                                                         │
+│ 2. Validate status_aprovacao value:                     │
+│    if (!['aprovada', 'rejeitada', 'pendente'].includes(...))
+│      return error "invalid status"                      │
+│                                                         │
+│ 3. Update question:                                     │
+│    await questao.update({                               │
+│      status_aprovacao: 'aprovada',                      │
+│      motivo_rejeicao: null,                             │
+│      revisado_por: req.user.id, ✅ Admin's ID          │
+│      revisado_em: new Date()  ✅ Timestamp             │
+│    })                                                   │
+│                                                         │
+│ 4. Return response:                                     │
+│    {                                                    │
+│      sucesso: true,                                    │
+│      dados: { questao with updated status },           │
+│      mensagem: "Questão revisada com sucesso"          │
+│    }                                                    │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ MySQL: UPDATE questoes                                  │
+│ SET status_aprovacao = 'aprovada',                      │
+│     revisado_por = [ADMIN_ID],                          │
+│     revisado_em = '2024-01-15 10:30:00'                │
+│ WHERE id = [QUESTION_ID]                                │
+│                                                         │
+│ ✅ Database updated                                     │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ Frontend: QuestoesPendentesTab.jsx                      │
+│                                                         │
+│ handleAprovar() completed:                              │
+│ ├─ await questoesService.aprovar(id) ✅               │
+│ ├─ await carregarQuestoes() ✅ REFRESH                │
+│ └─ Question removed from list in UI                   │
+│                                                         │
+│ User sees:                                              │
+│ ✅ Success notification                                 │
+│ ✅ Question disappears from list                        │
+│ ✅ Total count updates                                  │
+└──────────────────────────────────────────────────────────┘
+
+STATUS IN DB: status_aprovacao = 'aprovada'
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  FLUXO 4: VIEW APPROVED QUESTIONS (✅ FIXED)
+═══════════════════════════════════════════════════════════════════════════════
+
+┌──────────────────────────────────────────────────────────┐
+│ Admin clicks: "Questões dos Colaboradores" tab          │
+│ Location: Admin Dashboard → Questões & Conteúdo        │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ QuestoesColaboradoresTab.jsx                            │
+│ useEffect → fetchQuestoes()                             │
+│                                                         │
+│ OLD CODE: ❌ BUG                                        │
+│ ├─ fetch('/api/questoes?...&limit=100')                │
+│ │  └─ WRONG: 'limit' instead of 'limite'              │
+│ │  └─ Backend gets limit=100, ignores it               │
+│ │  └─ Uses default limite=20                           │
+│ │  └─ Returns first 20 questions                       │
+│ │  └─ But WHERE filter is broken too                   │
+│                                                         │
+│ NEW CODE: ✅ FIXED                                      │
+│ ├─ fetch('/api/questoes?status_aprovacao=aprovada&     │
+│ │         limite=100')                                  │
+│ │  └─ CORRECT: 'limite' param name                    │
+│ │  └─ Backend gets limite=100 ✅                      │
+│ │  └─ Returns up to 100 questions                      │
+│ │  └─ WHERE filter: status_aprovacao='aprovada' ✅    │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ Backend: QuestoesController.listarTodas()               │
+│                                                         │
+│ 1. Parse params:                                        │
+│    { status_aprovacao: 'aprovada', limite: 100 }       │
+│                                                         │
+│ 2. Build WHERE:                                         │
+│    where = {}                                           │
+│    if (status_aprovacao) {                              │
+│      where.status_aprovacao = 'aprovada' ✅            │
+│    }                                                    │
+│                                                         │
+│ 3. Call aplicarFiltroStatus() ✅ FIXED                 │
+│    └─ Checks: if (where.status_aprovacao) return where │
+│    └─ YES! Already set to 'aprovada'                   │
+│    └─ DON'T override ✅                                │
+│    └─ Returns where unchanged ✅                       │
+│                                                         │
+│ 4. Query database:                                      │
+│    SELECT * FROM questoes                              │
+│    WHERE status_aprovacao = 'aprovada'                 │
+│    LIMIT 100                                            │
+│    ORDER BY created_at DESC                            │
+│                                                         │
+│ 5. Return response with approved questions             │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ Frontend: QuestoesColaboradoresTab.jsx                  │
+│                                                         │
+│ Receives:                                               │
+│ {                                                       │
+│   sucesso: true,                                       │
+│   dados: {                                             │
+│     questoes: [                                        │
+│       { id: 1, titulo: "Capital...", status: "aprovada" },
+│       { id: 2, titulo: "2+2=?", status: "aprovada" },  │
+│       ...                                               │
+│     ],                                                  │
+│     total: 42                                           │
+│   }                                                     │
+│ }                                                       │
+│                                                         │
+│ OLD: setQuestoes(data.dados?.questoes || data.questoes || [])
+│      └─ Might end up empty if fallback triggered      │
+│                                                         │
+│ NEW: ✅ FIXED                                           │
+│ const questoesData = data?.dados?.questoes || []      │
+│ setQuestoes(questoesData)                              │
+│ console.log('✅ Questões aprovadas carregadas:', ...)  │
+└──────────┬───────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│ UI: QuestoesColaboradoresTab Panel                      │
+│                                                         │
+│ ✅ Questions display correctly                          │
+│ ✅ Shows all 42 approved questions                      │
+│ ✅ Can filter, search, expand for details              │
+│ ✅ Stats update (Total Aprovadas: 42)                  │
+│                                                         │
+│ Admin sees:                                             │
+│ ┌───────────────────────────────────────────────────┐  │
+│ │ 👥 Questões dos Colaboradores                   │  │
+│ │                                                  │  │
+│ │ [Search box] [Discipline filter]                 │  │
+│ │                                                  │  │
+│ │ ┌─ Question 1 ─────────────────────────────────┐ │  │
+│ │ │ ✓ Capital da França (Aprovada)              │ │  │
+│ │ │ Programação • Fácil • 10 pts                │ │  │
+│ │ │ [Expand for details]                         │ │  │
+│ │ └─────────────────────────────────────────────┘ │  │
+│ │                                                  │  │
+│ │ ┌─ Question 2 ─────────────────────────────────┐ │  │
+│ │ │ ✓ 2+2=? (Aprovada)                          │ │  │
+│ │ │ Matemática • Fácil • 5 pts                  │ │  │
+│ │ │ [Expand for details]                         │ │  │
+│ │ └─────────────────────────────────────────────┘ │  │
+│ │                                                  │  │
+│ │ [More questions...]                             │  │
+│ │                                                  │  │
+│ │ Total Aprovadas: 42 | Disciplinas: 3 | Autores: 12
+│ └───────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────┘
+
+STATUS: ✅ Approved questions display correctly
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  LEGENDA DE CORES
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ WORKS / FIXED
+❌ BROKEN / NOT WORKING
+⏳ IN PROGRESS
+⚠️  CAUTION
+
+═══════════════════════════════════════════════════════════════════════════════
+  KEY POINTS
+═══════════════════════════════════════════════════════════════════════════════
+
+1. QUESTION LIFECYCLE
+   pendente → [admin review] → aprovada (or rejeitada)
+
+2. DATABASE FIELDS TRACKING APPROVAL
+   - status_aprovacao: 'pendente' | 'aprovada' | 'rejeitada'
+   - revisado_por: [admin user id]
+   - revisado_em: [timestamp]
+   - motivo_rejeicao: [reason if rejected]
+
+3. API RESPONSE STRUCTURE (IMPORTANT)
+   Backend always returns:
+   {
+     sucesso: true,
+     dados: {
+       questoes: [...],
+       total: X,
+       pagina: 1,
+       limite: 20
+     }
+   }
+   Frontend MUST use: data?.dados?.questoes
+
+4. QUERY PARAMETERS (MUST BE EXACT)
+   ✅ /api/questoes?limite=100&pagina=1&status_aprovacao=aprovada
+   ❌ /api/questoes?limit=100 (WRONG!)
+   ❌ /api/questoes?page=1 (WRONG!)
+
+5. FILTER LOGIC (RESPECTS EXPLICIT PARAMS)
+   - If admin sends: ?status_aprovacao=pendente
+   - Backend MUST return: only pending questions
+   - NEW: Filter logic checks if param is set BEFORE overriding
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Date: 7 de Junho de 2026

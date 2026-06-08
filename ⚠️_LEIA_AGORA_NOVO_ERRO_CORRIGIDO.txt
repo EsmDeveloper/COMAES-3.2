@@ -1,0 +1,66 @@
+═══════════════════════════════════════════════════════════════════
+⚠️  NOVO ERRO ENCONTRADO E CORRIGIDO ⚠️
+═══════════════════════════════════════════════════════════════════
+
+O erro que você continuava vendo NÃO era apenas o SQL createdAt!
+
+FORAM ENCONTRADOS 2 ERROS:
+
+1️⃣  ERRO SQL (JÁ CORRIGIDO):
+   ❌ order: [['createdAt', 'DESC']]
+   ✅ order: [['created_at', 'DESC']]
+
+2️⃣  ERRO JSON (NOVO - AGORA CORRIGIDO):
+   ❌ Retornava campo 'opcoes' como STRING
+   ✅ Agora converte para ARRAY antes de retornar
+
+═══════════════════════════════════════════════════════════════════
+
+O QUE FOI FEITO:
+
+✅ Ficheiro: BackEnd/controllers/ColaboradorController.js
+✅ Método: minhasQuestoes (linhas 261-304)
+✅ Correção: Processa as questões antes de retornar
+
+O código agora:
+1. Faz a query SQL corrigida
+2. Processa cada questão
+3. Converte 'opcoes' de string para array
+4. Retorna JSON válido
+
+═══════════════════════════════════════════════════════════════════
+
+TESTES EXECUTADOS:
+
+✅ test_minhasQuestoes_query.js → SUCESSO
+✅ test_endpoint_minhasquestoes.js → SUCESSO
+
+═══════════════════════════════════════════════════════════════════
+
+O QUE FAZER AGORA:
+
+1. Feche o Kiro completamente
+2. Aguarde 5 segundos
+3. Reabra o Kiro
+
+(Isto força o backend a reiniciar com o código novo)
+
+═══════════════════════════════════════════════════════════════════
+
+DEPOIS DE REINICIAR:
+
+1. Vá para a aba "Minhas Questões" do Colaborador
+2. DevTools → Network tab
+3. Deve ver: GET /api/colaborador/questoes → 200 OK ✅
+
+(Antes era 500 Error)
+
+═══════════════════════════════════════════════════════════════════
+
+PARA MAIS DETALHES:
+
+Leia: 🎯_ERRO_REAL_ENCONTRADO_E_CORRIGIDO.md
+
+═══════════════════════════════════════════════════════════════════
+RESUMO: 2 Erros → Ambos Corrigidos → Pronto para usar
+═══════════════════════════════════════════════════════════════════

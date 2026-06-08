@@ -374,9 +374,10 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
 
   // ── Modal meta ────────────────────────────────────────────
   const isAdminCreate = isCreate && accountType === 'admin';
+  const isColaboradorCreate = isCreate && accountType === 'colaborador';
 
   const titleMap = {
-    create: isAdminCreate ? 'Criar Administrador' : 'Criar Novo Usuário',
+    create: isAdminCreate ? 'Criar Administrador' : isColaboradorCreate ? 'Criar Professor/Colaborador' : 'Criar Novo Usuário',
     edit:   'Editar Usuário',
     delete: 'Excluir Usuário',
     'reset-password': 'Redefinir Senha',
@@ -385,18 +386,21 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
   const modeIcon = isDelete ? <Trash2 className="w-5 h-5" />
     : isReset    ? <Key className="w-5 h-5" />
     : isAdminCreate ? <ShieldCheck className="w-5 h-5" />
+    : isColaboradorCreate ? <GraduationCap className="w-5 h-5" />
     : isCreate   ? <Plus className="w-5 h-5" />
     : <Edit className="w-5 h-5" />;
 
   const modeIconBg    = isDelete ? 'bg-red-100'
     : isReset          ? 'bg-amber-100'
     : isAdminCreate    ? 'bg-purple-100'
+    : isColaboradorCreate ? 'bg-teal-100'
     : isCreate         ? 'bg-green-100'
     : 'bg-blue-100';
 
   const modeIconColor = isDelete ? 'text-red-600'
     : isReset          ? 'text-amber-600'
     : isAdminCreate    ? 'text-purple-600'
+    : isColaboradorCreate ? 'text-teal-600'
     : isCreate         ? 'text-green-600'
     : 'text-blue-600';
 
@@ -418,7 +422,8 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
           disabled={loading}
           className={
             isReset       ? '!bg-amber-500 hover:!bg-amber-600 !shadow-amber-200' :
-            isAdminCreate ? '!bg-purple-600 hover:!bg-purple-700 !shadow-purple-200' : ''
+            isAdminCreate ? '!bg-purple-600 hover:!bg-purple-700 !shadow-purple-200' :
+            isColaboradorCreate ? '!bg-teal-600 hover:!bg-teal-700 !shadow-teal-200' : ''
           }
         >
           {loading ? (
@@ -427,6 +432,8 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
             <><Key className="w-4 h-4" /><span>Redefinir Senha</span></>
           ) : isAdminCreate ? (
             <><ShieldCheck className="w-4 h-4" /><span>Criar Administrador</span></>
+          ) : isColaboradorCreate ? (
+            <><GraduationCap className="w-4 h-4" /><span>Criar Colaborador</span></>
           ) : isCreate ? (
             <><Plus className="w-4 h-4" /><span>Criar Usuário</span></>
           ) : (
@@ -562,6 +569,115 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
                   <p className="text-xs text-green-600 mt-0.5">✓ Senhas coincidem</p>
                 )}
               </Field>
+            </div>
+          )}
+
+          {/* ── COLABORADOR creation form ── */}
+          {isCreate && accountType === 'colaborador' && (
+            <div className="space-y-5">
+              <div className="flex items-start gap-3 p-4 bg-teal-50 border border-teal-200 rounded-xl">
+                <GraduationCap className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-teal-800">Professor / Colaborador</p>
+                  <p className="text-xs text-teal-600 mt-0.5">
+                    Este utilizador poderá criar e gerenciar questões para uma disciplina específica.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field label="Nome Completo" required error={touched.nome && errors.nome}>
+                  <input type="text" name="nome" value={form.nome}
+                    onChange={handleChange} onBlur={handleBlur}
+                    className={inputCls(touched.nome && errors.nome)}
+                    placeholder="Ex: Maria Silva" maxLength={100} />
+                </Field>
+
+                <Field label="E-mail" required error={touched.email && errors.email}>
+                  <input type="email" name="email" value={form.email}
+                    onChange={handleChange} onBlur={handleBlur}
+                    className={inputCls(touched.email && errors.email)}
+                    placeholder="email@exemplo.com" maxLength={254} />
+                </Field>
+
+                <Field label="Telefone" required error={touched.telefone && errors.telefone}
+                  hint="Formato: 923456789">
+                  <input type="tel" name="telefone" value={form.telefone}
+                    onChange={handleChange} onBlur={handleBlur}
+                    className={inputCls(touched.telefone && errors.telefone)}
+                    placeholder="923456789" maxLength={20} />
+                </Field>
+
+                <Field label="Data de Nascimento" required error={touched.nascimento && errors.nascimento}>
+                  <input type="date" name="nascimento" value={form.nascimento}
+                    onChange={handleChange} onBlur={handleBlur}
+                    className={inputCls(touched.nascimento && errors.nascimento)}
+                    max={new Date().toISOString().split('T')[0]} />
+                </Field>
+
+                <Field label="Sexo" required error={touched.sexo && errors.sexo}>
+                  <select name="sexo" value={form.sexo} onChange={handleChange} onBlur={handleBlur}
+                    className={inputCls(touched.sexo && errors.sexo)}>
+                    <option value="">Selecione</option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Feminino">Feminino</option>
+                  </select>
+                </Field>
+
+                <Field label="Disciplina" required error={touched.disciplina_colaborador && errors.disciplina_colaborador}>
+                  <select name="disciplina_colaborador" value={form.disciplina_colaborador}
+                    onChange={handleChange} onBlur={handleBlur}
+                    className={inputCls(touched.disciplina_colaborador && errors.disciplina_colaborador)}>
+                    <option value="">Selecione a disciplina</option>
+                    <option value="Matemática">Matemática</option>
+                    <option value="Inglês">Inglês</option>
+                    <option value="Programação">Programação</option>
+                  </select>
+                </Field>
+              </div>
+
+              <Field label="Biografia">
+                <textarea name="biografia" value={form.biografia}
+                  onChange={handleChange} rows={2}
+                  className={`${inputCls(false)} resize-none`}
+                  placeholder="Breve descrição (opcional)" maxLength={300} />
+                <p className="text-xs text-slate-400 text-right">{form.biografia.length}/300</p>
+              </Field>
+
+              {/* Password section */}
+              <div className="border-t border-slate-100 pt-4">
+                <p className="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
+                  <Lock className="w-4 h-4" />
+                  Senha de Acesso
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <PwdField
+                    label="Senha"
+                    name="password" value={form.password}
+                    onChange={handleChange} onBlur={handleBlur}
+                    touched={touched.password} error={errors.password}
+                    showPwd={showPwd} onToggleShow={() => setShowPwd(v => !v)}
+                    required
+                    placeholder="Senha forte"
+                  />
+                  <Field label="Confirmar Senha" required
+                    error={touched.confirmPassword && errors.confirmPassword}>
+                    <div className="relative">
+                      <input type={showConfirm ? 'text' : 'password'} name="confirmPassword"
+                        value={form.confirmPassword} onChange={handleChange} onBlur={handleBlur}
+                        className={inputCls(touched.confirmPassword && errors.confirmPassword)}
+                        placeholder="Confirmar senha" maxLength={128} autoComplete="new-password" />
+                      <button type="button" onClick={() => setShowConfirm(v => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                        {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    {form.password && form.confirmPassword && form.password === form.confirmPassword && (
+                      <p className="text-xs text-green-600 mt-0.5">✓ Senhas coincidem</p>
+                    )}
+                  </Field>
+                </div>
+              </div>
             </div>
           )}
 

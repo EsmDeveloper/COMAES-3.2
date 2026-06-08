@@ -1,7 +1,7 @@
 import { io } from 'socket.io-client';
 
 // Conexão singleton para Socket.IO — criada uma vez no carregamento do bundle
-const SOCKET_URL = `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}`;
+const SOCKET_URL = `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}`;
 
 const socket = io(SOCKET_URL, {
   autoConnect: true,

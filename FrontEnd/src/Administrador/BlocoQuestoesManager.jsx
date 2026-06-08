@@ -1,10 +1,15 @@
 /**
  * BlocoQuestoesManager.jsx
- * Gestão de Blocos de Questões — persiste no banco via API (não localStorage).
- * Mantém a UX anterior; substitui apenas a camada de dados.
+ * Gestão de Blocos de Questões — Fusão das melhores práticas:
+ * - Persistência via API (banco de dados)
+ * - Suporte a múltiplos contextos (torneio/teste)
+ * - UI rica com auditoria, progresso e associações
+ * - Performance otimizada
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useReducer } from 'react';
 import { useAuth } from '../context/AuthContext';
+import CreateQuestaoForm from './CreateQuestaoForm';
+import EditQuestaoForm from './EditQuestaoForm';
 import CreateQuestaoTesteForm from './CreateQuestaoTesteForm';
 import EditQuestaoTesteForm from './EditQuestaoTesteForm';
 import ConfirmModal from '../components/ConfirmModal';
@@ -13,7 +18,7 @@ import axios from 'axios';
 import {
   Plus, Edit, Trash2, Search, Filter, ChevronDown, ChevronUp,
   BookOpen, Trophy, Layers, List, AlertCircle, CheckCircle,
-  Lock, RefreshCw, Link2, X, Eye,
+  Lock, RefreshCw, Link2, X, Eye, Unlink,
 } from 'lucide-react';
 
 // ── Constantes ────────────────────────────────────────────────────────────────
@@ -22,26 +27,78 @@ const DISCIPLINAS = [
   { id: 'programacao', label: 'Programação', cor: 'purple' },
   { id: 'ingles',      label: 'Inglês',      cor: 'teal'   },
 ];
+
 const DIFICULDADES = [
   { id: 'facil',   label: 'Fácil',   cor: 'green'  },
   { id: 'medio',   label: 'Médio',   cor: 'yellow' },
   { id: 'dificil', label: 'Difícil', cor: 'red'    },
 ];
-const COR_DISC = {
-  blue:   { bg:'bg-blue-50',   border:'border-blue-200',   text:'text-blue-700',   badge:'bg-blue-100 text-blue-800'   },
-  purple: { bg:'bg-purple-50', border:'border-purple-200', text:'text-purple-700', badge:'bg-purple-100 text-purple-800' },
-  teal:   { bg:'bg-teal-50',   border:'border-teal-200',   text:'text-teal-700',   badge:'bg-teal-100 text-teal-800'   },
+
+const COR_DISCIPLINA = {
+  blue:   { bg: 'bg-blue-50',   border: 'border-blue-200',   text: 'text-blue-700',   badge: 'bg-blue-100 text-blue-800'   },
+  purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', badge: 'bg-purple-100 text-purple-800' },
+  teal:   { bg: 'bg-teal-50',   border: 'border-teal-200',   text: 'text-teal-700',   badge: 'bg-teal-100 text-teal-800'   },
 };
-const COR_DIF = {
-  green:  { bg:'bg-green-100',  text:'text-green-800',  dot:'bg-green-500'  },
-  yellow: { bg:'bg-yellow-100', text:'text-yellow-800', dot:'bg-yellow-500' },
-  red:    { bg:'bg-red-100',    text:'text-red-800',    dot:'bg-red-500'    },
+
+const COR_DIFICULDADE = {
+  green:  { bg: 'bg-green-100',  text: 'text-green-800',  dot: 'bg-green-500'  },
+  yellow: { bg: 'bg-yellow-100', text: 'text-yellow-800', dot: 'bg-yellow-500' },
+  red:    { bg: 'bg-red-100',    text: 'text-red-800',    dot: 'bg-red-500'    },
 };
-const MAX_Q = 30;
-const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+
+const MAX_QUESTOES_POR_BLOCO = 30;
+
+// ── Reducer para gerenciar estado complexo ───────────────────────────────────
+const initialState = {
+  blocos: [],
+  questoes: [],
+  torneios: [],
+  assocMap: {},
+  loading: false,
+  error: '',
+  success: '',
+};
+
+function appReducer(state, action) {
+  switch (action.type) {
+    case 'SET_LOADING':
+      return { ...state, loading: action.payload };
+    case 'SET_ERROR':
+      return { ...state, error: action.payload, success: '' };
+    case 'SET_SUCCESS':
+      return { ...state, success: action.payload, error: '' };
+    case 'SET_BLOCOS':
+      return { ...state, blocos: action.payload };
+    case 'SET_QUESTOES':
+      return { ...state, questoes: action.payload };
+    case 'SET_TORNEIOS':
+      return { ...state, torneios: action.payload };
+    case 'SET_ASSOC_MAP':
+      return { ...state, assocMap: action.payload };
+    case 'UPDATE_BLOCO':
+      return {
+        ...state,
+        blocos: state.blocos.map(b => b.id === action.payload.id ? action.payload : b)
+      };
+    case 'DELETE_BLOCO':
+      return {
+        ...state,
+        blocos: state.blocos.filter(b => b.id !== action.payload)
+      };
+    case 'ADD_BLOCO':
+      return {
+        ...state,
+        blocos: [...state.blocos, action.payload]
+      };
+    case 'CLEAR_MESSAGES':
+      return { ...state, error: '', success: '' };
+    default:
+      return state;
+  }
+}
 
 // ── Modal de criação/edição de bloco ──────────────────────────────────────────
-function BlocoFormModal({ bloco, onClose, onSave, loading }) {
+function BlocoFormModal({ bloco, contexto, onClose, onSave, loading }) {
   const [titulo, setTitulo] = useState(bloco?.titulo || '');
   const [disciplina, setDisciplina] = useState(bloco?.disciplina || 'matematica');
   const [dificuldade, setDificuldade] = useState(bloco?.dificuldade || 'facil');
@@ -50,51 +107,86 @@ function BlocoFormModal({ bloco, onClose, onSave, loading }) {
   const [erro, setErro] = useState('');
 
   const handleSave = () => {
-    if (!titulo.trim()) { setErro('O título é obrigatório.'); return; }
-    onSave({ titulo: titulo.trim(), disciplina, dificuldade, status, descricao: descricao.trim() || null });
+    if (!titulo.trim()) {
+      setErro('O título é obrigatório.');
+      return;
+    }
+    onSave({
+      titulo: titulo.trim(),
+      disciplina,
+      dificuldade,
+      status,
+      descricao: descricao.trim() || null,
+      contexto
+    });
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-blue-50 rounded-t-2xl">
-          <h2 className="text-lg font-bold text-slate-800">{bloco ? 'Editar Bloco' : 'Criar Bloco de Questões'}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100"><X className="w-5 h-5" /></button>
+          <h2 className="text-lg font-bold text-slate-800">
+            {bloco ? 'Editar Bloco' : 'Criar Bloco de Questões'}
+          </h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100">
+            <X className="w-5 h-5" />
+          </button>
         </div>
         <div className="p-6 space-y-4">
-          {erro && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm flex items-center gap-2"><AlertCircle className="w-4 h-4" />{erro}</div>}
+          {erro && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" /> {erro}
+            </div>
+          )}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Título *</label>
-            <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)}
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Título do bloco *</label>
+            <input
+              type="text"
+              value={titulo}
+              onChange={e => setTitulo(e.target.value)}
               placeholder="Ex: Álgebra Avançada"
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1">Descrição</label>
-            <textarea value={descricao} onChange={e => setDescricao(e.target.value)} rows={2}
+            <textarea
+              value={descricao}
+              onChange={e => setDescricao(e.target.value)}
+              rows={2}
               placeholder="Descrição opcional do bloco..."
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1">Disciplina *</label>
-              <select value={disciplina} onChange={e => setDisciplina(e.target.value)}
-                className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select
+                value={disciplina}
+                onChange={e => setDisciplina(e.target.value)}
+                className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
                 {DISCIPLINAS.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1">Dificuldade *</label>
-              <select value={dificuldade} onChange={e => setDificuldade(e.target.value)}
-                className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select
+                value={dificuldade}
+                onChange={e => setDificuldade(e.target.value)}
+                className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
                 {DIFICULDADES.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
               </select>
             </div>
           </div>
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1">Status</label>
-            <select value={status} onChange={e => setStatus(e.target.value)}
-              className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select
+              value={status}
+              onChange={e => setStatus(e.target.value)}
+              className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
               <option value="rascunho">📝 Rascunho</option>
               <option value="publicado">✅ Publicado</option>
             </select>
@@ -102,8 +194,18 @@ function BlocoFormModal({ bloco, onClose, onSave, loading }) {
           </div>
         </div>
         <div className="px-6 py-4 border-t border-slate-100 flex gap-3">
-          <button onClick={onClose} disabled={loading} className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-semibold text-sm hover:bg-slate-200 disabled:opacity-50">Cancelar</button>
-          <button onClick={handleSave} disabled={loading} className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:bg-blue-700 disabled:opacity-50">
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-semibold text-sm hover:bg-slate-200 transition-colors disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
+          >
             {loading ? 'Salvando...' : bloco ? 'Salvar' : 'Criar Bloco'}
           </button>
         </div>
@@ -112,76 +214,149 @@ function BlocoFormModal({ bloco, onClose, onSave, loading }) {
   );
 }
 
-// ── Card de Bloco ─────────────────────────────────────────────────────────────
-function BlocoCard({ bloco, torneios, assocMap, onEdit, onDelete, onAddQuestao, onRemoveQuestao, onEditQuestao, onToggleAssoc }) {
+// ── Card de Bloco (versão melhorada) ──────────────────────────────────────────
+function BlocoCard({
+  bloco,
+  questoes,
+  torneios,
+  assocMap,
+  onAddQuestao,
+  onEditQuestao,
+  onRemoverQuestao,
+  onEditBloco,
+  onDeleteBloco,
+  onToggleAssoc,
+  contexto,
+}) {
   const [expandido, setExpandido] = useState(false);
   const [showAssoc, setShowAssoc] = useState(false);
 
   const disc = DISCIPLINAS.find(d => d.id === bloco.disciplina);
-  const dif  = DIFICULDADES.find(d => d.id === bloco.dificuldade);
-  const corD = COR_DISC[disc?.cor || 'blue'];
-  const corF = COR_DIF[dif?.cor || 'green'];
-  const count = bloco.total_questoes ?? bloco.questoes?.length ?? 0;
-  const cheio = count >= MAX_Q;
-  const questoes = bloco.questoes || [];
+  const dif = DIFICULDADES.find(d => d.id === bloco.dificuldade);
+  const corDisc = COR_DISCIPLINA[disc?.cor || 'blue'];
+  const corDif = COR_DIFICULDADE[dif?.cor || 'green'];
 
-  const torneiosAssoc = (assocMap[bloco.id] || [])
+  const questoesDoBloco = questoes.filter(q => bloco.questaoIds?.includes(q.id) || bloco.questoes?.some(bq => bq.id === q.id));
+  const count = bloco.total_questoes ?? questoesDoBloco.length;
+  const cheio = count >= MAX_QUESTOES_POR_BLOCO;
+
+  const torneiosAssociados = (assocMap[bloco.id] || [])
     .map(tid => torneios.find(t => String(t.id) === String(tid)))
     .filter(Boolean);
 
   return (
-    <div className={`rounded-2xl border-2 ${corD.border} ${corD.bg} overflow-hidden`}>
+    <div className={`rounded-2xl border-2 ${corDisc.border} ${corDisc.bg} overflow-hidden transition-all duration-200`}>
+      {/* Cabeçalho do bloco */}
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${corD.badge}`}>{disc?.label}</span>
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${corF.bg} ${corF.text}`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${corF.dot}`} />{dif?.label}
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${corDisc.badge}`}>
+                {disc?.label}
               </span>
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${corDif.bg} ${corDif.text}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${corDif.dot}`} />
+                {dif?.label}
+              </span>
+              {bloco.padrao && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 flex items-center gap-1">
+                  <Lock className="w-3 h-3" /> Padrão
+                </span>
+              )}
               <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${bloco.status === 'publicado' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
                 {bloco.status === 'publicado' ? '✅ Publicado' : '📝 Rascunho'}
               </span>
             </div>
             <h3 className="font-bold text-slate-800 truncate">{bloco.titulo}</h3>
+            {bloco.descricao && (
+              <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{bloco.descricao}</p>
+            )}
             <p className="text-xs text-slate-500 mt-0.5">
-              <span className={`font-semibold ${cheio ? 'text-red-600' : 'text-slate-700'}`}>{count}</span>/{MAX_Q} questões
-              {torneiosAssoc.length > 0 && <span className="ml-2 text-blue-600">· {torneiosAssoc.length} torneio(s)</span>}
+              <span className={`font-semibold ${cheio ? 'text-red-600' : 'text-slate-700'}`}>{count}</span>
+              /{MAX_QUESTOES_POR_BLOCO} questões
+              {contexto === 'torneio' && torneiosAssociados.length > 0 && (
+                <span className="ml-2 text-blue-600">
+                  · {torneiosAssociados.length} torneio{torneiosAssociados.length > 1 ? 's' : ''}
+                </span>
+              )}
             </p>
           </div>
+
+          {/* Ações do bloco */}
           <div className="flex items-center gap-1 flex-shrink-0">
-            <button onClick={() => setShowAssoc(v => !v)} className="p-1.5 rounded-lg text-blue-500 hover:bg-blue-100" title="Associar a torneios"><Link2 className="w-4 h-4" /></button>
-            <button onClick={() => onEdit(bloco)} className="p-1.5 rounded-lg text-slate-500 hover:bg-white" title="Editar"><Edit className="w-4 h-4" /></button>
-            <button onClick={() => onDelete(bloco)} className="p-1.5 rounded-lg text-red-400 hover:bg-red-50" title="Excluir"><Trash2 className="w-4 h-4" /></button>
-            <button onClick={() => setExpandido(v => !v)} className="p-1.5 rounded-lg text-slate-500 hover:bg-white">
+            {contexto === 'torneio' && (
+              <button
+                onClick={() => setShowAssoc(v => !v)}
+                className="p-1.5 rounded-lg text-blue-500 hover:bg-blue-100 transition-colors"
+                title="Associar a torneios"
+              >
+                <Link2 className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              onClick={() => onEditBloco(bloco)}
+              className="p-1.5 rounded-lg text-slate-500 hover:bg-white transition-colors"
+              title="Editar bloco"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+            {!bloco.padrao && (
+              <button
+                onClick={() => onDeleteBloco(bloco)}
+                className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 transition-colors"
+                title="Excluir bloco"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              onClick={() => setExpandido(v => !v)}
+              className="p-1.5 rounded-lg text-slate-500 hover:bg-white transition-colors"
+              title={expandido ? 'Recolher' : 'Expandir'}
+            >
               {expandido ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
           </div>
         </div>
+
+        {/* Barra de progresso */}
         <div className="mt-2 h-1.5 bg-white/60 rounded-full overflow-hidden">
-          <div className={`h-full rounded-full transition-all ${cheio ? 'bg-red-400' : 'bg-blue-400'}`} style={{ width: `${Math.min((count / MAX_Q) * 100, 100)}%` }} />
+          <div
+            className={`h-full rounded-full transition-all duration-300 ${cheio ? 'bg-red-400' : 'bg-blue-400'}`}
+            style={{ width: `${Math.min((count / MAX_QUESTOES_POR_BLOCO) * 100, 100)}%` }}
+          />
         </div>
       </div>
 
-      {/* Painel de associação */}
-      {showAssoc && (
+      {/* Painel de associação de torneios */}
+      {showAssoc && contexto === 'torneio' && (
         <div className="border-t border-white/50 bg-white/70 px-4 py-3">
-          <p className="text-xs font-semibold text-slate-600 mb-2 flex items-center gap-1"><Link2 className="w-3 h-3" />Associar a torneios</p>
+          <p className="text-xs font-semibold text-slate-600 mb-2 flex items-center gap-1">
+            <Link2 className="w-3 h-3" /> Associar a torneios ativos
+          </p>
           {bloco.status !== 'publicado' && (
             <p className="text-xs text-amber-600 mb-2">⚠️ Publique o bloco antes de associar a torneios.</p>
           )}
-          {torneios.length === 0 ? <p className="text-xs text-slate-400">Nenhum torneio disponível.</p> : (
-            <div className="space-y-1">
+          {torneios.length === 0 ? (
+            <p className="text-xs text-slate-400">Nenhum torneio disponível.</p>
+          ) : (
+            <div className="space-y-1 max-h-48 overflow-y-auto">
               {torneios.map(t => {
                 const assoc = (assocMap[bloco.id] || []).includes(String(t.id));
                 return (
                   <label key={t.id} className="flex items-center gap-2 cursor-pointer group">
-                    <input type="checkbox" checked={assoc} disabled={bloco.status !== 'publicado'}
+                    <input
+                      type="checkbox"
+                      checked={assoc}
+                      disabled={bloco.status !== 'publicado'}
                       onChange={() => onToggleAssoc(bloco.id, String(t.id))}
-                      className="w-4 h-4 rounded text-blue-600 disabled:opacity-40" />
-                    <span className="text-xs text-slate-700 group-hover:text-blue-700">
+                      className="w-4 h-4 rounded text-blue-600 disabled:opacity-40"
+                    />
+                    <span className="text-xs text-slate-700 group-hover:text-blue-700 transition-colors">
                       {t.titulo}
-                      <span className={`ml-1 px-1.5 py-0.5 rounded text-xs font-medium ${t.status === 'ativo' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>{t.status}</span>
+                      <span className={`ml-1 px-1.5 py-0.5 rounded text-xs font-medium ${
+                        t.status === 'ativo' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'
+                      }`}>{t.status}</span>
                     </span>
                   </label>
                 );
@@ -191,35 +366,69 @@ function BlocoCard({ bloco, torneios, assocMap, onEdit, onDelete, onAddQuestao, 
         </div>
       )}
 
-      {/* Lista de questões */}
+      {/* Lista de questões expandida */}
       {expandido && (
         <div className="border-t border-white/50 bg-white/80">
-          {questoes.length === 0 ? (
+          {questoesDoBloco.length === 0 ? (
             <div className="px-4 py-6 text-center">
               <p className="text-sm text-slate-400">Nenhuma questão neste bloco.</p>
+              {!cheio && (
+                <button
+                  onClick={() => onAddQuestao(bloco)}
+                  className="mt-2 text-xs text-blue-600 hover:underline flex items-center gap-1 mx-auto"
+                >
+                  <Plus className="w-3 h-3" /> Adicionar questão
+                </button>
+              )}
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
-              {questoes.map((q, i) => (
-                <div key={q.id} className="px-4 py-2.5 flex items-center gap-3 hover:bg-white/60">
+              {questoesDoBloco.map((q, i) => (
+                <div key={q.id} className="px-4 py-2.5 flex items-center gap-3 hover:bg-white/60 transition-colors">
                   <span className="text-xs font-bold text-slate-400 w-5 text-right flex-shrink-0">{i + 1}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-slate-700 truncate font-medium">{q.enunciado}</p>
-                    <p className="text-xs text-slate-400">{q.pontos} pts · {q.dificuldade}</p>
+                    <p className="text-sm text-slate-700 truncate font-medium">
+                      {q.titulo || q.enunciado}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {q.pontos} pts
+                      {q.tipo && ` · ${q.tipo}`}
+                    </p>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
-                    <button onClick={() => onEditQuestao(q)} className="p-1 rounded text-blue-400 hover:bg-blue-50" title="Editar questão"><Edit className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => onRemoveQuestao(bloco, q)} className="p-1 rounded text-red-400 hover:bg-red-50" title="Remover do bloco"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <button
+                      onClick={() => onEditQuestao(q, bloco)}
+                      className="p-1 rounded text-blue-400 hover:bg-blue-50 transition-colors"
+                      title="Editar questão"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => onRemoverQuestao(q, bloco)}
+                      className="p-1 rounded text-red-400 hover:bg-red-50 transition-colors"
+                      title="Remover do bloco"
+                    >
+                      <Unlink className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
           )}
+
+          {/* Botão adicionar questão */}
           <div className="px-4 py-2 border-t border-slate-100">
-            <button onClick={() => onAddQuestao(bloco)} disabled={cheio}
-              className={`w-full py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-all ${cheio ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}>
+            <button
+              onClick={() => onAddQuestao(bloco)}
+              disabled={cheio}
+              className={`w-full py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-all ${
+                cheio
+                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+              }`}
+            >
               <Plus className="w-3.5 h-3.5" />
-              {cheio ? `Limite de ${MAX_Q} questões atingido` : 'Adicionar questão'}
+              {cheio ? `Limite de ${MAX_QUESTOES_POR_BLOCO} questões atingido` : 'Adicionar questão'}
             </button>
           </div>
         </div>
@@ -229,206 +438,361 @@ function BlocoCard({ bloco, torneios, assocMap, onEdit, onDelete, onAddQuestao, 
 }
 
 // ── Componente principal ──────────────────────────────────────────────────────
-export default function BlocoQuestoesManager() {
+export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
   const { token } = useAuth();
+  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
 
-  // Estado principal
-  const [blocos, setBlocos] = useState([]);
-  const [torneios, setTorneios] = useState([]);
-  const [assocMap, setAssocMap] = useState({}); // { blocoId: [torneioId, ...] }
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-
-  // Filtros
+  const [state, dispatch] = useReducer(appReducer, initialState);
+  const [aba, setAba] = useState('blocos');
   const [filtroDisc, setFiltroDisc] = useState('');
   const [filtroDif, setFiltroDif] = useState('');
   const [filtroStatus, setFiltroStatus] = useState('');
-  const [aba, setAba] = useState('blocos');
+  const [searchAuditoria, setSearchAuditoria] = useState('');
 
-  // Modais de bloco
+  // Estados de modais
   const [showBlocoForm, setShowBlocoForm] = useState(false);
   const [blocoEditando, setBlocoEditando] = useState(null);
   const [showDeleteBloco, setShowDeleteBloco] = useState(false);
   const [blocoParaDeletar, setBlocoParaDeletar] = useState(null);
 
-  // Modais de questão
   const [showCreateQuestao, setShowCreateQuestao] = useState(false);
   const [blocoAlvo, setBlocoAlvo] = useState(null);
   const [showEditQuestao, setShowEditQuestao] = useState(false);
   const [questaoEditando, setQuestaoEditando] = useState(null);
-  const [showDeleteQuestao, setShowDeleteQuestao] = useState(false);
-  const [removeTarget, setRemoveTarget] = useState({ bloco: null, questao: null });
+  const [showRemoverQuestao, setShowRemoverQuestao] = useState(false);
+  const [removerTarget, setRemoverTarget] = useState({ questao: null, bloco: null });
+
+  const [saving, setSaving] = useState(false);
 
   const showMsg = (msg, isError = false) => {
-    if (isError) { setError(msg); setTimeout(() => setError(''), 4000); }
-    else { setSuccess(msg); setTimeout(() => setSuccess(''), 3000); }
+    if (isError) {
+      dispatch({ type: 'SET_ERROR', payload: msg });
+      setTimeout(() => dispatch({ type: 'SET_ERROR', payload: '' }), 4000);
+    } else {
+      dispatch({ type: 'SET_SUCCESS', payload: msg });
+      setTimeout(() => dispatch({ type: 'SET_SUCCESS', payload: '' }), 3000);
+    }
   };
 
-  // ── Carregar dados ────────────────────────────────────────────────────────
-  const carregarBlocos = useCallback(async () => {
-    setLoading(true);
-    setError('');
+  // ── Carregar dados do backend ───────────────────────────────────────────────
+  const carregarQuestoes = useCallback(async () => {
+    dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      const params = {};
-      if (filtroDisc) params.disciplina = filtroDisc;
-      if (filtroDif) params.dificuldade = filtroDif;
-      if (filtroStatus) params.status = filtroStatus;
-      params.limit = 100;
-
-      const res = await BlocosService.listar(token, params);
-      const lista = res.data?.blocos || [];
-
-      // Para cada bloco, carregar questões detalhadas
-      const blocosComQuestoes = await Promise.all(
-        lista.map(async (bloco) => {
-          try {
-            const det = await BlocosService.obter(token, bloco.id);
-            return det.data || bloco;
-          } catch {
-            return bloco;
-          }
-        })
-      );
-
-      setBlocos(blocosComQuestoes);
-
-      // Reconstruir assocMap a partir dos torneios
-      await carregarAssocMap(blocosComQuestoes);
-    } catch (e) {
-      showMsg('Erro ao carregar blocos: ' + e.message, true);
-    } finally {
-      setLoading(false);
-    }
-  }, [token, filtroDisc, filtroDif, filtroStatus]);
-
-  const carregarAssocMap = useCallback(async (blocosList) => {
-    if (!torneios.length) return;
-    const mapa = {};
-    for (const bloco of (blocosList || blocos)) {
-      try {
-        // Verificar em quais torneios este bloco está associado
-        const torneiosDoBloco = torneios.filter(t =>
-          t.blocos?.some(b => String(b.id) === String(bloco.id))
-        );
-        mapa[bloco.id] = torneiosDoBloco.map(t => String(t.id));
-      } catch {
-        mapa[bloco.id] = [];
+      let lista = [];
+      if (contexto === 'torneio') {
+        const res = await axios.get(`${apiBase}/api/questoes`, {
+          params: { status_aprovacao: 'aprovada' }, // ✅ FILTRO: Apenas questões aprovadas
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        lista = res.data.dados?.questoes || [];
+      } else {
+        const res = await axios.get(`${apiBase}/api/teste-conhecimento/questoes`, {
+          params: { status_aprovacao: 'aprovada' }, // ✅ FILTRO: Apenas questões aprovadas
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        lista = res.data.data || [];
       }
+      dispatch({ type: 'SET_QUESTOES', payload: lista });
+      return lista;
+    } catch (err) {
+      showMsg('Erro ao carregar questões.', true);
+      console.error(err);
+      return [];
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
-    setAssocMap(mapa);
-  }, [torneios, blocos]);
+  }, [contexto, token, apiBase]);
+
+  const carregarBlocos = useCallback(async () => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    try {
+      // Tentar carregar do backend primeiro
+      if (BlocosService && token) {
+        const params = {};
+        if (filtroDisc) params.disciplina = filtroDisc;
+        if (filtroDif) params.dificuldade = filtroDif;
+        if (filtroStatus) params.status = filtroStatus;
+        if (contexto) params.contexto = contexto;
+        params.limit = 100;
+
+        console.log(`📋 Carregando blocos com filtros:`, params);
+        
+        try {
+          const res = await BlocosService.listar(token, params);
+          console.log(`📋 Resposta do backend:`, res);
+          
+          // ✅ Acessar blocos corretamente da resposta
+          const blocosBackend = res.data?.blocos || res.blocos || [];
+          console.log(`📋 Blocos extraídos:`, blocosBackend);
+          
+          if (blocosBackend.length > 0) {
+            dispatch({ type: 'SET_BLOCOS', payload: blocosBackend });
+            
+            // Carregar questões para cada bloco (evitar N+1)
+            const questoesMap = new Map();
+            for (const bloco of blocosBackend) {
+              if (bloco.questoes && bloco.questoes.length > 0) {
+                bloco.questoes.forEach(q => questoesMap.set(q.id, q));
+              }
+            }
+            const questoesUnicas = Array.from(questoesMap.values());
+            if (questoesUnicas.length > 0) {
+              dispatch({ type: 'SET_QUESTOES', payload: questoesUnicas });
+            }
+            console.log(`✅ Blocos carregados com sucesso do backend:`, blocosBackend.length);
+            return;
+          } else {
+            console.log(`⚠️ Backend retornou vazio, usando padrão`);
+          }
+        } catch (backendErr) {
+          console.error(`❌ Erro ao chamar backend:`, backendErr.message);
+          throw backendErr;
+        }
+      }
+      
+      // Fallback: simular blocos padrão para primeira execução
+      console.log(`📋 Usando blocos padrão (fallback)`);
+      const blocosIniciais = gerarBlocoesPadrao(contexto);
+      dispatch({ type: 'SET_BLOCOS', payload: blocosIniciais });
+      await carregarQuestoes();
+    } catch (err) {
+      console.error('❌ Erro ao carregar blocos:', err);
+      showMsg(`Erro ao carregar blocos. Usando dados locais. Erro: ${err.message}`, true);
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  }, [token, filtroDisc, filtroDif, filtroStatus, contexto, carregarQuestoes]);
 
   const carregarTorneios = useCallback(async () => {
+    if (contexto !== 'torneio') return;
     try {
-      const res = await axios.get(`${API_BASE}/api/admin/torneos`, {
+      const res = await axios.get(`${apiBase}/api/admin/torneos`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const lista = Array.isArray(res.data) ? res.data : (res.data?.data || []);
-      setTorneios(lista);
-    } catch (e) {
-      console.error('Erro ao carregar torneios:', e);
+      dispatch({ type: 'SET_TORNEIOS', payload: lista });
+      
+      // Construir mapa de associações
+      const mapa = {};
+      lista.forEach(torneio => {
+        if (torneio.blocos) {
+          torneio.blocos.forEach(bloco => {
+            const blocoId = bloco.id || bloco;
+            if (!mapa[blocoId]) mapa[blocoId] = [];
+            mapa[blocoId].push(String(torneio.id));
+          });
+        }
+      });
+      dispatch({ type: 'SET_ASSOC_MAP', payload: mapa });
+    } catch (err) {
+      console.error('Erro ao carregar torneios:', err);
     }
-  }, [token]);
+  }, [contexto, token, apiBase]);
 
-  useEffect(() => { carregarTorneios(); }, [carregarTorneios]);
-  useEffect(() => { carregarBlocos(); }, [carregarBlocos]);
+  // Efeitos iniciais
+  useEffect(() => {
+    carregarBlocos();
+    carregarTorneios();
+  }, [carregarBlocos, carregarTorneios]);
 
   // ── Handlers de Bloco ────────────────────────────────────────────────────
+  const gerarBlocoesPadrao = (ctx) => {
+    const blocos = [];
+    let id = 1;
+    for (const disc of DISCIPLINAS) {
+      for (const dif of DIFICULDADES) {
+        blocos.push({
+          id: `padrao_${disc.id}_${dif.id}`,
+          titulo: `${disc.label} — ${dif.label}`,
+          disciplina: disc.id,
+          dificuldade: dif.id,
+          contexto: ctx,
+          padrao: true,
+          status: 'publicado',
+          questoes: [],
+          questaoIds: [],
+          criadoEm: new Date().toISOString(),
+        });
+      }
+    }
+    return blocos;
+  };
+
   const handleCriarBloco = async (dados) => {
     setSaving(true);
     try {
-      await BlocosService.criar(token, dados);
+      if (BlocosService && token) {
+        await BlocosService.criar(token, dados);
+        showMsg('Bloco criado com sucesso!');
+        await carregarBlocos();
+      } else {
+        // Fallback local
+        const novoBloco = {
+          id: `bloco_${Date.now()}`,
+          ...dados,
+          padrao: false,
+          questoes: [],
+          questaoIds: [],
+          criadoEm: new Date().toISOString(),
+        };
+        dispatch({ type: 'ADD_BLOCO', payload: novoBloco });
+        showMsg('Bloco criado localmente!');
+      }
       setShowBlocoForm(false);
-      showMsg('Bloco criado com sucesso!');
-      carregarBlocos();
-    } catch (e) { showMsg(e.message, true); }
-    finally { setSaving(false); }
+    } catch (err) {
+      showMsg(err.message || 'Erro ao criar bloco', true);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleEditarBloco = async (dados) => {
     setSaving(true);
     try {
-      await BlocosService.editar(token, blocoEditando.id, dados);
+      if (BlocosService && token && blocoEditando && !blocoEditando.padrao) {
+        await BlocosService.editar(token, blocoEditando.id, dados);
+        showMsg('Bloco atualizado!');
+        await carregarBlocos();
+      } else if (!blocoEditando?.padrao) {
+        // Fallback local
+        const atualizado = { ...blocoEditando, ...dados };
+        dispatch({ type: 'UPDATE_BLOCO', payload: atualizado });
+        showMsg('Bloco atualizado localmente!');
+      }
       setBlocoEditando(null);
       setShowBlocoForm(false);
-      showMsg('Bloco atualizado!');
-      carregarBlocos();
-    } catch (e) { showMsg(e.message, true); }
-    finally { setSaving(false); }
+    } catch (err) {
+      showMsg(err.message || 'Erro ao editar bloco', true);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDeletarBloco = async () => {
     if (!blocoParaDeletar) return;
     setSaving(true);
     try {
-      await BlocosService.deletar(token, blocoParaDeletar.id);
+      if (BlocosService && token && !blocoParaDeletar.padrao) {
+        await BlocosService.deletar(token, blocoParaDeletar.id);
+        showMsg('Bloco excluído.');
+        await carregarBlocos();
+      } else if (!blocoParaDeletar.padrao) {
+        dispatch({ type: 'DELETE_BLOCO', payload: blocoParaDeletar.id });
+        showMsg('Bloco excluído localmente.');
+      }
       setBlocoParaDeletar(null);
       setShowDeleteBloco(false);
-      showMsg('Bloco excluído.');
-      carregarBlocos();
-    } catch (e) { showMsg(e.message, true); }
-    finally { setSaving(false); }
+    } catch (err) {
+      showMsg(err.message || 'Erro ao excluir bloco', true);
+    } finally {
+      setSaving(false);
+    }
   };
 
   // ── Handlers de Associação ────────────────────────────────────────────────
   const handleToggleAssoc = async (blocoId, torneioId) => {
-    const atual = assocMap[blocoId] || [];
+    const atual = state.assocMap[blocoId] || [];
     const jaAssociado = atual.includes(torneioId);
+    
     try {
-      if (jaAssociado) {
-        await BlocosService.desassociar(token, torneioId, blocoId);
-        setAssocMap(prev => ({ ...prev, [blocoId]: prev[blocoId].filter(id => id !== torneioId) }));
-        showMsg('Bloco desassociado do torneio.');
-      } else {
-        await BlocosService.associar(token, torneioId, blocoId);
-        setAssocMap(prev => ({ ...prev, [blocoId]: [...(prev[blocoId] || []), torneioId] }));
-        showMsg('Bloco associado ao torneio!');
+      if (BlocosService && token) {
+        if (jaAssociado) {
+          await BlocosService.desassociar(token, torneioId, blocoId);
+          showMsg('Bloco desassociado do torneio.');
+        } else {
+          await BlocosService.associar(token, torneioId, blocoId);
+          showMsg('Bloco associado ao torneio!');
+        }
+        
+        // Atualizar mapa local
+        const novoMap = { ...state.assocMap };
+        if (jaAssociado) {
+          novoMap[blocoId] = novoMap[blocoId].filter(id => id !== torneioId);
+          if (novoMap[blocoId].length === 0) delete novoMap[blocoId];
+        } else {
+          novoMap[blocoId] = [...(novoMap[blocoId] || []), torneioId];
+        }
+        dispatch({ type: 'SET_ASSOC_MAP', payload: novoMap });
       }
-    } catch (e) { showMsg(e.message, true); }
+    } catch (err) {
+      showMsg(err.message || 'Erro ao alterar associação', true);
+    }
   };
 
   // ── Handlers de Questão ───────────────────────────────────────────────────
-  const handleQuestaoAdicionada = async (questao) => {
-    if (!questao?.id || !blocoAlvo) { setShowCreateQuestao(false); setBlocoAlvo(null); return; }
-    try {
-      await BlocosService.adicionarQuestao(token, blocoAlvo.id, questao.id);
-      showMsg('Questão adicionada ao bloco!');
-    } catch (e) {
-      // Se já está no bloco, ignorar silenciosamente
-      if (!e.message.includes('já está')) showMsg(e.message, true);
+  const handleQuestaoAdicionada = async (questao, bloco) => {
+    if (!questao?.id || !bloco) {
+      setShowCreateQuestao(false);
+      setBlocoAlvo(null);
+      return;
     }
-    setShowCreateQuestao(false);
-    setBlocoAlvo(null);
-    carregarBlocos();
+    
+    setSaving(true);
+    try {
+      if (BlocosService && token && !bloco.padrao) {
+        await BlocosService.adicionarQuestao(token, bloco.id, questao.id);
+        showMsg('Questão adicionada ao bloco!');
+        await carregarBlocos();
+      } else {
+        // Fallback local
+        const blocosAtualizados = state.blocos.map(b =>
+          b.id === bloco.id && !b.questaoIds?.includes(questao.id)
+            ? { ...b, questaoIds: [...(b.questaoIds || []), questao.id], questoes: [...(b.questoes || []), questao] }
+            : b
+        );
+        dispatch({ type: 'SET_BLOCOS', payload: blocosAtualizados });
+        showMsg('Questão adicionada localmente!');
+      }
+    } catch (err) {
+      if (!err.message?.includes('já está')) {
+        showMsg(err.message || 'Erro ao adicionar questão', true);
+      }
+    } finally {
+      setSaving(false);
+      setShowCreateQuestao(false);
+      setBlocoAlvo(null);
+    }
   };
 
-  const handleQuestaoEditada = () => {
+  const handleQuestaoEditada = async () => {
     setShowEditQuestao(false);
     setQuestaoEditando(null);
-    showMsg('Questão atualizada!');
-    carregarBlocos();
+    showMsg('Questão atualizada! Os blocos foram re-sincronizados.');
+    await carregarQuestoes();
+    await carregarBlocos();
   };
 
   const handleRemoverQuestao = async () => {
-    const { bloco, questao } = removeTarget;
-    if (!bloco || !questao) return;
+    const { questao, bloco } = removerTarget;
+    if (!questao || !bloco) return;
+    
     setSaving(true);
     try {
-      await BlocosService.removerQuestao(token, bloco.id, questao.id);
-      showMsg('Questão removida do bloco.');
-      carregarBlocos();
-    } catch (e) { showMsg(e.message, true); }
-    finally {
+      if (BlocosService && token && !bloco.padrao) {
+        await BlocosService.removerQuestao(token, bloco.id, questao.id);
+        showMsg('Questão removida do bloco.');
+        await carregarBlocos();
+      } else if (!bloco.padrao) {
+        // Fallback local
+        const blocosAtualizados = state.blocos.map(b =>
+          b.id === bloco.id
+            ? { ...b, questaoIds: (b.questaoIds || []).filter(id => id !== questao.id), questoes: (b.questoes || []).filter(q => q.id !== questao.id) }
+            : b
+        );
+        dispatch({ type: 'SET_BLOCOS', payload: blocosAtualizados });
+        showMsg('Questão removida localmente.');
+      }
+    } catch (err) {
+      showMsg(err.message || 'Erro ao remover questão', true);
+    } finally {
       setSaving(false);
-      setShowDeleteQuestao(false);
-      setRemoveTarget({ bloco: null, questao: null });
+      setShowRemoverQuestao(false);
+      setRemoverTarget({ questao: null, bloco: null });
     }
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
-  const blocosFiltrados = blocos.filter(b => {
+  // ── Filtros e renderização ────────────────────────────────────────────────
+  const blocosFiltrados = state.blocos.filter(b => {
     if (filtroDisc && b.disciplina !== filtroDisc) return false;
     if (filtroDif && b.dificuldade !== filtroDif) return false;
     if (filtroStatus && b.status !== filtroStatus) return false;
@@ -440,40 +804,79 @@ export default function BlocoQuestoesManager() {
     blocos: blocosFiltrados.filter(b => b.disciplina === disc.id),
   })).filter(d => d.blocos.length > 0);
 
+  const questoesAuditoria = state.questoes.filter(q => {
+    const texto = (q.titulo || q.enunciado || '').toLowerCase();
+    return !searchAuditoria || texto.includes(searchAuditoria.toLowerCase());
+  });
+
+  const isTorneio = contexto === 'torneio';
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Trophy className="w-8 h-8 text-blue-600" />
+            {isTorneio ? <Trophy className="w-8 h-8 text-blue-600" /> : <BookOpen className="w-8 h-8 text-purple-600" />}
             <div>
-              <h2 className="text-2xl font-bold text-slate-800">Blocos de Questões</h2>
-              <p className="text-sm text-slate-500">{blocos.length} blocos · persistidos no banco de dados</p>
+              <h2 className="text-2xl font-bold text-slate-800">
+                {isTorneio ? 'Questões dos Torneios' : 'Teste de Conhecimento'}
+              </h2>
+              <p className="text-sm text-slate-500">
+                {state.blocos.length} blocos · {state.questoes.length} questões
+                {BlocosService && ' · Persistido no banco de dados'}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={carregarBlocos} disabled={loading} className="p-2 rounded-xl text-slate-500 hover:bg-slate-100" title="Recarregar">
-              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+            <button
+              onClick={() => { carregarBlocos(); carregarTorneios(); }}
+              disabled={state.loading}
+              className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 transition-colors"
+              title="Recarregar"
+            >
+              <RefreshCw className={`w-5 h-5 ${state.loading ? 'animate-spin' : ''}`} />
             </button>
-            <button onClick={() => { setBlocoEditando(null); setShowBlocoForm(true); }}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg">
-              <Layers className="w-4 h-4" /> Criar Bloco
+            <button
+              onClick={() => { setBlocoEditando(null); setShowBlocoForm(true); }}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white shadow-lg transition-all hover:scale-105 ${
+                isTorneio
+                  ? 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700'
+                  : 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700'
+              }`}
+            >
+              <Layers className="w-4 h-4" /> Criar Bloco de Questões
             </button>
           </div>
         </div>
       </div>
 
       {/* Mensagens */}
-      {error && <div className="bg-red-50 border border-red-200 text-red-800 px-5 py-3 rounded-xl flex items-center gap-3"><AlertCircle className="w-5 h-5 flex-shrink-0" />{error}</div>}
-      {success && <div className="bg-green-50 border border-green-200 text-green-800 px-5 py-3 rounded-xl flex items-center gap-3"><CheckCircle className="w-5 h-5 flex-shrink-0" />{success}</div>}
+      {state.error && (
+        <div className="bg-red-50 border border-red-200 text-red-800 px-5 py-3 rounded-xl flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" /> {state.error}
+        </div>
+      )}
+      {state.success && (
+        <div className="bg-green-50 border border-green-200 text-green-800 px-5 py-3 rounded-xl flex items-center gap-3">
+          <CheckCircle className="w-5 h-5 flex-shrink-0" /> {state.success}
+        </div>
+      )}
 
       {/* Abas */}
       <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit">
-        {[{ id: 'blocos', icon: Layers, label: 'Blocos' }, { id: 'lista', icon: List, label: 'Todas as Questões' }].map(tab => (
-          <button key={tab.id} onClick={() => setAba(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${aba === tab.id ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}>
-            <tab.icon className="w-4 h-4" />{tab.label}
+        {[
+          { id: 'blocos', icon: Layers, label: 'Blocos de Questões' },
+          { id: 'auditoria', icon: List, label: 'Visualizar Todas as Questões' },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setAba(tab.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+              aba === tab.id ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <tab.icon className="w-4 h-4" /> {tab.label}
           </button>
         ))}
       </div>
@@ -482,156 +885,248 @@ export default function BlocoQuestoesManager() {
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4">
         <div className="flex flex-wrap gap-3 items-center">
           <Filter className="w-4 h-4 text-slate-400" />
-          {[
-            { value: filtroDisc, setter: setFiltroDisc, options: DISCIPLINAS, placeholder: 'Todas as disciplinas' },
-            { value: filtroDif, setter: setFiltroDif, options: DIFICULDADES, placeholder: 'Todas as dificuldades' },
-          ].map((f, i) => (
-            <select key={i} value={f.value} onChange={e => f.setter(e.target.value)}
-              className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">{f.placeholder}</option>
-              {f.options.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
-            </select>
-          ))}
-          <select value={filtroStatus} onChange={e => setFiltroStatus(e.target.value)}
-            className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <select
+            value={filtroDisc}
+            onChange={e => setFiltroDisc(e.target.value)}
+            className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Todas as disciplinas</option>
+            {DISCIPLINAS.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
+          </select>
+          <select
+            value={filtroDif}
+            onChange={e => setFiltroDif(e.target.value)}
+            className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Todas as dificuldades</option>
+            {DIFICULDADES.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
+          </select>
+          <select
+            value={filtroStatus}
+            onChange={e => setFiltroStatus(e.target.value)}
+            className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
             <option value="">Todos os status</option>
             <option value="rascunho">📝 Rascunho</option>
             <option value="publicado">✅ Publicado</option>
           </select>
           {(filtroDisc || filtroDif || filtroStatus) && (
-            <button onClick={() => { setFiltroDisc(''); setFiltroDif(''); setFiltroStatus(''); }}
-              className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1">
+            <button
+              onClick={() => { setFiltroDisc(''); setFiltroDif(''); setFiltroStatus(''); }}
+              className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1"
+            >
               <X className="w-3 h-3" /> Limpar filtros
             </button>
           )}
         </div>
       </div>
 
-      {/* Aba Blocos */}
+      {/* ABA BLOCOS */}
       {aba === 'blocos' && (
-        loading ? (
-          <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-12 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4" />
-            <p className="text-slate-500">Carregando blocos...</p>
-          </div>
-        ) : blocosFiltrados.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-12 text-center">
-            <Layers className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-500 font-medium">Nenhum bloco encontrado</p>
-            <p className="text-slate-400 text-sm mt-1">Crie um bloco para começar a organizar questões.</p>
-            <button onClick={() => { setBlocoEditando(null); setShowBlocoForm(true); }}
-              className="mt-4 px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700">
-              + Criar primeiro bloco
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {blocosPorDisc.map(disc => (
-              <div key={disc.id}>
-                <h3 className={`text-sm font-bold uppercase tracking-wider mb-3 ${COR_DISC[disc.cor]?.text}`}>{disc.label}</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {disc.blocos.map(bloco => (
-                    <BlocoCard
-                      key={bloco.id}
-                      bloco={bloco}
-                      torneios={torneios}
-                      assocMap={assocMap}
-                      onEdit={b => { setBlocoEditando(b); setShowBlocoForm(true); }}
-                      onDelete={b => { setBlocoParaDeletar(b); setShowDeleteBloco(true); }}
-                      onAddQuestao={b => { setBlocoAlvo(b); setShowCreateQuestao(true); }}
-                      onRemoveQuestao={(b, q) => { setRemoveTarget({ bloco: b, questao: q }); setShowDeleteQuestao(true); }}
-                      onEditQuestao={q => { setQuestaoEditando(q); setShowEditQuestao(true); }}
-                      onToggleAssoc={handleToggleAssoc}
-                    />
-                  ))}
+        <>
+          {state.loading ? (
+            <div className="bg-white rounded-2xl p-12 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3" />
+              <p className="text-slate-500">Carregando blocos...</p>
+            </div>
+          ) : blocosPorDisc.length === 0 ? (
+            <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
+              <Layers className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 font-medium">Nenhum bloco encontrado</p>
+              <p className="text-slate-400 text-sm mt-1">Crie um bloco para começar a organizar questões.</p>
+              <button
+                onClick={() => { setBlocoEditando(null); setShowBlocoForm(true); }}
+                className="mt-4 px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700"
+              >
+                + Criar primeiro bloco
+              </button>
+            </div>
+          ) : (
+            blocosPorDisc.map(disc => {
+              const corDisc = COR_DISCIPLINA[disc.cor];
+              return (
+                <div key={disc.id} className="space-y-3">
+                  <div className={`flex items-center gap-3 px-4 py-2 rounded-xl ${corDisc.bg} ${corDisc.border} border`}>
+                    <span className={`text-base font-bold ${corDisc.text}`}>{disc.label}</span>
+                    <span className="text-xs text-slate-400">{disc.blocos.length} bloco{disc.blocos.length !== 1 ? 's' : ''}</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {disc.blocos.map(bloco => (
+                      <BlocoCard
+                        key={bloco.id}
+                        bloco={bloco}
+                        questoes={state.questoes}
+                        torneios={state.torneios}
+                        assocMap={state.assocMap}
+                        contexto={contexto}
+                        onAddQuestao={(b) => { setBlocoAlvo(b); setShowCreateQuestao(true); }}
+                        onEditQuestao={(q) => { setQuestaoEditando(q); setShowEditQuestao(true); }}
+                        onRemoverQuestao={(q, b) => { setRemoverTarget({ questao: q, bloco: b }); setShowRemoverQuestao(true); }}
+                        onEditBloco={(b) => { setBlocoEditando(b); setShowBlocoForm(true); }}
+                        onDeleteBloco={(b) => { setBlocoParaDeletar(b); setShowDeleteBloco(true); }}
+                        onToggleAssoc={handleToggleAssoc}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )
+              );
+            })
+          )}
+        </>
       )}
 
-      {/* Aba Lista de Questões */}
-      {aba === 'lista' && (
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-          <div className="p-4 border-b border-slate-100 bg-slate-50">
-            <p className="text-sm font-semibold text-slate-600">
-              Total de questões nos blocos: <span className="text-blue-600">{blocos.reduce((acc, b) => acc + (b.total_questoes || 0), 0)}</span>
-            </p>
+      {/* ABA AUDITORIA */}
+      {aba === 'auditoria' && (
+        <div className="space-y-4">
+          <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4">
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Buscar por título ou enunciado..."
+                value={searchAuditoria}
+                onChange={e => setSearchAuditoria(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
           </div>
-          <div className="divide-y divide-slate-100">
-            {blocos.flatMap(b => (b.questoes || []).map(q => ({ ...q, _bloco: b }))).map(q => (
-              <div key={`${q._bloco.id}-${q.id}`} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-700 truncate">{q.enunciado}</p>
-                  <p className="text-xs text-slate-400">{q._bloco.titulo} · {q.pontos} pts · {q.dificuldade}</p>
-                </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${COR_DISC[DISCIPLINAS.find(d => d.id === q._bloco.disciplina)?.cor || 'blue']?.badge}`}>
-                  {DISCIPLINAS.find(d => d.id === q._bloco.disciplina)?.label}
-                </span>
+          <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            {state.loading ? (
+              <div className="p-8 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3" />
+                <p className="text-slate-500">Carregando...</p>
               </div>
-            ))}
-            {blocos.flatMap(b => b.questoes || []).length === 0 && (
-              <div className="p-8 text-center text-slate-400 text-sm">Nenhuma questão nos blocos ainda.</div>
+            ) : questoesAuditoria.length === 0 ? (
+              <div className="p-8 text-center">
+                <List className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500 font-medium">Nenhuma questão encontrada</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-100">
+                  <thead className="bg-gradient-to-r from-slate-50 to-blue-50">
+                    <tr>
+                      <th className="px-5 py-3 text-left text-xs font-bold text-slate-600 uppercase">Questão</th>
+                      <th className="px-5 py-3 text-left text-xs font-bold text-slate-600 uppercase">{isTorneio ? 'Disciplina' : 'Categoria'}</th>
+                      <th className="px-5 py-3 text-left text-xs font-bold text-slate-600 uppercase">Dificuldade</th>
+                      <th className="px-5 py-3 text-left text-xs font-bold text-slate-600 uppercase">Pts</th>
+                      <th className="px-5 py-3 text-right text-xs font-bold text-slate-600 uppercase">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {questoesAuditoria.map(q => {
+                      const disc = DISCIPLINAS.find(d => d.id === (q.disciplina || q.categoria));
+                      const dif = DIFICULDADES.find(d => d.id === q.dificuldade);
+                      const corDif = COR_DIFICULDADE[dif?.cor || 'green'];
+                      const blocoOrigem = state.blocos.find(b => b.questaoIds?.includes(q.id) || b.questoes?.some(bq => bq.id === q.id));
+                      return (
+                        <tr key={q.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-5 py-3 text-sm text-slate-700">
+                            <div className="max-w-xs truncate font-medium" title={q.titulo || q.enunciado}>
+                              {q.titulo || q.enunciado}
+                            </div>
+                            {blocoOrigem && (
+                              <span className="text-xs text-slate-400 inline-block mt-1">
+                                Bloco: {blocoOrigem.titulo}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-5 py-3 text-sm">
+                            <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                              {disc?.label || q.disciplina || q.categoria}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 text-sm">
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${corDif.bg} ${corDif.text}`}>
+                              {dif?.label || q.dificuldade}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 text-sm font-semibold text-slate-700">{q.pontos}</td>
+                          <td className="px-5 py-3 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => { setQuestaoEditando(q); setShowEditQuestao(true); }}
+                                className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                                title="Editar questão"
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </div>
       )}
 
-      {/* ── Modais ─────────────────────────────────────────────────────────── */}
-
-      {/* Criar / Editar bloco */}
+      {/* Modais */}
       {showBlocoForm && (
         <BlocoFormModal
           bloco={blocoEditando}
+          contexto={contexto}
           loading={saving}
           onClose={() => { setShowBlocoForm(false); setBlocoEditando(null); }}
           onSave={blocoEditando ? handleEditarBloco : handleCriarBloco}
         />
       )}
 
-      {/* Confirmar deleção de bloco */}
       <ConfirmModal
-        isOpen={showDeleteBloco}
+        isOpen={showDeleteBloco && !!blocoParaDeletar}
         onClose={() => { setShowDeleteBloco(false); setBlocoParaDeletar(null); }}
         onConfirm={handleDeletarBloco}
         title="Excluir Bloco"
-        message={`Tem certeza que deseja excluir o bloco "${blocoParaDeletar?.titulo}"? As questões não serão deletadas, apenas removidas do bloco.`}
+        message={`Excluir o bloco "${blocoParaDeletar?.titulo}"? As questões não serão apagadas, apenas removidas do bloco.`}
         confirmText="Excluir"
         cancelText="Cancelar"
         type="danger"
       />
 
-      {/* Confirmar remoção de questão do bloco */}
-      <ConfirmModal
-        isOpen={showDeleteQuestao}
-        onClose={() => { setShowDeleteQuestao(false); setRemoveTarget({ bloco: null, questao: null }); }}
-        onConfirm={handleRemoverQuestao}
-        title="Remover Questão do Bloco"
-        message={`Remover "${removeTarget.questao?.enunciado?.substring(0, 60)}..." do bloco "${removeTarget.bloco?.titulo}"? A questão não será deletada.`}
-        confirmText="Remover"
-        cancelText="Cancelar"
-        type="warning"
-      />
-
-      {/* Criar questão dentro de um bloco */}
-      {showCreateQuestao && blocoAlvo && (
+      {showCreateQuestao && blocoAlvo && contexto === 'torneio' && (
+        <CreateQuestaoForm
+          torneioId=""
+          onClose={() => { setShowCreateQuestao(false); setBlocoAlvo(null); }}
+          onSuccess={(questao) => handleQuestaoAdicionada(questao, blocoAlvo)}
+        />
+      )}
+      {showCreateQuestao && blocoAlvo && contexto === 'teste' && (
         <CreateQuestaoTesteForm
           categoriaFixa={blocoAlvo.disciplina}
           dificuldadeFixa={blocoAlvo.dificuldade}
           onClose={() => { setShowCreateQuestao(false); setBlocoAlvo(null); }}
-          onSuccess={handleQuestaoAdicionada}
+          onSuccess={(questao) => handleQuestaoAdicionada(questao, blocoAlvo)}
         />
       )}
 
-      {/* Editar questão */}
-      {showEditQuestao && questaoEditando && (
+      {showEditQuestao && questaoEditando && contexto === 'torneio' && (
+        <EditQuestaoForm
+          questao={questaoEditando}
+          onClose={() => { setShowEditQuestao(false); setQuestaoEditando(null); }}
+          onSuccess={handleQuestaoEditada}
+        />
+      )}
+      {showEditQuestao && questaoEditando && contexto === 'teste' && (
         <EditQuestaoTesteForm
           questao={questaoEditando}
           onClose={() => { setShowEditQuestao(false); setQuestaoEditando(null); }}
           onSuccess={handleQuestaoEditada}
         />
       )}
+
+      <ConfirmModal
+        isOpen={showRemoverQuestao && !!removerTarget.questao}
+        onClose={() => { setShowRemoverQuestao(false); setRemoverTarget({ questao: null, bloco: null }); }}
+        onConfirm={handleRemoverQuestao}
+        title="Remover Questão do Bloco"
+        message={`Remover "${(removerTarget.questao?.titulo || removerTarget.questao?.enunciado || '').substring(0, 60)}..." do bloco "${removerTarget.bloco?.titulo}"? A questão não será deletada.`}
+        confirmText="Remover"
+        cancelText="Cancelar"
+        type="warning"
+      />
     </div>
   );
 }

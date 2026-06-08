@@ -15,7 +15,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import socket from '../socket';
 
 const API = () =>
-  import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+  import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
 
 // ---------------------------------------------------------------------------
 // Normalização de disciplina — espelha o normalizeDisciplina do backend

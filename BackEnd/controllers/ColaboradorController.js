@@ -79,7 +79,7 @@ export const ColaboradorController = {
           dificuldade: q.dificuldade,
           pontos: q.pontos,
           status_aprovacao: q.status_aprovacao,
-          createdAt: q.createdAt
+          created_at: q.created_at || q.createdAt
         }))
         .reverse();
 
@@ -104,6 +104,103 @@ export const ColaboradorController = {
     } catch (error) {
       console.error('Erro ao obter estatísticas do colaborador:', error);
       respostaErro(res, 500, 'Erro ao obter estatísticas', { detalhes: error.message });
+    }
+  },
+
+  /**
+   * POST /api/colaborador/questoes
+   * Criar uma nova questão para o colaborador
+   */
+  criarQuestao: async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'colaborador') {
+        return respostaErro(res, 403, 'Acesso negado. Apenas colaboradores podem criar questões.');
+      }
+
+      if (req.user.status_colaborador !== 'aprovado') {
+        return respostaErro(res, 403, 'Colaborador não aprovado.');
+      }
+
+      const {
+        titulo,
+        enunciado,
+        descricao,
+        disciplina,
+        dificuldade,
+        tipo = 'multipla_escolha',
+        opcoes,
+        resposta_correta,
+        explicacao,
+        pontos = 10
+      } = req.body;
+
+      // Validações
+      if (!titulo || !titulo.trim()) {
+        return respostaErro(res, 400, 'Título é obrigatório');
+      }
+
+      if (!enunciado || !enunciado.trim()) {
+        return respostaErro(res, 400, 'Enunciado é obrigatório');
+      }
+
+      if (!disciplina) {
+        return respostaErro(res, 400, 'Disciplina é obrigatória');
+      }
+
+      if (disciplina !== req.user.disciplina_colaborador) {
+        return respostaErro(res, 403, `Colaborador só pode criar questões de ${req.user.disciplina_colaborador}`);
+      }
+
+      if (!dificuldade) {
+        return respostaErro(res, 400, 'Dificuldade é obrigatória');
+      }
+
+      if (!resposta_correta) {
+        return respostaErro(res, 400, 'Resposta correta é obrigatória');
+      }
+
+      // Processar opções
+      let processedOpcoes = opcoes;
+      if (Array.isArray(opcoes)) {
+        processedOpcoes = opcoes;
+      } else if (typeof opcoes === 'string') {
+        processedOpcoes = opcoes.split('|').map(o => o.trim()).filter(o => o);
+      }
+
+      if (!Array.isArray(processedOpcoes) || processedOpcoes.length < 2) {
+        return respostaErro(res, 400, 'Mínimo de 2 opções de resposta necessárias');
+      }
+
+      if (!processedOpcoes.includes(resposta_correta.trim())) {
+        return respostaErro(res, 400, 'Resposta correta deve estar entre as opções fornecidas');
+      }
+
+      // Criar questão
+      const novaQuestao = await Questao.create({
+        titulo: titulo.trim(),
+        enunciado: enunciado.trim(),
+        descricao: descricao?.trim() || enunciado.trim(),
+        disciplina,
+        dificuldade,
+        tipo,
+        opcoes: processedOpcoes,
+        resposta_correta: resposta_correta.trim(),
+        explicacao: explicacao?.trim() || null,
+        pontos: parseInt(pontos) || 10,
+        autor_id: req.user.id,
+        status_aprovacao: 'pendente',
+        criado_em: new Date()
+      });
+
+      respostaSucesso(res, 201, {
+        id: novaQuestao.id,
+        titulo: novaQuestao.titulo,
+        status_aprovacao: novaQuestao.status_aprovacao,
+        mensagem: 'Questão criada com sucesso! Aguarde revisão do administrador.'
+      }, 'Questão criada com sucesso');
+    } catch (error) {
+      console.error('Erro ao criar questão do colaborador:', error);
+      respostaErro(res, 500, 'Erro ao criar questão', { detalhes: error.message });
     }
   },
 
@@ -152,8 +249,8 @@ export const ColaboradorController = {
       // Busca por título ou descrição
       if (busca) {
         where[Op.or] = [
-          { titulo: { [Op.like]: `%${busca}%` } },
-          { descricao: { [Op.like]: `%${busca}%` } }
+          { titulo: { [Op.iLike]: `%${busca}%` } },
+          { descricao: { [Op.iLike]: `%${busca}%` } }
         ];
       }
 
@@ -162,17 +259,41 @@ export const ColaboradorController = {
         where,
         limit: parseInt(limite),
         offset: parseInt(offset),
-        order: [['createdAt', 'DESC']]
+        order: [['created_at', 'DESC']]
+      });
+
+      // Processar as questões: converter opcoes de string para array se necessário
+      const questoesProcessadas = rows.map(q => {
+        const questaoData = q.get ? q.get({ plain: true }) : q;
+        
+        // Processar campo opcoes (pode vir como string JSON do MySQL)
+        let opcoes = questaoData.opcoes;
+        if (typeof opcoes === 'string') {
+          try {
+            opcoes = JSON.parse(opcoes);
+          } catch (e) {
+            console.warn('Erro ao parsear opcoes da questão', q.id, ':', e.message);
+            opcoes = [];
+          }
+        }
+        if (!Array.isArray(opcoes)) {
+          opcoes = [];
+        }
+        
+        return {
+          ...questaoData,
+          opcoes
+        };
       });
 
       // Calcular estatísticas para os filtros atuais
-      const totalFiltrado = rows.length;
-      const aprovadasFiltrado = rows.filter(q => q.status_aprovacao === 'aprovada').length;
-      const pendentesFiltrado = rows.filter(q => q.status_aprovacao === 'pendente').length;
-      const rejeitadasFiltrado = rows.filter(q => q.status_aprovacao === 'rejeitada').length;
+      const totalFiltrado = questoesProcessadas.length;
+      const aprovadasFiltrado = questoesProcessadas.filter(q => q.status_aprovacao === 'aprovada').length;
+      const pendentesFiltrado = questoesProcessadas.filter(q => q.status_aprovacao === 'pendente').length;
+      const rejeitadasFiltrado = questoesProcessadas.filter(q => q.status_aprovacao === 'rejeitada').length;
 
       respostaSucesso(res, 200, {
-        questoes: rows,
+        questoes: questoesProcessadas,
         paginacao: {
           pagina: parseInt(pagina),
           limite: parseInt(limite),
@@ -187,8 +308,16 @@ export const ColaboradorController = {
         }
       }, 'Questões do colaborador obtidas com sucesso');
     } catch (error) {
-      console.error('Erro ao obter questões do colaborador:', error);
-      respostaErro(res, 500, 'Erro ao obter questões', { detalhes: error.message });
+      console.error('❌ Erro ao obter questões do colaborador:', {
+        userId: req.user?.id,
+        erro: error.message,
+        stack: error.stack,
+        sql: error.sql || 'N/A'
+      });
+      respostaErro(res, 500, 'Erro ao obter questões', { 
+        detalhes: error.message,
+        tipo: error.name 
+      });
     }
   },
 

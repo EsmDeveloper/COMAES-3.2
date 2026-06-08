@@ -1,0 +1,327 @@
+╔═════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                      FLUXO INTEGRADO: GESTÃO DE QUESTÕES DE COLABORADORES                             ║
+║                                   Painel Administrativo                                                ║
+╚═════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ FASE 1: APROVAÇÃO DO COLABORADOR                                                                       │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+    ┌─────────────────────────────────────────┐
+    │  Usuário envia formulário de inscrição  │
+    │  para ser colaborador/professor         │
+    └─────────────────┬───────────────────────┘
+                      │
+                      ▼
+    ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+    ┃  ADMIN DASHBOARD - SEÇÃO USUÁRIOS      ┃
+    ┃  ├─ 📝 Pedidos de Colaboradores       ┃
+    ┃  │   └─ Ver candidato, documentos      ┃
+    ┃  │                                     ┃
+    ┃  └─ ✅ APROVA / ❌ REJEITA             ┃
+    ┃     Define disciplina:                 ┃
+    ┃     • Matemática                       ┃
+    ┃     • Inglês                           ┃
+    ┃     • Programação                      ┃
+    ┗━━━━━┬━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+          │
+          ▼
+    ✅ COLABORADOR APROVADO
+       └─ Pode criar questões na sua disciplina
+
+
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ FASE 2: CRIAÇÃO DE QUESTÕES                                                                            │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+    ┌─────────────────────────────────────────┐
+    │  COLABORADOR acessa:                    │
+    │  "Criar Questão" ou formulário          │
+    │                                         │
+    │  Preenchimento:                         │
+    │  • Título: "Qual é a raiz de 144?"     │
+    │  • Descrição: "Matemática básica"      │
+    │  • Disciplina: Matemática (pré-setada) │
+    │  • Dificuldade: Médio                  │
+    │  • Tipo: Múltipla escolha              │
+    │  • Opções: [12, 11, 13, 10]           │
+    │  • Resposta correta: 12                │
+    │  • Pontos: 10                          │
+    └─────────────────┬───────────────────────┘
+                      │
+                      ▼
+    ┌─────────────────────────────────────────┐
+    │ QUESTÃO CRIADA                          │
+    │ Status: 🟡 PENDENTE                     │
+    │ Armazenada no banco                     │
+    │ Apenas criador + admin veem             │
+    └─────────────────┬───────────────────────┘
+                      │
+                      ▼
+    ┌─────────────────────────────────────────┐
+    │ Notificação: Admin é notificado         │
+    │ "Nova questão pendente de Prof. João"   │
+    └─────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ FASE 3: REVISÃO DE QUESTÕES (NOVO - COM FEEDBACK VISUAL)                                              │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+    ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+    ┃ ADMIN DASHBOARD - SEÇÃO QUESTÕES             ┃
+    ┃ ├─ 🟡 Questões Pendentes                    ┃ ◄─────┐
+    ┃ │                                            ┃       │ ABRIR
+    ┃ │  📋 GUIA DE FLUXO (NOVO):                 ┃       │ ABA
+    ┃ │  ┌─────────────────────────────────────┐  ┃       │
+    ┃ │  │ Fluxo de aprovação:                 │  ┃       │
+    ┃ │  │ 1. Colaborador cria questão         │  ┃       │
+    ┃ │  │ 2. Você aprova AQUI                 │  ┃       │
+    ┃ │  │ 3. Questão vai para:                │  ┃       │
+    ┃ │  │    "Questões dos Colaboradores"     │  ┃       │
+    ┃ │  │ 4. Admin pode adicionar a:          │  ┃       │
+    ┃ │  │    - Torneios                       │  ┃       │
+    ┃ │  │    - Testes de Conhecimento        │  ┃       │
+    ┃ │  └─────────────────────────────────────┘  ┃       │
+    ┃ │                                            ┃       │
+    ┃ │  LISTA DE QUESTÕES PENDENTES:             ┃       │
+    ┃ │  ┌──────────────────────────────────────┐ ┃       │
+    ┃ │  │ ✓ "Qual é a raiz de 144?"          │ ┃       │
+    ┃ │  │   Prof. João • Matemática • Médio   │ ┃       │
+    ┃ │  │   [Ver detalhes] [✅ Aprovar] [❌]  │ ┃       │
+    ┃ │  └──────────────────────────────────────┘ ┃       │
+    ┃ │                                            ┃       │
+    ┃ └─────────────┬──────────────────────────────┃       │
+    ┃               │ Admin expande                 ┃       │
+    ┃               │ e revisa                      ┃       │
+    ┃               ▼                               ┃       │
+    ┃        ┌─────────────────┐                   ┃       │
+    ┃        │ MODAL DETALHES  │                   ┃       │
+    ┃        │ ┌──────────────┐│                   ┃       │
+    ┃        │ │ Título       ││                   ┃       │
+    ┃        │ │ Descrição    ││                   ┃       │
+    ┃        │ │ Opções (A-D) ││                   ┃       │
+    ┃        │ │ Resposta ✓   ││                   ┃       │
+    ┃        │ │ Explicação   ││                   ┃       │
+    ┃        │ └──────────────┘│                   ┃       │
+    ┃        └────────┬─────────┘                   ┃       │
+    ┃                 │                             ┃       │
+    ┃                 ▼                             ┃       │
+    ┃        ┌─────────────────┐                   ┃       │
+    ┃        │ Admin valida e  │                   ┃       │
+    ┃        │ clica:          │                   ┃       │
+    ┃        │ ✅ APROVAR      │                   ┃       │
+    ┃        └────────┬─────────┘                   ┃       │
+    ┃                 │                             ┃       │
+    ┃                 ▼                             ┃       │
+    ┃    ┌──────────────────────────────┐          ┃       │
+    ┃    │ 🎉 TOAST DE SUCESSO (NOVO)  │          ┃       │
+    ┃    │ ┌──────────────────────────┐ │          ┃       │
+    ┃    │ │ ✓ Questão aprovada!      │ │          ┃       │
+    ┃    │ │   Ela agora está         │ │          ┃       │
+    ┃    │ │   disponível em:         │ │          ┃       │
+    ┃    │ │   "Questões dos          │ │          ┃       │
+    ┃    │ │    Colaboradores"        │ │          ┃       │
+    ┃    │ │   e pode ser adicionada  │ │          ┃       │
+    ┃    │ │   a Torneios ou Testes!  │ │          ┃       │
+    ┃    │ └──────────────────────────┘ │          ┃       │
+    ┃    └──────────────┬───────────────┘          ┃       │
+    ┃                   │                           ┃       │
+    ┃                   ▼                           ┃       │
+    ┃    Status = 🟢 APROVADA                      ┃       │
+    ┃                                               ┃       │
+    ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛       │
+                      │                                     │
+                      │                    ┌────────────────┘
+                      │                    │
+                      ▼ Questão enviada    │ Ou admin clica
+                  (automática)            │ no banco visual
+
+
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ FASE 4: QUESTÃO DISPONÍVEL PARA USO (NOVO - INTERFACE INTEGRADA)                                      │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+    ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+    ┃ ADMIN DASHBOARD - SEÇÃO QUESTÕES                    ┃
+    ┃ ├─ 🟢 Questões dos Colaboradores (MODIFICADA)     ┃ ◄─── ABRIR
+    ┃ │                                                  ┃      ABA
+    ┃ │  SUBTÍTULO:                                     ┃
+    ┃ │  "Banco validado de questões aprovadas —        ┃
+    ┃ │   prontas para Torneios e Testes"               ┃
+    ┃ │                                                  ┃
+    ┃ │  LISTA DE QUESTÕES APROVADAS:                   ┃
+    ┃ │  ┌──────────────────────────────────────────┐   ┃
+    ┃ │  │ ✓ "Qual é a raiz de 144?"              │   ┃
+    ┃ │  │   Prof. João • Matemática • Médio       │   ┃
+    ┃ │  │   [Expandir ▼]                         │   ┃
+    ┃ │  └──────────────────────────────────────────┘   ┃
+    ┃ │       ▼ (Admin expande)                         ┃
+    ┃ │       ┌──────────────────────────────────────┐  ┃
+    ┃ │       │ DETALHES EXPANDIDOS:                 │  ┃
+    ┃ │       │ ┌──────────────────────────────────┐ │  ┃
+    ┃ │       │ │ Informações da Questão:          │ │  ┃
+    ┃ │       │ │ • ID: 1234                       │ │  ┃
+    ┃ │       │ │ • Tipo: Múltipla Escolha         │ │  ┃
+    ┃ │       │ │ • Pontos: 10                     │ │  ┃
+    ┃ │       │ │                                  │ │  ┃
+    ┃ │       │ │ Informações do Colaborador:      │ │  ┃
+    ┃ │       │ │ • Autor: Prof. João              │ │  ┃
+    ┃ │       │ │ • Status: ✓ Aprovada            │ │  ┃
+    ┃ │       │ │ • Criada em: 07 Jun 2026         │ │  ┃
+    ┃ │       │ │                                  │ │  ┃
+    ┃ │       │ │ Opções:                          │ │  ┃
+    ┃ │       │ │ A. 11                            │ │  ┃
+    ┃ │       │ │ B. 12 ✓ (Correta)                │ │  ┃
+    ┃ │       │ │ C. 13                            │ │  ┃
+    ┃ │       │ │ D. 10                            │ │  ┃
+    ┃ │       │ │                                  │ │  ┃
+    ┃ │       │ ┌─────────────────────────────────┐│  ┃
+    ┃ │       │ │ BOTÕES DE AÇÃO (NOVO):         ││  ┃
+    ┃ │       │ │ ✏️ [Editar]                    ││  ┃
+    ┃ │       │ │ 🏆 [Adicionar a Torneio] ◄─┐  ││  ┃
+    ┃ │       │ │ 📚 [Adicionar a Teste] ◄───┼──┤│  ┃
+    ┃ │       │ │ 👤 [Ver Autor]               │  ││  ┃
+    ┃ │       │ └─────────────────────────────┘│  ││  ┃
+    ┃ │       └──────────────────────────────────┘  ││  ┃
+    ┃ │                                             ││  ┃
+    ┃ │  GUIA VISUAL (NOVO):                       ││  ┃
+    ┃ │  ┌──────────────────────────────────────┐  ││  ┃
+    ┃ │  │ 📋 Como adicionar a Torneios/Testes?│  ││  ┃
+    ┃ │  │                                      │  ││  ┃
+    ┃ │  │ 🏆 PARA TORNEIOS:                    │  ││  ┃
+    ┃ │  │    1. Clique "Adicionar a Torneio"  │  ││  ┃
+    ┃ │  │    2. Selecione ou crie um Bloco    │  ││  ┃
+    ┃ │  │    3. Associe ao Torneio            │  ││  ┃
+    ┃ │  │    4. Pronto no quiz!               │  ││  ┃
+    ┃ │  │                                      │  ││  ┃
+    ┃ │  │ 📚 PARA TESTES:                     │  ││  ┃
+    ┃ │  │    1. Clique "Adicionar a Teste"    │  ││  ┃
+    ┃ │  │    2. Escolha categoria             │  ││  ┃
+    ┃ │  │    3. Configure dificuldade         │  ││  ┃
+    ┃ │  │    4. Pronto nos testes!            │  ││  ┃
+    ┃ │  └──────────────────────────────────────┘  ││  ┃
+    ┃ │                                             ││  ┃
+    ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛│  ┃
+                                                     │  │
+                      ┌──────────────────────────────┘  │
+                      │ Opção 1: TORNEIOS             │
+                      ▼                                │
+    ┌──────────────────────────────────────┐          │
+    │ Admin clica                          │          │
+    │ "🏆 Adicionar a Torneio"            │          │
+    │                                      │          │
+    │ Sistema oferece:                     │          │
+    │ • Criar novo Bloco                   │          │
+    │ • Usar Bloco existente               │          │
+    │ • Selecionar Torneio                 │          │
+    │                                      │          │
+    │ Questão é adicionada ao Bloco        │          │
+    │ Bloco associado ao Torneio          │          │
+    └──────────────────┬───────────────────┘          │
+                       ▼                              │
+    ✅ Questão disponível no Quiz do Torneio        │
+                                                     │
+                      ┌──────────────────────────────┘
+                      │ Opção 2: TESTES
+                      ▼
+    ┌──────────────────────────────────────┐
+    │ Admin clica                          │
+    │ "📚 Adicionar a Teste"              │
+    │                                      │
+    │ Sistema oferece:                     │
+    │ • Selecionar Categoria               │
+    │  (Matemática, Inglês, Programação)   │
+    │ • Definir Dificuldade                │
+    │                                      │
+    │ Questão duplicada para               │
+    │ QuestaoTesteConhecimento             │
+    └──────────────────┬───────────────────┘
+                       ▼
+    ✅ Questão disponível nos Testes de Conhecimento
+
+
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ FASE 5: USO FINAL (ESTUDANTES)                                                                         │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+    ┌─────────────────────────────────────────┐
+    │ ESTUDANTE participa de Torneio          │
+    │ ou faz Teste de Conhecimento            │
+    └──────────────────┬──────────────────────┘
+                       ▼
+    ┌─────────────────────────────────────────┐
+    │ Sistema carrega questões de:            │
+    │ • Blocos (se Torneio)                   │
+    │ • Categorias (se Teste)                 │
+    └──────────────────┬──────────────────────┘
+                       ▼
+    ┌─────────────────────────────────────────┐
+    │ "Qual é a raiz de 144?" aparece         │
+    │ A. 11                                   │
+    │ B. 12                                   │
+    │ C. 13                                   │
+    │ D. 10                                   │
+    │                                         │
+    │ Estudante seleciona resposta            │
+    └──────────────────┬──────────────────────┘
+                       ▼
+    ┌─────────────────────────────────────────┐
+    │ ✅ CORRETO! Ganhou 10 pontos            │
+    │                                         │
+    │ Ou                                      │
+    │                                         │
+    │ ❌ INCORRETO. A resposta correta é 12.  │
+    │    Explicação: 12 × 12 = 144            │
+    └─────────────────────────────────────────┘
+
+
+╔═════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                              RESUMO DO FLUXO COMPLETO                                                  ║
+╚═════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+COLABORADOR                        ADMIN                           ESTUDANTE
+─────────────────────────────────────────────────────────────────────────────────────
+   │                                │                                  │
+   │ 1. Envia inscrição              │                                  │
+   ├──────────────────────────────►  │                                  │
+   │                                 │ 2. Aprova colaborador            │
+   │                                 │ Define disciplina                │
+   │                                 │                                  │
+   │ 3. Cria questão                 │                                  │
+   │ Status: PENDENTE                │                                  │
+   ├──────────────────────────────►  │                                  │
+   │                                 │ 4. Revisa questão               │
+   │                                 │ Ver detalhes                     │
+   │                                 │ Aprova questão                   │
+   │                                 │ Status: APROVADA                 │
+   │                                 │ 🎉 Toast notifica                │
+   │                                 │                                  │
+   │                                 │ 5. Vai para                      │
+   │                                 │ "Questões dos Colaboradores"     │
+   │                                 │                                  │
+   │                                 │ 6. Adiciona a Torneio OU Teste  │
+   │                                 │ Cria/usa Bloco                   │
+   │                                 │ Associa ao Torneio               │
+   │                                 │ Ou: Copia para Testes            │
+   │                                 │                                  │
+   │                                 │                     7. Participa de Torneio
+   │                                 │                        OU faz Teste
+   │                                 │                        ├──────────►
+   │                                 │                        │
+   │                                 │                     8. Questão aparece
+   │                                 │                        │
+   │                                 │                     9. Responde
+   │                                 │                        │
+   │                                 │                     10. Ganha pontos
+   │                                 │                         (se correto)
+   │                                 │                         Ou recebe
+   │                                 │                         feedback (se errado)
+
+
+╔═════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                         STATUS: IMPLEMENTAÇÃO COMPLETA ✅                                              ║
+║                         DATA: 7 de Junho de 2026                                                       ║
+║                         VERSÃO: 1.0                                                                    ║
+╚═════════════════════════════════════════════════════════════════════════════════════════════════════════╝

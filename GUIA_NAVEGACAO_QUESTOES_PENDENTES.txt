@@ -1,0 +1,310 @@
+================================================================================
+         GUIA DE NAVEGAÇÃO - ABA "QUESTÕES PENDENTES" DO PAINEL ADMIN
+================================================================================
+
+🎯 OBJETIVO: Chegar até a aba "Questões Pendentes" no painel administrativo
+
+================================================================================
+
+█ PASSO 1: LOGIN
+
+1. Acesse: http://localhost:5173 (ou URL do seu frontend)
+
+2. Preencha as credenciais:
+   • Email: admin@example.com (ou seu email admin)
+   • Senha: (sua senha)
+
+3. Clique: "Entrar"
+
+Resultado: Você entra como administrador
+
+================================================================================
+
+█ PASSO 2: NAVEGAÇÃO PARA O PAINEL ADMIN
+
+Depois de fazer login, você é redirecionado automaticamente para:
+  → Dashboard do Administrador
+
+VISUAL ESPERADO:
+┌─────────────────────────────────────────────────────────┐
+│ Painel Administrativo              [Menu Móvel]         │
+├─────────────────────────────────────────────────────────┤
+│ DASHBOARD                                               │
+│ ✓ Visão Geral        ← Você está aqui agora            │
+├─────────────────────────────────────────────────────────┤
+│ TORNEIOS & COMPETIÇÕES                                  │
+│   • Gerenciar Torneios                                  │
+│   • Gerenciar Certificados                              │
+├─────────────────────────────────────────────────────────┤
+│ QUESTÕES & CONTEÚDO                                     │
+│   • Questões de Torneios                                │
+│   • Questões dos Testes                                 │
+│   • 🎯 QUESTÕES PENDENTES    ← CLIQUE AQUI             │
+│   • Questões dos Colaboradores                          │
+├─────────────────────────────────────────────────────────┤
+│ USUÁRIOS & COMUNIDADE                                   │
+│   • Gerenciar Usuários                                  │
+│   • Pedidos de Colaboradores                            │
+│   • Todos os Colaboradores                              │
+└─────────────────────────────────────────────────────────┘
+
+================================================================================
+
+█ PASSO 3: CLICAR NA ABA "QUESTÕES PENDENTES"
+
+LOCALIZAÇÃO NO PAINEL:
+
+Painel Esquerdo (Sidebar):
+  ├─ DASHBOARD
+  │  ├─ Visão Geral
+  │
+  ├─ TORNEIOS & COMPETIÇÕES
+  │  ├─ Gerenciar Torneios
+  │  └─ Gerenciar Certificados
+  │
+  ├─ QUESTÕES & CONTEÚDO
+  │  ├─ Questões de Torneios
+  │  ├─ Questões dos Testes
+  │  ├─ 🎯 QUESTÕES PENDENTES   ← CLIQUE AQUI
+  │  └─ Questões dos Colaboradores
+  │
+  └─ USUÁRIOS & COMUNIDADE
+     ├─ Gerenciar Usuários
+     ├─ Pedidos de Colaboradores
+     └─ Todos os Colaboradores
+
+COMO CLICAR:
+1. Procure o item com ⏰ (ícone de relógio) = "Questões Pendentes"
+2. Está abaixo de "Questões dos Testes"
+3. Clique nele
+
+Resultado: A aba é carregada com a lista de questões pendentes
+
+================================================================================
+
+█ PASSO 4: VER A ABA "QUESTÕES PENDENTES"
+
+Após clicar, você verá:
+
+┌─────────────────────────────────────────────────────────┐
+│ Questões Pendentes                                      │
+├─────────────────────────────────────────────────────────┤
+│ [Buscar questões...        ]                             │
+│                                                          │
+│ Lista de questões aguardando aprovação:                  │
+│                                                          │
+│ ┌──────────────────────────────────────────┐            │
+│ │ ID │ Título     │ Colaborador │ Status   │            │
+│ ├──────────────────────────────────────────┤            │
+│ │ 1  │ Pergunta 1 │ João Silva  │ Pendente │ [Aprovar] │
+│ │ 2  │ Pergunta 2 │ Maria Costa │ Pendente │ [Revisar] │
+│ │ 3  │ Pergunta 3 │ Pedro Lima  │ Pendente │ [Rejeitar]│
+│ └──────────────────────────────────────────┘            │
+│                                                          │
+│ Mostrando 1-3 de 3 questões                              │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+
+AÇÕES DISPONÍVEIS:
+
+Para cada questão pendente você pode:
+
+1. 👁️ VISUALIZAR DETALHES
+   • Clique no título da questão
+   • Vê: Descrição, tipo, dificuldade, opções, resposta correta
+
+2. ✅ APROVAR
+   • Clique botão "Aprovar"
+   • Questão vai para "Questões dos Colaboradores"
+   • Pode ser usada em torneios/testes
+
+3. ❌ REJEITAR
+   • Clique botão "Rejeitar"
+   • Questão é deletada ou movida para rejeitadas
+   • Colaborador é notificado
+
+4. 🔍 BUSCAR
+   • Use campo de busca no topo
+   • Busca por: Título, Colaborador, ID
+
+================================================================================
+
+█ POSSÍVEIS PROBLEMAS & SOLUÇÕES
+
+PROBLEMA 1: Aba "Questões Pendentes" não aparece no menu
+SOLUÇÃO:
+  1. Verifique se você está logado como admin
+  2. Atualize a página (Ctrl+R ou Cmd+R)
+  3. Limpe cache do navegador (Ctrl+Shift+Delete)
+  4. Faça login novamente
+
+PROBLEMA 2: Aba carrega mas fica vazia (nenhuma questão)
+CAUSA: Não há questões pendentes de aprovação
+AÇÃO: Isso é normal se nenhum colaborador submeteu questões
+PRÓXIMO PASSO: Crie questões como colaborador e depois aprove
+
+PROBLEMA 3: Aba carrega mas depois desaparece/quebra
+CAUSA: ⚠️ BUG CONHECIDO identific ado nesta auditoria
+SOLUÇÃO TEMPORÁRIA:
+  1. Atualize a página (F5)
+  2. Volte para menu principal e clique novamente
+  3. O bug está em vias de ser corrigido
+
+PROBLEMA 4: "Você não tem permissão para acessar"
+CAUSA: Você não é admin
+SOLUÇÃO:
+  1. Faça logout
+  2. Login como usuário com role "admin"
+  3. Verifique no banco: SELECT role FROM usuarios WHERE email='seu@email.com';
+
+================================================================================
+
+█ CAMINHO RÁPIDO (Atalho)
+
+Se a navegação pelo menu não funcionar, você pode acessar diretamente:
+
+URL DIRETA:
+  http://localhost:5173/admin/questoes-pendentes
+
+OU modificar a URL atual:
+  1. Olhe para a barra de endereço
+  2. Mude o final para: /admin/questoes-pendentes
+  3. Pressione Enter
+
+================================================================================
+
+█ ESTRUTURA DE CÓDIGO (Para Devs)
+
+Como o painel admin é estruturado:
+
+FrontEnd/src/Administrador/AdminDashboard.jsx
+  ├─ Importa: QuestoesPendentesTab
+  ├─ menuSections define as abas
+  └─ activeTab controla qual aba é mostrada
+
+Quando você clica em "Questões Pendentes":
+  1. activeTab muda para 'questoes-pendentes'
+  2. AdminDashboard renderiza: <QuestoesPendentesTab />
+  3. O componente carrega questões do endpoint:
+     GET /api/questoes/pendentes
+
+O componente relevante:
+  FrontEnd/src/Administrador/QuestoesPendentesTab.jsx
+
+================================================================================
+
+█ FLUXO VISUAL COMPLETO
+
+┌─────────────────┐
+│   LOGIN PAGE    │
+│                 │
+│ Email: admin... │
+│ Password: ****  │
+│                 │
+│ [Entrar]        │
+└────────┬────────┘
+         │
+         ▼
+┌──────────────────────────────────────┐
+│   ADMIN DASHBOARD (Visão Geral)      │
+│                                      │
+│  Sidebar:                            │
+│  • Dashboard ✓                       │
+│  • Torneios & Competições            │
+│  • Questões & Conteúdo               │
+│  • Usuários & Comunidade             │
+│                                      │
+│  [Clique em "Questões Pendentes"]    │
+└────────┬─────────────────────────────┘
+         │
+         ▼
+┌──────────────────────────────────────┐
+│  QUESTÕES PENDENTES                  │
+│                                      │
+│  [Buscar]                            │
+│                                      │
+│  Questão 1  [Aprovar] [Rejeitar]    │
+│  Questão 2  [Aprovar] [Rejeitar]    │
+│  Questão 3  [Aprovar] [Rejeitar]    │
+│                                      │
+│  ✅ BOM - Questões são listadas      │
+│  ❌ PROBLEMA - Aba quebra ao abrir   │
+│                                      │
+└──────────────────────────────────────┘
+
+================================================================================
+
+█ DADOS ESPERADOS NA ABA
+
+Cada questão pendente deve mostrar:
+
+┌────────────────────────────────────────────────────────┐
+│ ID     │ 42                                             │
+│ Título │ "Quanto é 2 + 2?"                              │
+│ Tipo   │ "Múltipla Escolha"                             │
+│ Status │ "Pendente"                                     │
+│ Autor  │ "João Silva" (Colaborador)                     │
+│ Data   │ "05/06/2026 14:30"                             │
+│ Ações  │ [Aprovar] [Rejeitar] [Visualizar]             │
+└────────────────────────────────────────────────────────┘
+
+================================================================================
+
+█ CHECKLIST DE NAVEGAÇÃO
+
+- [ ] Acedi ao http://localhost:5173
+- [ ] Fiz login como admin
+- [ ] Vejo o painel administrativo
+- [ ] Procuro "Questões Pendentes" no menu esquerdo
+- [ ] Clico na aba
+- [ ] ✅ Lista de questões pendentes aparece
+- [ ] Consigo ver questões ou mensagem "Nenhuma questão pendente"
+- [ ] Posso clicar em Aprovar/Rejeitar
+- [ ] ✅ Navegação bem-sucedida!
+
+================================================================================
+
+█ PRÓXIMOS PASSOS
+
+Depois de chegar na aba "Questões Pendentes", você pode:
+
+1. APROVAR QUESTÃO
+   → Clique [Aprovar]
+   → Questão vai para "Questões dos Colaboradores"
+
+2. REJEITAR QUESTÃO
+   → Clique [Rejeitar]
+   → Insira motivo (opcional)
+   → Colaborador é notificado
+
+3. VISUALIZAR DETALHES
+   → Clique no título
+   → Vê tudo: descrição, opções, resposta correta, etc
+
+4. BUSCAR QUESTÃO
+   → Use campo de busca
+   → Digite: título, autor, ID
+
+5. CRIAR NOVO BLOCO COM ESSAS QUESTÕES
+   → Aprove a questão
+   → Vá para "Questões dos Colaboradores"
+   → Organize em blocos
+   → Adicione a torneios/testes
+
+================================================================================
+
+✅ CONCLUSÃO
+
+Você agora sabe como chegar até a aba "Questões Pendentes" do painel admin!
+
+Caminho: Menu Esquerdo → Questões & Conteúdo → Questões Pendentes
+
+⏰ Tempo estimado para chegar: 30 segundos
+
+================================================================================
+
+Data: 7 de Junho de 2026
+Versão: COMAES 3.2
+Status: ✅ FUNCIONAL (com bug conhecido)
+
+================================================================================

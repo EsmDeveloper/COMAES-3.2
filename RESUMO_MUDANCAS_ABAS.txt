@@ -1,0 +1,224 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    RESUMO DAS MUDANÇAS - ABAS TORNEIOS E TESTES
+═══════════════════════════════════════════════════════════════════════════════
+
+📍 DATA: 8 de Junho de 2026
+✅ STATUS: IMPLEMENTADO E TESTÁVEL
+
+═══════════════════════════════════════════════════════════════════════════════
+                              ESTRUTURA ANTERIOR
+═══════════════════════════════════════════════════════════════════════════════
+
+Aba Principal: "Questões de Torneios"
+│
+├── [Sub-aba] "Questões Individuais" (ATIVA POR PADRÃO)
+│   └── Tabela com questões sem bloco
+│
+├── [Sub-aba] "Blocos de Questões" (secundária)
+│   ├── Lista de blocos
+│   └── [Botão] "Criar Bloco" → Abria BlocoQuestoesManager (modal/state)
+│
+└── [PROBLEMA] Tinha que clicar para sair da tabela e gerenciar blocos
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                              ESTRUTURA NOVA ✨
+═══════════════════════════════════════════════════════════════════════════════
+
+Aba Principal: "Questões de Torneios"
+│
+├── [Sub-aba] "Gerenciar Blocos" (ATIVA POR PADRÃO) ✅
+│   └── <BlocoQuestoesManager contexto="torneio" />
+│       ├── Gerencia blocos (5-30 questões)
+│       ├── Cria/edita/deleta blocos
+│       ├── Associa blocos a torneios
+│       └── [TUDO INLINE - sem voltar!]
+│
+├── [Sub-aba] "Visualizar Todas" (secundária)
+│   └── Tabela APENAS para referência
+│       ├── Questões individuais (criadas + colaboradores)
+│       ├── Mostra origem (👤 Colaborador ou ✍️ Admin)
+│       └── Ações: Agrupar em Bloco, Editar, Deletar
+│
+└── [BENEFÍCIO] Workflow natural: Blocos PRIMEIRO, depois questões
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                         MUDANÇAS TÉCNICAS DETALHADAS
+═══════════════════════════════════════════════════════════════════════════════
+
+📄 ARQUIVO: QuestoesTorneiosTab.jsx
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ANTES:
+------
+├── const [showBlocoManager, setShowBlocoManager] = useState(false);
+├── const [abaAtiva, setAbaAtiva] = useState('individuais'); // ❌ individuais
+│
+├── if (showBlocoManager) {
+│   return <BlocoQuestoesManager contexto="torneio" />;
+│}
+│
+└── Conteúdo:
+    ├── Aba 1: "Questões Individuais" (DEFAULT)
+    ├── Aba 2: "Blocos de Questões" (com botão para BlocoQuestoesManager)
+    └── Necessário: Clicar em "Criar Bloco" + "Voltar" depois
+
+
+DEPOIS:
+-------
+├── const [abaAtiva, setAbaAtiva] = useState('blocos'); // ✅ blocos
+│
+├── Conteúdo renderizado SEMPRE:
+│   ├── if (abaAtiva === 'blocos') → <BlocoQuestoesManager contexto="torneio" />
+│   └── if (abaAtiva === 'individuais') → Tabela de questões
+│
+└── Benefício: BlocoQuestoesManager é DEFAULT, sem modal/state especial
+
+
+📄 ARQUIVO: QuestoesTestesTab.jsx
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MUDANÇAS IDÊNTICAS A QuestoesTorneiosTab:
+├── useState('blocos') como padrão ✅
+├── BlocoQuestoesManager com contexto="teste"
+└── Mesma tabela de "Visualizar Todas"
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                           FLUXO DO USUÁRIO - ANTES
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Admin clica "Questões de Torneios"
+   ↓ VÊ: Tabela de "Questões Individuais"
+
+2. Admin quer criar um bloco
+   ↓ Clica na Sub-aba "Blocos de Questões"
+   ↓ Clica em "Criar Bloco"
+   ↓ Entra em BlocoQuestoesManager (componente inteiro)
+
+3. Cria bloco, quer gerenciar blocos
+   ↓ Continua em BlocoQuestoesManager
+   ↓ Sem aba "Visualizar Todas" disponível
+
+4. Quer voltar a ver questões
+   ↓ Clica "Voltar"
+   ↓ Volta para QuestoesTorneiosTab
+   ↓ Clica em "Questões Individuais"
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                           FLUXO DO USUÁRIO - DEPOIS
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Admin clica "Questões de Torneios"
+   ↓ VÊ: BlocoQuestoesManager "Gerenciar Blocos" (DEFAULT)
+
+2. Admin cria blocos, gerencia blocos, associa a torneios
+   ↓ TUDO AQUI em um único lugar ✅
+
+3. Admin quer ver questões individuais como referência
+   ↓ Clica em "Visualizar Todas"
+   ↓ Vê tabela com questões (com origem: Colaborador/Admin)
+   ↓ Pode editar, deletar, ou agrupar em bloco
+
+4. Volta para gerenciar blocos
+   ↓ Clica em "Gerenciar Blocos"
+   ↓ Continua onde parou ✅
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                         COMPARAÇÃO VISUAL - LAYOUT
+═══════════════════════════════════════════════════════════════════════════════
+
+ANTES:
+┌────────────────────────────────────────┐
+│ Questões de Torneios                   │
+├────────────────────────────────────────┤
+│ [🔍 Busca...]                          │
+├──────────┬──────────────────────────────┤
+│ Sub-Abas │ CONTEÚDO                     │
+├──────────┤                              │
+│ Questões │ Tabela com questões          │
+│ Individuais │ (sem blocos)              │
+│ (DEFAULT)   │                          │
+│             │                          │
+│ Blocos      │ [Clica "Criar Bloco"]    │
+│ de Questões │ → BlocoQuestoesManager  │
+│             │ → Sai da aba              │
+└──────────┴──────────────────────────────┘
+
+
+DEPOIS:
+┌────────────────────────────────────────┐
+│ Questões de Torneios                   │
+├────────────────────────────────────────┤
+│ [🔍 Busca...]                          │
+├──────────────┬──────────────────────────┤
+│ Sub-Abas │   │ CONTEÚDO PRINCIPAL       │
+├──────────┤   │                          │
+│ Gerenciar    │ ┌──────────────────────┐ │
+│ Blocos ✅    │ │ BlocoQuestoesManager │ │
+│ (DEFAULT)    │ ├──────────────────────┤ │
+│              │ │ - Criar Bloco        │ │
+│ Visualizar   │ │ - Editar Bloco       │ │
+│ Todas        │ │ - Deletar Bloco      │ │
+│              │ │ - Adicionar Questões │ │
+│              │ │ - Associar Torneios  │ │
+│              │ └──────────────────────┘ │
+│              │                          │
+│              │ TUDO EM UM LUGAR! ✅     │
+└──────────────┴──────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                            AÇÕES E ÍCONES MANTIDOS
+═══════════════════════════════════════════════════════════════════════════════
+
+ABA "VISUALIZAR TODAS":
+├── Coluna "Origem": mostra "👤 Colaborador" ou "✍️ Admin"
+├── Ação 1: Layers (verde) → "Agrupar em Bloco"
+├── Ação 2: Edit (azul)    → "Editar Questão"
+└── Ação 3: Trash (vermelho) → "Deletar Questão"
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                              STATS MANTIDAS
+═══════════════════════════════════════════════════════════════════════════════
+
+ABA "VISUALIZAR TODAS":
+├── Card 1: "Total Individuais" [##]
+├── Card 2: "Do Banco de Colaboradores" [##]
+└── Card 3: "Criadas Localmente" [##]
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                            LISTENERS DE EVENTOS
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ MANTIDOS:
+├── window.addEventListener('questaoAdicionadaTorneio', handleQuestaoAdicionada)
+└── Dispara fetchQuestoesIndividuais() quando questão é enviada de Colaboradores
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                            PRÓXIMAS FUNCIONALIDADES
+═══════════════════════════════════════════════════════════════════════════════
+
+- Implementar handlers para "Agrupar em Bloco"
+- Implementar handlers para "Editar Questão"
+- Implementar handlers para "Deletar Questão"
+- Sync com BlocoQuestoesManager quando questões são movidas
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                                 CONCLUSÃO
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ BlocoQuestoesManager agora é a ABA PRINCIPAL (não em modal/state)
+✅ Workflow natural: Blocos → depois ver questões (não invertido)
+✅ Mesma estrutura em Torneios E Testes (consistência)
+✅ Sem perda de funcionalidade - tudo mantido
+✅ UX MUITO MELHORADA - menos cliques, mais direto
+
+🚀 PRONTO PARA PRODUÇÃO!

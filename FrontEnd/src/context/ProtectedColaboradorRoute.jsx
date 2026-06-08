@@ -1,13 +1,14 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import WaitingScreen from '../components/WaitingScreen';
 
 /**
  * ProtectedColaboradorRoute
  * Garante que apenas colaboradores aprovados acedam às rotas /colaborador/*.
  * - Não autenticado          → /login
  * - Admin                    → /administrador  (admin não entra no ambiente de colaborador)
- * - Colaborador pendente      → / (home, com mensagem de estado)
+ * - Colaborador pendente      → WaitingScreen (tela de espera com verificação automática)
  * - Colaborador rejeitado     → /404
  * - Colaborador aprovado      → renderiza children
  */
@@ -28,8 +29,21 @@ const ProtectedColaboradorRoute = ({ children }) => {
     return <Navigate to="/painel" replace />;
   }
 
+  // ✅ COLABORADOR PENDENTE → WAITING SCREEN (tela de espera com verificação automática)
   if (user?.status_colaborador === 'pendente') {
-    return <Navigate to="/" state={{ message: 'Aguardando aprovação do administrador.', type: 'warning' }} replace />;
+    return (
+      <WaitingScreen
+        userEmail={user?.email}
+        onApproved={() => {
+          // Redirecionar para painel do colaborador após aprovação
+          window.location.href = '/colaborador/dashboard';
+        }}
+        onRejected={() => {
+          // Redirecionar para login se rejeitado
+          window.location.href = '/login';
+        }}
+      />
+    );
   }
 
   if (user?.status_colaborador !== 'aprovado') {

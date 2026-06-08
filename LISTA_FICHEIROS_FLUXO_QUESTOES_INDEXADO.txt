@@ -1,0 +1,968 @@
+================================================================================
+            LISTA COMPLETA INDEXADA - FICHEIROS FLUXO DE QUESTÕES
+                         COMAES 3.2
+                Data: 7 de Junho de 2026
+================================================================================
+
+🎯 COMO USAR ESTE DOCUMENTO:
+- Use Ctrl+F para procurar por nome de ficheiro
+- Use Ctrl+F para procurar por categoria
+- Cada ficheiro tem caminho completo e descrição breve
+
+================================================================================
+                            FRONTEND FICHEIROS
+================================================================================
+
+█ PÁGINAS PRINCIPAIS
+
+FrontEnd/src/Paginas/Secundarias/Teste.jsx
+  • Descrição: Main test/quiz execution page
+  • Função: Core test flow, question rendering
+  • Fluxo: Part of quiz execution flow
+
+FrontEnd/src/Paginas/Secundarias/Torneios.jsx
+  • Descrição: Tournament management and display
+  • Função: List, create, join tournaments
+  • Fluxo: Tournament selection and participation
+
+FrontEnd/src/Paginas/Secundarias/EntrarTorneio.jsx
+  • Descrição: Join tournament functionality
+  • Função: Tournament enrollment
+  • Fluxo: Pre-tournament registration
+
+FrontEnd/src/Paginas/Secundarias/MinhasQuestoes.jsx
+  • Descrição: User's submitted questions
+  • Função: View personal question submissions
+  • Fluxo: Question management for collaborators
+
+FrontEnd/src/Paginas/Secundarias/Dashboard.jsx
+  • Descrição: Student main dashboard
+  • Função: Quick access, statistics overview
+  • Fluxo: Landing page after login
+
+FrontEnd/src/Administrador/AdminDashboard.jsx
+  • Descrição: Main admin panel (13 tabs)
+  • Função: Central admin control center
+  • Fluxo: Admin entry point
+
+FrontEnd/src/Administrador/AdminDashboardRestructured.jsx
+  • Descrição: Alternative admin dashboard version
+  • Função: Restructured admin interface
+  • Fluxo: Alternative admin view
+
+FrontEnd/src/Administrador/AdminStats.jsx
+  • Descrição: Admin statistics and metrics
+  • Função: Display statistics, charts, KPIs
+  • Fluxo: Analytics for administrators
+
+FrontEnd/src/Paginas/Secundarias/ColaboradorDashboard.jsx
+  • Descrição: Collaborator dashboard V1
+  • Função: Collaborator main interface
+  • Fluxo: Collaborator entry point
+
+FrontEnd/src/Paginas/Secundarias/ColaboradorDashboardV2.jsx
+  • Descrição: Collaborator dashboard V2
+  • Função: Updated collaborator interface
+  • Fluxo: Alternative collaborator view
+
+FrontEnd/src/Paginas/Secundarias/ColaboradorBlocosTab.jsx
+  • Descrição: Collaborator blocks tab
+  • Função: Collaborator block management
+  • Fluxo: Block operations for collaborators
+
+================================================================================
+
+█ FORMULÁRIOS & MODAIS
+
+FrontEnd/src/Administrador/CreateQuestaoForm.jsx [⭐ CORRIGIDO]
+  • Descrição: Main question creation form
+  • Função: Create new questions (all types)
+  • Bugs corrigidos: 9 critical bugs fixed
+  • Fluxo: Core question creation
+
+FrontEnd/src/Administrador/EditQuestaoForm.jsx
+  • Descrição: Edit existing questions
+  • Função: Update question details
+  • Fluxo: Question modification
+
+FrontEnd/src/Administrador/CreateBlocoForm.jsx
+  • Descrição: Block creation form
+  • Função: Create question blocks
+  • Fluxo: Block setup
+
+FrontEnd/src/Administrador/QuestoesManager.jsx
+  • Descrição: Question management interface
+  • Função: CRUD operations for questions
+  • Fluxo: Master question management
+
+FrontEnd/src/Administrador/BlocoQuestoesManager.jsx
+  • Descrição: Block management interface
+  • Função: CRUD operations for blocks
+  • Fluxo: Block organization system
+
+================================================================================
+
+█ ABAS ADMINISTRATIVAS
+
+FrontEnd/src/Administrador/QuestoesPendentesTab.jsx
+  • Descrição: Pending questions tab
+  • Função: Review questions awaiting approval
+  • ⚠️ BUG CONHECIDO: Panel breaks when loading
+  • Fluxo: Collaboration approval queue
+
+FrontEnd/src/Administrador/AdminQuestionsColaboradorPendentesTab.jsx
+  • Descrição: Pending collaborator questions tab
+  • Função: Approve/reject collaborator submissions
+  • Fluxo: Content review workflow
+
+FrontEnd/src/Administrador/QuestoesColaboradoresTab.jsx
+  • Descrição: Questions by collaborators tab
+  • Função: View collaborator's approved content
+  • Fluxo: Content attribution tracking
+
+FrontEnd/src/Administrador/QuestoesTorneiosTab.jsx
+  • Descrição: Tournament questions tab
+  • Função: Manage questions for tournaments
+  • Fluxo: Tournament-specific content
+
+FrontEnd/src/Administrador/QuestoesTestesTab.jsx
+  • Descrição: Test questions tab
+  • Função: Manage test knowledge questions
+  • Fluxo: Test content organization
+
+FrontEnd/src/Administrador/QuestoesBlocosUnificadas.jsx
+  • Descrição: Unified questions + blocks view
+  • Função: Combined block and question management
+  • Fluxo: Integrated content management
+
+FrontEnd/src/Administrador/BlocosColaboradoresTab.jsx
+  • Descrição: Blocks by collaborators tab
+  • Função: View collaborator blocks
+  • Fluxo: Block attribution tracking
+
+FrontEnd/src/Administrador/AdminBlocosColaboradoresPendentesTab.jsx
+  • Descrição: Pending collaborator blocks tab
+  • Função: Approve/reject collaborator blocks
+  • Fluxo: Block approval workflow
+
+FrontEnd/src/Administrador/TorneiosTab.jsx
+  • Descrição: Tournaments tab
+  • Função: Tournament management interface
+  • Fluxo: Tournament orchestration
+
+================================================================================
+
+█ COMPONENTES REUTILIZÁVEIS
+
+FrontEnd/src/components/components_teste/questioncard.jsx
+  • Descrição: Basic question card component
+  • Função: Display question summary
+  • Fluxo: Question presentation
+
+FrontEnd/src/components/components_teste/resultscreen.jsx
+  • Descrição: Result screen display
+  • Função: Show answer results and feedback
+  • Fluxo: Post-answer feedback
+
+FrontEnd/src/components/ranking/RankingTable.jsx
+  • Descrição: Ranking table display
+  • Função: Tabular ranking presentation
+  • Fluxo: Ranking visualization
+
+FrontEnd/src/components/ranking/RankingTab.jsx
+  • Descrição: Ranking tab component
+  • Função: Tab interface for rankings
+  • Fluxo: Ranking navigation
+
+FrontEnd/src/certificados/CertProgramacao.jsx
+  • Descrição: Programming certificate component
+  • Função: Display programming certificates
+  • Fluxo: Certificate presentation
+
+FrontEnd/src/certificados/CertMatematica.jsx
+  • Descrição: Math certificate component
+  • Função: Display math certificates
+  • Fluxo: Certificate presentation
+
+FrontEnd/src/certificados/CertIngles.jsx
+  • Descrição: English certificate component
+  • Função: Display English certificates
+  • Fluxo: Certificate presentation
+
+FrontEnd/src/components/ComaesModal.jsx
+  • Descrição: Generic modal component
+  • Função: Reusable modal interface
+  • Fluxo: Modal container
+
+FrontEnd/src/components/ConfirmModal.jsx
+  • Descrição: Confirmation modal
+  • Função: Confirm actions
+  • Fluxo: Confirmation dialog
+
+FrontEnd/src/components/StatusBadge.jsx
+  • Descrição: Status badge display
+  • Função: Show item status
+  • Fluxo: Status indicator
+
+FrontEnd/src/Administrador/TableModal.jsx
+  • Descrição: Generic table modal
+  • Função: Edit/create items in tables
+  • Fluxo: Table item management
+
+================================================================================
+
+█ HOOKS (Custom React Hooks)
+
+FrontEnd/src/hooks/useQuiz.js
+  • Descrição: Quiz logic hook
+  • Função: Core quiz state and logic
+  • Fluxo: Question execution
+
+FrontEnd/src/hooks/useTorneioParticipante.js
+  • Descrição: Tournament participant hook
+  • Função: Tournament participation logic
+  • Fluxo: Tournament engagement
+
+FrontEnd/src/hooks/useVencedores.js
+  • Descrição: Winners/champions hook
+  • Função: Determine tournament winners
+  • Fluxo: Winner calculation
+
+FrontEnd/src/hooks/useCertificado.js
+  • Descrição: Certificate management hook
+  • Função: Certificate logic and state
+  • Fluxo: Certificate handling
+
+FrontEnd/src/hooks/useNivel.js
+  • Descrição: User level hook
+  • Função: Level progression logic
+  • Fluxo: Level system
+
+FrontEnd/src/hooks/useRankingPolling.js
+  • Descrição: Ranking polling hook
+  • Função: Real-time ranking updates
+  • Fluxo: Ranking synchronization
+
+FrontEnd/src/hooks/useStreak.js
+  • Descrição: Streak tracking hook
+  • Função: Track user streaks
+  • Fluxo: Streak management
+
+================================================================================
+
+█ CONTEXTOS & AUTENTICAÇÃO
+
+FrontEnd/src/context/AuthContext.jsx
+  • Descrição: Authentication context
+  • Função: Global auth state
+  • Fluxo: User session management
+
+FrontEnd/src/context/ProtectedAdminRoute.jsx
+  • Descrição: Admin route protection component
+  • Função: Restrict routes to admins
+  • Fluxo: Admin authorization
+
+FrontEnd/src/context/ProtectedColaboradorRoute.jsx
+  • Descrição: Collaborator route protection component
+  • Função: Restrict routes to collaborators
+  • Fluxo: Collaborator authorization
+
+================================================================================
+
+█ SERVIÇOS (API & Business Logic)
+
+FrontEnd/src/services/questoesService.js
+  • Descrição: Questions API service
+  • Função: API calls for questions
+  • Fluxo: Question HTTP requests
+
+FrontEnd/src/services/tentativasService.js
+  • Descrição: Attempts/submissions service
+  • Função: API for answer submissions
+  • Fluxo: Attempt management
+
+FrontEnd/src/services/colaboradorService.js
+  • Descrição: Collaborator service
+  • Função: Collaborator API calls
+  • Fluxo: Collaborator data communication
+
+FrontEnd/src/services/gamificacaoService.js
+  • Descrição: Gamification service
+  • Função: Gamification system API
+  • Fluxo: Gamification operations
+
+FrontEnd/src/Administrador/services/BlocosService.js
+  • Descrição: Blocks management service
+  • Função: Block-specific API calls
+  • Fluxo: Block CRUD
+
+FrontEnd/src/Administrador/services/TournamentService.js
+  • Descrição: Tournament service
+  • Função: Tournament API calls
+  • Fluxo: Tournament management
+
+FrontEnd/src/Administrador/adminService.js
+  • Descrição: Admin general service
+  • Função: Admin operations API
+  • Fluxo: General admin requests
+
+================================================================================
+
+█ UTILITÁRIOS
+
+FrontEnd/src/utils/validators.js
+  • Descrição: Frontend validators
+  • Função: Form and data validation
+  • Fluxo: Input validation
+
+FrontEnd/src/utils/evaluation.js
+  • Descrição: Evaluation utilities
+  • Função: Answer evaluation logic
+  • Fluxo: Evaluation helpers
+
+FrontEnd/src/utils/security/formValidators.js
+  • Descrição: Security form validators
+  • Função: Secure form validation
+  • Fluxo: Security checks
+
+================================================================================
+
+█ PAGES - RANKING & TOURNAMENTS
+
+FrontEnd/src/Paginas/Secundarias/Ranking.jsx
+  • Descrição: User ranking page
+  • Função: Personal ranking display
+  • Fluxo: Ranking viewing
+
+FrontEnd/src/Paginas/Secundarias/RankingCompleto.jsx
+  • Descrição: Complete ranking view
+  • Função: Full detailed ranking
+  • Fluxo: Comprehensive ranking
+
+FrontEnd/src/Administrador/components/RankingsMonitor.jsx
+  • Descrição: Rankings monitoring component
+  • Função: Admin ranking oversight
+  • Fluxo: Ranking administration
+
+================================================================================
+
+█ LAYOUT & SUPPORTING PAGES
+
+FrontEnd/src/Paginas/Secundarias/Layout.jsx
+  • Descrição: Main layout component
+  • Função: Page structure
+  • Fluxo: Layout foundation
+
+FrontEnd/src/Paginas/Secundarias/MinhaJornada.jsx
+  • Descrição: User journey page
+  • Função: Learning progress tracking
+  • Fluxo: Progress visualization
+
+FrontEnd/src/Paginas/Secundarias/Perfil.jsx
+  • Descrição: User profile page
+  • Função: User information display
+  • Fluxo: Profile management
+
+FrontEnd/src/Paginas/Secundarias/Configuracoes.jsx
+  • Descrição: Settings page
+  • Função: User configuration options
+  • Fluxo: Setting management
+
+================================================================================
+                            BACKEND FICHEIROS
+================================================================================
+
+█ CONTROLLERS
+
+BackEnd/controllers/QuestoesController.js [⭐ CORRIGIDO]
+  • Descrição: Questions controller
+  • Função: Question CRUD and logic
+  • Bugs corrigidos: 9 critical bugs fixed
+  • Endpoints: POST/GET/PUT/DELETE /api/questoes/*
+
+BackEnd/controllers/BlocosController.js
+  • Descrição: Blocks controller
+  • Função: Block CRUD and management
+  • Endpoints: POST/GET/PUT/DELETE /api/blocos/*
+
+BackEnd/controllers/TesteConhecimentoController.js
+  • Descrição: Test knowledge controller
+  • Função: Test-specific question handling
+  • Endpoints: GET/POST /api/teste-conhecimento/*
+
+BackEnd/controllers/TentativasController.js
+  • Descrição: Attempts controller
+  • Função: Answer submission and evaluation
+  • Endpoints: POST/GET /api/tentativas/*
+
+BackEnd/controllers/TorneioController.js [⚠️ DUPLICADO]
+  • Descrição: Tournament controller V1
+  • Função: Tournament logic (PRIMARY)
+  • Endpoints: POST/GET/PUT/DELETE /api/admin/torneos/*
+
+BackEnd/controllers/TorneoController.js [⚠️ DUPLICADO]
+  • Descrição: Tournament controller V2
+  • Função: Tournament logic (LEGACY/DUPLICATE)
+  • Status: Should be consolidated with TorneioController
+
+BackEnd/controllers/ColaboradorBlocosQuestoesController.js [⚠️ V1]
+  • Descrição: Collaborator blocks/questions V1
+  • Função: Collaborator submissions (ORIGINAL)
+  • Endpoints: POST/GET /api/colaborador/*
+
+BackEnd/controllers/ColaboradorBlocosQuestoesControllerV2.js [✅ V2 - MELHOR]
+  • Descrição: Collaborator blocks/questions V2
+  • Função: Collaborator submissions (IMPROVED VALIDATION)
+  • Endpoints: POST/GET /api/colaborador/*
+
+BackEnd/controllers/ColaboradorController.js
+  • Descrição: Collaborator main controller
+  • Função: General collaborator operations
+  • Endpoints: GET/PUT /api/colaboradores/*
+
+BackEnd/controllers/colaboradorRegistroController.js
+  • Descrição: Collaborator registration controller
+  • Função: Collaborator enrollment
+  • Endpoints: POST /api/colaborador-registro/*
+
+BackEnd/controllers/rankingController.js
+  • Descrição: Ranking controller
+  • Função: Ranking calculations and display
+  • Endpoints: GET /api/rankings/*
+
+BackEnd/controllers/nivelController.js
+  • Descrição: Level controller
+  • Função: User level progression
+  • Endpoints: GET /api/niveis/*
+
+BackEnd/controllers/streakController.js
+  • Descrição: Streak controller
+  • Função: Streak tracking
+  • Endpoints: GET /api/streaks/*
+
+BackEnd/controllers/missoesController.js
+  • Descrição: Mission controller
+  • Função: Mission system
+  • Endpoints: GET/POST /api/missoes/*
+
+BackEnd/controllers/adminStatsController.js
+  • Descrição: Admin statistics controller
+  • Função: Statistics and metrics
+  • Endpoints: GET /api/admin/stats/*
+
+BackEnd/controllers/UserController.js
+  • Descrição: User controller
+  • Função: User management
+  • Endpoints: GET/PUT /api/users/*
+
+BackEnd/controllers/GenericController.js
+  • Descrição: Generic controller
+  • Função: Generic CRUD operations
+  • Endpoints: Dynamic routing
+
+================================================================================
+
+█ MODELOS (ORM Sequelize)
+
+BackEnd/models/Questao.js [⭐ NOVO/UNIFICADO]
+  • Descrição: Main questions model (NEW)
+  • Tabela: questoes
+  • Status: PRIMARY CANONICAL MODEL
+
+BackEnd/models/QuestaoTesteConhecimento.js
+  • Descrição: Test knowledge questions model
+  • Tabela: questoes_teste_conhecimento
+  • Status: SPECIFIC FOR TESTS
+
+BackEnd/models/QuestaoMatematica.js [LEGADO]
+  • Descrição: Math questions model
+  • Status: LEGACY/DISABLED
+
+BackEnd/models/QuestaoIngles.js [LEGADO]
+  • Descrição: English questions model
+  • Status: LEGACY/DISABLED
+
+BackEnd/models/QuestaoProgramacao.js [LEGADO]
+  • Descrição: Programming questions model
+  • Status: LEGACY/DISABLED
+
+BackEnd/models/Pergunta.js [?]
+  • Descrição: Unknown purpose model
+  • Status: UNCLEAR/POTENTIALLY UNUSED
+
+BackEnd/models/BlocoQuestoes.js
+  • Descrição: Block questions model
+  • Tabela: blocos_questoes
+  • Função: Question grouping
+
+BackEnd/models/BlocoQuestaoItem.js
+  • Descrição: Block items model (N:M)
+  • Tabela: bloco_questao_items
+  • Função: Maps questions to blocks
+
+BackEnd/models/Torneio.js
+  • Descrição: Tournament model
+  • Tabela: torneios
+  • Status: MAIN TOURNAMENT DATA
+
+BackEnd/models/TorneioBloco.js
+  • Descrição: Tournament blocks (N:M)
+  • Tabela: torneio_blocos
+  • Função: Maps blocks to tournaments
+
+BackEnd/models/ParticipanteTorneio.js
+  • Descrição: Tournament participants
+  • Tabela: participantes_torneio
+  • Função: Tournament enrollment
+
+BackEnd/models/TentativaResposta.js
+  • Descrição: User answer attempts
+  • Tabela: tentativa_respostas
+  • Função: Store user responses
+
+BackEnd/models/TentativaTeste.js
+  • Descrição: Test attempts
+  • Tabela: tentativas_teste
+  • Função: Track test participation
+
+BackEnd/models/ResultadoTeste.js
+  • Descrição: Test results
+  • Tabela: resultados_teste
+  • Função: Store evaluation results
+
+BackEnd/models/Ranking.js
+  • Descrição: Ranking model
+  • Tabela: rankings
+  • Função: Rank data storage
+
+BackEnd/models/Nivel.js
+  • Descrição: Level model
+  • Tabela: niveis
+  • Função: Level progression
+
+BackEnd/models/Missao.js
+  • Descrição: Missions model
+  • Tabela: missoes
+  • Função: Mission definitions
+
+BackEnd/models/MissaoUsuario.js
+  • Descrição: User missions
+  • Tabela: missoes_usuarios
+  • Função: User mission progress
+
+BackEnd/models/Conquista.js
+  • Descrição: Achievements model
+  • Tabela: conquistas
+  • Função: Achievement definitions
+
+BackEnd/models/ConquistaUsuario.js
+  • Descrição: User achievements
+  • Tabela: conquistas_usuarios
+  • Função: User achievement tracking
+
+BackEnd/models/Certificado.js [⚠️ PT]
+  • Descrição: Certificate model (Portuguese)
+  • Tabela: certificados
+  • Status: PRIMARY VERSION
+
+BackEnd/models/Certificate.js [⚠️ EN - DUPLICADO]
+  • Descrição: Certificate model (English)
+  • Tabela: certificates
+  • Status: DUPLICATE - Should consolidate
+
+BackEnd/models/User.js
+  • Descrição: User model
+  • Tabela: usuarios
+  • Função: User accounts & profiles
+
+BackEnd/models/Funcao.js
+  • Descrição: Roles/functions model
+  • Tabela: funcoes
+  • Função: Role definitions
+
+BackEnd/models/SequenciaAprendizagem.js
+  • Descrição: Learning sequences
+  • Tabela: sequencias_aprendizagem
+  • Função: Learning paths
+
+BackEnd/models/Notificacao.js
+  • Descrição: Notifications model
+  • Tabela: notificacoes
+  • Função: System notifications
+
+BackEnd/models/Noticia.js
+  • Descrição: News model
+  • Tabela: noticias
+  • Função: News/announcements
+
+BackEnd/models/TicketSuporte.js
+  • Descrição: Support tickets model
+  • Tabela: tickets_suporte
+  • Função: Support system
+
+BackEnd/models/RedefinicaoSenha.js
+  • Descrição: Password reset model
+  • Tabela: redefinicoes_senha
+  • Função: Password recovery
+
+BackEnd/models/ConfiguracaoUsuario.js
+  • Descrição: User configuration model
+  • Tabela: configuracoes_usuario
+  • Função: User settings
+
+BackEnd/models/associations.js
+  • Descrição: Model associations file
+  • Função: Define all ORM relationships
+  • Status: CRITICAL FOR DATA INTEGRITY
+
+================================================================================
+
+█ ROTAS (API Endpoints)
+
+BackEnd/routes/questoesRoutes.js
+  • Endpoint: /api/questoes
+  • Métodos: POST, GET, PUT, DELETE, PATCH
+  • Middleware: canManageQuestoes, isAdmin
+
+BackEnd/routes/blocosRoutes.js
+  • Endpoint: /api/blocos
+  • Métodos: POST, GET, PUT, DELETE
+  • Função: Block management
+
+BackEnd/routes/testeConhecimentoRoutes.js
+  • Endpoint: /api/teste-conhecimento
+  • Métodos: GET, POST, PUT, DELETE
+  • Middleware: Various authorization
+
+BackEnd/routes/tentativasRoutes.js
+  • Endpoint: /api/tentativas
+  • Métodos: POST, GET
+  • Função: Submission management
+
+BackEnd/routes/tournamentsRoutes.js
+  • Endpoint: /api/admin/torneos
+  • Métodos: POST, GET, PUT, DELETE
+  • Middleware: isAdmin
+
+BackEnd/routes/colaboradorBlocosQuestoesRoutes.js
+  • Endpoint: /api/colaborador
+  • Métodos: POST, GET
+  • Middleware: canManageQuestoes
+
+BackEnd/routes/rankingRoutes.js
+  • Endpoint: /api/rankings
+  • Métodos: GET
+  • Middleware: Auth
+
+BackEnd/routes/nivelRoutes.js
+  • Endpoint: /api/niveis
+  • Métodos: GET
+  • Middleware: Auth
+
+BackEnd/routes/streakRoutes.js
+  • Endpoint: /api/streaks
+  • Métodos: GET, POST
+  • Middleware: Auth
+
+BackEnd/routes/missoesRoutes.js
+  • Endpoint: /api/missoes
+  • Métodos: GET, POST
+  • Middleware: Auth
+
+BackEnd/routes/certificadosRoutes.js [⚠️ PT]
+  • Endpoint: /api/certificados
+  • Métodos: GET, POST
+  • Middleware: Auth
+
+BackEnd/routes/certificatesRoutes.js [⚠️ EN - DUPLICADO]
+  • Endpoint: /api/certificates
+  • Métodos: GET, POST
+  • Middleware: Auth
+
+BackEnd/routes/adminPanelRoutes.js
+  • Endpoint: /api/admin
+  • Métodos: Various
+  • Middleware: isAdmin
+
+BackEnd/routes/colaboradorRoutes.js
+  • Endpoint: /api/colaboradores
+  • Métodos: GET, PUT
+  • Middleware: canManageQuestoes
+
+BackEnd/routes/resultadosTesteRoutes.js
+  • Endpoint: /api/test-results
+  • Métodos: GET, POST
+  • Middleware: Auth
+
+BackEnd/routes/notificacoesRoutes.js
+  • Endpoint: /api/notificacoes
+  • Métodos: GET, PUT
+  • Middleware: Auth
+
+================================================================================
+
+█ MIDDLEWARES
+
+BackEnd/middlewares/auth.js
+  • Descrição: Authentication middleware
+  • Função: Verify JWT tokens
+  • Required: Most routes
+
+BackEnd/middlewares/isAdmin.js
+  • Descrição: Administrator check middleware
+  • Função: Verify user is admin
+  • Required: Admin routes
+
+BackEnd/middlewares/canManageQuestoes.js
+  • Descrição: Question management authorization
+  • Função: Verify question CRUD permissions
+  • Required: Question routes
+
+BackEnd/middlewares/isNotColaborador.js
+  • Descrição: Collaborator block middleware
+  • Função: Prevent collaborators from accessing certain routes
+  • Required: Tournament participation routes
+
+BackEnd/middlewares/rankingEvents.js
+  • Descrição: Ranking event middleware
+  • Função: Handle ranking updates
+  • Triggers: After answer submission
+
+BackEnd/middlewares/validate.js
+  • Descrição: Validation middleware
+  • Função: Request/data validation
+  • Optional: Specific routes
+
+================================================================================
+
+█ SERVIÇOS & HELPERS
+
+BackEnd/services/questoesService.js
+  • Descrição: Questions business logic service
+  • Função: Query building, validation logic
+  • Usado por: QuestoesController
+
+BackEnd/services/torneioService.js
+  • Descrição: Tournament business logic
+  • Função: Tournament state management
+  • Usado por: TorneioController
+
+BackEnd/services/TournamentFinalizerService.js
+  • Descrição: Tournament finalization service
+  • Função: End tournament, calculate winners
+  • Usado por: Cron jobs
+
+BackEnd/services/rankingService.js
+  • Descrição: Ranking calculation service
+  • Função: Calculate positions, update scores
+  • Usado por: rankingController
+
+BackEnd/services/streakService.js
+  • Descrição: Streak logic service
+  • Função: Streak tracking, updates
+  • Usado por: TentativasController
+
+BackEnd/services/missoesService.js
+  • Descrição: Mission logic service
+  • Função: Mission progression
+  • Usado por: missoesController
+
+BackEnd/services/xpService.js
+  • Descrição: XP/points system service
+  • Função: XP calculations, level progression
+  • Usado por: Various controllers
+
+BackEnd/services/emailService.js
+  • Descrição: Email sending service
+  • Função: Send notifications, certificates
+  • Usado por: Various controllers
+
+BackEnd/services/iaEvaluators.js
+  • Descrição: AI evaluation service
+  • Função: Auto-grade complex questions
+  • Usado por: TentativasController
+
+BackEnd/services/manualEvaluator.js
+  • Descrição: Manual evaluation service
+  • Função: Manual grading support
+  • Usado por: Admin controllers
+
+BackEnd/services/socketService.js
+  • Descrição: WebSocket service
+  • Função: Real-time updates
+  • Usado por: Various endpoints
+
+BackEnd/services/supportChatService.js
+  • Descrição: Support chat service
+  • Função: Chat message handling
+  • Usado por: Support routes
+
+BackEnd/services/torneioCron.js
+  • Descrição: Tournament cron jobs
+  • Função: Scheduled tournament operations
+  • Usado por: Background tasks
+
+BackEnd/utils/modelMapper.js
+  • Descrição: Model mapping utilities
+  • Função: Data transformation
+  • Usado por: Controllers
+
+BackEnd/utils/validators.js
+  • Descrição: Backend validators
+  • Função: Data validation rules
+  • Usado por: Services
+
+BackEnd/validation/registerValidation.js
+  • Descrição: Registration validation
+  • Função: Validate registrations
+  • Usado por: Registration routes
+
+================================================================================
+
+█ MIGRAÇÕES (Database)
+
+BackEnd/migrations/20260601000000-create-blocos-questoes.cjs
+  • Creates: blocos_questoes, bloco_questao_items
+
+BackEnd/migrations/20260522000002-create-questoes-table.cjs
+  • Creates: questoes (unified model)
+
+BackEnd/migrations/20260522000003-disable-legacy-tables.cjs
+  • Disables: questoes_matematica, questoes_ingles, etc.
+
+BackEnd/migrations/20260523000000-fix-questoes-cascade.cjs
+  • Updates: Foreign key constraints
+
+BackEnd/migrations/20260524000000-create-questoes-teste-conhecimento.cjs
+  • Creates: questoes_teste_conhecimento
+
+BackEnd/migrations/20260526000000-create-resultados-teste-table.cjs
+  • Creates: resultados_teste
+
+BackEnd/migrations/20260601000000-add-colaborador-role-and-question-review.cjs
+  • Updates: usuarios, questoes tables
+
+BackEnd/migrations/20260602000000-add-status-colaborador.cjs
+  • Updates: usuarios table
+
+BackEnd/migrations/20260603000000-create-niveis-and-xp-columns.cjs
+  • Creates: niveis table
+
+BackEnd/migrations/20260603000000-create-rankings-table.cjs
+  • Creates: rankings
+
+BackEnd/migrations/20260603100000-create-sequencias-aprendizagem.cjs
+  • Creates: sequencias_aprendizagem
+
+BackEnd/migrations/20260603200000-create-missoes-tables.cjs
+  • Creates: missoes, missoes_usuarios
+
+BackEnd/migrations/20260605000000-update-bloco-questoes-status.cjs
+  • Updates: blocos_questoes.status
+
+BackEnd/migrations/20260605100000-fix-bloco-status-to-publish.cjs
+  • Updates: Status field values
+
+BackEnd/migrations/20260606000000-add-colaborador-extended-fields.cjs
+  • Updates: usuarios table
+
+================================================================================
+
+█ CONFIGURAÇÃO
+
+BackEnd/config/db.js - Database configuration
+BackEnd/config/cache.js - Caching configuration
+BackEnd/config/sequelize.config.json - Sequelize ORM config
+BackEnd/.sequelizerc - Sequelize CLI config
+BackEnd/index.js - Server entry point
+BackEnd/schema.sql - Database schema definition
+
+================================================================================
+
+█ SEEDS & SCRIPTS
+
+BackEnd/seeds/insert_45_questoes_torneio_ativo.sql
+  • Inserts 45 active tournament questions
+
+BackEnd/seeds/seed_teste_conhecimento.sql
+  • Inserts test knowledge seed data
+
+BackEnd/seeds/seed_torneio_questoes.sql
+  • Inserts tournament questions seed
+
+BackEnd/add_slug.js - Add slug fields
+BackEnd/check_users.js - Verify users
+BackEnd/create_pending_colaborador.js - Create collaborators
+BackEnd/create_students.js - Create students
+BackEnd/criar_blocos_para_questoes.js - Create blocks
+BackEnd/fix_bloco_status.js - Fix status
+BackEnd/insert_questoes.js - Insert questions v1
+BackEnd/insert_questoes_v2.js - Insert questions v2
+BackEnd/populate_blocos_questoes.js - Populate blocks
+BackEnd/verify_data.js - Verify integrity
+(+ many more utility/validation scripts)
+
+================================================================================
+
+█ RESUMO ESTATÍSTICO
+
+Frontend Files: 70+
+  ├─ Pages: 11
+  ├─ Forms/Modals: 15
+  ├─ Components: 20
+  ├─ Hooks: 8
+  ├─ Services: 8
+  ├─ Others: 8
+
+Backend Files: 80+
+  ├─ Controllers: 15
+  ├─ Models: 35+
+  ├─ Routes: 16
+  ├─ Middlewares: 6
+  ├─ Services: 15+
+  ├─ Migrations: 15+
+  ├─ Scripts: 20+
+  ├─ Config: 6
+
+TOTAL: 150+ Ficheiros
+
+================================================================================
+
+█ DUPLICAÇÕES ENCONTRADAS
+
+1. Controllers de Torneio
+   ├─ TorneioController.js (V1 - ACTIVE)
+   └─ TorneoController.js (V2 - LEGACY/DUPLICATE)
+
+2. Controllers Colaborador-Blocos-Questões
+   ├─ ColaboradorBlocosQuestoesController.js (V1)
+   └─ ColaboradorBlocosQuestoesControllerV2.js (V2 - MELHOR)
+
+3. Modelos de Questão
+   ├─ Questao.js (NEW - CANONICAL)
+   ├─ QuestaoTesteConhecimento.js (SPECIFIC)
+   ├─ QuestaoMatematica.js (LEGACY)
+   ├─ QuestaoIngles.js (LEGACY)
+   └─ QuestaoProgramacao.js (LEGACY)
+
+4. Certificados
+   ├─ Certificado.js (PT)
+   └─ Certificate.js (EN - DUPLICATE)
+
+5. Dashboards Colaborador
+   ├─ ColaboradorDashboard.jsx (V1)
+   ├─ ColaboradorDashboardV2.jsx (V2)
+   └─ ColaboradorDashboardV2_NEW.jsx (V3)
+
+================================================================================
+
+✅ MAPEAMENTO COMPLETO - FIM DO DOCUMENTO
+
+Todos os 150+ ficheiros estão catalogados e organizados.
+
+Data: 7 de Junho de 2026
+Versão: COMAES 3.2
+
+USE Ctrl+F para procurar rapidamente!
+
+================================================================================

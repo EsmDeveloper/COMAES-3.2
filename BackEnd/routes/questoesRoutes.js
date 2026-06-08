@@ -1,67 +1,57 @@
 /**
  * questoesRoutes.js
- * Rotas especializadas para gerenciar questões
+ * Rotas para gerenciar questões usando modelo único Questao.js
  * 
  * Endpoints:
- * POST   /api/questoes/:modalidade              - Criar questão
- * GET    /api/questoes/:modalidade/:id          - Obter questão
- * PUT    /api/questoes/:modalidade/:id          - Atualizar questão
- * DELETE /api/questoes/:modalidade/:id          - Deletar questão
+ * POST   /api/questoes                          - Criar questão
+ * GET    /api/questoes                          - Listar todas as questões
+ * GET    /api/questoes/:id                      - Obter questão
+ * PUT    /api/questoes/:id                      - Atualizar questão
+ * DELETE /api/questoes/:id                      - Deletar questão
  * GET    /api/questoes/torneio/:torneioId       - Listar questões do torneio
- * GET    /api/questoes/torneio/:torneioId/contar - Contar questões
- * POST   /api/questoes/:modalidade/:id/duplicar - Duplicar questão
- * GET    /api/questoes/auditoria/orfas          - Buscar questões órfãs
- * DELETE /api/questoes/auditoria/orfas          - Deletar questões órfãs
- * GET    /api/questoes/auditoria/integridade    - Validar integridade
- * GET    /api/questoes/quiz/:area               - Carregar questões para quiz (NOVO - Fase 3)
+ * GET    /api/questoes/quiz/:area               - Carregar questões para quiz
+ * PATCH  /api/questoes/:id/aprovacao            - Revisar/aprovar questão (admin)
+ * GET    /api/questoes/estatisticas             - Obter estatísticas das questões
  */
 
 import express from 'express';
 import isAdmin from '../middlewares/isAdmin.js';
+import canManageQuestoes from '../middlewares/canManageQuestoes.js';
 import { QuestoesController } from '../controllers/QuestoesController.js';
 
 const router = express.Router();
 
-// ─── ROTAS PROTEGIDAS (ADMIN ONLY) ────────────────────────────────
+// ─── ROTAS PÚBLICAS ──────────────────────────────────────────────
+
+// Carregar questões para quiz (PÚBLICA) — suporta torneio_id opcional
+import { carregarQuizComBlocos } from '../controllers/BlocosController.js';
+router.get('/quiz/:area', carregarQuizComBlocos);
+
+// ─── ROTAS PROTEGIDAS (ADMIN OU COLABORADOR) ─────────────────────
+
+// Listar todas as questões
+router.get('/', canManageQuestoes, QuestoesController.listarTodas);
 
 // Criar questão
-router.post('/:modalidade', isAdmin, QuestoesController.criar);
-
-// Obter questão
-router.get('/:modalidade/:id', isAdmin, QuestoesController.obter);
-
-// Atualizar questão
-router.put('/:modalidade/:id', isAdmin, QuestoesController.atualizar);
-
-// Deletar questão
-router.delete('/:modalidade/:id', isAdmin, QuestoesController.deletar);
-
-// Duplicar questão
-router.post('/:modalidade/:id/duplicar', isAdmin, QuestoesController.duplicar);
-
-// ─── ROTAS DE LISTAGEM ────────────────────────────────────────────
+router.post('/', canManageQuestoes, QuestoesController.criar);
 
 // Listar questões de um torneio
-// GET /api/questoes/torneio/:torneioId?modalidade=matematica&pagina=1&limite=20&busca=&dificuldade=facil
-router.get('/torneio/:torneioId', isAdmin, QuestoesController.listarPorTorneio);
+// GET /api/questoes/torneio/:torneioId?disciplina=matematica&tipo=multipla_escolha&dificuldade=facil&pagina=1&limite=20&busca=
+router.get('/torneio/:torneioId', canManageQuestoes, QuestoesController.listarPorTorneio);
 
-// Contar questões de um torneio
-router.get('/torneio/:torneioId/contar', isAdmin, QuestoesController.contarPorTorneio);
+// Aprovar/rejeitar questoes enviadas por colaboradores (admin only)
+router.patch('/:id/aprovacao', isAdmin, QuestoesController.revisar);
 
-// ─── ROTAS DE AUDITORIA (ADMIN ONLY) ──────────────────────────────
+// Obter estatísticas das questões
+router.get('/estatisticas', canManageQuestoes, QuestoesController.estatisticas);
 
-// Buscar questões órfãs
-router.get('/auditoria/orfas', isAdmin, QuestoesController.buscarOrfas);
+// Obter questão por ID
+router.get('/:id', canManageQuestoes, QuestoesController.obter);
 
-// Deletar questões órfãs
-router.delete('/auditoria/orfas', isAdmin, QuestoesController.deletarOrfas);
+// Atualizar questão
+router.put('/:id', canManageQuestoes, QuestoesController.atualizar);
 
-// Validar integridade
-router.get('/auditoria/integridade', isAdmin, QuestoesController.validarIntegridade);
-
-// ─── ROTA DE QUIZ (PÚBLICA - Fase 3) ──────────────────────────────
-// GET /api/questoes/quiz/:area?limit=10
-// Carrega questões para quiz ordenadas por dificuldade
-router.get('/quiz/:area', QuestoesController.carregarQuiz);
+// Deletar questão
+router.delete('/:id', canManageQuestoes, QuestoesController.deletar);
 
 export default router;
