@@ -68,30 +68,36 @@ const QuestoesTestesTab = () => {
       const token = localStorage.getItem('comaes_token');
       const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
       
-      // Tentar múltiplos endpoints para blocos
-      let response = await fetch(`${apiBase}/api/blocos?status=publicado`, {
+      console.log('🔍 Buscando blocos para testes...');
+      
+      // Tentar endpoint SEM filtro de status primeiro
+      let response = await fetch(`${apiBase}/api/blocos`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      // Se falhar, tentar outro endpoint
       if (!response.ok) {
-        response = await fetch(`${apiBase}/api/blocos`, {
+        console.warn('⚠️ Endpoint /api/blocos falhou, tentando com status=publicado');
+        response = await fetch(`${apiBase}/api/blocos?status=publicado`, {
           headers: { Authorization: `Bearer ${token}` }
         });
+      }
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
       const data = await response.json();
       const blocosData = data.dados || data.data || [];
       
-      console.log('📦 Blocos carregados:', blocosData.length, blocosData.map(b => ({
-        id: b.id,
-        titulo: b.titulo,
-        questoes: b.questoes?.length || 0
-      })));
+      console.log('✅ Blocos encontrados:', blocosData.length);
+      blocosData.forEach(b => {
+        console.log(`  - ${b.titulo} (${b.questoes?.length || 0} questões)`);
+      });
       
       setBlocos(blocosData);
     } catch (error) {
-      console.error('Erro ao buscar blocos:', error);
+      console.error('❌ Erro ao buscar blocos:', error);
+      console.error('📊 Detalhes do erro:', error.message);
       setBlocos([]);
     }
   };

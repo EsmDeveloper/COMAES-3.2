@@ -55,13 +55,37 @@ const QuestoesTorneiosTab = () => {
       const token = localStorage.getItem('comaes_token');
       const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
       
-      const response = await fetch(`${apiBase}/api/blocos?status=publicado`, {
+      console.log('🔍 Buscando blocos para torneios...');
+      
+      // Tentar endpoint SEM filtro de status primeiro
+      let response = await fetch(`${apiBase}/api/blocos`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      if (!response.ok) {
+        console.warn('⚠️ Endpoint /api/blocos falhou, tentando com status=publicado');
+        response = await fetch(`${apiBase}/api/blocos?status=publicado`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const data = await response.json();
-      setBlocos(data.dados || []);
+      const blocosData = data.dados || data.data || [];
+      
+      console.log('✅ Blocos encontrados:', blocosData.length);
+      blocosData.forEach(b => {
+        console.log(`  - ${b.titulo} (${b.questoes?.length || 0} questões)`);
+      });
+      
+      setBlocos(blocosData);
     } catch (error) {
-      console.error('Erro ao buscar blocos:', error);
+      console.error('❌ Erro ao buscar blocos:', error);
+      console.error('📊 Detalhes do erro:', error.message);
+      setBlocos([]);
     }
   };
 
