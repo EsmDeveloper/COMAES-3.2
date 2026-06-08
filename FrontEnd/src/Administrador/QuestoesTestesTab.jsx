@@ -89,10 +89,21 @@ const QuestoesTestesTab = () => {
       const data = await response.json();
       const blocosData = data.dados || data.data || [];
       
+      // Validar que é um array
+      if (!Array.isArray(blocosData)) {
+        console.warn('⚠️ blocosData não é um array:', typeof blocosData, blocosData);
+        setBlocos([]);
+        return;
+      }
+      
       console.log('✅ Blocos encontrados:', blocosData.length);
-      blocosData.forEach(b => {
-        console.log(`  - ${b.titulo} (${b.questoes?.length || 0} questões)`);
-      });
+      if (blocosData.length > 0) {
+        blocosData.forEach(b => {
+          console.log(`  - ${b.titulo} (${b.questoes?.length || 0} questões)`);
+        });
+      } else {
+        console.log('  Nenhum bloco disponível');
+      }
       
       setBlocos(blocosData);
     } catch (error) {
