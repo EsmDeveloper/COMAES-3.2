@@ -209,8 +209,31 @@ const QuestoesTestesTab = () => {
         />
       </div>
 
-      {/* SUB-ABAS UNIFICADAS - Removidos botões duplicados de baixo */}
-      {/* Os botões principais acima já fazem o trabalho dos botões removidos */}
+      {/* SUB-ABAS UNIFICADAS */}
+      <div className="flex gap-3 border-b border-gray-200">
+        <button
+          onClick={() => setAbaAtiva('blocos')}
+          className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${
+            abaAtiva === 'blocos'
+              ? 'text-blue-600 border-blue-600'
+              : 'text-gray-600 border-transparent hover:text-gray-900'
+          }`}
+        >
+          <Package className="w-5 h-5" />
+          Gerenciar Blocos
+        </button>
+        <button
+          onClick={() => setAbaAtiva('individuais')}
+          className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${
+            abaAtiva === 'individuais'
+              ? 'text-blue-600 border-blue-600'
+              : 'text-gray-600 border-transparent hover:text-gray-900'
+          }`}
+        >
+          <BookOpen className="w-5 h-5" />
+          Visualizar Todas
+        </button>
+      </div>
 
       {/* Conteúdo das Abas */}
       <div>
