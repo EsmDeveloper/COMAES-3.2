@@ -44,7 +44,18 @@ const QuestoesTestesTab = () => {
       });
       const data = await response.json();
       // A resposta pode ser { success: true, data: [...] } ou { success: true, dados: [...] }
-      setQuestoesIndividuais(data.data || data.dados || []);
+      const questoes = data.data || data.dados || [];
+      
+      // Log para debug das questões
+      console.log('📌 Questões carregadas:', questoes.map(q => ({
+        id: q.id,
+        enunciado: q.enunciado?.substring(0, 30),
+        autor_nome: q.autor_nome,
+        autor_id: q.autor_id,
+        criado_por: q.criado_por
+      })));
+      
+      setQuestoesIndividuais(questoes);
     } catch (error) {
       console.error('Erro ao buscar questões:', error);
     } finally {
@@ -57,13 +68,31 @@ const QuestoesTestesTab = () => {
       const token = localStorage.getItem('comaes_token');
       const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
       
-      const response = await fetch(`${apiBase}/api/blocos?status=publicado`, {
+      // Tentar múltiplos endpoints para blocos
+      let response = await fetch(`${apiBase}/api/blocos?status=publicado`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      // Se falhar, tentar outro endpoint
+      if (!response.ok) {
+        response = await fetch(`${apiBase}/api/blocos`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+      
       const data = await response.json();
-      setBlocos(data.dados || []);
+      const blocosData = data.dados || data.data || [];
+      
+      console.log('📦 Blocos carregados:', blocosData.length, blocosData.map(b => ({
+        id: b.id,
+        titulo: b.titulo,
+        questoes: b.questoes?.length || 0
+      })));
+      
+      setBlocos(blocosData);
     } catch (error) {
       console.error('Erro ao buscar blocos:', error);
+      setBlocos([]);
     }
   };
 
@@ -98,6 +127,48 @@ const QuestoesTestesTab = () => {
       } else {
         const errorData = await response.json();
         showFeedback('error', `❌ Erro: ${errorData?.mensagem || 'Erro ao agrupar'}`);
+      }
+    } catch (error) {
+      showFeedback('error', `❌ Erro: ${error.message}`);
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  // ✅ Editar Questão
+  const handleEditarQuestao = (questao) => {
+    setQuestaoSelecionada(questao);
+    setModalEditarAberto(true);
+  };
+
+  // ✅ Salvar Edição da Questão
+  const handleSalvarEdicaoQuestao = async (dadosEditados) => {
+    if (!questaoSelecionada) return;
+    
+    setSalvando(true);
+    try {
+      const token = localStorage.getItem('comaes_token');
+      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+      
+      const response = await fetch(`${apiBase}/api/teste-conhecimento/questoes/${questaoSelecionada.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dadosEditados)
+      });
+
+      if (response.ok) {
+        showFeedback('success', `✅ Questão atualizada!`);
+        setModalEditarAberto(false);
+        setQuestaoSelecionada(null);
+        setTimeout(() => {
+          fetchQuestoesIndividuais();
+        }, 1500);
+      } else {
+        const errorData = await response.json();
+        showFeedback('error', `❌ Erro: ${errorData?.mensagem || 'Erro ao editar'}`);
       }
     } catch (error) {
       showFeedback('error', `❌ Erro: ${error.message}`);
@@ -303,11 +374,19 @@ const QuestoesTestesTab = () => {
                             </span>
                           </td>
                           <td className="px-4 py-3 text-sm">
-                            <span className={`px-2 py-1 text-xs font-semibold rounded ${
-                              questao.autor_nome ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
-                            }`}>
-                              {questao.autor_nome ? `👤 ${questao.autor_nome}` : '✍️ Admin'}
-                            </span>
+                            {questao.autor_nome ? (
+                              <span className="px-2 py-1 text-xs font-semibold rounded bg-purple-100 text-purple-700">
+                                👤 {questao.autor_nome}
+                              </span>
+                            ) : questao.criado_por ? (
+                              <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-700">
+                                ✍️ {questao.criado_por}
+                              </span>
+                            ) : (
+                              <span className="px-2 py-1 text-xs font-semibold rounded bg-gray-100 text-gray-700">
+                                ⚙️ Sistema
+                              </span>
+                            )}
                           </td>
                           <td className="px-4 py-3 text-sm">
                             <div className="flex gap-2">
@@ -322,7 +401,7 @@ const QuestoesTestesTab = () => {
                                 <Layers className="w-4 h-4" />
                               </button>
                               <button 
-                                onClick={() => setModalEditarAberto(true)}
+                                onClick={() => handleEditarQuestao(questao)}
                                 className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors" 
                                 title="Editar"
                               >
@@ -397,7 +476,11 @@ const QuestoesTestesTab = () => {
             </p>
 
             {blocos.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4">Nenhum bloco disponível</p>
+              <div className="text-center py-8">
+                <AlertCircle className="w-8 h-8 text-orange-500 mx-auto mb-2" />
+                <p className="text-sm text-gray-600 font-semibold">Nenhum bloco disponível</p>
+                <p className="text-xs text-gray-500 mt-1">Crie um bloco primeiro na aba "Gerenciar Blocos"</p>
+              </div>
             ) : (
               <div className="space-y-2 mb-6 max-h-48 overflow-y-auto">
                 {blocos.map(bloco => (
@@ -409,7 +492,7 @@ const QuestoesTestesTab = () => {
                   >
                     <p className="font-semibold text-gray-900">{bloco.titulo}</p>
                     <p className="text-xs text-gray-500">
-                      {bloco.questoes?.length || 0} questões · {bloco.categoria?.toUpperCase()}
+                      {bloco.questoes?.length || 0} questões · {bloco.categoria?.toUpperCase() || 'Sem categoria'}
                     </p>
                   </button>
                 ))}
@@ -425,6 +508,105 @@ const QuestoesTestesTab = () => {
             >
               Cancelar
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Editar Questão */}
+      {modalEditarAberto && questaoSelecionada && (
+        <div className="fixed inset-0 top-0 left-0 w-full h-screen bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full my-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <Edit2 className="w-5 h-5 text-blue-600" />
+                Editar Questão
+              </h2>
+              <button
+                onClick={() => {
+                  setModalEditarAberto(false);
+                  setQuestaoSelecionada(null);
+                }}
+                className="p-1 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-6 h-6 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Enunciado */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Enunciado</label>
+                <textarea
+                  defaultValue={questaoSelecionada.enunciado}
+                  onChange={(e) => {
+                    questaoSelecionada.enunciado = e.target.value;
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={4}
+                />
+              </div>
+
+              {/* Categoria */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Categoria</label>
+                <select
+                  defaultValue={questaoSelecionada.categoria}
+                  onChange={(e) => {
+                    questaoSelecionada.categoria = e.target.value;
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option>MATEMATICA</option>
+                  <option>PORTUGUES</option>
+                  <option>HISTORIA</option>
+                  <option>GEOGRAFIA</option>
+                  <option>CIENCIAS</option>
+                  <option>INGLES</option>
+                </select>
+              </div>
+
+              {/* Dificuldade */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Dificuldade</label>
+                <select
+                  defaultValue={questaoSelecionada.dificuldade}
+                  onChange={(e) => {
+                    questaoSelecionada.dificuldade = e.target.value;
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="facil">Fácil</option>
+                  <option value="medio">Médio</option>
+                  <option value="dificil">Difícil</option>
+                </select>
+              </div>
+
+              {/* Botões */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => {
+                    setModalEditarAberto(false);
+                    setQuestaoSelecionada(null);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => {
+                    handleSalvarEdicaoQuestao({
+                      enunciado: questaoSelecionada.enunciado,
+                      categoria: questaoSelecionada.categoria,
+                      dificuldade: questaoSelecionada.dificuldade
+                    });
+                  }}
+                  disabled={salvando}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {salvando ? 'Salvando...' : 'Salvar'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
