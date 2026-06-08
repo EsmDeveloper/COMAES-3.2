@@ -59,6 +59,7 @@ import { missoesRouter, dashboardGamificacaoRouter } from './routes/missoesRoute
 import rankingRoutes from './routes/rankingRoutes.js';
 import { sendResetEmail, sendWelcomeEmail } from './services/emailService.js';
 import { setIO } from './services/socketService.js';
+import { setupEncerramentoScheduler } from './jobs/verificarEncerramentosScheduler.js';
 import auth from './middlewares/auth.js';
 import isAdmin from './middlewares/isAdmin.js';
 import isNotColaborador from './middlewares/isNotColaborador.js';
@@ -2392,6 +2393,14 @@ async function startServer() {
       console.log('✅ Hooks automáticos de ranking configurados');
     } catch (error) {
       console.warn('⚠️ Não foi possível configurar hooks de ranking:', error.message);
+    }
+
+    // Iniciar scheduler de encerramentos de torneios
+    try {
+      setupEncerramentoScheduler();
+      console.log('✅ Scheduler de encerramentos de torneios iniciado');
+    } catch (error) {
+      console.warn('⚠️ Não foi possível iniciar scheduler de encerramentos:', error.message);
     }
 
     server.listen(port, '0.0.0.0', () => {

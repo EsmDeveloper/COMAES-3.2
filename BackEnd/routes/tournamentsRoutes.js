@@ -2,6 +2,8 @@ import express from 'express';
 import Torneio from '../models/Torneio.js';
 import ParticipanteTorneio from '../models/ParticipanteTorneio.js';
 import Usuario from '../models/User.js';
+import TorneoController from '../controllers/TorneioController.js';
+import CertificateController from '../controllers/CertificateController.js';
 
 const router = express.Router();
 
@@ -138,5 +140,52 @@ router.get('/:tournamentId/ranking/:disciplina', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
+// ✨ ─────────────────────────────────────────────────────────────────────────
+// ✨ SISTEMA DE TORNEIOS - NOVOS ENDPOINTS
+// ✨ ─────────────────────────────────────────────────────────────────────────
+
+// ✨ 1. Verificar participação ativa do usuário
+router.get('/usuario/:usuario_id/participacao-ativa', TorneoController.verificarParticipacaoAtiva);
+
+// ✨ 2. Verificar torneios ativos (máximo 1)
+router.get('/admin/torneios-ativos', TorneoController.verificarTorneiosAtivos);
+
+// ✨ 3. Ativar torneio
+router.post('/:id/ativar', TorneoController.ativarTorneio);
+
+// ✨ 4. Verificar encerramentos automáticos (SCHEDULER)
+router.post('/admin/verificar-encerramentos', TorneoController.verificarEncerramentos);
+
+// ✨ 5. Finalizar torneio com geração de certificados
+router.post('/:id/finalizar', TorneoController.finalizarTorneio);
+
+// ✨ 6. Obter ranking persistido (não recalcula)
+router.get('/:id/ranking-persistido', TorneoController.obterRanking);
+
+// ✨ ─────────────────────────────────────────────────────────────────────────
+// ✨ CERTIFICADOS - NOVOS ENDPOINTS
+// ✨ ─────────────────────────────────────────────────────────────────────────
+
+// ✨ 1. Gerar certificados automáticos para um torneio
+router.post('/certificados/gerar-automaticos', CertificateController.gerarAutomaticosParaTorneio);
+
+// ✨ 2. Listar certificados de um torneio
+router.get('/certificados/torneio/:torneio_id', CertificateController.listarPorTorneio);
+
+// ✨ 3. Validar certificado por código
+router.get('/certificados/validar/:codigo', CertificateController.validarCertificado);
+
+// ✨ 4. Contar certificados automáticos
+router.get('/certificados/contar-automaticos/:torneio_id', CertificateController.contarAutomaticos);
+
+// ✨ 5. Obter certificados de um usuário
+router.get('/certificados/usuario/:usuario_id', CertificateController.obterPorUsuario);
+
+// ✨ 6. Validar certificado (admin)
+router.put('/certificados/:id/validar', CertificateController.validarCertificadoAdmin);
+
+// ✨ 7. Cancelar certificado
+router.put('/certificados/:id/cancelar', CertificateController.cancelarCertificado);
 
 export default router;

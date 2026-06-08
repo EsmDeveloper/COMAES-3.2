@@ -459,6 +459,351 @@ export const TorneoController = {
             
             res.status(500).json({ message: 'Erro ao deletar torneio', error: error.message });
         }
+    },
+
+    // ✨ NEW: SISTEMA DE TORNEIOS - MÉTODOS ADICIONADOS
+
+    // 1. Verificar participação ativa do usuário
+    verificarParticipacaoAtiva: async (req, res) => {
+        try {
+            const { usuario_id } = req.query;
+            
+            if (!usuario_id) {
+                return res.status(400).json({ message: 'usuario_id é obrigatório' });
+            }
+
+            // Buscar participação ativa (torneio não congelado)
+            const participacaoAtiva = await ParticipanteTorneio.findOne({
+                where: {
+                    usuario_id,
+                    status: 'confirmado',
+                    posicao_congelada: false
+                },
+                include: [
+                    {
+                        model: Torneio,
+                        attributes: ['id', 'titulo', 'status', 'termina_em', 'tipo_torneio']
+                    }
+                ]
+            });
+
+            if (participacaoAtiva) {
+                return res.status(200).json({
+                    ativo: true,
+                    torneio: participacaoAtiva.Torneio,
+                    disciplina: participacaoAtiva.disciplina_competida,
+                    mensagem: `Usuário já está participando do torneio "${participacaoAtiva.Torneio.titulo}"`
+                });
+            }
+
+            res.status(200).json({
+                ativo: false,
+                mensagem: 'Usuário não tem participação ativa'
+            });
+        } catch (error) {
+            console.error('Erro ao verificar participação ativa:', error);
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+    // 2. Verificar torneios ativos (máximo 1)
+    verificarTorneiosAtivos: async (req, res) => {
+        try {
+            const torneiosAtivos = await Torneio.findAll({
+                where: { status: 'ativo' },
+                attributes: ['id', 'titulo', 'tipo_torneio', 'inicia_em', 'termina_em']
+            });
+
+            res.status(200).json({
+                quantidade: torneiosAtivos.length,
+                podeAtivarNovo: torneiosAtivos.length === 0,
+                torneiosAtivos,
+                mensagem: torneiosAtivos.length > 0 
+                    ? `Já existe ${torneiosAtivos.length} torneio(s) ativo(s). Máximo permitido: 1`
+                    : 'Nenhum torneio ativo. Pode ativar um novo.'
+            });
+        } catch (error) {
+            console.error('Erro ao verificar torneios ativos:', error);
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+    // 3. Ativar torneio (com validação de máximo 1 ativo)
+    ativarTorneio: async (req, res) => {
+        const transaction = await sequelize.transaction();
+        
+        try {
+            const { id } = req.params;
+
+            // Buscar torneio
+            const torneio = await Torneio.findByPk(id, { transaction });
+            if (!torneio) {
+                await transaction.rollback();
+                return res.status(404).json({ message: 'Torneio não encontrado' });
+            }
+
+            // Verificar se já está ativo
+            if (torneio.status === 'ativo') {
+                await transaction.rollback();
+                return res.status(400).json({ message: 'Este torneio já está ativo' });
+            }
+
+            // Verificar se existe outro torneio ativo
+            const outroAtivo = await Torneio.findOne({
+                where: { 
+                    status: 'ativo',
+                    id: { [sequelize.Sequelize.Op.ne]: id }
+                },
+                transaction
+            });
+
+            if (outroAtivo) {
+                await transaction.rollback();
+                return res.status(400).json({
+                    message: `Já existe um torneio ativo: "${outroAtivo.titulo}". Máximo permitido: 1`,
+                    torneioAtivo: outroAtivo
+                });
+            }
+
+            // Ativar o torneio
+            await torneio.update({ status: 'ativo' }, { transaction });
+
+            // Recalcular rankings existentes
+            const disciplinas = ['Matemática', 'Inglês', 'Programação'];
+            for (const disciplina of disciplinas) {
+                try {
+                    await ParticipanteTorneio.calcularRanking(id, disciplina);
+                } catch (e) {
+                    console.log(`ℹ️  Nenhum participante em ${disciplina}`);
+                }
+            }
+
+            await transaction.commit();
+
+            res.status(200).json({
+                message: 'Torneio ativado com sucesso!',
+                torneio: formatTorneioForFrontend(torneio),
+                status: 'ativo'
+            });
+        } catch (error) {
+            await transaction.rollback();
+            console.error('Erro ao ativar torneio:', error);
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+    // 4. Verificar e processar encerramentos automáticos (SCHEDULER)
+    verificarEncerramentos: async (req, res) => {
+        const transaction = await sequelize.transaction();
+        
+        try {
+            const agora = new Date();
+
+            // Buscar torneios que atingiram a data de término
+            const torneiosEncerrados = await Torneio.findAll({
+                where: {
+                    status: 'ativo',
+                    termina_em: {
+                        [sequelize.Sequelize.Op.lte]: agora
+                    }
+                },
+                transaction
+            });
+
+            if (torneiosEncerrados.length === 0) {
+                await transaction.rollback();
+                return res.status(200).json({
+                    mensagem: 'Nenhum torneio para encerrar',
+                    quantidade: 0
+                });
+            }
+
+            const resultados = [];
+
+            for (const torneio of torneiosEncerrados) {
+                // Marcar todos os participantes como encerrados operacionalmente
+                const [atualizado] = await ParticipanteTorneio.update(
+                    {
+                        encerrado_operacionalmente: true,
+                        data_encerramento_operacional: agora
+                    },
+                    {
+                        where: {
+                            torneio_id: torneio.id,
+                            status: 'confirmado',
+                            posicao_congelada: false
+                        },
+                        transaction
+                    }
+                );
+
+                resultados.push({
+                    torneio_id: torneio.id,
+                    titulo: torneio.titulo,
+                    participantes_encerrados: atualizado,
+                    status: 'encerrado_operacionalmente'
+                });
+
+                console.log(`✅ Torneio ${torneio.titulo} encerrado para ${atualizado} participantes`);
+            }
+
+            await transaction.commit();
+
+            res.status(200).json({
+                mensagem: `${torneiosEncerrados.length} torneio(s) encerrado(s) operacionalmente`,
+                quantidade: torneiosEncerrados.length,
+                resultados
+            });
+        } catch (error) {
+            await transaction.rollback();
+            console.error('Erro ao verificar encerramentos:', error);
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+    // 5. Obter ranking persistido de um torneio
+    obterRanking: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { disciplina } = req.query;
+
+            if (!disciplina) {
+                return res.status(400).json({ message: 'disciplina é obrigatório' });
+            }
+
+            // Buscar torneio
+            const torneio = await Torneio.findByPk(id);
+            if (!torneio) {
+                return res.status(404).json({ message: 'Torneio não encontrado' });
+            }
+
+            // Obter ranking persistido
+            const ranking = await ParticipanteTorneio.obterRankingPersistido(id, disciplina);
+
+            // Enriquecer com dados de usuário
+            const rankingComUsuarios = await Promise.all(ranking.map(async (p) => {
+                const usuario = await Usuario.findByPk(p.usuario_id, {
+                    attributes: ['id', 'nome', 'imagem', 'email']
+                });
+                return {
+                    posicao: p.posicao,
+                    usuario: usuario,
+                    pontuacao: p.pontuacao,
+                    casos_resolvidos: p.casos_resolvidos,
+                    tempo_total: p.tempo_total,
+                    precision: p.precisao,
+                    nivel: p.nivel_atual,
+                    encerrado: p.encerrado_operacionalmente,
+                    elegivel_certificado: p.elegivel_certificado
+                };
+            }));
+
+            res.status(200).json({
+                torneio: {
+                    id: torneio.id,
+                    titulo: torneio.titulo,
+                    tipo: torneio.tipo_torneio,
+                    disciplina
+                },
+                total_participantes: rankingComUsuarios.length,
+                ranking: rankingComUsuarios
+            });
+        } catch (error) {
+            console.error('Erro ao obter ranking:', error);
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+    // 6. Finalizar torneio (admin - com geração de certificados)
+    finalizarTorneio: async (req, res) => {
+        const transaction = await sequelize.transaction();
+        
+        try {
+            const { id } = req.params;
+            const Certificate = (await import('../models/Certificate.js')).default;
+
+            // Buscar torneio
+            const torneio = await Torneio.findByPk(id, { transaction });
+            if (!torneio) {
+                await transaction.rollback();
+                return res.status(404).json({ message: 'Torneio não encontrado' });
+            }
+
+            if (torneio.status === 'finalizado') {
+                await transaction.rollback();
+                return res.status(400).json({ message: 'Este torneio já foi finalizado' });
+            }
+
+            // Buscar todas as disciplinas com participantes
+            const disciplinas = ['Matemática', 'Inglês', 'Programação'];
+            const resultados = [];
+
+            for (const disciplina of disciplinas) {
+                // 1. Congelar ranking
+                const resultCongelamento = await ParticipanteTorneio.congelarRanking(id, disciplina);
+                
+                if (resultCongelamento.sucesso) {
+                    // 2. Obter top 3
+                    const top3 = await ParticipanteTorneio.obterRankingPersistido(id, disciplina);
+                    top3.slice(0, 3); // Apenas top 3
+
+                    const certificadosGerados = [];
+
+                    for (const participante of top3.slice(0, 3)) {
+                        try {
+                            const cert = await Certificate.gerarAutomaticamente(
+                                participante.usuario_id,
+                                id,
+                                participante.posicao,
+                                parseFloat(participante.pontuacao),
+                                disciplina
+                            );
+
+                            // Marcar como elegível para certificado
+                            await ParticipanteTorneio.update(
+                                { elegivel_certificado: true },
+                                {
+                                    where: { id: participante.id },
+                                    transaction
+                                }
+                            );
+
+                            certificadosGerados.push({
+                                usuario_id: participante.usuario_id,
+                                posicao: participante.posicao,
+                                medalha: cert.tipo_medalha
+                            });
+                        } catch (e) {
+                            console.error(`⚠️ Erro ao gerar certificado para participante ${participante.usuario_id}:`, e.message);
+                        }
+                    }
+
+                    resultados.push({
+                        disciplina,
+                        participantes_congelados: resultCongelamento.totalCongelados,
+                        certificados_gerados: certificadosGerados.length,
+                        certificados: certificadosGerados
+                    });
+                }
+            }
+
+            // 3. Marcar torneio como finalizado
+            await torneio.update({ status: 'finalizado' }, { transaction });
+
+            await transaction.commit();
+
+            res.status(200).json({
+                message: 'Torneio finalizado com sucesso!',
+                torneio_id: id,
+                torneio_titulo: torneio.titulo,
+                status: 'finalizado',
+                resultados
+            });
+        } catch (error) {
+            await transaction.rollback();
+            console.error('Erro ao finalizar torneio:', error);
+            res.status(500).json({ message: error.message });
+        }
     }
 };
 
