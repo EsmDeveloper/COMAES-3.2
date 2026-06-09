@@ -364,14 +364,48 @@ export const listarBlocosDoTorneio = async (req, res) => {
 
     const blocos = await Promise.all(
       associacoes.map(async (assoc) => {
-        const totalQuestoes = await BlocoQuestaoItem.count({
+        // ✅ NOVO: Carregar questões do bloco
+        const items = await BlocoQuestaoItem.findAll({
           where: { bloco_id: assoc.bloco_id },
+          include: [{
+            model: QuestaoTesteConhecimento,
+            as: 'questao',
+            attributes: ['id', 'enunciado', 'opcoes', 'resposta_correta', 'dificuldade', 'categoria', 'pontos', 'ativo'],
+          }],
+          order: [['ordem', 'ASC']],
         });
+
+        // ✅ Normalizar questões
+        const questoes = items.map(item => {
+          const questaoData = item.questao.toJSON();
+          
+          // Normalizar opcoes
+          if (questaoData.opcoes) {
+            if (typeof questaoData.opcoes === 'string') {
+              try {
+                questaoData.opcoes = JSON.parse(questaoData.opcoes);
+              } catch (e) {
+                questaoData.opcoes = [];
+              }
+            }
+            if (!Array.isArray(questaoData.opcoes)) {
+              questaoData.opcoes = [];
+            }
+          }
+
+          return {
+            item_id: item.id,
+            ordem: item.ordem,
+            ...questaoData,
+          };
+        });
+
         return {
           associacao_id: assoc.id,
           ordem: assoc.ordem,
           ...assoc.bloco.toJSON(),
-          total_questoes: totalQuestoes,
+          total_questoes: questoes.length,
+          questoes, // ✅ NOVO: Incluir questões
         };
       })
     );

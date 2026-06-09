@@ -235,6 +235,14 @@ function BlocoCard({
   const [questoesDoBloco, setQuestoesDoBloco] = useState([]);
   const [carregandoQuestoes, setCarregandoQuestoes] = useState(false);
 
+  // ✅ NOVO: Se o bloco já vem com questões do backend, carregar automaticamente
+  useEffect(() => {
+    if (bloco?.questoes && Array.isArray(bloco.questoes) && bloco.questoes.length > 0 && questoesDoBloco.length === 0) {
+      console.log(`📦 Questões já carregadas no bloco ${bloco.id}:`, bloco.questoes);
+      setQuestoesDoBloco(bloco.questoes);
+    }
+  }, [bloco?.id, bloco?.questoes, questoesDoBloco.length]);
+
   const disc = DISCIPLINAS.find(d => d.id === bloco.disciplina);
   const dif = DIFICULDADES.find(d => d.id === bloco.dificuldade);
   const corDisc = COR_DISCIPLINA[disc?.cor || 'blue'];
@@ -246,33 +254,36 @@ function BlocoCard({
   // ✅ Carregar questões quando expandir o bloco
   const handleToggleExpand = async () => {
     if (!expandido && questoesDoBloco.length === 0 && bloco.total_questoes > 0) {
-      // Carregar questões do backend
-      setCarregandoQuestoes(true);
-      try {
-        const response = await fetch(`${apiBase}/api/blocos/${bloco.id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          console.log(`📡 Resposta bruta da API para bloco ${bloco.id}:`, data);
-          
-          // ✅ SUPORTAR MÚLTIPLOS FORMATOS:
-          // Formato 1: { success, message, data: { ...bloco, questoes: [...] } }
-          // Formato 2: { success, message, data: { questoes: [...] } }
-          // Formato 3: Diretamente com questoes no raiz
-          const questoesCarregadas = 
-            data.data?.questoes ||           // Bloco como objeto com questões
-            data.questoes ||                  // Questões no raiz
-            data.dados?.questoes ||           // Formato alternativo
-            [];
-          
-          console.log(`✅ Questões do bloco ${bloco.id} (${questoesCarregadas.length} encontradas):`, questoesCarregadas);
-          setQuestoesDoBloco(questoesCarregadas);
+      // ✅ Se já vêm do bloco (novo formato), não precisa refazer a requisição
+      if (bloco?.questoes && Array.isArray(bloco.questoes)) {
+        console.log(`✅ Questões já estão no bloco ${bloco.id}, usando do estado`);
+        setQuestoesDoBloco(bloco.questoes);
+      } else {
+        // Fallback: carregar questões do backend (compatibilidade com blocos antigos)
+        setCarregandoQuestoes(true);
+        try {
+          const response = await fetch(`${apiBase}/api/blocos/${bloco.id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            console.log(`📡 Resposta bruta da API para bloco ${bloco.id}:`, data);
+            
+            // ✅ SUPORTAR MÚLTIPLOS FORMATOS:
+            const questoesCarregadas = 
+              data.data?.questoes ||           
+              data.questoes ||                  
+              data.dados?.questoes ||           
+              [];
+            
+            console.log(`✅ Questões do bloco ${bloco.id} (${questoesCarregadas.length} encontradas):`, questoesCarregadas);
+            setQuestoesDoBloco(questoesCarregadas);
+          }
+        } catch (error) {
+          console.error(`❌ Erro ao carregar questões do bloco:`, error);
+        } finally {
+          setCarregandoQuestoes(false);
         }
-      } catch (error) {
-        console.error(`❌ Erro ao carregar questões do bloco:`, error);
-      } finally {
-        setCarregandoQuestoes(false);
       }
     }
     setExpandido(!expandido);
