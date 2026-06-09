@@ -227,18 +227,45 @@ function BlocoCard({
   onDeleteBloco,
   onToggleAssoc,
   contexto,
+  token,
+  apiBase,
 }) {
   const [expandido, setExpandido] = useState(false);
   const [showAssoc, setShowAssoc] = useState(false);
+  const [questoesDoBloco, setQuestoesDoBloco] = useState([]);
+  const [carregandoQuestoes, setCarregandoQuestoes] = useState(false);
 
   const disc = DISCIPLINAS.find(d => d.id === bloco.disciplina);
   const dif = DIFICULDADES.find(d => d.id === bloco.dificuldade);
   const corDisc = COR_DISCIPLINA[disc?.cor || 'blue'];
   const corDif = COR_DIFICULDADE[dif?.cor || 'green'];
 
-  const questoesDoBloco = questoes.filter(q => bloco.questaoIds?.includes(q.id) || bloco.questoes?.some(bq => bq.id === q.id));
   const count = bloco.total_questoes ?? questoesDoBloco.length;
   const cheio = count >= MAX_QUESTOES_POR_BLOCO;
+
+  // ✅ Carregar questões quando expandir o bloco
+  const handleToggleExpand = async () => {
+    if (!expandido && questoesDoBloco.length === 0 && bloco.total_questoes > 0) {
+      // Carregar questões do backend
+      setCarregandoQuestoes(true);
+      try {
+        const response = await fetch(`${apiBase}/api/blocos/${bloco.id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const questoesCarregadas = data.data?.questoes || [];
+          console.log(`✅ Questões do bloco ${bloco.id}:`, questoesCarregadas);
+          setQuestoesDoBloco(questoesCarregadas);
+        }
+      } catch (error) {
+        console.error(`❌ Erro ao carregar questões do bloco:`, error);
+      } finally {
+        setCarregandoQuestoes(false);
+      }
+    }
+    setExpandido(!expandido);
+  };
 
   const torneiosAssociados = (assocMap[bloco.id] || [])
     .map(tid => torneios.find(t => String(t.id) === String(tid)))
@@ -310,11 +337,18 @@ function BlocoCard({
               </button>
             )}
             <button
-              onClick={() => setExpandido(v => !v)}
-              className="p-1.5 rounded-lg text-slate-500 hover:bg-white transition-colors"
+              onClick={handleToggleExpand}
+              disabled={carregandoQuestoes}
+              className="p-1.5 rounded-lg text-slate-500 hover:bg-white transition-colors disabled:opacity-50"
               title={expandido ? 'Recolher' : 'Expandir'}
             >
-              {expandido ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              {carregandoQuestoes ? (
+                <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-700 rounded-full animate-spin" />
+              ) : expandido ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
             </button>
           </div>
         </div>
@@ -369,7 +403,12 @@ function BlocoCard({
       {/* Lista de questões expandida */}
       {expandido && (
         <div className="border-t border-white/50 bg-white/80">
-          {questoesDoBloco.length === 0 ? (
+          {carregandoQuestoes ? (
+            <div className="px-4 py-6 text-center">
+              <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-500 border-t-blue-700 mx-auto mb-2" />
+              <p className="text-sm text-slate-500">Carregando questões...</p>
+            </div>
+          ) : questoesDoBloco.length === 0 ? (
             <div className="px-4 py-6 text-center">
               <p className="text-sm text-slate-400">Nenhuma questão neste bloco.</p>
               {!cheio && (
@@ -384,7 +423,7 @@ function BlocoCard({
           ) : (
             <div className="divide-y divide-slate-100">
               {questoesDoBloco.map((q, i) => (
-                <div key={q.id} className="px-4 py-2.5 flex items-center gap-3 hover:bg-white/60 transition-colors">
+                <div key={q.id || i} className="px-4 py-2.5 flex items-center gap-3 hover:bg-white/60 transition-colors">
                   <span className="text-xs font-bold text-slate-400 w-5 text-right flex-shrink-0">{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-slate-700 truncate font-medium">
@@ -951,6 +990,8 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
                         torneios={state.torneios}
                         assocMap={state.assocMap}
                         contexto={contexto}
+                        token={token}
+                        apiBase={apiBase}
                         onAddQuestao={(b) => { setBlocoAlvo(b); setShowCreateQuestao(true); }}
                         onEditQuestao={(q) => { setQuestaoEditando(q); setShowEditQuestao(true); }}
                         onRemoverQuestao={(q, b) => { setRemoverTarget({ questao: q, bloco: b }); setShowRemoverQuestao(true); }}
