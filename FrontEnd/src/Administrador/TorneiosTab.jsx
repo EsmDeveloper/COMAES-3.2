@@ -135,6 +135,25 @@ export default function TorneiosTab() {
       try {
         console.log('[TorneiosTab] Salvando torneio:', { mode: modalForm.mode, payload });
 
+        // Validar: se tentando ativar um torneio, verificar se já existe outro ativo
+        if (payload.status === 'ativo' && modalForm.mode === 'create') {
+          const torneioAtivoExistente = torneios.some(t => t.status === 'ativo');
+          if (torneioAtivoExistente) {
+            showToast('❌ Já existe um torneio ativo! Finalize-o antes de criar outro.', 'error');
+            setIsProcessing(false);
+            return;
+          }
+        }
+
+        if (modalForm.mode === 'edit' && payload.status === 'ativo') {
+          const outroTorneioAtivo = torneios.some(t => t.id !== modalForm.data.id && t.status === 'ativo');
+          if (outroTorneioAtivo) {
+            showToast('❌ Já existe outro torneio ativo! Finalize-o antes de ativar este.', 'error');
+            setIsProcessing(false);
+            return;
+          }
+        }
+
         if (modalForm.mode === 'create') {
           // Adicionar criador
           payload.criado_por = user?.id;
@@ -197,7 +216,7 @@ export default function TorneiosTab() {
         setIsProcessing(false);
       }
     },
-    [modalForm.mode, modalForm.data, token, user, handleCloseForm, fetchTorneios, showToast]
+    [modalForm.mode, modalForm.data, token, user, handleCloseForm, fetchTorneios, showToast, torneios]
   );
 
   // ============================================
@@ -335,6 +354,7 @@ export default function TorneiosTab() {
           <thead className="bg-gray-50/50 border-b border-gray-100">
             <tr>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Torneio</th>
+              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Tipo</th>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Período</th>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Status</th>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase text-right">Ações</th>
@@ -359,6 +379,9 @@ export default function TorneiosTab() {
             ) : (
               filteredTorneios.map(t => {
                 const statusConfig = STATUS_CONFIG[t.status] || STATUS_CONFIG.rascunho;
+                const tipoLabel = t.tipo_torneio === 'especifico' 
+                  ? `🎯 Específico (${t.disciplina_especifica})`
+                  : '🌍 Genérico';
                 return (
                   <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4">
@@ -367,6 +390,15 @@ export default function TorneiosTab() {
                         <Clock size={12} />
                         Criado em {formatDate(t.criado_em)}
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${
+                        t.tipo_torneio === 'especifico'
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-purple-100 text-purple-700'
+                      }`}>
+                        {tipoLabel}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-600">

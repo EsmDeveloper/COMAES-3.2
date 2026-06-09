@@ -26,6 +26,16 @@ import BlocosService from '../services/BlocosService';
 import { useAuth } from '../../context/AuthContext';
 
 // ============================================
+// CONSTANTES
+// ============================================
+
+const DISCIPLINAS_DISPONIVEIS = [
+  { value: 'Matemática', label: '📐 Matemática' },
+  { value: 'Programação', label: '💻 Programação' },
+  { value: 'Inglês', label: '🌐 Inglês' },
+];
+
+// ============================================
 // CONFIGURAÇÃO DE STATUS
 // ============================================
 
@@ -84,6 +94,8 @@ export default function TournamentForm({
     status: 'rascunho',
     público: true,
     slug: '',
+    tipo_torneio: 'generico',
+    disciplina_especifica: '',
   });
 
   // Estado de erros e campos tocados
@@ -191,6 +203,8 @@ export default function TournamentForm({
         status: originalStatus,
         público: initialData.público !== false,
         slug: initialData.slug || '',
+        tipo_torneio: initialData.tipo_torneio || 'generico',
+        disciplina_especifica: initialData.disciplina_especifica || '',
       });
     } else if (mode === 'create') {
       // Reset para criação
@@ -202,6 +216,8 @@ export default function TournamentForm({
         status: 'rascunho',
         público: true,
         slug: '',
+        tipo_torneio: 'generico',
+        disciplina_especifica: '',
       });
     }
     setErrors({});
@@ -247,7 +263,18 @@ export default function TournamentForm({
       inicia_em: true,
       termina_em: true,
       status: true,
+      tipo_torneio: true,
+      disciplina_especifica: true,
     });
+
+    // Validação adicional para tipo_torneio
+    if (formData.tipo_torneio === 'especifico' && !formData.disciplina_especifica) {
+      setErrors(prev => ({
+        ...prev,
+        disciplina_especifica: 'Disciplina é obrigatória para torneios específicos'
+      }));
+      return;
+    }
 
     // Validar formulário completo
     const validationErrors = TournamentValidation.validate(formData, mode, minDateTime);
@@ -266,6 +293,8 @@ export default function TournamentForm({
       status: formData.status,
       público: formData.público,
       slug: formData.slug || TournamentValidation.generateSlug(formData.titulo),
+      tipo_torneio: formData.tipo_torneio,
+      disciplina_especifica: formData.tipo_torneio === 'especifico' ? formData.disciplina_especifica : null,
       // Blocos selecionados (apenas em modo criação — edição persiste em tempo real)
       _blocosParaAssociar: mode === 'create' ? blocosAssociados : [],
     };
@@ -551,6 +580,82 @@ export default function TournamentForm({
             </div>
           )}
 
+          {/* ── TIPO DE TORNEIO ────────────────────────────────────────────────── */}
+          <div className="pt-2 space-y-2">
+            <label className="block text-sm font-semibold text-gray-700">
+              Tipo de Torneio <span className="text-rose-500">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { value: 'generico', label: '🌍 Genérico', desc: 'Multidisciplinar' },
+                { value: 'especifico', label: '🎯 Específico', desc: 'Uma disciplina' },
+              ].map((option) => (
+                <label
+                  key={option.value}
+                  className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                    formData.tipo_torneio === option.value
+                      ? 'border-blue-300 bg-blue-50 ring-2 ring-blue-200'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  } ${isLoading || isReadOnly ? 'opacity-60 cursor-not-allowed' : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name="tipo_torneio"
+                    value={option.value}
+                    checked={formData.tipo_torneio === option.value}
+                    onChange={(e) => {
+                      handleFieldChange('tipo_torneio', e.target.value);
+                      // Reset disciplina ao trocar tipo
+                      if (e.target.value === 'generico') {
+                        handleFieldChange('disciplina_especifica', '');
+                      }
+                    }}
+                    disabled={isLoading || isReadOnly}
+                    className="w-4 h-4"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-800">{option.label}</p>
+                    <p className="text-xs text-gray-400">{option.desc}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* ── DISCIPLINA ESPECÍFICA (Apenas se específico) ────────────────────── */}
+          {formData.tipo_torneio === 'especifico' && (
+            <div className="space-y-1.5 animate-fade-in">
+              <label className="block text-sm font-semibold text-gray-700">
+                Disciplina <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative group">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                  📚
+                </div>
+                <select
+                  value={formData.disciplina_especifica}
+                  onChange={(e) => handleFieldChange('disciplina_especifica', e.target.value)}
+                  disabled={isLoading || isReadOnly}
+                  className="w-full pl-10 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl outline-none transition-all duration-200 cursor-pointer
+                    focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:opacity-60 disabled:cursor-not-allowed hover:border-gray-300"
+                >
+                  <option value="">Selecione uma disciplina...</option>
+                  {DISCIPLINAS_DISPONIVEIS.map((disciplina) => (
+                    <option key={disciplina.value} value={disciplina.value}>
+                      {disciplina.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {!formData.disciplina_especifica && formData.tipo_torneio === 'especifico' && (
+                <p className="text-xs text-rose-600 flex items-center gap-1">
+                  <AlertCircle size={12} />
+                  Selecione uma disciplina para torneios específicos
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Descrição */}
           {renderInputField({
             label: 'Descrição',
@@ -726,6 +831,8 @@ TournamentForm.propTypes = {
     status: PropTypes.string,
     público: PropTypes.bool,
     slug: PropTypes.string,
+    tipo_torneio: PropTypes.oneOf(['generico', 'especifico']),
+    disciplina_especifica: PropTypes.string,
   }),
   onSubmit: PropTypes.func,
   onCancel: PropTypes.func,
