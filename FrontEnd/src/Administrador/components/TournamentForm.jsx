@@ -20,6 +20,10 @@ import {
   Info,
   Lock,
   Layers,
+  Zap,
+  BookOpen,
+  Code2,
+  Languages,
 } from 'lucide-react';
 import { TournamentValidation } from '../utils/TournamentValidation';
 import BlocosService from '../services/BlocosService';
@@ -30,9 +34,9 @@ import { useAuth } from '../../context/AuthContext';
 // ============================================
 
 const DISCIPLINAS_DISPONIVEIS = [
-  { value: 'Matemática', label: '📐 Matemática' },
-  { value: 'Programação', label: '💻 Programação' },
-  { value: 'Inglês', label: '🌐 Inglês' },
+  { value: 'Matemática', label: 'Matemática', icon: 'Zap' },
+  { value: 'Programação', label: 'Programação', icon: 'Code2' },
+  { value: 'Inglês', label: 'Inglês', icon: 'Languages' },
 ];
 
 // ============================================
@@ -40,34 +44,34 @@ const DISCIPLINAS_DISPONIVEIS = [
 // ============================================
 
 const STATUS_CONFIG = {
-  rascunho: { label: 'Rascunho', emoji: '📝', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
-  ativo: { label: 'Ativo', emoji: '🔥', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
-  finalizado: { label: 'Finalizado', emoji: '🏁', color: 'text-slate-600', bg: 'bg-slate-100', border: 'border-slate-200' },
-  cancelado: { label: 'Cancelado', emoji: '❌', color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-200' },
+  rascunho: { label: 'Rascunho', icon: 'FileText', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
+  ativo: { label: 'Ativo', icon: 'Zap', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
+  finalizado: { label: 'Finalizado', icon: 'CheckCircle2', color: 'text-slate-600', bg: 'bg-slate-100', border: 'border-slate-200' },
+  cancelado: { label: 'Cancelado', icon: 'AlertCircle', color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-200' },
 };
 
 // Opções de status por modo e estado atual
 const STATUS_OPTIONS = {
   create: [
-    { value: 'rascunho', label: '📝 Rascunho', description: 'Torneio em preparação, não visível para usuários' },
-    { value: 'ativo', label: '🔥 Ativo', description: 'Torneio publicado e disponível para participação' },
+    { value: 'rascunho', label: 'Rascunho', description: 'Torneio em preparação, não visível para usuários' },
+    { value: 'ativo', label: 'Ativo', description: 'Torneio publicado e disponível para participação' },
   ],
   edit: {
     rascunho: [
-      { value: 'rascunho', label: '📝 Rascunho', description: 'Manter em preparação' },
-      { value: 'ativo', label: '🔥 Ativo', description: 'Publicar o torneio' },
-      { value: 'cancelado', label: '❌ Cancelado', description: 'Cancelar definitivamente' },
+      { value: 'rascunho', label: 'Rascunho', description: 'Manter em preparação' },
+      { value: 'ativo', label: 'Ativo', description: 'Publicar o torneio' },
+      { value: 'cancelado', label: 'Cancelado', description: 'Cancelar definitivamente' },
     ],
     ativo: [
-      { value: 'ativo', label: '🔥 Ativo', description: 'Manter ativo' },
-      { value: 'finalizado', label: '🏁 Finalizado', description: 'Encerrar o torneio' },
-      { value: 'cancelado', label: '❌ Cancelado', description: 'Cancelar definitivamente' },
+      { value: 'ativo', label: 'Ativo', description: 'Manter ativo' },
+      { value: 'finalizado', label: 'Finalizado', description: 'Encerrar o torneio' },
+      { value: 'cancelado', label: 'Cancelado', description: 'Cancelar definitivamente' },
     ],
     finalizado: [
-      { value: 'finalizado', label: '🏁 Finalizado', description: 'Torneio encerrado - apenas visualização', disabled: true },
+      { value: 'finalizado', label: 'Finalizado', description: 'Torneio encerrado - apenas visualização', disabled: true },
     ],
     cancelado: [
-      { value: 'cancelado', label: '❌ Cancelado', description: 'Torneio cancelado - apenas visualização', disabled: true },
+      { value: 'cancelado', label: 'Cancelado', description: 'Torneio cancelado - apenas visualização', disabled: true },
     ],
   },
 };
@@ -386,7 +390,12 @@ export default function TournamentForm({
 
         {/* Indicador visual do status atual */}
         <div className={`flex items-center gap-2 p-3 rounded-lg border ${currentStatusConfig.bg} ${currentStatusConfig.border}`}>
-          <span className="text-lg">{currentStatusConfig.emoji}</span>
+          <div className={`w-5 h-5 flex items-center justify-center ${currentStatusConfig.color}`}>
+            {currentStatusConfig.icon === 'FileText' && <FileText size={18} />}
+            {currentStatusConfig.icon === 'Zap' && <Zap size={18} />}
+            {currentStatusConfig.icon === 'CheckCircle2' && <CheckCircle2 size={18} />}
+            {currentStatusConfig.icon === 'AlertCircle' && <AlertCircle size={18} />}
+          </div>
           <span className={`font-medium ${currentStatusConfig.color}`}>
             {currentStatusConfig.label}
           </span>
@@ -587,8 +596,8 @@ export default function TournamentForm({
             </label>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { value: 'generico', label: '🌍 Genérico', desc: 'Multidisciplinar' },
-                { value: 'especifico', label: '🎯 Específico', desc: 'Uma disciplina' },
+                { value: 'generico', label: 'Genérico', desc: 'Multidisciplinar', icon: Globe },
+                { value: 'especifico', label: 'Específico', desc: 'Uma disciplina', icon: BookOpen },
               ].map((option) => (
                 <label
                   key={option.value}
@@ -614,8 +623,11 @@ export default function TournamentForm({
                     className="w-4 h-4"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-800">{option.label}</p>
-                    <p className="text-xs text-gray-400">{option.desc}</p>
+                    <div className="flex items-center gap-2">
+                      <option.icon size={16} className="text-blue-600 flex-shrink-0" />
+                      <p className="text-sm font-semibold text-gray-800">{option.label}</p>
+                    </div>
+                    <p className="text-xs text-gray-400 ml-6">{option.desc}</p>
                   </div>
                 </label>
               ))}
@@ -629,8 +641,8 @@ export default function TournamentForm({
                 Disciplina <span className="text-rose-500">*</span>
               </label>
               <div className="relative group">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                  📚
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors pointer-events-none">
+                  <BookOpen size={18} />
                 </div>
                 <select
                   value={formData.disciplina_especifica}

@@ -17,6 +17,10 @@ import {
   AlertCircle,
   CheckCircle,
   XCircle,
+  Zap,
+  BookOpen,
+  Globe,
+  FileText,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import TournamentForm from './components/TournamentForm';
@@ -29,22 +33,22 @@ const STATUS_CONFIG = {
   rascunho: {
     label: 'Rascunho',
     className: 'bg-amber-100 text-amber-700',
-    icon: '📝',
+    icon: 'FileText',
   },
   ativo: {
     label: 'Ativo',
     className: 'bg-emerald-100 text-emerald-700',
-    icon: '🔥',
+    icon: 'Zap',
   },
   finalizado: {
     label: 'Finalizado',
     className: 'bg-blue-100 text-blue-700',
-    icon: '🏁',
+    icon: 'CheckCircle',
   },
   cancelado: {
     label: 'Cancelado',
     className: 'bg-rose-100 text-rose-700',
-    icon: '❌',
+    icon: 'AlertCircle',
   },
 };
 
@@ -379,9 +383,6 @@ export default function TorneiosTab() {
             ) : (
               filteredTorneios.map(t => {
                 const statusConfig = STATUS_CONFIG[t.status] || STATUS_CONFIG.rascunho;
-                const tipoLabel = t.tipo_torneio === 'especifico' 
-                  ? `🎯 Específico (${t.disciplina_especifica})`
-                  : '🌍 Genérico';
                 return (
                   <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4">
@@ -392,12 +393,22 @@ export default function TorneiosTab() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${
+                      <span className={`px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 w-fit ${
                         t.tipo_torneio === 'especifico'
                           ? 'bg-blue-100 text-blue-700'
                           : 'bg-purple-100 text-purple-700'
                       }`}>
-                        {tipoLabel}
+                        {t.tipo_torneio === 'especifico' ? (
+                          <>
+                            <BookOpen size={14} />
+                            Específico {t.disciplina_especifica && `(${t.disciplina_especifica})`}
+                          </>
+                        ) : (
+                          <>
+                            <Globe size={14} />
+                            Genérico
+                          </>
+                        )}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -414,7 +425,10 @@ export default function TorneiosTab() {
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 w-fit ${statusConfig.className}`}>
-                        <span>{statusConfig.icon}</span>
+                        {statusConfig.icon === 'FileText' && <FileText size={12} />}
+                        {statusConfig.icon === 'Zap' && <Zap size={12} />}
+                        {statusConfig.icon === 'CheckCircle' && <CheckCircle size={12} />}
+                        {statusConfig.icon === 'AlertCircle' && <AlertCircle size={12} />}
                         {statusConfig.label}
                       </span>
                     </td>
