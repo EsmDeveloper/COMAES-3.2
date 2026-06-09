@@ -254,8 +254,19 @@ function BlocoCard({
         });
         if (response.ok) {
           const data = await response.json();
-          const questoesCarregadas = data.data?.questoes || [];
-          console.log(`✅ Questões do bloco ${bloco.id}:`, questoesCarregadas);
+          console.log(`📡 Resposta bruta da API para bloco ${bloco.id}:`, data);
+          
+          // ✅ SUPORTAR MÚLTIPLOS FORMATOS:
+          // Formato 1: { success, message, data: { ...bloco, questoes: [...] } }
+          // Formato 2: { success, message, data: { questoes: [...] } }
+          // Formato 3: Diretamente com questoes no raiz
+          const questoesCarregadas = 
+            data.data?.questoes ||           // Bloco como objeto com questões
+            data.questoes ||                  // Questões no raiz
+            data.dados?.questoes ||           // Formato alternativo
+            [];
+          
+          console.log(`✅ Questões do bloco ${bloco.id} (${questoesCarregadas.length} encontradas):`, questoesCarregadas);
           setQuestoesDoBloco(questoesCarregadas);
         }
       } catch (error) {
@@ -870,7 +881,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
                 {isTorneio ? 'Questões dos Torneios' : 'Teste de Conhecimento'}
               </h2>
               <p className="text-sm text-slate-500">
-                {state.blocos.length} blocos · {state.blocos.reduce((acc, b) => acc + (b.questoes?.length || 0), 0)} questões
+                {state.blocos.length} blocos · {state.questoes.length} questões
                 {BlocosService && ' · Persistido no banco de dados'}
               </p>
             </div>
