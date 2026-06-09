@@ -586,6 +586,12 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
           if (blocoArray.length > 0) {
             dispatch({ type: 'SET_BLOCOS', payload: blocoArray });
             
+            // Log para debug
+            console.log(`📊 Estrutura dos blocos carregados:`);
+            blocoArray.forEach((b, idx) => {
+              console.log(`  Bloco ${idx}: id=${b.id}, titulo=${b.titulo}, questoes=${b.questoes?.length || 0}, total_questoes=${b.total_questoes}`);
+            });
+            
             // Carregar questões para cada bloco (evitar N+1)
             const questoesMap = new Map();
             for (const bloco of blocoArray) {
@@ -597,7 +603,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
             if (questoesUnicas.length > 0) {
               dispatch({ type: 'SET_QUESTOES', payload: questoesUnicas });
             }
-            console.log(`✅ Blocos carregados com sucesso do backend:`, blocoArray.length);
+            console.log(`✅ Blocos carregados com sucesso do backend:`, blocoArray.length, `com ${questoesUnicas.length} questões únicas`);
             return;
           } else {
             console.log(`⚠️ Backend retornou vazio, usando padrão`);
@@ -881,7 +887,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
                 {isTorneio ? 'Questões dos Torneios' : 'Teste de Conhecimento'}
               </h2>
               <p className="text-sm text-slate-500">
-                {state.blocos.length} blocos · {state.questoes.length} questões
+                {state.blocos.length} blocos · {state.blocos.reduce((total, b) => total + (b.questoes?.length || b.total_questoes || 0), 0)} questões
                 {BlocosService && ' · Persistido no banco de dados'}
               </p>
             </div>
