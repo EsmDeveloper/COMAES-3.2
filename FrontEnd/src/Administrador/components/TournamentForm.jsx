@@ -112,6 +112,29 @@ export default function TournamentForm({
   const [loadingBlocos, setLoadingBlocos] = useState(false);
   const [blocoError, setBlocoError] = useState('');
 
+  // ✅ NOVO: Filtrar blocos por disciplina se o torneio for específico
+  const blocosFiltrados = useMemo(() => {
+    if (formData.tipo_torneio !== 'especifico' || !formData.disciplina_especifica) {
+      return blocosDisponiveis;
+    }
+    
+    // Mapear disciplina do torneio para a disciplina do bloco
+    const disciplinaMapMap = {
+      'Matemática': 'matematica',
+      'Programação': 'programacao',
+      'Inglês': 'ingles',
+    };
+    
+    const disciplinaBloco = disciplinaMapMap[formData.disciplina_especifica];
+    console.log(`📋 Filtrando blocos para ${formData.disciplina_especifica} (${disciplinaBloco})`);
+    
+    return blocosDisponiveis.filter(b => {
+      const match = b.disciplina === disciplinaBloco;
+      console.log(`   - Bloco "${b.titulo}" (${b.disciplina}): ${match ? '✅' : '❌'}`);
+      return match;
+    });
+  }, [blocosDisponiveis, formData.tipo_torneio, formData.disciplina_especifica]);
+
   // Calcular data mínima (agora + 1 minuto)
   const minDateTime = useMemo(() => {
     const now = new Date();
@@ -761,13 +784,15 @@ export default function TournamentForm({
               <div className="flex items-center gap-2 text-gray-400 text-xs py-2">
                 <Loader2 size={14} className="animate-spin" /> Carregando blocos...
               </div>
-            ) : blocosDisponiveis.length === 0 ? (
+            ) : blocosFiltrados.length === 0 ? (
               <div className="text-xs text-gray-400 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
-                Nenhum bloco publicado disponível. Crie e publique blocos em <strong>Questões (Torneios)</strong>.
+                {formData.tipo_torneio === 'especifico' && formData.disciplina_especifica
+                  ? `Nenhum bloco publicado de ${formData.disciplina_especifica} disponível. Crie e publique blocos em <strong>Questões (Torneios)</strong>.`
+                  : 'Nenhum bloco publicado disponível. Crie e publique blocos em <strong>Questões (Torneios)</strong>.'}
               </div>
             ) : (
               <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
-                {blocosDisponiveis.map(bloco => {
+                {blocosFiltrados.map(bloco => {
                   const selecionado = blocosAssociados.includes(bloco.id);
                   return (
                     <label

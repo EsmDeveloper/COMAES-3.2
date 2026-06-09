@@ -233,10 +233,26 @@ export const TorneoController = {
     createTorneo: async (req, res) => {
         try {
             console.log('🔄 Criando torneio com dados:', req.body);
-            const { titulo, descricao, inicia_em, termina_em, maximo_participantes, criado_por, status, público } = req.body;
+            const { titulo, descricao, inicia_em, termina_em, maximo_participantes, criado_por, status, público, tipo_torneio, disciplina_especifica } = req.body;
 
             if (!titulo || !titulo.trim()) {
                 return res.status(400).json({ message: 'Título é obrigatório', field: 'titulo' });
+            }
+
+            // ✅ NOVO: Validar tipo_torneio
+            if (tipo_torneio && !['generico', 'especifico'].includes(tipo_torneio)) {
+                return res.status(400).json({ 
+                    message: 'tipo_torneio deve ser "generico" ou "especifico"', 
+                    field: 'tipo_torneio' 
+                });
+            }
+
+            // ✅ NOVO: Se específico, disciplina é obrigatória
+            if (tipo_torneio === 'especifico' && !disciplina_especifica) {
+                return res.status(400).json({ 
+                    message: 'disciplina_especifica é obrigatória para torneios específicos', 
+                    field: 'disciplina_especifica' 
+                });
             }
 
             // Validar datas
@@ -309,7 +325,9 @@ export const TorneoController = {
                 termina_em: termina_em || null,
                 criado_por: createdBy,
                 status: finalStatus,
-                público: público !== false
+                público: público !== false,
+                tipo_torneio: tipo_torneio || 'generico', // ✅ NOVO
+                disciplina_especifica: tipo_torneio === 'especifico' ? disciplina_especifica : null, // ✅ NOVO
             };
 
             if (maximo_participantes !== null && maximo_participantes !== undefined && maximo_participantes !== '') {
@@ -335,11 +353,27 @@ export const TorneoController = {
     updateTorneo: async (req, res) => {
         try {
             const { id } = req.params;
-            const { titulo, descricao, inicia_em, termina_em, maximo_participantes, status, público } = req.body;
+            const { titulo, descricao, inicia_em, termina_em, maximo_participantes, status, público, tipo_torneio, disciplina_especifica } = req.body;
 
             const existingTorneio = await Torneio.findByPk(id);
             if (!existingTorneio) {
                 return res.status(404).json({ message: 'Torneio não encontrado' });
+            }
+
+            // ✅ NOVO: Validar tipo_torneio se fornecido
+            if (tipo_torneio && !['generico', 'especifico'].includes(tipo_torneio)) {
+                return res.status(400).json({ 
+                    message: 'tipo_torneio deve ser "generico" ou "especifico"', 
+                    field: 'tipo_torneio' 
+                });
+            }
+
+            // ✅ NOVO: Se específico, disciplina é obrigatória
+            if (tipo_torneio === 'especifico' && !disciplina_especifica) {
+                return res.status(400).json({ 
+                    message: 'disciplina_especifica é obrigatória para torneios específicos', 
+                    field: 'disciplina_especifica' 
+                });
             }
 
             // Validar status de transição
@@ -412,6 +446,12 @@ export const TorneoController = {
             if (termina_em !== undefined) updateData.termina_em = termina_em || null;
             if (status !== undefined) updateData.status = status;
             if (público !== undefined) updateData.publico = público !== false;
+            if (tipo_torneio !== undefined) updateData.tipo_torneio = tipo_torneio; // ✅ NOVO
+            if (tipo_torneio === 'especifico' && disciplina_especifica !== undefined) { // ✅ NOVO
+                updateData.disciplina_especifica = disciplina_especifica;
+            } else if (tipo_torneio === 'generico') { // ✅ NOVO
+                updateData.disciplina_especifica = null;
+            }
             if (maximo_participantes !== null && maximo_participantes !== undefined) {
                 updateData.maximo_participantes = Number(maximo_participantes);
             }
