@@ -870,7 +870,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
                 {isTorneio ? 'Questões dos Torneios' : 'Teste de Conhecimento'}
               </h2>
               <p className="text-sm text-slate-500">
-                {state.blocos.length} blocos · {state.questoes.length} questões
+                {state.blocos.length} blocos · {state.blocos.reduce((acc, b) => acc + (b.questoes?.length || 0), 0)} questões
                 {BlocosService && ' · Persistido no banco de dados'}
               </p>
             </div>
