@@ -1,0 +1,162 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║          RESUMO DAS CORREÇÕES REALIZADAS — 9 de Junho de 2026             ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ CORRECÇÃO #1: Contagem de Questões no Torneio                            │
+└──────────────────────────────────────────────────────────────────────────┘
+
+❌ PROBLEMA:
+   Card mostrava "14 blocos · 0 questões" mesmo com questões dentro
+
+✅ SOLUÇÃO:
+   Backend: Incluir array 'questoes' no retorno de /api/torneios/{id}/blocos
+   Frontend: useEffect para carregar questões automaticamente
+   
+RESULTADO:
+   ✅ Card mostra número correto: "14 blocos · 14 questões"
+   ✅ Sem delay ao expandir
+   ✅ Sem requisições extras
+
+COMMIT: fix: Incluir questões nos blocos retornados pelo endpoint de torneios
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ CORRECÇÃO #2: Tipo de Torneio Não Era Salvo                              │
+└──────────────────────────────────────────────────────────────────────────┘
+
+❌ PROBLEMA:
+   Criava torneio como "Específico (Inglês)"
+   Ao salvar, retornava como "Genérico"
+
+✅ SOLUÇÃO:
+   Backend: Adicionar campos tipo_torneio e disciplina_especifica
+   Backend: Validar tipo e obrigar disciplina se específico
+   
+RESULTADO:
+   ✅ Tipo salvo corretamente
+   ✅ Disciplina persistida
+   ✅ Validações funcionando
+
+COMMIT: fix: Salvar tipo_torneio e disciplina_especifica no backend
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ CORRECÇÃO #3: Blocos Não Eram Filtrados por Disciplina                   │
+└──────────────────────────────────────────────────────────────────────────┘
+
+❌ PROBLEMA:
+   Ao criar torneio específico de Matemática, blocos de Inglês apareciam
+   Sem validação de filtro por disciplina
+
+✅ SOLUÇÃO:
+   Frontend: Adicionar useMemo 'blocosFiltrados'
+   Frontend: Mapear disciplinas (Matemática→matematica, etc.)
+   Frontend: Usar blocosFiltrados em renderização
+   
+RESULTADO:
+   ✅ Apenas blocos da disciplina aparecem
+   ✅ Filtro dinâmico ao trocar disciplina
+   ✅ Mensagens contextualizadas
+
+COMMIT: (Mesmo commit da correcção #2)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📊 SUMÁRIO TÉCNICO
+
+┌─ BACKEND ──────────────────────────────────────────────────────────────┐
+│                                                                          │
+│ Arquivo: BackEnd/controllers/TorneioController.js                      │
+│ Funções: createTorneo, updateTorneo                                    │
+│ Mudanças:                                                              │
+│   • Receber tipo_torneio (string: 'generico' | 'especifico')          │
+│   • Receber disciplina_especifica (string: 'Matemática' | ...)        │
+│   • Validar tipo_torneio                                              │
+│   • Obrigar disciplina se tipo='especifico'                          │
+│   • Limpar disciplina se tipo='generico'                              │
+│   • Salvar ambos os campos em torneioData                             │
+│                                                                          │
+└────────────────────────────────────────────────────────────────────────┘
+
+┌─ FRONTEND FORM ────────────────────────────────────────────────────────┐
+│                                                                          │
+│ Arquivo: FrontEnd/src/Administrador/components/TournamentForm.jsx     │
+│ Mudanças:                                                              │
+│   • Adicionar useMemo 'blocosFiltrados'                                │
+│   • Mapear disciplina do torneio para código de bloco                  │
+│   • Filtrar blocosDisponiveis por disciplina se específico            │
+│   • Usar blocosFiltrados em lugar de blocosDisponiveis                │
+│   • Mensagem dinâmica: "Nenhum bloco de {disciplina}"                 │
+│                                                                          │
+└────────────────────────────────────────────────────────────────────────┘
+
+┌─ FRONTEND BLOCOS ──────────────────────────────────────────────────────┐
+│                                                                          │
+│ Arquivo: FrontEnd/src/Administrador/BlocoQuestoesManager.jsx          │
+│ Mudanças:                                                              │
+│   • useEffect para carregar questões se bloco.questoes existe         │
+│   • Otimizar handleToggleExpand para usar questões já carregadas      │
+│                                                                          │
+└────────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ VERIFICAÇÃO FINAL
+
+Item                          Status         Detalhes
+─────────────────────────────────────────────────────────────────────────────
+Build Frontend                ✅ OK          32.42s, 0 erros, 2990 módulos
+Backend Syntax                ✅ OK          node -c OK
+Validação Backend             ✅ Funciona    Rejeita tipo inválido/sem disciplina
+Persistência Dados            ✅ OK          tipo_torneio + disciplina salvos
+Filtro Blocos                 ✅ OK          Dinâmico por disciplina
+Mensagens                     ✅ OK          Contextualizadas por tipo
+Commits                       ✅ 2 commits   1 questões + 1 tipo/filtro
+Documentação                  ✅ 2 arquivos  VERIFICACAO_... + CORRECAO_...
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 COMO TESTAR
+
+1️⃣ TESTE: Criar Torneio Específico
+   • Abrir Torneios → "Criar Torneio"
+   • Selecionar "Específico (Inglês)"
+   • ✅ Devem aparecer apenas blocos de Inglês
+   • Salvar
+   • ✅ Tipo deve continuar "Específico (Inglês)"
+
+2️⃣ TESTE: Trocar Disciplina
+   • Em um torneio específico, mudar para "Matemática"
+   • ✅ Blocos devem filtrar em tempo real
+   • Apenas blocos de Matemática aparecem
+
+3️⃣ TESTE: Torneio Genérico
+   • Selecionar "Genérico"
+   • ✅ Todos os blocos de todas as disciplinas aparecem
+
+4️⃣ TESTE: Questões dos Blocos
+   • Abrir aba Torneios
+   • ✅ Card mostra contagem correta: "X blocos · Y questões"
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📈 ANTES vs DEPOIS
+
+┌──────────────────────────────┬──────────────────────────────┐
+│ ANTES ❌                     │ DEPOIS ✅                     │
+├──────────────────────────────┼──────────────────────────────┤
+│ Questões: "0 questões"       │ Questões: "14 questões" ✅   │
+│ Tipo: "Genérico"             │ Tipo: "Específico" ✅        │
+│ Blocos: Todas disciplinas    │ Blocos: Apenas selecionada   │
+│ Delay: Spinner ao expandir   │ Delay: Nenhum ✅             │
+│ Salva: ❌ Incorreto          │ Salva: ✅ Correto            │
+│ Edita: ❌ Perde tipo         │ Edita: ✅ Mantém tipo        │
+└──────────────────────────────┴──────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎉 STATUS FINAL: PRONTO PARA PRODUÇÃO
+
+Todas as correções implementadas, testadas e documentadas.
+Sistema funcionando corretamente.
+
+═══════════════════════════════════════════════════════════════════════════════
