@@ -27,7 +27,7 @@ export const TorneoController = {
   getAllTorneos: async (req, res) => {
     try {
       const torneos = await Torneio.findAll({
-        attributes: ['id', 'titulo', 'descricao', 'inicia_em', 'termina_em', 'status', 'criado_em', 'slug'],
+        attributes: ['id', 'titulo', 'descricao', 'inicia_em', 'termina_em', 'status', 'criado_em', 'slug', 'tipo_torneio', 'disciplina_especifica'],
         order: [['criado_em', 'DESC']],
         limit: 100,
       });
@@ -44,10 +44,20 @@ export const TorneoController = {
   createTorneo: async (req, res) => {
     try {
       console.log('[TorneioController] Criando torneio com dados:', req.body);
-      const { titulo, descricao, inicia_em, termina_em, maximo_participantes, criado_por, status } = req.body;
+      const { titulo, descricao, inicia_em, termina_em, maximo_participantes, criado_por, status, tipo_torneio, disciplina_especifica } = req.body;
 
       if (!titulo || !titulo.trim()) {
         return res.status(400).json({ message: 'Titulo e obrigatorio', field: 'titulo' });
+      }
+
+      // ✅ Validar tipo_torneio
+      if (tipo_torneio && !['generico', 'especifico'].includes(tipo_torneio)) {
+        return res.status(400).json({ message: 'tipo_torneio deve ser generico ou especifico', field: 'tipo_torneio' });
+      }
+
+      // ✅ Validar disciplina_especifica se tipo_torneio = especifico
+      if (tipo_torneio === 'especifico' && !disciplina_especifica) {
+        return res.status(400).json({ message: 'disciplina_especifica é obrigatória para torneios específicos', field: 'disciplina_especifica' });
       }
 
       const TOLERANCE_MS = 5 * 60 * 1000;
@@ -91,13 +101,28 @@ export const TorneoController = {
         termina_em: termina_em || null,
         criado_por: createdBy,
         status: finalStatus,
+        tipo_torneio: tipo_torneio || 'generico',
+        disciplina_especifica: tipo_torneio === 'especifico' ? (disciplina_especifica || null) : null,
       };
 
       if (maximo_participantes !== null && maximo_participantes !== undefined && maximo_participantes !== '') {
         torneioData.maximo_participantes = Number(maximo_participantes);
       }
 
+      console.log('[TorneioController] Dados formatados para criar torneio:', {
+        titulo: torneioData.titulo,
+        tipo_torneio: torneioData.tipo_torneio,
+        disciplina_especifica: torneioData.disciplina_especifica,
+        status: torneioData.status,
+      });
+
       const novoTorneio = await Torneio.create(torneioData);
+      console.log('[TorneioController] Torneio criado com sucesso:', {
+        id: novoTorneio.id,
+        tipo_torneio: novoTorneio.tipo_torneio,
+        disciplina_especifica: novoTorneio.disciplina_especifica,
+      });
+      
       res.status(201).json({ message: 'Torneio criado com sucesso!', torneio: formatTorneioForFrontend(novoTorneio) });
     } catch (error) {
       console.error('Erro ao criar torneio:', error);
@@ -109,11 +134,21 @@ export const TorneoController = {
   updateTorneo: async (req, res) => {
     try {
       const { id } = req.params;
-      const { titulo, descricao, inicia_em, termina_em, maximo_participantes, status } = req.body;
+      const { titulo, descricao, inicia_em, termina_em, maximo_participantes, status, tipo_torneio, disciplina_especifica } = req.body;
 
       const existingTorneio = await Torneio.findByPk(id);
       if (!existingTorneio) {
         return res.status(404).json({ message: 'Torneio nao encontrado' });
+      }
+
+      // Validar tipo_torneio
+      if (tipo_torneio && !['generico', 'especifico'].includes(tipo_torneio)) {
+        return res.status(400).json({ message: 'tipo_torneio deve ser generico ou especifico', field: 'tipo_torneio' });
+      }
+
+      // Validar disciplina_especifica se tipo_torneio = especifico
+      if (tipo_torneio === 'especifico' && !disciplina_especifica) {
+        return res.status(400).json({ message: 'disciplina_especifica é obrigatória para torneios específicos', field: 'disciplina_especifica' });
       }
 
       // Validar transicao de status
@@ -172,6 +207,12 @@ export const TorneoController = {
       if (inicia_em !== undefined) updateData.inicia_em = inicia_em || null;
       if (termina_em !== undefined) updateData.termina_em = termina_em || null;
       if (status !== undefined) updateData.status = status;
+      if (tipo_torneio !== undefined) updateData.tipo_torneio = tipo_torneio;
+      if (tipo_torneio === 'especifico' && disciplina_especifica !== undefined) {
+        updateData.disciplina_especifica = disciplina_especifica;
+      } else if (tipo_torneio === 'generico') {
+        updateData.disciplina_especifica = null;
+      }
       if (maximo_participantes !== null && maximo_participantes !== undefined) {
         updateData.maximo_participantes = Number(maximo_participantes);
       }
@@ -182,6 +223,11 @@ export const TorneoController = {
 
       if (updated) {
         const updatedTorneio = await Torneio.findOne({ where: { id } });
+        console.log('[TorneioController] Torneio atualizado:', {
+          id: updatedTorneio.id,
+          tipo_torneio: updatedTorneio.tipo_torneio,
+          disciplina_especifica: updatedTorneio.disciplina_especifica,
+        });
         res.status(200).json(formatTorneioForFrontend(updatedTorneio));
       } else {
         res.status(404).json({ message: 'Torneio nao encontrado' });
@@ -229,6 +275,16 @@ export const TorneoController = {
       if (!torneio) { await transaction.rollback(); return res.status(404).json({ message: 'Torneio nao encontrado' }); }
 
       const agora = new Date();
+
+      // ✅ NOVO: Verificar se torneio expirou automaticamente
+      if (torneio.termina_em && new Date(torneio.termina_em) < agora) {
+        await transaction.rollback();
+        return res.status(400).json({ 
+          message: 'Este torneio expirou e nao aceita mais inscricoes',
+          field: 'torneio_expirado'
+        });
+      }
+
       if (torneio.status === 'finalizado' || torneio.status === 'cancelado') {
         await transaction.rollback();
         return res.status(400).json({ message: `Nao e possivel inscrever-se em um torneio ${torneio.status}` });
@@ -240,6 +296,43 @@ export const TorneoController = {
 
       const usuario = await Usuario.findByPk(usuario_id, { transaction });
       if (!usuario) { await transaction.rollback(); return res.status(404).json({ message: 'Usuario nao encontrado' }); }
+
+      // ✅ NOVO: Validar disciplina conforme tipo de torneio
+      if (torneio.tipo_torneio === 'especifico' && disciplina_competida !== torneio.disciplina_especifica) {
+        await transaction.rollback();
+        return res.status(400).json({ 
+          message: `Este torneio e especifico apenas para ${torneio.disciplina_especifica}`,
+          disciplina_esperada: torneio.disciplina_especifica,
+          field: 'disciplina_incompativel'
+        });
+      }
+
+      // ✅ NOVO: Verificar participacao simultanea em outro torneio
+      const participacaoAtiva = await ParticipanteTorneio.findOne({
+        where: {
+          usuario_id,
+          status: 'confirmado',
+          posicao_congelada: false
+        },
+        include: [{
+          model: Torneio,
+          attributes: ['id', 'titulo', 'termina_em'],
+          where: {
+            id: { [sequelize.Sequelize.Op.ne]: torneio_id }
+          }
+        }],
+        lock: transaction.LOCK.UPDATE,
+        transaction
+      });
+
+      if (participacaoAtiva) {
+        await transaction.rollback();
+        return res.status(409).json({ 
+          message: `Usuario ja esta participando de outro torneio: "${participacaoAtiva.Torneio.titulo}". Termine esse primeiro.`,
+          torneio_ativo: participacaoAtiva.Torneio,
+          field: 'participacao_simultanea'
+        });
+      }
 
       const inscricaoExistente = await ParticipanteTorneio.findOne({
         where: { torneio_id, usuario_id, disciplina_competida },
@@ -327,6 +420,52 @@ export const TorneoController = {
       res.status(200).json({ message: 'Pontuacao atualizada', data: participante });
     } catch (error) {
       res.status(500).json({ message: error.message });
+    }
+  },
+
+  // ── VERIFICAR PARTICIPAÇÃO ATIVA ──────────────────────────
+  verificarParticipacaoAtiva: async (req, res) => {
+    try {
+      const { usuario_id } = req.params;
+
+      // 🔍 Buscar participações ativas do usuário
+      // Ativa = status confirmado E posição não congelada
+      const participacaoAtiva = await ParticipanteTorneio.findOne({
+        where: {
+          usuario_id: usuario_id,
+          status: 'confirmado',
+          posicao_congelada: false
+        },
+        include: [{
+          model: Torneio,
+          as: 'torneio',
+          attributes: ['id', 'titulo', 'tipo_torneio', 'disciplina_especifica']
+        }]
+      });
+
+      if (!participacaoAtiva) {
+        // Usuário não tem participação ativa
+        return res.status(200).json({
+          ativo: false,
+          torneio: null,
+          disciplina: null
+        });
+      }
+
+      // ✅ Usuário tem participação ativa
+      res.status(200).json({
+        ativo: true,
+        torneio: {
+          id: participacaoAtiva.torneio.id,
+          titulo: participacaoAtiva.torneio.titulo,
+          tipo_torneio: participacaoAtiva.torneio.tipo_torneio,
+          disciplina_especifica: participacaoAtiva.torneio.disciplina_especifica
+        },
+        disciplina: participacaoAtiva.disciplina_competida
+      });
+    } catch (error) {
+      console.error('Erro ao verificar participação ativa:', error);
+      res.status(500).json({ message: 'Erro ao verificar participação', error: error.message });
     }
   },
 };

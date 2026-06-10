@@ -4,6 +4,7 @@ import ParticipanteTorneio from '../models/ParticipanteTorneio.js';
 import Usuario from '../models/User.js';
 import TorneoController from '../controllers/TorneioController.js';
 import CertificateController from '../controllers/CertificateController.js';
+import sequelize from '../config/db.js';
 
 const router = express.Router();
 
@@ -41,7 +42,7 @@ const fetchRanking = async (where) => {
 router.get('/', async (req, res) => {
   try {
     const torneios = await Torneio.findAll({
-      attributes: ['id', 'titulo', 'descricao', 'inicia_em', 'termina_em', 'status', 'criado_em'],
+      attributes: ['id', 'titulo', 'descricao', 'inicia_em', 'termina_em', 'status', 'criado_em', 'tipo_torneio', 'disciplina_especifica'],
       order: [['criado_em', 'DESC']],
       limit: 50,
     });
@@ -51,6 +52,88 @@ router.get('/', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
+// ✨ ── Criar novo torneio (ADMIN) ─────────────────────────────────────────
+router.post('/', TorneoController.createTorneo);
+
+// ✨ IMPORTANT: Specific routes BEFORE generic /:id routes!
+
+// ✨ 1. Verificar participação ativa do usuário (ESPECÍFICA: /usuario/:usuario_id/...)
+router.get('/usuario/:usuario_id/participacao-ativa', TorneoController.verificarParticipacaoAtiva);
+
+// ✨ 2. Obter torneio ativo (ESPECÍFICA: /ativo)
+router.get('/ativo', async (req, res) => {
+  try {
+    const agora = new Date();
+    const torneio = await Torneio.findOne({
+      where: {
+        status: 'ativo',
+        inicia_em: { [sequelize.Sequelize.Op.lte]: agora },
+        termina_em: { [sequelize.Sequelize.Op.gte]: agora }
+      },
+      attributes: ['id', 'titulo', 'descricao', 'inicia_em', 'termina_em', 'status', 'criado_em', 'tipo_torneio', 'disciplina_especifica'],
+      order: [['criado_em', 'DESC']],
+      limit: 1
+    });
+
+    if (torneio) {
+      res.json({ success: true, ativo: true, torneio: torneio.toJSON() });
+    } else {
+      res.json({ success: true, ativo: false, torneio: null });
+    }
+  } catch (error) {
+    console.error('Erro ao obter torneio ativo:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ✨ 3. Obter disciplinas do torneio ativo (ESPECÍFICA: /ativo/disciplinas)
+router.get('/ativo/disciplinas', async (req, res) => {
+  try {
+    const agora = new Date();
+    const torneio = await Torneio.findOne({
+      where: {
+        status: 'ativo',
+        inicia_em: { [sequelize.Sequelize.Op.lte]: agora },
+        termina_em: { [sequelize.Sequelize.Op.gte]: agora }
+      },
+      attributes: ['id', 'tipo_torneio', 'disciplina_especifica']
+    });
+
+    if (!torneio) {
+      return res.status(404).json({ success: false, error: 'Nenhum torneio ativo encontrado' });
+    }
+
+    // Se for específico, retorna apenas a disciplina específica
+    if (torneio.tipo_torneio === 'especifico') {
+      return res.json({ success: true, disciplinas: [torneio.disciplina_especifica] });
+    }
+
+    // Se for genérico, busca todas as disciplinas com blocos de questões
+    const disciplinas = await ParticipanteTorneio.findAll({
+      where: { torneio_id: torneio.id, status: 'confirmado' },
+      attributes: [[sequelize.Sequelize.fn('DISTINCT', sequelize.Sequelize.col('disciplina_competida')), 'disciplina']],
+      raw: true
+    });
+
+    const disciplinasUnicas = disciplinas.map(d => d.disciplina || d.disciplina_competida).filter(d => d);
+    res.json({ success: true, disciplinas: disciplinasUnicas.length > 0 ? disciplinasUnicas : ['Matemática', 'Inglês', 'Programação'] });
+  } catch (error) {
+    console.error('Erro ao obter disciplinas do torneio ativo:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ✨ 4. CERTIFICADOS - Certificados endpoints (ESPECÍFICAS: /certificados/...)
+router.post('/certificados/gerar-automaticos', CertificateController.gerarAutomaticosParaTorneio);
+router.get('/certificados/torneio/:torneio_id', CertificateController.listarPorTorneio);
+router.get('/certificados/validar/:codigo', CertificateController.validarCertificado);
+router.get('/certificados/contar-automaticos/:torneio_id', CertificateController.contarAutomaticos);
+router.get('/certificados/usuario/:usuario_id', CertificateController.obterPorUsuario);
+router.put('/certificados/:id/validar', CertificateController.validarCertificadoAdmin);
+router.put('/certificados/:id/cancelar', CertificateController.cancelarCertificado);
+
+// ✨ GENERIC routes AFTER specific ones
 
 // ── Contagem de participantes por disciplina ──────────────────────────────
 router.get('/:tournamentId/participant-counts', async (req, res) => {
@@ -140,52 +223,5 @@ router.get('/:tournamentId/ranking/:disciplina', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
-
-// ✨ ─────────────────────────────────────────────────────────────────────────
-// ✨ SISTEMA DE TORNEIOS - NOVOS ENDPOINTS
-// ✨ ─────────────────────────────────────────────────────────────────────────
-
-// ✨ 1. Verificar participação ativa do usuário
-router.get('/usuario/:usuario_id/participacao-ativa', TorneoController.verificarParticipacaoAtiva);
-
-// ✨ 2. Verificar torneios ativos (máximo 1)
-router.get('/admin/torneios-ativos', TorneoController.verificarTorneiosAtivos);
-
-// ✨ 3. Ativar torneio
-router.post('/:id/ativar', TorneoController.ativarTorneio);
-
-// ✨ 4. Verificar encerramentos automáticos (SCHEDULER)
-router.post('/admin/verificar-encerramentos', TorneoController.verificarEncerramentos);
-
-// ✨ 5. Finalizar torneio com geração de certificados
-router.post('/:id/finalizar', TorneoController.finalizarTorneio);
-
-// ✨ 6. Obter ranking persistido (não recalcula)
-router.get('/:id/ranking-persistido', TorneoController.obterRanking);
-
-// ✨ ─────────────────────────────────────────────────────────────────────────
-// ✨ CERTIFICADOS - NOVOS ENDPOINTS
-// ✨ ─────────────────────────────────────────────────────────────────────────
-
-// ✨ 1. Gerar certificados automáticos para um torneio
-router.post('/certificados/gerar-automaticos', CertificateController.gerarAutomaticosParaTorneio);
-
-// ✨ 2. Listar certificados de um torneio
-router.get('/certificados/torneio/:torneio_id', CertificateController.listarPorTorneio);
-
-// ✨ 3. Validar certificado por código
-router.get('/certificados/validar/:codigo', CertificateController.validarCertificado);
-
-// ✨ 4. Contar certificados automáticos
-router.get('/certificados/contar-automaticos/:torneio_id', CertificateController.contarAutomaticos);
-
-// ✨ 5. Obter certificados de um usuário
-router.get('/certificados/usuario/:usuario_id', CertificateController.obterPorUsuario);
-
-// ✨ 6. Validar certificado (admin)
-router.put('/certificados/:id/validar', CertificateController.validarCertificadoAdmin);
-
-// ✨ 7. Cancelar certificado
-router.put('/certificados/:id/cancelar', CertificateController.cancelarCertificado);
 
 export default router;
