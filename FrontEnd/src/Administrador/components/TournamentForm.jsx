@@ -320,8 +320,12 @@ export default function TournamentForm({
       status: formData.status,
       público: formData.público,
       slug: formData.slug || TournamentValidation.generateSlug(formData.titulo),
-      tipo_torneio: formData.tipo_torneio,
-      disciplina_especifica: formData.tipo_torneio === 'especifico' ? formData.disciplina_especifica : null,
+      // ✅ IMPORTANTE: tipo_torneio e disciplina_especifica são READ-ONLY após criação
+      // Apenas incluir no payload se for modo CREATE
+      ...(mode === 'create' && {
+        tipo_torneio: formData.tipo_torneio,
+        disciplina_especifica: formData.tipo_torneio === 'especifico' ? formData.disciplina_especifica : null,
+      }),
       // Blocos selecionados (apenas em modo criação — edição persiste em tempo real)
       _blocosParaAssociar: mode === 'create' ? blocosAssociados : [],
     };

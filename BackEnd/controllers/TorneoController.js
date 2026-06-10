@@ -207,12 +207,16 @@ export const TorneoController = {
       if (inicia_em !== undefined) updateData.inicia_em = inicia_em || null;
       if (termina_em !== undefined) updateData.termina_em = termina_em || null;
       if (status !== undefined) updateData.status = status;
-      if (tipo_torneio !== undefined) updateData.tipo_torneio = tipo_torneio;
-      if (tipo_torneio === 'especifico' && disciplina_especifica !== undefined) {
-        updateData.disciplina_especifica = disciplina_especifica;
-      } else if (tipo_torneio === 'generico') {
-        updateData.disciplina_especifica = null;
+      
+      // ✅ IMPORTANTE: tipo_torneio e disciplina_especifica são READ-ONLY após criação
+      // Não permitir alteração destes campos durante update
+      if (tipo_torneio !== undefined && tipo_torneio !== existingTorneio.tipo_torneio) {
+        return res.status(400).json({ 
+          message: 'tipo_torneio não pode ser alterado após a criação do torneio',
+          field: 'tipo_torneio'
+        });
       }
+      
       if (maximo_participantes !== null && maximo_participantes !== undefined) {
         updateData.maximo_participantes = Number(maximo_participantes);
       }
