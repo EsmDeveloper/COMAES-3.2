@@ -167,6 +167,60 @@ export const TorneoController = {
         });
       }
 
+      // ✅ NOVA: Validar blocos se tentando ativar o torneio
+      if (status === 'ativo' && currentStatus !== 'ativo') {
+        const TorneioBloco = (await import('../models/TorneioBloco.js')).default;
+        const BlocoQuestoes = (await import('../models/BlocoQuestoes.js')).default;
+        const BlocoQuestaoItem = (await import('../models/BlocoQuestaoItem.js')).default;
+
+        // Buscar blocos associados
+        const blocosAssociados = await TorneioBloco.findAll({
+          where: { torneio_id: existingTorneio.id },
+          include: [{ model: BlocoQuestoes, attributes: ['id', 'disciplina', 'titulo'] }]
+        });
+
+        if (blocosAssociados.length === 0) {
+          return res.status(400).json({
+            message: 'Torneio deve ter pelo menos um bloco de questões para ser ativado',
+            field: 'blocos'
+          });
+        }
+
+        // Se genérico, validar que tem blocos de todas as 3 disciplinas
+        if (existingTorneio.tipo_torneio === 'generico') {
+          const disciplinas = new Set(blocosAssociados.map(tb => tb.BlocoQuestoes.disciplina));
+          
+          if (disciplinas.size < 3) {
+            const disciplinasFaltantes = ['matematica', 'ingles', 'programacao'].filter(d => !disciplinas.has(d));
+            const disciplinasNomes = {
+              'matematica': 'Matemática',
+              'ingles': 'Inglês',
+              'programacao': 'Programação'
+            };
+            const nomesFaltantes = disciplinasFaltantes.map(d => disciplinasNomes[d]).join(', ');
+            
+            return res.status(400).json({
+              message: `Torneio genérico deve ter blocos de todas as 3 disciplinas. Faltam: ${nomesFaltantes}`,
+              field: 'blocos'
+            });
+          }
+        }
+
+        // Validar que cada bloco tem mínimo 5 questões
+        for (const tb of blocosAssociados) {
+          const totalQuestoes = await BlocoQuestaoItem.count({
+            where: { bloco_id: tb.bloco_id }
+          });
+          
+          if (totalQuestoes < 5) {
+            return res.status(400).json({
+              message: `Bloco "${tb.BlocoQuestoes.titulo}" tem apenas ${totalQuestoes} questões. Mínimo: 5`,
+              field: 'blocos'
+            });
+          }
+        }
+      }
+
       // Validar datas — só revalida se a data foi ALTERADA em relação ao valor atual
       const TOLERANCE_MS = 5 * 60 * 1000;
       const now = new Date(Date.now() - TOLERANCE_MS);

@@ -303,6 +303,34 @@ export default function TournamentForm({
       return;
     }
 
+    // ✅ NOVA VALIDAÇÃO: Se ativar torneio, validar blocos
+    if (formData.status === 'ativo' && mode === 'create') {
+      if (blocosAssociados.length === 0) {
+        setBlocoError('Torneio deve ter pelo menos um bloco de questões com mínimo 5 questões para ser ativado');
+        return;
+      }
+
+      if (formData.tipo_torneio === 'generico') {
+        // Contar disciplinas nos blocos selecionados
+        const disciplinasNosBlocos = new Set(
+          blocosFiltrados
+            .filter(b => blocosAssociados.includes(b.id))
+            .map(b => b.disciplina)
+        );
+
+        if (disciplinasNosBlocos.size < 3) {
+          const disciplinasMapa = { 'matematica': 'Matemática', 'ingles': 'Inglês', 'programacao': 'Programação' };
+          const disciplinasFaltantes = ['matematica', 'ingles', 'programacao']
+            .filter(d => !disciplinasNosBlocos.has(d))
+            .map(d => disciplinasMapa[d])
+            .join(', ');
+          
+          setBlocoError(`Torneio genérico precisa de blocos de TODAS as 3 disciplinas. Faltam: ${disciplinasFaltantes}`);
+          return;
+        }
+      }
+    }
+
     // Validar formulário completo
     const validationErrors = TournamentValidation.validate(formData, mode, minDateTime);
 
@@ -761,22 +789,36 @@ export default function TournamentForm({
           </div>
 
           {/* ── Seleção de Blocos de Questões ─────────────────────────────── */}
-          <div className="pt-2 space-y-2">
+          <div className="pt-2 space-y-2 border border-amber-200 bg-amber-50 rounded-xl p-3">
             <div className="flex items-center gap-2">
-              <Layers size={16} className="text-indigo-600" />
+              <Layers size={16} className="text-amber-600" />
               <span className="text-sm font-semibold text-gray-700">Blocos de Questões</span>
               {blocosAssociados.length > 0 && (
-                <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">
+                <span className="text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-bold">
                   {blocosAssociados.length} selecionado(s)
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-400 flex items-center gap-1">
-              <Info size={12} />
-              {mode === 'create'
-                ? 'Selecione blocos publicados. A associação será feita ao criar o torneio.'
-                : 'Alterações são salvas imediatamente. Apenas torneios em rascunho ou ativos aceitam blocos.'}
-            </p>
+            
+            {/* Requisitos */}
+            <div className="bg-white rounded-lg p-2.5 text-xs text-gray-600 space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-amber-600 font-bold">•</span>
+                <span>Mínimo 5 questões por bloco</span>
+              </div>
+              {formData.tipo_torneio === 'generico' && (
+                <div className="flex items-center gap-2">
+                  <span className="text-amber-600 font-bold">•</span>
+                  <span>Todos os 3 tipos de disciplinas (Matemática, Inglês, Programação)</span>
+                </div>
+              )}
+              {formData.tipo_torneio === 'especifico' && (
+                <div className="flex items-center gap-2">
+                  <span className="text-amber-600 font-bold">•</span>
+                  <span>Apenas blocos de {formData.disciplina_especifica}</span>
+                </div>
+              )}
+            </div>
 
             {blocoError && (
               <div className="flex items-center gap-2 text-rose-600 text-xs bg-rose-50 border border-rose-200 px-3 py-2 rounded-lg">
@@ -789,10 +831,10 @@ export default function TournamentForm({
                 <Loader2 size={14} className="animate-spin" /> Carregando blocos...
               </div>
             ) : blocosFiltrados.length === 0 ? (
-              <div className="text-xs text-gray-400 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+              <div className="text-xs text-gray-600 bg-white border border-gray-200 rounded-lg px-3 py-2">
                 {formData.tipo_torneio === 'especifico' && formData.disciplina_especifica
-                  ? `Nenhum bloco publicado de ${formData.disciplina_especifica} disponível. Crie e publique blocos em <strong>Questões (Torneios)</strong>.`
-                  : 'Nenhum bloco publicado disponível. Crie e publique blocos em <strong>Questões (Torneios)</strong>.'}
+                  ? `Nenhum bloco publicado de ${formData.disciplina_especifica} com mínimo 5 questões`
+                  : 'Nenhum bloco publicado disponível com mínimo 5 questões'}
               </div>
             ) : (
               <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
@@ -801,7 +843,7 @@ export default function TournamentForm({
                   return (
                     <label
                       key={bloco.id}
-                      className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                      className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
                         selecionado
                           ? 'border-indigo-300 bg-indigo-50'
                           : 'border-gray-200 bg-white hover:border-gray-300'

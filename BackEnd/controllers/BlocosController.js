@@ -439,9 +439,32 @@ export const associarBlocoAoTorneio = async (req, res) => {
     const bloco = await BlocoQuestoes.findByPk(bloco_id);
     if (!bloco) return err(res, 'Bloco não encontrado', 404);
 
-    // Verificar se bloco está publicado
+    // ✅ Verificar se bloco está publicado
     if (bloco.status !== 'publicado') {
       return err(res, 'Apenas blocos publicados podem ser associados a torneios', 422);
+    }
+
+    // ✅ NOVA: Contar questões no bloco - mínimo 5 obrigatório
+    const totalQuestoes = await BlocoQuestaoItem.count({
+      where: { bloco_id: bloco_id }
+    });
+
+    if (totalQuestoes < 5) {
+      return err(res, `Bloco deve ter mínimo 5 questões. Este tem apenas ${totalQuestoes}.`, 422);
+    }
+
+    // ✅ NOVA: Validar correspondência de disciplina para torneios específicos
+    if (torneio.tipo_torneio === 'especifico') {
+      const mapDisciplina = {
+        'Matemática': 'matematica',
+        'Programação': 'programacao',
+        'Inglês': 'ingles'
+      };
+      const disciplinaBlocoEsperada = mapDisciplina[torneio.disciplina_especifica];
+      
+      if (bloco.disciplina !== disciplinaBlocoEsperada) {
+        return err(res, `Torneio específico para ${torneio.disciplina_especifica}. Bloco é de ${bloco.disciplina}.`, 422);
+      }
     }
 
     // Verificar se já está associado
@@ -459,7 +482,7 @@ export const associarBlocoAoTorneio = async (req, res) => {
       ordem: ordem ?? totalBlocos,
     });
 
-    console.log(`✅ Bloco ${bloco_id} associado ao torneio ${id}`);
+    console.log(`✅ Bloco ${bloco_id} associado ao torneio ${id} (${totalQuestoes} questões)`);
     return ok(res, assoc, 'Bloco associado ao torneio com sucesso', 201);
   } catch (error) {
     console.error('❌ Erro ao associar bloco ao torneio:', error);
