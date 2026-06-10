@@ -86,6 +86,15 @@ const Torneio = sequelize.define('Torneio', {
       if (torneio.tipo_torneio === 'generico') {
         torneio.disciplina_especifica = null;
       }
+    },
+    // ✨ Proteção: tipo_torneio e disciplina_especifica são READ-ONLY após criação
+    beforeUpdate: (torneio) => {
+      if (torneio.changed('tipo_torneio') && torneio._previousDataValues.tipo_torneio) {
+        throw new Error('tipo_torneio não pode ser alterado após a criação do torneio');
+      }
+      if (torneio.changed('disciplina_especifica') && torneio._previousDataValues.disciplina_especifica && torneio._previousDataValues.tipo_torneio === 'especifico') {
+        throw new Error('disciplina_especifica não pode ser alterada para um torneio específico após a criação');
+      }
     }
   }
 });

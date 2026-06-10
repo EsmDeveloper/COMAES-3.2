@@ -232,8 +232,13 @@ export const TorneoController = {
     // Create tournament
     createTorneo: async (req, res) => {
         try {
-            console.log('🔄 Criando torneio com dados:', req.body);
+            console.log('🔄 Criando torneio com dados RECEBIDOS:', req.body);
             const { titulo, descricao, inicia_em, termina_em, maximo_participantes, criado_por, status, público, tipo_torneio, disciplina_especifica } = req.body;
+
+            console.log('🔍 Valores extraídos:');
+            console.log('  - titulo:', titulo);
+            console.log('  - tipo_torneio:', tipo_torneio, `(tipo: ${typeof tipo_torneio})`);
+            console.log('  - disciplina_especifica:', disciplina_especifica);
 
             if (!titulo || !titulo.trim()) {
                 return res.status(400).json({ message: 'Título é obrigatório', field: 'titulo' });
@@ -334,9 +339,17 @@ export const TorneoController = {
                 torneioData.maximo_participantes = Number(maximo_participantes);
             }
 
-            console.log('💾 Dados para criar torneio:', torneioData);
+            console.log('💾 Dados FINAIS para criar torneio:');
+            console.log('  - tipo_torneio:', torneioData.tipo_torneio);
+            console.log('  - disciplina_especifica:', torneioData.disciplina_especifica);
+            console.log('  - Objeto completo:', torneioData);
 
             const novoTorneio = await Torneio.create(torneioData);
+            
+            console.log('✅ Torneio criado no banco:');
+            console.log('  - tipo_torneio (BD):', novoTorneio.tipo_torneio);
+            console.log('  - disciplina_especifica (BD):', novoTorneio.disciplina_especifica);
+            
             const formattedTorneio = formatTorneioForFrontend(novoTorneio);
 
             res.status(201).json({

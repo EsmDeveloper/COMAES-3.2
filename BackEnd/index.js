@@ -32,6 +32,7 @@ import SequenciaAprendizagem from "./models/SequenciaAprendizagem.js";
 import Missao from "./models/Missao.js";
 import MissaoUsuario from "./models/MissaoUsuario.js";
 import Ranking from "./models/Ranking.js";
+import BlocoQuestoes from "./models/BlocoQuestoes.js";
 
 // ===== CONFIGURAR ASSOCIA��ES ANTES DE IMPORTAR ROTAS =====
 // CR�TICO: Este import deve vir ANTES das rotas para garantir que
@@ -896,19 +897,180 @@ app.get('/api/torneios/ativo', async (req, res) => {
     const inicio = new Date(torneio.inicia_em);
     const fim = new Date(torneio.termina_em);
 
+    console.log('📅 Período do torneio:', {
+      inicio: inicio.toISOString(),
+      fim: fim.toISOString(),
+      agora: agora.toISOString()
+    });
+
+    // ✅ NOVO: Verificar expiração automática
+    if (agora > fim) {
+      console.log('⏰ Torneio expirou automaticamente. Finalizando...');
+      await torneio.update({ status: 'finalizado' });
+      
+      // Congelar rankings de todas as disciplinas
+      const disciplinas = ['Matemática', 'Inglês', 'Programação'];
+      for (const disciplina of disciplinas) {
+        try {
+          await ParticipanteTorneio.congelarRanking(torneio.id, disciplina);
+        } catch (e) {
+          console.warn(`Aviso ao congelar ${disciplina}:`, e.message);
+        }
+      }
+
+      return res.json({
+        success: true,
+        ativo: false,
+        expirou_automaticamente: true,
+        message: 'Torneio expirou e foi finalizado automaticamente'
+      });
+    }
+
     const dentroDoPeriodo = agora >= inicio && agora <= fim;
+
+    // ✅ CORRIGIDO: Serializar manualmente em vez de usar toJSON()
+    const torneioData = {
+      id: torneio.id,
+      titulo: torneio.titulo,
+      descricao: torneio.descricao,
+      slug: torneio.slug,
+      inicia_em: torneio.inicia_em ? new Date(torneio.inicia_em).toISOString() : null,
+      termina_em: torneio.termina_em ? new Date(torneio.termina_em).toISOString() : null,
+      status: torneio.status,
+      criado_por: torneio.criado_por,
+      tipo_torneio: torneio.tipo_torneio,
+      disciplina_especifica: torneio.disciplina_especifica
+    };
 
     res.json({
       success: true,
-      ativo: true,
+      ativo: dentroDoPeriodo,
       dentroDoPeriodo,
-      torneio,
+      torneio: torneioData,
       mensagem: dentroDoPeriodo ?
         'Torneio ativo e em andamento' :
         'Torneio marcado como ativo mas fora do período programado'
     });
   } catch (error) {
     console.error('❌ Erro ao verificar torneio ativo:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ✅ NOVO: 1.5 Obter disciplinas disponíveis do torneio ativo
+app.get('/api/torneios/ativo/disciplinas', async (req, res) => {
+  try {
+    const agora = new Date();
+
+    // Buscar torneio ativo
+    const torneio = await Torneio.findOne({
+      where: { status: 'ativo' },
+      order: [['inicia_em', 'DESC']]
+    });
+
+    if (!torneio) {
+      console.log('ℹ️  Nenhum torneio ativo encontrado');
+      return res.json({
+        success: true,
+        disciplinas: [],
+        tipo_torneio: null,
+        message: 'Nenhum torneio ativo'
+      });
+    }
+
+    console.log('🔍 Torneio ativo:', {
+      id: torneio.id,
+      titulo: torneio.titulo,
+      tipo: torneio.tipo_torneio,
+      disciplina_especifica: torneio.disciplina_especifica
+    });
+
+    // Verificar expiração
+    const inicio = new Date(torneio.inicia_em);
+    const fim = new Date(torneio.termina_em);
+    
+    console.log('📅 Verificando período:', {
+      inicio: inicio.toISOString(),
+      fim: fim.toISOString(),
+      agora: agora.toISOString(),
+      expirou: agora > fim
+    });
+
+    if (agora > fim) {
+      console.log('⏰ Torneio expirou');
+      return res.json({
+        success: true,
+        disciplinas: [],
+        tipo_torneio: torneio.tipo_torneio,
+        expirou: true,
+        message: 'Torneio expirou'
+      });
+    }
+
+    if (agora < inicio) {
+      console.log('⏰ Torneio ainda não iniciou');
+      return res.json({
+        success: true,
+        disciplinas: [],
+        tipo_torneio: torneio.tipo_torneio,
+        ainda_nao_iniciou: true,
+        message: 'Torneio ainda não iniciou'
+      });
+    }
+
+    // ✅ CORRIGIDO: Determinar disciplinas baseado no tipo
+    let disciplinasParaVerificar = [];
+
+    if (torneio.tipo_torneio === 'especifico' && torneio.disciplina_especifica) {
+      // Apenas disciplina específica
+      disciplinasParaVerificar = [torneio.disciplina_especifica];
+      console.log('🔒 Torneio específico para:', torneio.disciplina_especifica);
+    } else {
+      // Genérico: todas as disciplinas
+      disciplinasParaVerificar = ['Matemática', 'Inglês', 'Programação'];
+      console.log('🌐 Torneio genérico: verificando todas as disciplinas');
+    }
+
+    // ✅ CORRIGIDO: Verificar quais disciplinas têm blocos de questões
+    const disciplinasComBlocos = [];
+
+    for (const disciplina of disciplinasParaVerificar) {
+      const mapeoDisciplina = {
+        'Matemática': 'matematica',
+        'Inglês': 'ingles',
+        'Programação': 'programacao'
+      };
+
+      const disciplinaBloco = mapeoDisciplina[disciplina];
+      
+      // ✅ CORRIGIDO: NÃO filtrar por torneio_id (blocos não estão vinculados a torneio no BD)
+      const blocos = await BlocoQuestoes.findAll({
+        where: {
+          disciplina: disciplinaBloco,
+          status: 'publicado'
+        },
+        limit: 1
+      });
+
+      console.log(`  📋 Disciplina "${disciplina}": ${blocos.length} bloco(s) publicado(s)`);
+
+      if (blocos.length > 0) {
+        disciplinasComBlocos.push(disciplina);
+      }
+    }
+
+    console.log('✅ Disciplinas com blocos:', disciplinasComBlocos);
+
+    res.json({
+      success: true,
+      torneio_id: torneio.id,
+      tipo_torneio: torneio.tipo_torneio,
+      disciplina_especifica: torneio.disciplina_especifica || null,
+      disciplinas: disciplinasComBlocos,
+      message: `${disciplinasComBlocos.length} disciplina(s) disponível(eis)`
+    });
+  } catch (error) {
+    console.error('❌ Erro ao obter disciplinas:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

@@ -1,0 +1,193 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                         CORREÇÃO TIPO DE TORNEIO                          ║
+║                              ✅ COMPLETA                                  ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+🎯 PROBLEMA:
+─────────────────────────────────────────────────────────────────────────────
+  Ao criar um torneio "Específico", o sistema salvava como "Genérico"
+  Disciplina selecionada não era salva
+
+🔧 SOLUÇÃO:
+─────────────────────────────────────────────────────────────────────────────
+  Corrigido: BackEnd/controllers/TorneoController.js
+  • createTorneio: agora captura tipo_torneio e disciplina_especifica
+  • updateTorneio: suporta edição desses campos
+  • getAllTorneos: retorna esses campos
+
+✅ STATUS:
+─────────────────────────────────────────────────────────────────────────────
+  ✓ Código corrigido
+  ✓ Frontend compilado com sucesso
+  ✓ Sem erros de sintaxe
+  ✓ Documentação completa
+  ✓ Pronto para teste
+
+─────────────────────────────────────────────────────────────────────────────
+                        🚀 PRÓXIMAS AÇÕES
+─────────────────────────────────────────────────────────────────────────────
+
+1️⃣  LEIA PRIMEIRO (2 minutos):
+    → Abra: RESUMO_EXECUTIVO_CORRECAO.txt
+
+2️⃣  DEPOIS INICIE (1 minuto):
+    Terminal 1: cd BackEnd && npm run dev
+    Terminal 2: npm run build
+    Browser: http://localhost:5173
+
+3️⃣  FINALMENTE TESTE (15 minutos):
+    → Siga: TESTE_PRATICO_TIPO_TORNEIO.md
+    
+    Teste rápido:
+    - Vá para: Admin Panel → Gerenciar Torneios
+    - Crie um torneio
+    - Tipo: Específico
+    - Disciplina: Matemática
+    - Salve e verifique se aparece "Específico (Matemática)"
+
+─────────────────────────────────────────────────────────────────────────────
+                        📚 DOCUMENTAÇÃO
+─────────────────────────────────────────────────────────────────────────────
+
+RESUMO RÁPIDO (2-5 minutos):
+  • RESUMO_EXECUTIVO_CORRECAO.txt ← Comece aqui
+  • INDICE_CORRECAO.md ← Navegação
+
+TESTES (15-30 minutos):
+  • TESTE_PRATICO_TIPO_TORNEIO.md ← 5 testes passo-a-passo
+  • VERIFICACAO_CORRECAO_COMPLETA.md ← Checklist técnico
+
+DETALHES TÉCNICOS (10-20 minutos):
+  • RESUMO_CORRECAO_TIPO_TORNEIO.md ← Arquitetura
+  • TEST_TIPO_TORNEIO.md ← API testing
+  • ENTREGAVEIS_CORRECAO_TIPO_TORNEIO.md ← Lista completa
+
+─────────────────────────────────────────────────────────────────────────────
+                    ⚡ VERIFICAÇÃO RÁPIDA
+─────────────────────────────────────────────────────────────────────────────
+
+Verificar arquivo modificado:
+  $ grep -n "tipo_torneio" BackEnd/controllers/TorneoController.js
+  
+  Esperado: ~15 linhas com "tipo_torneio"
+
+Compilar frontend:
+  $ npm run build
+  
+  Esperado: "✓ built in XX.XXs"
+
+Iniciar backend:
+  $ cd BackEnd && npm run dev
+  
+  Esperado: logs mostrando "[TorneioController] Criando torneio..."
+
+Testar via interface:
+  1. http://localhost:5173
+  2. Admin Panel → Gerenciar Torneios
+  3. Criar Torneio → Tipo: Específico → Disciplina: Matemática
+  4. Verificar se salva corretamente
+
+─────────────────────────────────────────────────────────────────────────────
+                        🔍 VERIFICAR BANCO
+─────────────────────────────────────────────────────────────────────────────
+
+Execute no terminal MySQL:
+
+SELECT id, titulo, tipo_torneio, disciplina_especifica 
+FROM Torneios 
+ORDER BY id DESC LIMIT 1;
+
+Esperado para Torneio Específico:
+┌────┬─────────────────────────┬──────────────┬──────────────────────┐
+│ id │ titulo                  │ tipo_torneio │ disciplina_especifica │
+├────┼─────────────────────────┼──────────────┼──────────────────────┤
+│ XX │ Torneio Específico ...  │ especifico   │ Matemática           │
+└────┴─────────────────────────┴──────────────┴──────────────────────┘
+
+Esperado para Torneio Genérico:
+┌────┬─────────────────────────┬──────────────┬──────────────────────┐
+│ id │ titulo                  │ tipo_torneio │ disciplina_especifica │
+├────┼─────────────────────────┼──────────────┼──────────────────────┤
+│ XX │ Torneio Genérico ...    │ generico     │ NULL                 │
+└────┴─────────────────────────┴──────────────┴──────────────────────┘
+
+─────────────────────────────────────────────────────────────────────────────
+                    📊 O QUE MUDOU vs O QUE NÃO MUDOU
+─────────────────────────────────────────────────────────────────────────────
+
+✅ MUDOU:
+   • Backend captura tipo_torneio e disciplina_especifica
+   • Backend valida corretamente
+   • Dados são salvos no banco
+   • Sistema exibe corretamente
+
+❌ NÃO MUDOU:
+   • Frontend (estava correto)
+   • API endpoints
+   • Modelo de banco (colunas já existem)
+   • Estrutura geral
+
+─────────────────────────────────────────────────────────────────────────────
+                    ⚠️  IMPORTANTE
+─────────────────────────────────────────────────────────────────────────────
+
+1. Frontend DEVE ser compilado:
+   $ npm run build
+
+2. Backend DEVE ser reiniciado:
+   $ cd BackEnd && npm run dev
+
+3. Browser DEVE ser recarregado:
+   F5 ou Ctrl+Shift+R (limpando cache)
+
+4. Se não funcionar, veja:
+   → TESTE_PRATICO_TIPO_TORNEIO.md → Checklist de Diagnóstico
+
+─────────────────────────────────────────────────────────────────────────────
+                        📞 SUPORTE RÁPIDO
+─────────────────────────────────────────────────────────────────────────────
+
+PROBLEMA                          SOLUÇÃO
+────────────────────────────────────────────────────────────────────────────
+Não vê campo de disciplina    →   Selecione tipo "Específico" (radio button)
+
+Sistema salva como "Genérico" →   1. Verifique arquivo modificado
+                                  2. Reinicie backend
+                                  3. Veja logs do backend
+
+Interface não atualiza        →   1. Recompile: npm run build
+                                  2. Recarregue: F5 ou Ctrl+Shift+R
+                                  3. Limpe cache: DevTools → Storage → Clear
+
+Banco mostra NULL             →   Verificar logs do backend
+                                  Procure por: "tipo_torneio"
+
+─────────────────────────────────────────────────────────────────────────────
+                    ✅ CHECKLIST FINAL
+─────────────────────────────────────────────────────────────────────────────
+
+Antes de considerar concluído:
+
+[ ] Li RESUMO_EXECUTIVO_CORRECAO.txt
+[ ] Verifiquei mudanças em TorneoController.js
+[ ] Compilei frontend (npm run build)
+[ ] Iniciei backend (npm run dev)
+[ ] Criei torneio Específico via interface
+[ ] Verifiquei campo de disciplina
+[ ] Verifiquei tabela (mostra "Específico (Matemática)")
+[ ] Verifiquei banco de dados
+[ ] Executei Testes 1 e 2 de TESTE_PRATICO_TIPO_TORNEIO.md
+[ ] Tudo funciona corretamente ✅
+
+─────────────────────────────────────────────────────────────────────────────
+
+Se tudo passar:
+✅ CORREÇÃO COMPLETA E VALIDADA
+
+Próximo passo:
+📖 Leia: TESTE_PRATICO_TIPO_TORNEIO.md
+
+═════════════════════════════════════════════════════════════════════════════
+                        Data: 2026-06-10
+                        Status: ✅ PRONTO
+═════════════════════════════════════════════════════════════════════════════

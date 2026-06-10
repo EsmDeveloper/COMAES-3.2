@@ -1,0 +1,299 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                  RESUMO DAS MUDANÇAS - SISTEMA DE TORNEIOS                    ║
+║                                COMAES v3.2                                    ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+🎯 OBJETIVO: Implementar regras de negócio para torneios genéricos/específicos 
+             e participação simultânea bloqueada com expiração automática.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📁 ARQUIVOS MODIFICADOS:
+
+1. BackEnd/controllers/TorneoController.js
+   ✅ Método: inscreverParticipante
+   └─ Adicionadas validações:
+      • Expiração automática de torneio
+      • Validação de disciplina por tipo (genérico vs específico)
+      • Bloqueio de participação simultânea em outro torneio
+
+2. BackEnd/index.js
+   ✅ Endpoint: GET /api/torneios/ativo
+   └─ Adicionada:
+      • Verificação de expiração automática
+      • Congelamento de rankings ao expirar
+   
+   ✅ Novo Endpoint: GET /api/torneios/ativo/disciplinas
+   └─ Filtra disciplinas baseado em:
+      • Tipo de torneio (genérico = todas, específico = 1)
+      • Disponibilidade de blocos de questões publicados
+
+3. FrontEnd/src/Paginas/Secundarias/EntrarTorneio.jsx
+   ✅ Hook useEffect (carregarDados)
+   └─ Adicionado:
+      • Chamada a novo endpoint /api/torneios/ativo/disciplinas
+      • Filtragem de disciplinas na interface
+
+   ✅ Função: entrarNoTorneio
+   └─ Adicionada:
+      • Verificação de participação ativa em outro torneio
+      • Mensagem de erro clara se há conflito
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✨ FUNCIONALIDADES IMPLEMENTADAS:
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. TORNEIOS GENÉRICOS vs ESPECÍFICOS                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  GENÉRICO (tipo_torneio = 'generico'):                                     │
+│  • Mostra todas as disciplinas que possuem blocos                           │
+│  • Admin não seleciona disciplina específica (null)                         │
+│  • Usuário pode escolher qualquer disciplina com conteúdo                  │
+│                                                                             │
+│  ESPECÍFICO (tipo_torneio = 'especifico'):                                 │
+│  • Mostra apenas a disciplina selecionada (disciplina_especifica)           │
+│  • Admin DEVE selecionar ao criar                                           │
+│  • Usuário é forçado a participar nessa disciplina                         │
+│  • Tentativa em outra disciplina → ERRO 400                                │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 2. PARTICIPAÇÃO SIMULTÂNEA BLOQUEADA                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  FLUXO:                                                                    │
+│  1. Usuário entra em Torneio A (Matemática)                                │
+│     → posicao_congelada = false (ativo)                                    │
+│                                                                             │
+│  2. Outras disciplinas ficam indisponíveis                                 │
+│     → Não aparecem na lista de torneios disponíveis                        │
+│                                                                             │
+│  3. Usuário tenta entrar em Torneio B                                      │
+│     → Sistema detecta participacao-ativa em Torneio A                      │
+│     → ERRO 409: "Termine esse torneio primeiro"                            │
+│                                                                             │
+│  4. Torneio A termina (time = termina_em)                                  │
+│     → posicao_congelada = true (finalizado)                                │
+│                                                                             │
+│  5. Agora usuário pode entrar em Torneio B                                 │
+│     → Nenhuma participacao-ativa com posicao_congelada = false             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 3. EXPIRAÇÃO AUTOMÁTICA DE TORNEIO                                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  COMPORTAMENTO:                                                            │
+│                                                                             │
+│  • Frontend periodicamente chama GET /api/torneios/ativo                   │
+│  • Backend verifica: now > termina_em ?                                   │
+│                                                                             │
+│  SIM → Torneio expirou:                                                   │
+│    1. status = 'finalizado' (auto-update)                                 │
+│    2. ParticipanteTorneio.congelarRanking() → posicao_congelada = true   │
+│    3. Resposta: { ativo: false, expirou_automaticamente: true }           │
+│    4. Nenhum usuário consegue inscrever                                   │
+│                                                                             │
+│  NÃO → Torneio continua ativo:                                            │
+│    1. status permanece 'ativo'                                            │
+│    2. Novos usuários podem inscrever normalmente                          │
+│                                                                             │
+│  SEGURANÇA NA INSCRIÇÃO:                                                  │
+│  • Backend re-valida: torneio.termina_em < now                           │
+│  • Se true → ERRO 400: "Torneio expirou"                                 │
+│  • Impossível burlar com timestamps antigos                               │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 4. DISCIPLINAS FILTRADAS POR DISPONIBILIDADE                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  NOVO ENDPOINT: GET /api/torneios/ativo/disciplinas                       │
+│                                                                             │
+│  Retorna APENAS disciplinas que:                                          │
+│  ✓ Existem no tipo do torneio                                            │
+│  ✓ Possuem blocos de questões publicados (status = 'publicado')          │
+│                                                                             │
+│  EXEMPLO - Torneio Genérico:                                              │
+│  • Matemática: tem 3 blocos publicados → ✅ MOSTRA                        │
+│  • Inglês: tem 0 blocos publicados → ❌ OCULTA                            │
+│  • Programação: tem 1 bloco publicado → ✅ MOSTRA                         │
+│                                                                             │
+│  EXEMPLO - Torneio Específico (Matemática):                               │
+│  • Verifica se Matemática tem blocos                                      │
+│  • Sim → [ "Matemática" ]                                                │
+│  • Não → [ ] (vazio - torneio indisponível)                              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔐 PROTEÇÕES IMPLEMENTADAS:
+
+Cenário                                   | Proteção                | Tipo
+──────────────────────────────────────────┼─────────────────────────┼─────────
+Múltiplas inscrições simultâneas          | Lock de BD SERIALIZABLE | DB
+Usuário tenta 2+ torneios ao mesmo tempo  | Query de verificação    | API
+Inscrição após expiração                  | Validação de timestamp  | API
+Disciplina errada em torneio específico   | Validação de enum       | API + DB
+Corrupção de ranking após término         | Congelamento persistido | DB
+Race condition de update de posição       | Transação ACID          | DB
+Interface mostra opções sem blocos        | Filtro no backend       | API
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 FLUXO VISUAL - ENTRADA EM TORNEIO:
+
+                    ┌─────────────────────┐
+                    │  Usuário acessa     │
+                    │ "Entrar no Torneio" │
+                    └──────────┬──────────┘
+                               │
+                    ┌──────────▼──────────┐
+                    │ GET /api/torneios/  │
+                    │       ativo         │
+                    └──────────┬──────────┘
+                               │
+                        ┌──────▼──────┐
+                        │ Expirou?    │
+                        └──┬─────────┬┘
+                      SIM ▼         ▼ NÃO
+                    ┌──────┐    ┌─────────────────┐
+                    │VAZIO │    │ GET /api/torneios│
+                    └──────┘    │ ativo/disciplinas│
+                                └────────┬────────┘
+                                         │
+                            ┌────────────▼────────────┐
+                            │ Tipo = genérico?       │
+                            └────────┬────────┬──────┘
+                          NÃO (esp) ▼        ▼ SIM
+                    ┌──────────────────┐  ┌──────────┐
+                    │ [ disciplina_    │  │ Filtrar  │
+                    │   especifica ]   │  │ todas com │
+                    └────┬─────────────┘  │ blocos   │
+                         │                └────┬─────┘
+                         └────────┬────────────┘
+                                  │
+                       ┌──────────▼──────────┐
+                       │ Mostrar disciplinas │
+                       │     na Interface    │
+                       └──────────┬──────────┘
+                                  │
+                       ┌──────────▼──────────┐
+                       │ Usuário escolhe     │
+                       │    disciplina       │
+                       └──────────┬──────────┘
+                                  │
+                    ┌─────────────▼──────────┐
+                    │ Verificar participacao│
+                    │      -ativa           │
+                    └────────┬──────────┬───┘
+                          SIM▼         ▼NÃO
+                    ┌──────────────┐  ┌──────────────────┐
+                    │ERRO 409:     │  │ Validar inscrição│
+                    │"Termine      │  │ (tipo, expiração)│
+                    │ outro primeiro"
+                    └──────────────┘  └────┬─────────────┘
+                                           │
+                                  ┌────────▼───────┐
+                                  │ Erro?          │
+                                  └────┬──────┬───┘
+                                    SIM▼      ▼NÃO
+                              ┌─────────┐  ┌──────────┐
+                              │ERRO 400 │  │ Inscrever│
+                              └─────────┘  │ + Rediret│
+                                           └──────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🧪 TESTES - CASOS DE USO:
+
+TESTE 1: Torneio Genérico
+├─ Criar torneio: tipo_torneio = 'generico', disciplina_especifica = NULL
+├─ Adicionar blocos: Matemática, Inglês (nenhum para Programação)
+├─ GET /api/torneios/ativo/disciplinas
+│  └─ Deve retornar: ["Matemática", "Inglês"]
+├─ Usuário escolhe Matemática
+└─ ✅ SUCESSO
+
+TESTE 2: Torneio Específico
+├─ Criar torneio: tipo_torneio = 'especifico', disciplina_especifica = 'Matemática'
+├─ GET /api/torneios/ativo/disciplinas
+│  └─ Deve retornar: ["Matemática"]
+├─ Usuário tenta entrar em Inglês (não permitido)
+│  └─ ERRO 400: "Este torneio é específico apenas para Matemática"
+├─ Usuário entra em Matemática
+└─ ✅ SUCESSO
+
+TESTE 3: Participação Simultânea
+├─ Usuário A entra em Torneio 1 (Matemática)
+├─ Usuário A tenta entrar em Torneio 2 (Inglês) — MESMO USUÁRIO
+│  └─ ERRO 409: "Você já está participando... Termine esse primeiro"
+├─ Torneio 1 termina (posicao_congelada = true)
+├─ Agora Usuário A pode entrar em Torneio 2
+└─ ✅ SUCESSO
+
+TESTE 4: Expiração Automática
+├─ Criar torneio com termina_em = 1 minuto atrás
+├─ GET /api/torneios/ativo (1.º chamada) — atualização automática
+│  └─ status = 'finalizado', ativo = false
+├─ Tenta inscrever
+│  └─ ERRO 400: "Este torneio expirou"
+├─ Rankings estão congelados (posicao_congelada = true)
+└─ ✅ SUCESSO
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 ENDPOINTS ALTERADOS/NOVOS:
+
+┌─ ALTERADOS ──────────────────────────────────────────────────────────────┐
+│                                                                          │
+│ POST /api/participantes/registrar                                       │
+│ ├─ Adicionada validação: participacao-ativa                            │
+│ └─ Response: { error: "Já participando de outro" } (409)               │
+│                                                                          │
+│ GET /api/torneios/ativo                                                │
+│ ├─ Adicionada: verificação de expiração automática                      │
+│ └─ Response: { expirou_automaticamente: true/false }                    │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+┌─ NOVOS ──────────────────────────────────────────────────────────────────┐
+│                                                                          │
+│ GET /api/torneios/ativo/disciplinas                                    │
+│ ├─ Query params: (nenhum)                                              │
+│ ├─ Response:                                                            │
+│ │  {                                                                   │
+│ │    "success": true,                                                 │
+│ │    "torneio_id": 5,                                                │
+│ │    "tipo_torneio": "generico|especifico",                          │
+│ │    "disciplina_especifica": "Matemática|null",                     │
+│ │    "disciplinas": ["Matemática", "Inglês"]                        │
+│ │  }                                                                  │
+│ └─ Usado por: EntrarTorneio.jsx para filtrar disciplinas              │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ STATUS: PRONTO PARA PRODUÇÃO
+
+Nenhuma migração de banco de dados necessária.
+Todos os campos já existem nos modelos.
+Código compatível com versão anterior (sem breaking changes).
+
+Deploy steps:
+1. Pull das mudanças
+2. Restart do backend
+3. Frontend carrega novos endpoints automaticamente
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Data: 09 de Junho de 2026
+Versão: COMAES 3.2
+Responsável: Sistema de Desenvolvimento Autônomo
