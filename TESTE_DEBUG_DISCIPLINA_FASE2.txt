@@ -1,0 +1,98 @@
+═══════════════════════════════════════════════════════════════════════════════
+  🔍 TESTE DEBUG - FASE 2 - DISCIPLINA COLABORADOR
+═══════════════════════════════════════════════════════════════════════════════
+
+Ótimas notícias! A disciplina ESTÁ a ser recebida no backend! ✅
+
+Mas encontrei um problema: quando o admin tenta aprovar, o frontend não está 
+reconhecendo a disciplina na modal de aprovação.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+ADICIONEI NOVO DEBUG LOGGING:
+
+Agora vamos ter MUITO mais informação para debugar.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🚀 TESTE AGORA:
+
+1. Frontend já foi rebuildado (47.15s)
+
+2. Abrir DevTools: F12 → Console
+
+3. Ir para AdminPanel → Colaboradores
+
+4. Procurar por logs com:
+   - "📥 [carregar]"
+   - "🔍 [handleAprovar]"
+   - "🔍 [ModalAprovar]"
+
+5. Tentar APROVAR um colaborador
+
+6. ENVIAR PRINT SCREEN DO CONSOLE mostrando TODOS estes logs:
+
+   📥 [carregar] Lista de colaboradores recebida:
+      - Total: ???
+      - Primeiro colaborador:
+        ID: ???
+        Nome: ???
+        disciplina_colaborador: ???
+        Todas as chaves: [...]
+
+   🔍 [ModalAprovar] Colaborador recebido:
+      - ID: ???
+      - Nome: ???
+      - Raw disciplina_colaborador: ???
+      - Tipo: ???
+      - Length: ???
+      - Disciplina após processamento: ???
+      - tem Disciplina?: true/false
+
+   🔍 [handleAprovar] Iniciado:
+      - Colaborador ID: ???
+      - Nome: ???
+      - disciplina_colaborador raw: ???
+      - Disciplina após trim: ???
+      - Comprimento: ???
+      - isEmpty?: true/false
+
+═══════════════════════════════════════════════════════════════════════════════
+
+ISTO VAI REVELAR EXACTAMENTE:
+
+1. Se o servidor está enviando a disciplina correctamente
+2. Se o frontend está recebendo
+3. Se o objeto tem o campo disciplina_colaborador
+4. Qual é o formato exacto (string? null? undefined?)
+5. Porque é que o trim() não funciona
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PRINT SCREEN IMPORTANTE:
+
+Clicar em F12 → Console (na aba de DevTools)
+
+Depois clicar "Aprovar" num colaborador pendente
+
+Aguardar que a Modal apareça
+
+Fazer screenshot COMPLETO do console mostrando TODOS os logs acima
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PASSO-A-PASSO RÁPIDO:
+
+1. npm run dev (FrontEnd - já deve estar a rodar)
+2. npm start (BackEnd - já deve estar a rodar)
+3. Browser: http://localhost:5175
+4. Login como admin
+5. Ir para AdminPanel
+6. Clicar em "Gestão de Colaboradores"
+7. Procurar um colaborador "Pendente"
+8. Abrir DevTools (F12)
+9. Clicar botão "Aprovar" (verde, checkmark)
+10. Tirar print screen do console mostrando todos os logs
+11. Enviar para developer
+
+═══════════════════════════════════════════════════════════════════════════════

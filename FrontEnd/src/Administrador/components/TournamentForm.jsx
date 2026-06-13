@@ -261,6 +261,14 @@ export default function TournamentForm({
       if (field === 'titulo' && mode === 'create') {
         updated.slug = TournamentValidation.generateSlug(value);
       }
+      // ✅ DEBUG: Log quando tipo_torneio muda
+      if (field === 'tipo_torneio') {
+        console.log('[TournamentForm] tipo_torneio alterado:', {
+          anterior: prev.tipo_torneio,
+          novo: value,
+          timestamp: new Date().toISOString()
+        });
+      }
       return updated;
     });
 
@@ -357,6 +365,16 @@ export default function TournamentForm({
       // Blocos selecionados (apenas em modo criação — edição persiste em tempo real)
       _blocosParaAssociar: mode === 'create' ? blocosAssociados : [],
     };
+
+    // ✅ DEBUG: Log detalhado do payload
+    console.log('[TournamentForm] ✅ Validação passou! Payload completo:', {
+      tipo_torneio_no_formdata: formData.tipo_torneio,
+      tipo_torneio_no_payload: payload.tipo_torneio,
+      disciplina_no_formdata: formData.disciplina_especifica,
+      disciplina_no_payload: payload.disciplina_especifica,
+      mode,
+      payload
+    });
 
     console.log('[TournamentForm] Enviando payload:', payload);
     onSubmit(payload);

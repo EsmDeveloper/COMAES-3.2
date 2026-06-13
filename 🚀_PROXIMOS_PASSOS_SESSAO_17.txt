@@ -1,0 +1,142 @@
+═══════════════════════════════════════════════════════════════════════════════
+  🚀 PRÓXIMOS PASSOS - SESSÃO 17
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ O QUE FOI CONCLUÍDO:
+
+1. Frontend build finalizado com sucesso (27.97s)
+2. Responsive design implementado no ColaboradoresTab
+3. Backend debug logging adicionado para Task 1
+4. Frontend debug logging adicionado para Task 1
+5. Middleware order corrigido para multer/sanitizer
+
+═══════════════════════════════════════════════════════════════════════════════
+
+⏳ O QUE AGORA PRECISA FAZER:
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 TESTE 1: VERIFICAR SE DISCIPLINA ESTÁ A CHEGAR AO BACKEND
+
+Arquivo de instruções: ULTIMATUM_RESOLVENDO_DE_VERDADE.txt
+
+Resumo (10 minutos):
+
+1. Abrir Terminal 1:
+   cd BackEnd
+   npm start
+   (esperar até ver "Servidor rodando em http://localhost:3001")
+
+2. Abrir Terminal 2:
+   cd FrontEnd
+   npm run dev
+   (esperar até ver "Local: http://localhost:5175")
+
+3. Browser:
+   Abrir http://localhost:5175
+   Ir para "Registar-se como Colaborador"
+   
+4. Preencher TODOS os campos:
+   - Nome: "Teste Debug Nome"
+   - Username: "teste_debug_123"
+   - Email: "teste_debug@debug.com"
+   - Disciplina: **SELECIONAR UMA** (ex: "Matemática")
+   - Género: "Masculino"
+   - Data: "15/01/1990"
+   - Nível: "Licenciado"
+   - Biografia: "Esta é uma biografia com mais de trinta caracteres para passar na validação."
+   - Senha: "Test@Pass123"
+   - Confirmar: "Test@Pass123"
+
+5. Clicar: "✓ Enviar Candidatura para Análise do Admin"
+
+6. Verificar 3 coisas:
+
+   A) Browser Console (F12):
+      - Procurar por: "🔍 ════════════"
+      - Procurar por: "📤 PREPARANDO FORMDATA"
+      - Procurar por: "area_especialidade:"
+      PRINT SCREEN DESTA PARTE!
+
+   B) Terminal Backend:
+      - Procurar por: "🚨 ════════════"
+      - Procurar por: "📥 REGISTO COLABORADOR"
+      - Procurar por: "🔍 area_especialidade recebida:"
+      - Ver o VALOR (ex: "area_especialidade recebida: 'matematica'")
+      PRINT SCREEN DESTA PARTE!
+
+   C) Browser Result:
+      - Ver mensagem "Sucesso! Candidatura enviada" ou erro
+      PRINT SCREEN!
+
+7. Terminal 3:
+   node BackEnd/diagnostico_completo.js
+   Ver se novo colaborador "Teste Debug Nome" aparece COM disciplina
+   PRINT SCREEN!
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📸 ENVIAR EXATAMENTE 4 PRINT SCREENS:
+
+1. Browser Console (F12) - mostrando FormData
+2. Terminal Backend - mostrando "area_especialidade recebida: ???"
+3. Browser - resultado (sucesso ou erro)
+4. diagnostico_completo.js - novo colaborador verificado
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🧪 TESTE 2: TESTAR RESPONSIVIDADE (APÓS CONFIRMAR TESTE 1)
+
+Se Teste 1 passar:
+
+1. Abrir FrontEnd dev server (já deve estar aberto):
+   http://localhost:5175
+
+2. Abrir DevTools: F12 → Clique na aba "Device Toggle" (ícone de telemóvel)
+
+3. Testar em múltiplas resoluções:
+   
+   📱 iPhone SE (375px):
+      - [ ] Search box não overfloaa
+      - [ ] Botões têm tamanho apropriado
+      - [ ] Stats filter é scrollável
+      - [ ] Tabela legível
+   
+   📱 iPhone 12 (390px):
+      - [ ] Tudo igual a cima
+   
+   📊 iPad (768px):
+      - [ ] Layout mais espaçoso
+      - [ ] Tabela com mais colunas
+      - [ ] Modals acessíveis
+   
+   🖥️ Desktop (1440px):
+      - [ ] Layout completo
+      - [ ] Sem problemas de escala
+
+4. Se ver algo errado:
+   - Tirar screenshot
+   - Notar a resolução
+   - Descrever o problema
+   - Enviar feedback
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📋 CHECKLIST DE PRONTO
+
+Antes de enviar feedback, verificar:
+
+[ ] Frontend build concluído (27.97s)
+[ ] Backend a rodar sem erros
+[ ] Frontend a rodar sem erros
+[ ] Teste 1 executado (4 print screens)
+[ ] Teste 2 executado (resoluções múltiplas)
+[ ] Nenhuma mensagem de erro no console
+
+═══════════════════════════════════════════════════════════════════════════════
+
+❓ PERGUNTAS?
+
+Arquivo completo de documentação: SESSAO_17_STATUS_COMPLETO.md
+
+═══════════════════════════════════════════════════════════════════════════════

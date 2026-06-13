@@ -1,0 +1,63 @@
+═══════════════════════════════════════════════════════════════════════════════
+  🔍 DEBUG APROVAÇÃO - ERRO ENCONTRADO
+═══════════════════════════════════════════════════════════════════════════════
+
+ADICIONEI MAIS DEBUG LOGGING ao backend!
+
+Build: ✅ 15.38s
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📋 TESTES AGORA (PARA DEBUGAR O ERRO):
+
+1. SEM RELOAD DO FRONTEND
+   (Use o frontend que já foi buildado - não precisa F5)
+
+2. ABRIR DOIS TERMINAIS:
+
+   TERMINAL 1 (Backend):
+   cd BackEnd
+   npm start
+   
+   TERMINAL 2 (Observar):
+   (Deixar aberto para ver os logs)
+
+3. NO BROWSER - AdminPanel → Colaboradores
+
+4. CLICAR "APROVAR" num colaborador pendente
+
+5. OBSERVAR TERMINAL 1 - PROCURAR POR:
+
+   🔍 [aprovarColaborador] Iniciado:
+      ID do colaborador: ???
+      Disciplina recebida: ???
+      Tipo da disciplina: ???
+      Req.body completo: ???
+      
+   Se passar:
+      ✅ Validação disciplina passou
+      ✅ Todas as validações passaram
+      ✅ Colaborador aprovado
+      
+   Se falhar:
+      ❌ [aprovarColaborador] Erro: ???
+      Stack: ???
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📸 ENVIAR PRINT SCREEN:
+
+Do terminal backend mostrando:
+  - 🔍 [aprovarColaborador] logs COMPLETOS
+  - Se houver erro, STACK TRACE completo
+
+═══════════════════════════════════════════════════════════════════════════════
+
+ISTO VAI REVELAR:
+
+1. Se a disciplina está a ser enviada pelo frontend
+2. Qual é o valor exacto
+3. Se há erro no backend
+4. Qual é o erro se houver
+
+═══════════════════════════════════════════════════════════════════════════════

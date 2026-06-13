@@ -450,7 +450,7 @@ const TableManager = ({ table }) => {
                     {(!isUserTable || isMasterAdmin) && (
                     <button
                         onClick={handleAdd}
-                        className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2 whitespace-nowrap"
+                        className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2 whitespace-nowrap"
                     >
                         <Plus className="w-5 h-5" />
                         <span>Adicionar {info.title.slice(0, -1)}</span>

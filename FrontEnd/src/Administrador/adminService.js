@@ -86,11 +86,11 @@ const adminService = (token) => {
 
         // Suspender colaborador
         suspenderColaborador: (id) =>
-            apiClient.patch(`../colaboradores/${id}/suspender`).then(res => res.data),
+            apiClient.patch(`colaboradores/${id}/suspender`).then(res => res.data),
 
         // Obter documentos do colaborador
         getDocumentos: (id) =>
-            apiClient.get(`../colaboradores/${id}/documentos`).then(res => res.data),
+            apiClient.get(`colaboradores/${id}/documentos`).then(res => res.data),
     };
 
     // proxy allows accessing services via property access (e.g. svc.users)

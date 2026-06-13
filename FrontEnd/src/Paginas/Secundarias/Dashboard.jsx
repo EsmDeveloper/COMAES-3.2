@@ -56,7 +56,7 @@ const cardStyle = {
   borderRadius: '16px',
   border: `1px solid ${tokens.border}`,
   boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-  padding: '20px',
+  padding: 'max(12px, min(3vw, 20px))',
   transition: 'all 0.2s ease',
 };
 
@@ -480,6 +480,11 @@ function Dashboard() {
         .dash-fade {
           animation: fadeIn 0.3s ease both;
         }
+        @media (max-width: 768px) {
+          .dash-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
       `}</style>
 
       <div style={{ maxWidth: 1400, margin: '0 auto' }}>
@@ -546,43 +551,43 @@ function Dashboard() {
         </div>
 
         {/* ── Key Metrics Grid ── */}
-        <div className="dash-fade" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 32 }}>
+        <div className="dash-fade" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px 16px', marginBottom: 32 }}>
           <StatCard
             title="Torneios"
             value={userData.tournamentsPlayed}
             icon={<Trophy size={20} />}
-            accent={tokens.primary}
-            accentSoft={tokens.primarySoft}
+            accent="#2563EB"
+            accentSoft="#DBEAFE"
             subtext="Total de participações"
           />
           <StatCard
             title="Vitórias"
             value={userData.tournamentsWon}
             icon={<CheckCircle2 size={20} />}
-            accent={tokens.success}
-            accentSoft={tokens.successSoft}
+            accent="#4F46E5"
+            accentSoft="#E0E7FF"
             subtext="Primeiros lugares"
           />
           <StatCard
             title="Pontos"
             value={userData.totalPoints.toLocaleString()}
             icon={<Star size={20} />}
-            accent={tokens.purple}
-            accentSoft={tokens.purpleSoft}
+            accent="#0891B2"
+            accentSoft="#CFFAFE"
             subtext="Pontos acumulados"
           />
           <StatCard
             title="Precisão"
             value={`${userData.averageAccuracy}%`}
             icon={<Target size={20} />}
-            accent={tokens.amber}
-            accentSoft={tokens.amberSoft}
+            accent="#1E40AF"
+            accentSoft="#EFF6FF"
             subtext="Média geral"
           />
         </div>
 
         {/* ── Main Content Grid ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, marginBottom: 32 }}>
+        <div className="dash-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '16px 24px', marginBottom: 32 }}>
           {/* Left Column - Charts and Recent Tournaments */}
           <div className="dash-fade">
             {/* Progress Chart */}

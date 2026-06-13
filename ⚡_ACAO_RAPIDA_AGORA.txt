@@ -1,0 +1,53 @@
+═══════════════════════════════════════════════════════════════════════════════
+  ⚡ AÇÃO RÁPIDA (5 MINUTOS)
+═══════════════════════════════════════════════════════════════════════════════
+
+A disciplina ESTÁ A FUNCIONAR! 
+
+Mas há um pequeno problema na aprovação que vamos debugar AGORA.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 FAÇA ISTO AGORA (SEM ESPERAR):
+
+1️⃣ ABRIR DevTools
+   Browser → F12 → Console
+
+2️⃣ IR PARA AdminPanel
+   Já logged in como admin?
+   Sim: Clicar em "Gestão de Colaboradores"
+   Não: Login primeiro
+
+3️⃣ PROCURAR COLABORADOR PENDENTE
+   Ver a lista de colaboradores
+   Procurar um com status "Pendente"
+   (ex: "SFse", "Teste Debug Nome", ou outro)
+
+4️⃣ CLICAR "APROVAR"
+   Clicar no botão verde com ✓
+   (ou no ícone de thumbs up se em mobile)
+
+5️⃣ FAZER PRINT SCREEN
+   IMPORTANTE: Print screen do DevTools Console
+   Procurar por:
+   - 📥 [carregar]
+   - 🔍 [ModalAprovar]
+   - 🔍 [handleAprovar]
+
+6️⃣ ENVIAR PARA DEVELOPER
+   Print screen do console
+   + Mensagem: "Aqui estão os logs do debug"
+
+═══════════════════════════════════════════════════════════════════════════════
+
+⏱️ TEMPO: ~5 minutos
+
+Isto vai resolver RÁPIDO!
+
+═══════════════════════════════════════════════════════════════════════════════
+
+❓ DÚVIDAS?
+
+Ver ficheiro: TESTE_DEBUG_DISCIPLINA_FASE2.txt
+
+═══════════════════════════════════════════════════════════════════════════════

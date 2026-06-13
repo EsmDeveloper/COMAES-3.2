@@ -42,12 +42,12 @@ const overviewCards = [
     description: "Resolva desafios práticos que estimulam o raciocínio e o aprendizado.",
   },
   {
-    icon: <FaHeadset className="text-3xl text-blue-600" />,
+    icon: <FaHeadset className="text-3xl text-indigo-600" />,
     title: "Suporte",
     description: "Obtenha ajuda rápida sempre que precisar durante a utilização da plataforma.",
   },
   {
-    icon: <FaBullhorn className="text-3xl text-blue-600" />,
+    icon: <FaBullhorn className="text-3xl text-cyan-600" />,
     title: "Ranking",
     description: "Veja sua posição entre os participantes e acompanhe os melhores resultados.",
   },
@@ -60,18 +60,18 @@ const overviewCards = [
 
 const recompensasCards = [
   {
-    icon: <FaMedal className="text-3xl text-yellow-500" />,
+    icon: <FaMedal className="text-3xl text-blue-600" />,
     title: "Modelo Original",
     description:
       "Os 3 melhores recebem Certificado de Mérito Oficial da Comaes.",
   },
   {
-    icon: <FaCrown className="text-3xl text-purple-600" />,
+    icon: <FaCrown className="text-3xl text-indigo-600" />,
     title: "Prêmios por Ranking",
     description: "Jogadores disputam posições globais e acumulam pontos.",
   },
   {
-    icon: <FaMoneyBillWave className="text-3xl text-green-600" />,
+    icon: <FaMoneyBillWave className="text-3xl text-cyan-600" />,
     title: "Modelo Prêmio",
     description:
       "Em desafios especiais, os 3 primeiros recebem prémio em dinheiro.",
@@ -239,7 +239,7 @@ export default function Home() {
           <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-6 sm:mb-8">
             Nossa Plataforma
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
             {overviewCards.map((card, index) => (
               <motion.div
                 key={index}
@@ -248,11 +248,11 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-xl shadow-lg p-4 sm:p-6 flex flex-col items-center text-center cursor-pointer"
+                className="bg-white rounded-xl shadow-lg p-3 sm:p-4 md:p-6 flex flex-col items-center text-center cursor-pointer border border-gray-100 hover:border-blue-300 transition-all"
               >
-                <div className="mb-3 sm:mb-4">{card.icon}</div>
-                <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2">{card.title}</h3>
-                <p className="text-sm sm:text-base text-gray-600">{card.description}</p>
+                <div className="mb-2 sm:mb-3 md:mb-4">{card.icon}</div>
+                <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-1 sm:mb-2">{card.title}</h3>
+                <p className="text-xs sm:text-sm md:text-base text-gray-600">{card.description}</p>
               </motion.div>
             ))}
           </div>
@@ -324,7 +324,7 @@ export default function Home() {
             </span>
           </p>
 
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
             {[
               {
                 icon: <FaCalculator className="text-2xl sm:text-3xl text-blue-600" />,
@@ -332,12 +332,12 @@ export default function Home() {
                 description: "Cálculos numéricos, problemas e lógica quantitativa.",
               },
               {
-                icon: <FaLaptopCode className="text-2xl sm:text-3xl text-blue-600" />,
+                icon: <FaLaptopCode className="text-2xl sm:text-3xl text-indigo-600" />,
                 title: "Programação",
                 description: "Algoritmos, lógica computacional e pequenos códigos.",
               },
               {
-                icon: <FaBook className="text-2xl sm:text-3xl text-blue-600" />,
+                icon: <FaBook className="text-2xl sm:text-3xl text-cyan-600" />,
                 title: "Inglês",
                 description: "Vocabulário, gramática e compreensão de textos.",
               },
@@ -349,11 +349,11 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-xl shadow-lg p-4 sm:p-6 text-center cursor-pointer w-full sm:w-56 md:w-60"
+                className="bg-white rounded-xl shadow-lg p-3 sm:p-4 md:p-6 text-center cursor-pointer border border-gray-100 hover:border-blue-300 transition-all"
               >
-                <div className="mb-3 sm:mb-4">{card.icon}</div>
-                <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2">{card.title}</h3>
-                <p className="text-sm sm:text-base text-gray-600">{card.description}</p>
+                <div className="mb-2 sm:mb-3 md:mb-4">{card.icon}</div>
+                <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-1 sm:mb-2">{card.title}</h3>
+                <p className="text-xs sm:text-sm md:text-base text-gray-600">{card.description}</p>
               </motion.div>
             ))}
           </div>
@@ -370,7 +370,7 @@ export default function Home() {
         >
           Recompensas da Comaes
         </motion.h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 lg:gap-8">
           {recompensasCards.map((card, index) => (
             <motion.div
               key={index}
@@ -379,11 +379,11 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.12 }}
-              className="bg-gray-50 p-4 sm:p-6 shadow-lg rounded-xl text-center cursor-pointer"
+              className="bg-white p-3 sm:p-4 md:p-6 shadow-lg rounded-xl text-center cursor-pointer border border-gray-100 hover:border-blue-300 transition-all"
             >
-              <div className="mb-3 sm:mb-4 flex justify-center">{card.icon}</div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2">{card.title}</h3>
-              <p className="text-sm sm:text-base text-gray-600">{card.description}</p>
+              <div className="mb-2 sm:mb-3 md:mb-4 flex justify-center">{card.icon}</div>
+              <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-1 sm:mb-2">{card.title}</h3>
+              <p className="text-xs sm:text-sm md:text-base text-gray-600">{card.description}</p>
             </motion.div>
           ))}
         </div>

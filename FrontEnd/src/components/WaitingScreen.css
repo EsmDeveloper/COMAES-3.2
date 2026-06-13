@@ -407,6 +407,100 @@
   line-height: 1.5;
 }
 
+/* User Data Section */
+.user-data-section {
+  background: linear-gradient(135deg, #f0fdf4 0%, #f0f9ff 100%);
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.user-data-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.user-data-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #065f46;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.user-data-toggle {
+  background: none;
+  border: none;
+  color: #059669;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-data-toggle:hover {
+  background: rgba(5, 150, 105, 0.1);
+  color: #047857;
+}
+
+.user-data-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.data-field {
+  background: white;
+  border: 1px solid #d1fae5;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 13px;
+}
+
+.data-field.full-width {
+  grid-column: 1 / -1;
+}
+
+.data-label {
+  font-size: 11px;
+  color: #059669;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.data-label .inline-icon {
+  font-size: 12px;
+}
+
+.data-value {
+  color: #1f2937;
+  font-weight: 500;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.data-value.biography {
+  max-height: 120px;
+  overflow-y: auto;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
 /* Success Box */
 .success-box {
   background: #ecfdf5;
@@ -484,6 +578,7 @@
   .waiting-content {
     padding: 40px 24px;
     border-radius: 16px;
+    max-width: 95vw;
   }
 
   .waiting-title {
@@ -506,17 +601,36 @@
 
   .status-box,
   .info-box,
-  .tips-box {
-    padding: 16px;
+  .tips-box,
+  .user-data-section {
+    padding: 12px;
   }
 
   .info-title,
-  .tips-title {
+  .tips-title,
+  .user-data-title {
     font-size: 12px;
   }
 
   .info-item,
   .tips-text {
     font-size: 13px;
+  }
+
+  .user-data-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .data-field {
+    padding: 8px;
+  }
+
+  .data-label {
+    font-size: 10px;
+  }
+
+  .data-value {
+    font-size: 12px;
   }
 }

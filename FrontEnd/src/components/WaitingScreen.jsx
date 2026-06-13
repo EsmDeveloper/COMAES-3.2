@@ -1,20 +1,63 @@
 import { useState, useEffect } from 'react';
-import { Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Clock, CheckCircle, AlertCircle, Eye, EyeOff, Mail, Phone, GraduationCap, Calendar, BookOpen, FileText } from 'lucide-react';
+import useSocketColaboradorStatus from '../hooks/useSocketColaboradorStatus';
 import './WaitingScreen.css';
 
 const WaitingScreen = ({ userEmail, onApproved, onRejected }) => {
   const [status, setStatus] = useState('waiting'); // waiting, approved, rejected
   const [message, setMessage] = useState('');
   const [checkCount, setCheckCount] = useState(0);
+  const [userData, setUserData] = useState(null);
+  const [showDetails, setShowDetails] = useState(true);
+
+  // Socket.IO para atualizações em tempo real
+  useSocketColaboradorStatus({
+    userId: userData?.id,
+    onAprovado: (data) => {
+      console.log('✅ Aprovação recebida via Socket.IO:', data);
+      setStatus('approved');
+      setTimeout(() => {
+        onApproved?.();
+      }, 2000);
+    },
+    onRejeitado: (data) => {
+      console.log('❌ Rejeição recebida via Socket.IO:', data);
+      setStatus('rejected');
+      setMessage('Sua solicitação foi rejeitada. Entre em contato com o administrador.');
+      setTimeout(() => {
+        onRejected?.();
+      }, 1000);
+    },
+    enabled: status === 'waiting'
+  });
 
   useEffect(() => {
-    // Verificar status a cada 5 segundos
+    // Carregar dados do colaborador ao montar
+    loadUserData();
+
+    // Verificar status a cada 5 segundos (fallback para quando Socket.IO não está disponível)
     const interval = setInterval(() => {
       checkCollaboratorStatus();
     }, 5000);
 
     return () => clearInterval(interval);
   }, []);
+
+  const loadUserData = async () => {
+    try {
+      const token = localStorage.getItem('comaes_token');
+      const response = await fetch('/api/usuarios/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserData(data);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados do usuário:', error);
+    }
+  };
 
   const checkCollaboratorStatus = async () => {
     try {
@@ -25,12 +68,13 @@ const WaitingScreen = ({ userEmail, onApproved, onRejected }) => {
 
       if (response.ok) {
         const userData = await response.json();
+        setUserData(userData);
         
         if (userData.status_colaborador === 'aprovado') {
           setStatus('approved');
           setTimeout(() => {
             onApproved?.();
-          }, 2000); // Mostrar mensagem de sucesso por 2 segundos antes de redirecionar
+          }, 2000);
         } else if (userData.status_colaborador === 'rejeitado') {
           setStatus('rejected');
           setMessage('Sua solicitação foi rejeitada. Entre em contato com o administrador.');
@@ -82,6 +126,108 @@ const WaitingScreen = ({ userEmail, onApproved, onRejected }) => {
                 Email registrado: <strong>{userEmail}</strong>
               </p>
             </div>
+
+            {/* User Data Visualizer */}
+            {userData && (
+              <div className="user-data-section">
+                <div className="user-data-header">
+                  <h3 className="user-data-title">📋 Seus Dados Registados</h3>
+                  <button 
+                    onClick={() => setShowDetails(!showDetails)}
+                    className="user-data-toggle"
+                    title={showDetails ? 'Ocultar dados' : 'Mostrar dados'}
+                  >
+                    {showDetails ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+
+                {showDetails && (
+                  <div className="user-data-grid">
+                    {/* Dados Pessoais */}
+                    {userData.nome && (
+                      <div className="data-field">
+                        <div className="data-label">Nome</div>
+                        <div className="data-value">{userData.nome}</div>
+                      </div>
+                    )}
+
+                    {userData.email && (
+                      <div className="data-field">
+                        <div className="data-label">
+                          <Mail size={14} className="inline-icon" />
+                          Email
+                        </div>
+                        <div className="data-value">{userData.email}</div>
+                      </div>
+                    )}
+
+                    {userData.telefone && (
+                      <div className="data-field">
+                        <div className="data-label">
+                          <Phone size={14} className="inline-icon" />
+                          Telefone
+                        </div>
+                        <div className="data-value">{userData.telefone}</div>
+                      </div>
+                    )}
+
+                    {userData.sexo && (
+                      <div className="data-field">
+                        <div className="data-label">Género</div>
+                        <div className="data-value">{userData.sexo}</div>
+                      </div>
+                    )}
+
+                    {userData.nascimento && (
+                      <div className="data-field">
+                        <div className="data-label">
+                          <Calendar size={14} className="inline-icon" />
+                          Nascimento
+                        </div>
+                        <div className="data-value">
+                          {new Date(userData.nascimento).toLocaleDateString('pt-PT')}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Dados Académicos */}
+                    {userData.area_especialidade && (
+                      <div className="data-field">
+                        <div className="data-label">
+                          <BookOpen size={14} className="inline-icon" />
+                          Área de Especialidade
+                        </div>
+                        <div className="data-value">
+                          {userData.area_especialidade.replace(/_/g, ' ')}
+                        </div>
+                      </div>
+                    )}
+
+                    {userData.nivel_academico && (
+                      <div className="data-field">
+                        <div className="data-label">
+                          <GraduationCap size={14} className="inline-icon" />
+                          Nível Académico
+                        </div>
+                        <div className="data-value">
+                          {userData.nivel_academico.replace(/_/g, ' ')}
+                        </div>
+                      </div>
+                    )}
+
+                    {userData.biografia && (
+                      <div className="data-field full-width">
+                        <div className="data-label">
+                          <FileText size={14} className="inline-icon" />
+                          Biografia
+                        </div>
+                        <div className="data-value biography">{userData.biografia}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Information Box */}
             <div className="info-box">

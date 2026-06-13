@@ -9,6 +9,7 @@ import bcrypt from 'bcryptjs';
 import { Op } from 'sequelize';
 import Usuario from '../models/User.js';
 import { formatarDocumentos } from '../middlewares/security/colaboradorUpload.js';
+import { emitNovoColaboradorPendente } from '../services/socketService.js';
 
 const RE_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,128}$/;
 const RE_EMAIL    = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -54,6 +55,22 @@ function validarPayload(body) {
   if (isEmpty(body.nivel_academico))         errors.nivel_academico = 'O nível académico é obrigatório.';
   else if (!NIVEIS_VALIDOS.includes(body.nivel_academico)) errors.nivel_academico = 'Nível académico inválido.';
 
+  if (isEmpty(body.sexo))         errors.sexo = 'O género é obrigatório.';
+  else if (!['Masculino', 'Feminino', 'Outro'].includes(body.sexo)) errors.sexo = 'Género inválido.';
+
+  if (isEmpty(body.nascimento))   errors.nascimento = 'A data de nascimento é obrigatória.';
+  else {
+    const nascData = new Date(body.nascimento);
+    if (isNaN(nascData.getTime())) errors.nascimento = 'Data inválida.';
+    else {
+      const now = new Date();
+      if (nascData > now) errors.nascimento = 'A data não pode estar no futuro.';
+      const age = (now - nascData) / (1000 * 60 * 60 * 24 * 365.25);
+      if (age < 5) errors.nascimento = 'Deve ter no mínimo 5 anos.';
+      if (age > 120) errors.nascimento = 'Data de nascimento inválida.';
+    }
+  }
+
   if (!isEmpty(body.biografia)) {
     const bio = body.biografia.trim();
     if (bio.length < 30) errors.biografia = 'A biografia deve ter pelo menos 30 caracteres.';
@@ -69,10 +86,25 @@ export const registrarColaborador = async (req, res) => {
     const body = req.body;
     const files = req.files || [];
 
+    // DEBUG: Log EXACTO do que está chegando
+    console.log('\n🚨 ════════════════════════════════════════════════════════════');
+    console.log('📥 REGISTO COLABORADOR - DUMP COMPLETO DO req.body:');
+    console.log('🔍 Todas as chaves:', Object.keys(body));
+    console.log('🔍 area_especialidade recebida:', body.area_especialidade, `(tipo: ${typeof body.area_especialidade})`);
+    console.log('🔍 Conteúdo completo:', JSON.stringify(body, null, 2));
+    console.log('════════════════════════════════════════════════════════════\n');
+
     const errors = validarPayload(body);
+    
+    // DEBUG: Mostrar erros de validação
     if (Object.keys(errors).length > 0) {
+      console.log('❌ VALIDAÇÃO FALHOU:');
+      console.log('   Erros:', JSON.stringify(errors, null, 2));
+      console.log('   Especificamente, area_especialidade:', errors.area_especialidade || 'OK');
       return res.status(422).json({ success: false, error: 'Verifique os campos do formulário.', fieldErrors: errors });
     }
+    
+    console.log('✅ Validação passou!');
 
     const email    = body.email.trim().toLowerCase();
     const username = body.username.trim();
@@ -109,11 +141,17 @@ export const registrarColaborador = async (req, res) => {
       imagem:                null,
       isAdmin:               false,
       role:                  'colaborador',
-      disciplina_colaborador: null,         // Atribuída pelo admin após aprovação
-      nivel_academico:        body.nivel_academico,
+      disciplina_colaborador: body.area_especialidade,  // Salvar área do formulário no campo correto da DB
+      nivel_academico:       body.nivel_academico,
       documentos_colaborador: documentos,
       status_colaborador:    'pendente',
     });
+
+    // DEBUG: Log o que foi salvo
+    console.log('✅ REGISTO COLABORADOR - Dados salvos:');
+    console.log('   id:', novoColaborador.id);
+    console.log('   email:', novoColaborador.email);
+    console.log('   disciplina_colaborador:', novoColaborador.disciplina_colaborador);
 
     // Notificar admin via socket (se disponível)
     const io = req.app.get('io');
@@ -158,11 +196,37 @@ export const registrarColaborador = async (req, res) => {
 export const suspenderColaborador = async (req, res) => {
   try {
     const { id } = req.params;
+    const requestingUser = req.user;
+
     const user = await Usuario.unscoped().findByPk(id);
     if (!user) return res.status(404).json({ message: 'Colaborador não encontrado.' });
     if (user.role !== 'colaborador') return res.status(400).json({ message: 'O utilizador não é um colaborador.' });
 
     await user.update({ status_colaborador: 'suspenso' });
+    
+    console.log(`🚫 Colaborador ${user.email} suspenso por admin ${requestingUser?.id}`);
+
+    // Notificar via socket
+    if (req.io) {
+      // 1. Notificar admin (para atualizar painel)
+      req.io.emit('colaborador_suspenso', {
+        id: user.id,
+        email: user.email,
+        nome: user.nome,
+        suspenso_por: requestingUser?.id,
+        data_suspensao: new Date()
+      });
+
+      // 2. Notificar o colaborador específico
+      req.io.emit(`colaborador_status_${user.id}`, {
+        status: 'suspenso',
+        id: user.id,
+        email: user.email,
+        nome: user.nome,
+        data_suspensao: new Date()
+      });
+    }
+
     const { password: _, ...safe } = user.get({ plain: true });
     res.json({ success: true, message: 'Colaborador suspenso com sucesso.', data: safe });
   } catch (e) {

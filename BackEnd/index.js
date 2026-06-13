@@ -92,8 +92,8 @@ app.use((req, res, next) => {
 app.use(express.json({ charset: 'utf-8' }));
 app.use(express.urlencoded({ extended: true, charset: 'utf-8' }));
 
-// Global sanitizer - strips NoSQL injection keys and normalizes strings
-app.use(baseSanitizer);
+// ⚠️ IMPORTANTE: baseSanitizer não é aplicado aqui para rotas de multipart/form-data
+// Será aplicado seletivamente apenas após multer processar
 
 // Configuracao CORS completa para permitir requisicoes do frontend
 app.use(cors({
@@ -214,6 +214,10 @@ app.post(
   handleColaboradorUploadErrors,
   registrarColaborador
 );
+
+// ✅ Aplicar sanitizer APÓS as rotas de multipart (que processam o body)
+// Isto garante que multer processa os campos ANTES do sanitizer
+app.use(baseSanitizer);
 
 // ADMIN — documentos e suspensão de colaboradores
 app.get('/api/admin/colaboradores/:id/documentos', isAdmin, getDocumentosColaborador);

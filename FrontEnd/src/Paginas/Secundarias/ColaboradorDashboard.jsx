@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import colaboradorService from '../../services/colaboradorService';
 import shortLogo from '../../assets/short.png';
+import WaitingScreen from '../../components/WaitingScreen';
 import {
   BarChart3, CheckCircle, Clock, XCircle, FileText,
   Plus, Menu, X, UserCircle, Settings, LogOut, BookOpen,
@@ -98,8 +99,16 @@ export default function ColaboradorDashboard() {
   useEffect(() => {
     if (!user) { navigate('/login', { replace: true }); return; }
     if (user.role === 'admin' || user.isAdmin) { navigate('/administrador', { replace: true }); return; }
+    // Se colaborador não está aprovado, mostrar WaitingScreen ao invés de erro
     if (user.role !== 'colaborador' || user.status_colaborador !== 'aprovado') {
-      navigate('/painel', { replace: true });
+      if (user.role === 'colaborador' && user.status_colaborador === 'pendente') {
+        // Colaborador pendente vê WaitingScreen com dados registados
+        navigate('/painel', { replace: true });
+      } else if (user.role === 'colaborador' && user.status_colaborador === 'rejeitado') {
+        navigate('/painel', { replace: true });
+      } else {
+        navigate('/login', { replace: true });
+      }
     }
   }, [user, navigate]);
 
@@ -224,6 +233,51 @@ export default function ColaboradorDashboard() {
   }
 
   if (error) {
+    // Se colaborador está pendente, mostrar WaitingScreen com opção de retry
+    if (user?.role === 'colaborador' && user?.status_colaborador === 'pendente') {
+      return (
+        <PageTransition>
+          <WaitingScreen
+            userEmail={user?.email}
+            onApproved={() => {
+              navigate('/colaborador/dashboard', { replace: true });
+            }}
+            onRejected={() => {
+              navigate('/login', { replace: true });
+            }}
+          />
+        </PageTransition>
+      );
+    }
+
+    // Se colaborador foi rejeitado, mostrar mensagem apropriada
+    if (user?.role === 'colaborador' && user?.status_colaborador === 'rejeitado') {
+      return (
+        <PageTransition>
+          <div className="flex h-screen bg-gradient-to-br from-slate-50 to-blue-50 items-center justify-center p-4">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl max-w-md">
+              <div className="flex items-center gap-2 font-semibold mb-2">
+                <XCircle className="w-5 h-5" />
+                Solicitação Rejeitada
+              </div>
+              <p className="text-sm mb-4">Sua solicitação de colaborador foi rejeitada.</p>
+              <p className="text-sm mb-4">Se tiver dúvidas, entre em contato com o administrador.</p>
+              <button
+                onClick={() => {
+                  logout();
+                  navigate('/login');
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 w-full"
+              >
+                Voltar ao Login
+              </button>
+            </div>
+          </div>
+        </PageTransition>
+      );
+    }
+
+    // Erro genérico (se dados não carregarem)
     return (
       <PageTransition>
         <div className="flex h-screen bg-gradient-to-br from-slate-50 to-blue-50 items-center justify-center p-4">
@@ -232,13 +286,24 @@ export default function ColaboradorDashboard() {
               <XCircle className="w-5 h-5" />
               Erro ao carregar painel
             </div>
-            <p className="text-sm">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"
-            >
-              Tentar novamente
-            </button>
+            <p className="text-sm mb-4">{error}</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => window.location.reload()}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 font-medium"
+              >
+                Tentar novamente
+              </button>
+              <button
+                onClick={() => {
+                  logout();
+                  navigate('/login');
+                }}
+                className="flex-1 px-4 py-2 bg-slate-600 text-white rounded-lg text-sm hover:bg-slate-700 font-medium"
+              >
+                Voltar
+              </button>
+            </div>
           </div>
         </div>
       </PageTransition>
@@ -416,20 +481,20 @@ export default function ColaboradorDashboard() {
                       icon={CheckCircle}
                       label="Aprovadas"
                       value={estatisticas.aprovadas}
-                      color="from-green-500 to-green-600"
+                      color="from-indigo-500 to-indigo-600"
                       trend={`${estatisticas.taxaAprovacao}% de aceitação`}
                     />
                     <StatCard
                       icon={Clock}
                       label="Pendentes"
                       value={estatisticas.pendentes}
-                      color="from-yellow-500 to-yellow-600"
+                      color="from-cyan-500 to-cyan-600"
                     />
                     <StatCard
                       icon={XCircle}
                       label="Rejeitadas"
                       value={estatisticas.rejeitadas}
-                      color="from-red-500 to-red-600"
+                      color="from-blue-500 to-blue-600"
                     />
                   </div>
 

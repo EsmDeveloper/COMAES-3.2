@@ -62,3 +62,40 @@ export const emitNotificacoes = (notificacoes) => {
   console.log(`📡 ${count} notificações emitidas via Socket.IO`);
   return true;
 };
+
+/**
+ * Emitir evento de novo colaborador pendente para todos os admins
+ * Usado quando um colaborador envia uma nova candidatura
+ */
+export const emitNovoColaboradorPendente = (colaboradorData) => {
+  if (io) {
+    io.emit('novo_colaborador_pendente', {
+      id: colaboradorData.id,
+      nome: colaboradorData.nome,
+      email: colaboradorData.email,
+      username: colaboradorData.username,
+      timestamp: new Date().toISOString()
+    });
+    console.log(`📡 Evento 'novo_colaborador_pendente' emitido para ${colaboradorData.nome}`);
+    return true;
+  }
+  console.warn('⚠️ Socket.IO não disponível - evento não emitido');
+  return false;
+};
+
+/**
+ * Emitir evento de atualização de lista de colaboradores para admins
+ * Usado quando status de colaborador muda (aprovado/rejeitado)
+ */
+export const emitAtualizacaoColaboradores = (dados) => {
+  if (io) {
+    io.emit('atualizacao_colaboradores', {
+      ...dados,
+      timestamp: new Date().toISOString()
+    });
+    console.log(`📡 Evento 'atualizacao_colaboradores' emitido`);
+    return true;
+  }
+  console.warn('⚠️ Socket.IO não disponível - evento não emitido');
+  return false;
+};

@@ -666,28 +666,28 @@ function EstatisticasTab() {
     <div className="max-w-6xl mx-auto">
       <h2 className="text-2xl font-bold text-slate-800 mb-6">Estatísticas</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-blue-500">
-          <div className="text-sm text-gray-600 mb-2">Total de Blocos</div>
-          <div className="text-3xl font-bold text-blue-600">3</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-8">
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border-l-4 border-blue-500 hover:shadow-xl transition-shadow">
+          <div className="text-xs sm:text-sm text-gray-600 mb-2 font-medium">Total de Blocos</div>
+          <div className="text-2xl sm:text-3xl font-bold text-blue-600">3</div>
           <div className="text-xs text-gray-500 mt-2">+1 este mês</div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-green-500">
-          <div className="text-sm text-gray-600 mb-2">Questões Aprovadas</div>
-          <div className="text-3xl font-bold text-green-600">8</div>
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border-l-4 border-indigo-500 hover:shadow-xl transition-shadow">
+          <div className="text-xs sm:text-sm text-gray-600 mb-2 font-medium">Questões Aprovadas</div>
+          <div className="text-2xl sm:text-3xl font-bold text-indigo-600">8</div>
           <div className="text-xs text-gray-500 mt-2">100% aprovação</div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-yellow-500">
-          <div className="text-sm text-gray-600 mb-2">Questões Pendentes</div>
-          <div className="text-3xl font-bold text-yellow-600">2</div>
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border-l-4 border-cyan-500 hover:shadow-xl transition-shadow">
+          <div className="text-xs sm:text-sm text-gray-600 mb-2 font-medium">Questões Pendentes</div>
+          <div className="text-2xl sm:text-3xl font-bold text-cyan-600">2</div>
           <div className="text-xs text-gray-500 mt-2">Aguardando revisão</div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-indigo-500">
-          <div className="text-sm text-gray-600 mb-2">Total de Questões</div>
-          <div className="text-3xl font-bold text-indigo-600">12</div>
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border-l-4 border-blue-400 hover:shadow-xl transition-shadow">
+          <div className="text-xs sm:text-sm text-gray-600 mb-2 font-medium">Total de Questões</div>
+          <div className="text-2xl sm:text-3xl font-bold text-blue-400">12</div>
           <div className="text-xs text-gray-500 mt-2">3 disciplinas</div>
         </div>
       </div>

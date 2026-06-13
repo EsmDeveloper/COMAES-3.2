@@ -215,7 +215,13 @@ export default function TorneiosTab() {
         handleCloseForm();
       } catch (err) {
         console.error('[TorneiosTab] Erro ao salvar:', err);
-        showToast(err.message || 'Erro ao salvar torneio', 'error');
+        
+        // ✅ Tratamento especial para erro de concorrência
+        if (err.message && err.message.includes('TOURNAMENT_CONFLICT')) {
+          showToast('❌ Não é possível criar/ativar dois torneios ao mesmo tempo. Finalize o torneio anterior.', 'error');
+        } else {
+          showToast(err.message || 'Erro ao salvar torneio', 'error');
+        }
       } finally {
         setIsProcessing(false);
       }

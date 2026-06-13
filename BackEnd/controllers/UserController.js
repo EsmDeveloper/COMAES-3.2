@@ -475,9 +475,15 @@ const getColaboradoresPendentes = async (req, res) => {
         role: 'colaborador',
         status_colaborador: 'pendente'
       },
-      attributes: { exclude: ['password'] },
+      // ✅ CRITICAL FIX: Incluir explicitamente disciplina_colaborador
+      attributes: { 
+        exclude: ['password'],
+        include: ['disciplina_colaborador', 'nivel_academico', 'biografia', 'documentos_colaborador']
+      },
       order: [['createdAt', 'ASC']],
     });
+    
+    console.log('✅ [getColaboradoresPendentes] Colaboradores pendentes retornados:', colaboradoresPendentes.length);
     
     res.status(200).json({
       message: 'Colaboradores pendentes obtidos com sucesso',
@@ -497,45 +503,69 @@ const aprovarColaborador = async (req, res) => {
     const { disciplina_colaborador, motivo } = req.body;
     const requestingUser = req.user;
 
-    // Validar disciplina
-    const disciplinasValidas = ['matematica', 'ingles', 'programacao'];
-    if (!disciplina_colaborador || !disciplinasValidas.includes(disciplina_colaborador)) {
+    console.log('\n🔍 [aprovarColaborador] Iniciado:');
+    console.log('   ID do colaborador:', id);
+    console.log('   Disciplina recebida:', JSON.stringify(disciplina_colaborador));
+    console.log('   Tipo da disciplina:', typeof disciplina_colaborador);
+    console.log('   Req.body completo:', JSON.stringify(req.body));
+
+    // Validar que disciplina foi fornecida
+    if (!disciplina_colaborador || typeof disciplina_colaborador !== 'string' || disciplina_colaborador.trim() === '') {
+      console.log('   ❌ Validação falhou: Disciplina vazia ou inválida');
       return res.status(422).json({
-        message: 'Disciplina inválida.',
-        fieldErrors: { disciplina_colaborador: 'A disciplina deve ser: matematica, ingles ou programacao.' }
+        message: 'Disciplina é obrigatória.',
+        fieldErrors: { disciplina_colaborador: 'A disciplina deve ser informada.' }
       });
     }
 
+    console.log('   ✅ Validação disciplina passou');
+
     const user = await Usuario.unscoped().findByPk(id);
     if (!user) {
+      console.log('   ❌ Usuário não encontrado:', id);
       return res.status(404).json({ message: 'Colaborador não encontrado.' });
     }
 
     if (user.role !== 'colaborador') {
+      console.log('   ❌ Usuário não é colaborador:', user.role);
       return res.status(400).json({ message: 'O usuário não é um colaborador.' });
     }
 
     if (user.status_colaborador !== 'pendente') {
+      console.log('   ❌ Status não é pendente:', user.status_colaborador);
       return res.status(400).json({ message: 'Este colaborador já foi processado.' });
     }
+
+    console.log('   ✅ Todas as validações passaram');
 
     // Aprovar colaborador
     await user.update({
       status_colaborador: 'aprovado',
-      disciplina_colaborador,
+      disciplina_colaborador: disciplina_colaborador.toLowerCase().trim(),
       updatedAt: new Date()
     });
 
-    console.log(`✅ Colaborador ${user.email} aprovado por admin ${requestingUser?.id}`);
+    console.log(`   ✅ Colaborador ${user.email} aprovado com disciplina: ${disciplina_colaborador}\n`);
 
     // Notificar via socket
     if (req.io) {
+      // 1. Notificar admin (para atualizar painel)
       req.io.emit('colaborador_aprovado', {
         id: user.id,
         email: user.email,
         nome: user.nome,
         disciplina_colaborador,
         aprovado_por: requestingUser?.id,
+        data_aprovacao: new Date()
+      });
+
+      // 2. Notificar o colaborador específico (NOVO)
+      req.io.emit(`colaborador_status_${user.id}`, {
+        status: 'aprovado',
+        id: user.id,
+        email: user.email,
+        nome: user.nome,
+        disciplina_colaborador,
         data_aprovacao: new Date()
       });
     }
@@ -547,7 +577,8 @@ const aprovarColaborador = async (req, res) => {
       data: userSafe
     });
   } catch (error) {
-    console.error('Erro ao aprovar colaborador:', error);
+    console.error('❌ [aprovarColaborador] Erro:', error.message);
+    console.error('   Stack:', error.stack);
     res.status(500).json({ message: 'Erro ao aprovar colaborador.', error: error.message });
   }
 };
@@ -583,12 +614,23 @@ const rejeitarColaborador = async (req, res) => {
 
     // Notificar via socket
     if (req.io) {
+      // 1. Notificar admin (para atualizar painel)
       req.io.emit('colaborador_rejeitado', {
         id: user.id,
         email: user.email,
         nome: user.nome,
         motivo,
         rejeitado_por: requestingUser?.id,
+        data_rejeicao: new Date()
+      });
+
+      // 2. Notificar o colaborador específico (NOVO)
+      req.io.emit(`colaborador_status_${user.id}`, {
+        status: 'rejeitado',
+        id: user.id,
+        email: user.email,
+        nome: user.nome,
+        motivo,
         data_rejeicao: new Date()
       });
     }
@@ -612,9 +654,23 @@ const getColaboradores = async (req, res) => {
       where: {
         role: 'colaborador'
       },
-      attributes: { exclude: ['password'] },
+      // ✅ CRITICAL FIX: Incluir explicitamente disciplina_colaborador
+      attributes: { 
+        exclude: ['password'],
+        include: ['disciplina_colaborador', 'nivel_academico', 'biografia', 'documentos_colaborador']
+      },
       order: [['createdAt', 'DESC']],
     });
+    
+    console.log('✅ [getColaboradores] Colaboradores retornados:');
+    if (colaboradores.length > 0) {
+      console.log('   Primeiro:', {
+        id: colaboradores[0].id,
+        nome: colaboradores[0].nome,
+        disciplina_colaborador: colaboradores[0].disciplina_colaborador,
+        nivel_academico: colaboradores[0].nivel_academico
+      });
+    }
     
     // Estatísticas
     const total = colaboradores.length;

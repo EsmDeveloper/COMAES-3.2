@@ -1,0 +1,219 @@
+═══════════════════════════════════════════════════════════════════════════════
+  🚨 ULTIMATUM - RESOLVENDO DE VERDADE AGORA
+═══════════════════════════════════════════════════════════════════════════════
+
+Descobri o VERDADEIRO PROBLEMA:
+
+  **NENHUM dos últimos 10 colaboradores tem disciplina!**
+  
+  Isto não é acaso - significa que o backend está recebendo VAZIO.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🔬 AQUI ESTÁ COMO VAMOS DESCOBRIR ONDE ESTÁ O PROBLEMA
+
+Siga este PASSO A PASSO e diga-me EXATAMENTE o que vê.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ PASSO 1: VERIFICAR SE IMPLEMENTEI OS LOGS
+───────────────────────────────────────────────────────────────────────────────
+
+Abrir ficheiro:
+  BackEnd/controllers/colaboradorRegistroController.js
+
+Procurar por:
+  "🚨 ════════════════════"
+  "📥 REGISTO COLABORADOR"
+  "🔍 area_especialidade recebida"
+
+Se ver isto: ✅ Logs foram implementados
+Se não ver: ❌ Algo correu mal, redownload do código
+
+───────────────────────────────────────────────────────────────────────────────
+
+✅ PASSO 2: BACKEND RODANDO
+───────────────────────────────────────────────────────────────────────────────
+
+Abrir terminal, pasta BackEnd
+
+Comando:
+  npm start
+
+Esperar até ver:
+  ✅ Conexão estabelecida com sucesso!
+  🚀 Servidor rodando em http://localhost:3001
+
+Se não ver, erro de conexão com BD. Solucionar isoladamente.
+
+───────────────────────────────────────────────────────────────────────────────
+
+✅ PASSO 3: FRONTEND RODANDO
+───────────────────────────────────────────────────────────────────────────────
+
+Outro terminal, pasta FrontEnd
+
+Comando:
+  npm run dev
+
+Esperar até ver:
+  ➜ VITE v5.x.x ready in X ms
+  ➜ Local: http://localhost:5175
+
+Abrir browser:
+  http://localhost:5175
+
+Deve ver página COMAES
+
+───────────────────────────────────────────────────────────────────────────────
+
+✅ PASSO 4: ABRIR DEVTOOLS
+───────────────────────────────────────────────────────────────────────────────
+
+No browser, pressionar: F12
+
+Ir para "Console"
+
+Deve estar limpo (sem erros vermelhos ainda)
+
+───────────────────────────────────────────────────────────────────────────────
+
+✅ PASSO 5: PREENCHER FORMULÁRIO
+───────────────────────────────────────────────────────────────────────────────
+
+Clicar em "Registar-se como Colaborador"
+
+Preencher CADA campo:
+  Nome: "Teste Debug Nome"
+  Username: "teste_debug_123"
+  Email: "teste_debug@debug.com"
+  Telefone: "923456789" (opcional, deixar vazio)
+  
+  Disciplina: **IMPORTANTE - SELECIONAR ALGO!**
+              Clicar no select "Área de especialidade"
+              Escolher UMA: "Matemática", "Programação" ou "Inglês"
+  
+  Género: "Masculino"
+  Nascimento: "15/01/1990"
+  Nível académico: "Licenciado"
+  Biografia: "Esta é uma biografia com mais de trinta caracteres para passar na validação."
+  
+  Senha: "Test@Pass123"
+  Confirmar: "Test@Pass123"
+
+───────────────────────────────────────────────────────────────────────────────
+
+✅ PASSO 6: SUBMETER
+───────────────────────────────────────────────────────────────────────────────
+
+Clicar botão:
+  "✓ Enviar Candidatura para Análise do Admin"
+
+───────────────────────────────────────────────────────────────────────────────
+
+✅ PASSO 7: VERIFICAR BROWSER CONSOLE
+───────────────────────────────────────────────────────────────────────────────
+
+DevTools ainda aberto (F12)
+
+Procurar por:
+  "🔍 ════════════"
+  "📤 PREPARANDO FORMDATA"
+
+Dizer-me:
+  ✅ Vejo a mensagem?
+  ✅ Vejo "area_especialidade: matematica" (ou outro)?
+  ❌ Não vejo nada?
+
+PRINT SCREEN DESTA PARTE!
+
+───────────────────────────────────────────────────────────────────────────────
+
+✅ PASSO 8: VERIFICAR BACKEND TERMINAL
+───────────────────────────────────────────────────────────────────────────────
+
+Voltar ao terminal onde fez "npm start"
+
+Procurar por:
+  "🚨 ════════════"
+  "📥 REGISTO COLABORADOR"
+  "🔍 Todas as chaves:"
+  "🔍 area_especialidade recebida:"
+
+IMPORTANTE - procurar por EXACTAMENTE:
+  "area_especialidade recebida: ???"
+  
+Dizer-me O VALOR:
+  ✅ "area_especialidade recebida: 'matematica'" → Chegou!
+  ❌ "area_especialidade recebida: undefined" → Não chegou!
+  ❌ "area_especialidade recebida: ''" → Vazio!
+
+PRINT SCREEN DESTA PARTE!
+
+───────────────────────────────────────────────────────────────────────────────
+
+✅ PASSO 9: RESULTADO
+───────────────────────────────────────────────────────────────────────────────
+
+Voltar ao browser
+
+Procurar por:
+  ✅ "Sucesso! Candidatura enviada"
+  ou
+  ❌ Mensagem de erro
+
+PRINT SCREEN!
+
+───────────────────────────────────────────────────────────────────────────────
+
+✅ PASSO 10: VERIFICAR BD
+───────────────────────────────────────────────────────────────────────────────
+
+Abrir TERCEIRO terminal
+
+Comando:
+  node BackEnd/diagnostico_completo.js
+
+Ver se novo colaborador "Teste Debug Nome" aparece COM disciplina
+
+PRINT SCREEN!
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📸 ENVIAR-ME 4 PRINT SCREENS:
+
+1. Browser Console (F12) - mostrando FormData
+2. Terminal Backend - mostrando "area_especialidade recebida: ???"
+3. Browser - resultado (sucesso ou erro)
+4. diagnostico_completo.js - verificação final
+
+COM ISTO VEJO EXACTAMENTE ONDE ESTÁ O PROBLEMA!
+
+═══════════════════════════════════════════════════════════════════════════════
+
+❓ O QUE PODE ACONTECER:
+
+A. Tudo aparece correto e funciona
+   → PROBLEMA RESOLVIDO! ✅
+
+B. Browser console OK, mas backend vazio
+   → Problema no MULTER/middleware
+   → Preciso corrigir middleware order
+
+C. Backend recebe vazio mas disse validação passou
+   → BUG na validação isEmpty()
+   → Preciso corrigir validação
+
+D. Backend mostra erro "A área é obrigatória"
+   → Validação funcionando CORRECTAMENTE
+   → Mas frontend NÃO está enviando o campo
+   → Preciso debugar React
+
+═══════════════════════════════════════════════════════════════════════════════
+
+⏰ TIMEOUT: Fazer isto agora!
+
+Vai demorar 10 minutos se tudo estiver pronto.
+Depois tenho a resposta final!
+
+═══════════════════════════════════════════════════════════════════════════════

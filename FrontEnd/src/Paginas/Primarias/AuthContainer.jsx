@@ -8,16 +8,20 @@ import logotipo from "../../assets/logotipo.png";
 import { validateNome, validateEmail, validatePassword } from "../../utils/validators";
 import CollaboratorRegisterForm from "./CollaboratorRegisterForm";
 import ApprovalPending from "./ApprovalPending";
+import WaitingScreen from "../../components/WaitingScreen";
 
 // mode: "login" | "cadastro" | "colaborador" | "aprovacao-pendente"
 function AuthContainer({ initialMode = "login" }) {
-  const { login, user } = useAuth();
+  const { login, user, logout } = useAuth();
   const navigate = useNavigate();
 
   // Modo actual (pode ser alterado dinamicamente)
   const [mode, setMode] = useState(initialMode);
   // Dados do colaborador após registo bem-sucedido (para exibir na tela de aprovação)
   const [pendingEmail, setPendingEmail] = useState('');
+  // Para mostrar WaitingScreen quando colaborador com status pendente faz login
+  const [showWaitingScreen, setShowWaitingScreen] = useState(false);
+  const [waitingScreenEmail, setWaitingScreenEmail] = useState('');
 
   // isLogin mantido para compatibilidade com a animação desktop existente
   const [isLogin, setIsLogin] = useState(initialMode === "login");
@@ -146,8 +150,15 @@ function AuthContainer({ initialMode = "login" }) {
         localStorage.removeItem('comaes_user');
         localStorage.removeItem('comaes_token');
         login(body.data, body.token);
-        // Redirecionar para o destino correto com base no papel do utilizador
-        navigate(getPostLoginRoute(body.data), { replace: true });
+        
+        // Se colaborador com status pendente, mostrar tela de espera em vez de redirecionar
+        if (body.data.role === 'colaborador' && body.data.status_colaborador === 'pendente') {
+          setWaitingScreenEmail(body.data.email || '');
+          setShowWaitingScreen(true);
+        } else {
+          // Redirecionar para o destino correto com base no papel do utilizador
+          navigate(getPostLoginRoute(body.data), { replace: true });
+        }
       }
     } catch (error) {
       console.error('Erro no login:', error);
@@ -359,6 +370,25 @@ function AuthContainer({ initialMode = "login" }) {
   };
 
   // ── Modos especiais (colaborador e aprovação pendente) ──────────
+  if (showWaitingScreen) {
+    return (
+      <WaitingScreen
+        userEmail={waitingScreenEmail}
+        onApproved={() => {
+          setShowWaitingScreen(false);
+          navigate(getPostLoginRoute(user), { replace: true });
+        }}
+        onRejected={() => {
+          setShowWaitingScreen(false);
+          // Logout e voltar para login após rejeição
+          logout();
+          setMode('login');
+          setIsLogin(true);
+        }}
+      />
+    );
+  }
+
   if (mode === 'aprovacao-pendente') {
     return (
       <ApprovalPending
@@ -372,30 +402,30 @@ function AuthContainer({ initialMode = "login" }) {
     return (
       <div className="w-full min-h-screen bg-white text-black overflow-x-hidden">
         {/* DESKTOP */}
-        <div className="hidden md:block relative w-full min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="flex w-full max-w-5xl mx-auto shadow-2xl rounded-2xl overflow-hidden min-h-[600px]">
-            {/* Painel lateral */}
-            <div className="w-2/5 bg-blue-600 flex flex-col items-center justify-center p-10 text-white">
+        <div className="hidden md:block relative w-full min-h-screen bg-gray-50 py-8 px-4">
+          <div className="flex w-full max-w-7xl mx-auto gap-8">
+            {/* Painel lateral - fixo na esquerda */}
+            <div className="w-1/3 bg-blue-600 flex flex-col items-center justify-center p-10 rounded-2xl text-white shadow-2xl sticky top-8 h-fit">
               <img src={imgPreview} alt="COMAES" className="w-full max-w-xs rounded-xl shadow-xl mb-6" />
-              <h2 className="text-2xl font-bold mb-2">Torne-se Colaborador</h2>
+              <h2 className="text-2xl font-bold mb-2 text-center">Torne-se Colaborador</h2>
               <p className="text-white/90 text-sm text-center leading-relaxed">
                 Partilhe o seu conhecimento com estudantes da COMAES. Crie questões, contribua para torneios e faça parte da nossa comunidade educativa.
               </p>
             </div>
-            {/* Formulário */}
-            <div className="flex-1 bg-white flex flex-col justify-center p-8 overflow-y-auto max-h-screen">
-              <div className="flex justify-center mb-5">
+            {/* Formulário - coluna maior */}
+            <div className="w-2/3 bg-white rounded-2xl shadow-2xl p-8 overflow-y-auto max-h-[90vh]">
+              <div className="flex justify-center mb-6">
                 <img src={logotipo} alt="COMAES" className="h-16 w-auto" />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-1">Candidatura a Colaborador</h3>
-              <p className="text-sm text-gray-500 mb-5">
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">Candidatura a Colaborador</h3>
+              <p className="text-sm text-gray-600 mb-6">
                 Preencha os dados abaixo. A sua candidatura será analisada pelo administrador.
               </p>
               <CollaboratorRegisterForm
                 onSuccess={handleColaboradorSuccess}
                 onSwitchToLogin={() => { setMode('login'); setIsLogin(true); }}
               />
-              <p className="mt-4 text-center text-sm text-gray-500">
+              <p className="mt-6 text-center text-sm text-gray-600">
                 Quer registar-se como estudante?{' '}
                 <button type="button" onClick={() => { setMode('cadastro'); setIsLogin(false); }}
                   className="text-blue-600 font-semibold hover:underline">

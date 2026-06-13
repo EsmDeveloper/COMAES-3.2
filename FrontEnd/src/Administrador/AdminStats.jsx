@@ -420,16 +420,16 @@ const AdminStats = () => {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl p-6 shadow-lg animate-pulse">
+            <div key={i} className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg animate-pulse">
               <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
               <div className="h-8 bg-gray-200 rounded w-3/4 mb-2"></div>
               <div className="h-3 bg-gray-200 rounded w-1/3"></div>
             </div>
           ))}
         </div>
-        <div className="bg-white rounded-2xl p-6 shadow-lg animate-pulse">
+        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg animate-pulse">
           <div className="h-64 bg-gray-200 rounded"></div>
         </div>
       </div>
@@ -489,13 +489,13 @@ const AdminStats = () => {
   return (
     <div className="space-y-6">
       {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
         <StatCard
           title="Total de Usuários"
           value={usuarios.total}
           subtitle={`${usuarios.administradores} administradores`}
           icon={Users}
-          gradient="from-blue-500 to-indigo-600"
+          gradient="from-blue-500 to-blue-600"
           variation={variacao7.text}
           variationColor={variacao7.color}
         />
@@ -504,55 +504,55 @@ const AdminStats = () => {
           value={torneios.ativos}
           subtitle={`${torneios.total} total (${torneios.finalizados} finalizados)`}
           icon={Trophy}
-          gradient="from-yellow-500 to-orange-600"
+          gradient="from-blue-600 to-blue-700"
         />
         <StatCard
           title="Questões Cadastradas"
           value={questoes.total}
           subtitle={`${questoes.torneios} torneios | ${questoes.testeConhecimento} teste`}
           icon={BookOpen}
-          gradient="from-purple-500 to-pink-600"
+          gradient="from-indigo-500 to-indigo-600"
         />
         <StatCard
           title="Testes Realizados (30d)"
           value={testesConhecimento.realizados30Dias}
           subtitle={`Média: ${testesConhecimento.mediaAcertos}% acertos`}
           icon={FileText}
-          gradient="from-green-500 to-emerald-600"
+          gradient="from-indigo-600 to-indigo-700"
           variation={variacao30.text}
           variationColor={variacao30.color}
         />
       </div>
 
       {/* Segunda linha de cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
         <StatCard
           title="Inscrições Ativas"
           value={torneios.inscricoesAtivas}
           subtitle="Em torneios ativos"
           icon={Activity}
-          gradient="from-cyan-500 to-blue-600"
+          gradient="from-cyan-500 to-cyan-600"
         />
         <StatCard
           title="Novos (7 dias)"
           value={usuarios.novos.dias7}
           subtitle="Usuários novos"
           icon={TrendingUp}
-          gradient="from-indigo-500 to-purple-600"
+          gradient="from-cyan-600 to-cyan-700"
         />
         <StatCard
           title="Novos (30 dias)"
           value={usuarios.novos.dias30}
           subtitle="Usuários novos"
           icon={Calendar}
-          gradient="from-pink-500 to-rose-600"
+          gradient="from-blue-400 to-blue-500"
         />
         <StatCard
           title="Novos (90 dias)"
           value={usuarios.novos.dias90}
           subtitle="Usuários novos"
           icon={Clock}
-          gradient="from-amber-500 to-orange-600"
+          gradient="from-indigo-400 to-indigo-500"
         />
       </div>
 
@@ -711,21 +711,21 @@ const AdminStats = () => {
 
 // Componente de Card de Estatística
 const StatCard = ({ title, value, subtitle, icon: Icon, gradient, variation, variationColor }) => (
-  <div className={`bg-gradient-to-r ${gradient} rounded-2xl p-6 text-white shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl`}>
-    <div className="flex items-start justify-between">
-      <div className="flex-1">
-        <p className="text-white/80 text-sm font-medium mb-1">{title}</p>
-        <div className="flex items-baseline gap-2">
-          <p className="text-3xl font-bold">{value}</p>
+  <div className={`bg-gradient-to-r ${gradient} rounded-2xl p-4 sm:p-5 md:p-6 text-white shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl min-h-[160px] sm:min-h-[140px] flex flex-col justify-between`}>
+    <div className="flex items-start justify-between gap-3">
+      <div className="flex-1 min-w-0">
+        <p className="text-white/80 text-xs sm:text-sm font-medium mb-1 truncate">{title}</p>
+        <div className="flex items-baseline gap-2 flex-wrap">
+          <p className="text-2xl sm:text-3xl font-bold truncate">{value}</p>
           {variation && (
-            <span className={`text-sm font-medium ${variationColor} bg-white/20 px-2 py-0.5 rounded-full`}>
+            <span className={`text-xs sm:text-sm font-medium ${variationColor} bg-white/20 px-2 py-0.5 rounded-full whitespace-nowrap`}>
               {variation}
             </span>
           )}
         </div>
-        {subtitle && <p className="text-white/70 text-sm mt-1">{subtitle}</p>}
+        {subtitle && <p className="text-white/70 text-xs sm:text-sm mt-1 line-clamp-2">{subtitle}</p>}
       </div>
-      <Icon className="w-12 h-12 opacity-80" />
+      <Icon className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 opacity-80 flex-shrink-0" />
     </div>
   </div>
 );

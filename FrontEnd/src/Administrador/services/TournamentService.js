@@ -83,7 +83,9 @@ export const TournamentService = {
     console.log('[TournamentService] Create response:', data);
     
     if (!res.ok) {
-      throw new Error(data.message || data.error || 'Erro ao criar torneio');
+      // ✅ Preservar tipo de erro (ex: TOURNAMENT_CONFLICT) na mensagem
+      const errorMsg = data.error ? `${data.message} (${data.error})` : (data.message || 'Erro ao criar torneio');
+      throw new Error(errorMsg);
     }
     
     // Controller returns { message, torneio } — extract the torneio object
@@ -109,7 +111,9 @@ export const TournamentService = {
     const data = await res.json();
     
     if (!res.ok) {
-      throw new Error(data.message || 'Erro ao atualizar torneio');
+      // ✅ Preservar tipo de erro na mensagem
+      const errorMsg = data.error ? `${data.message} (${data.error})` : (data.message || 'Erro ao atualizar torneio');
+      throw new Error(errorMsg);
     }
     
     // Controller returns the torneio object directly on update

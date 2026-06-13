@@ -1,0 +1,250 @@
+═══════════════════════════════════════════════════════════════════════════════
+  🔍 RASTREIE A DISCIPLINA - Passo a Passo
+═══════════════════════════════════════════════════════════════════════════════
+
+Implementei DEBUG LOGGING em TODOS os 5 pontos críticos.
+Agora pode RASTREAR EXACTAMENTE para onde vai a disciplina em tempo real!
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📍 PONTO 1: FRONTEND - Quando você muda o SELECT
+───────────────────────────────────────────────────────────────────────────────
+
+O que fazer:
+  1. Abrir formulário de registo
+  2. Pressionar F12 (abrir DevTools)
+  3. Ir para "Console"
+  4. Clicar no select "Área de especialidade"
+  5. Selecionar uma opção (ex: "Matemática")
+
+O que vai ver no Console:
+  🎯 MUDANÇA DETECTADA: area_especialidade = "matematica"
+     Tipo do valor: string
+     Valor está vazio? false
+
+✅ Se ver isto: A disciplina ESTÁ A SER CAPTURADA CORRECTAMENTE
+
+───────────────────────────────────────────────────────────────────────────────
+
+📍 PONTO 2: FRONTEND - Resumo Visual
+───────────────────────────────────────────────────────────────────────────────
+
+O que fazer:
+  1. Preencher o formulário
+  2. Rolar até "Resumo da sua candidatura"
+  3. Procurar a linha "Área:"
+
+O que vai ver (se preencheu):
+  • Área: Matemática ✅ Disciplina preenchida! Pronto para submeter.
+
+O que vai ver (se não preencheu):
+  • Área: (vazio) ❌ FALTA PREENCHER A DISCIPLINA!
+
+✅ Se ver linha com ✅: A disciplina ESTÁ PREENCHIDA
+
+───────────────────────────────────────────────────────────────────────────────
+
+📍 PONTO 3: FRONTEND - Quando envia (FormData)
+───────────────────────────────────────────────────────────────────────────────
+
+O que fazer:
+  1. DevTools ainda aberto em Console
+  2. Preencher formulário INTEIRO
+  3. Clicar em "✓ Enviar Candidatura"
+
+O que vai ver no Console:
+  🔍 ════════════════════════════════════════════════════════
+  📤 PREPARANDO FORMDATA PARA ENVIO:
+  🔍 Form State ANTES:
+  {
+    "nome": "Seu Nome",
+    "email": "seu@email.com",
+    "area_especialidade": "matematica",  ← AQUI!
+    ...
+  }
+  ✅ Adicionando: area_especialidade = "matematica"
+  📋 FormData construído. Campos:
+     - area_especialidade: matematica
+  ════════════════════════════════════════════════════════
+
+✅ Se ver "area_especialidade: matematica": FormData ESTÁ CORRECTO
+
+───────────────────────────────────────────────────────────────────────────────
+
+📍 PONTO 4: BACKEND - Recepção (Terminal)
+───────────────────────────────────────────────────────────────────────────────
+
+O que fazer:
+  1. Abrir outro terminal (manter frontend rodando)
+  2. Na pasta do projeto, rodar: npm start (na pasta BackEnd)
+  3. Submeter formulário (ponto anterior)
+  4. Olhar para o terminal do backend
+
+O que vai ver no Terminal:
+  🚨 ════════════════════════════════════════════════════════
+  📥 REGISTO COLABORADOR - DUMP COMPLETO DO req.body:
+  🔍 Todas as chaves: [ 'nome', 'username', 'email', 'area_especialidade', ... ]
+  🔍 Conteúdo completo:
+  {
+    "nome": "Seu Nome",
+    "email": "seu@email.com",
+    "area_especialidade": "matematica",  ← ESTÁ AQUI?
+    "nivel_academico": "licenciado",
+    ...
+  }
+  ════════════════════════════════════════════════════════
+
+✅ Se ver "area_especialidade" na lista de chaves: Backend RECEBEU
+
+───────────────────────────────────────────────────────────────────────────────
+
+📍 PONTO 5: BANCO DE DADOS - Verificação
+───────────────────────────────────────────────────────────────────────────────
+
+O que fazer:
+  1. Abrir outro terminal (terceiro)
+  2. Ir para pasta do projeto
+  3. Rodar: node BackEnd/verificar_integridade_disciplinas.js
+
+O que vai ver:
+  📊 Total de colaboradores: 15
+  
+  ✅ COLABORADORES COM DISCIPLINA (9):
+  ────────────────────────────────────────
+  ✅ Seu Nome | seu@email.com | matematica | pendente
+
+✅ Se ver seu nome com "matematica": BD SALVOU CORRECTAMENTE!
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 ROTEIRO COMPLETO (5 MINUTOS)
+
+ 1. [ ] Abrir DevTools (F12)
+ 
+ 2. [ ] Ir para Console
+ 
+ 3. [ ] Preencher formulário:
+     [ ] Nome
+     [ ] Email
+     [ ] Username
+     [ ] Disciplina (SELECT - **IMPORTANTE**)
+     [ ] Nível
+     [ ] Género
+     [ ] Nascimento
+     [ ] Senha
+     
+ 4. [ ] Verificar Resumo: "✅ Disciplina preenchida!"
+ 
+ 5. [ ] Clicar "Enviar"
+ 
+ 6. [ ] Procurar em Console:
+     Deve aparecer:
+     "🔍 ════════════"
+     "📤 PREPARANDO"
+     "✅ Adicionando: area_especialidade"
+     
+ 7. [ ] Ir para terminal do Backend
+ 
+ 8. [ ] Procurar:
+     "🚨 ════════════"
+     "📥 REGISTO"
+     "area_especialidade": "matematica"
+     
+ 9. [ ] Abrir terceiro terminal
+ 
+10. [ ] Rodar: node BackEnd/verificar_integridade_disciplinas.js
+ 
+11. [ ] Procurar seu nome com "matematica" ✅
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🚨 SE NÃO FUNCIONAR EM ALGUM PONTO:
+
+  ❌ Ponto 1 (Console não mostra mudança):
+     → DevTools não aberto
+     → Solução: Pressionar F12 ANTES de mexer no select
+
+  ❌ Ponto 2 (Resumo não mostra):
+     → Não preencheu disciplina
+     → Solução: Selecione uma opção no dropdown
+
+  ❌ Ponto 3 (FormData vazio):
+     → Não validou antes de submeter
+     → Solução: Preencha TODOS os campos obrigatórios
+
+  ❌ Ponto 4 (Backend não mostra):
+     → Backend não rodando
+     → Solução: npm start na pasta BackEnd
+
+  ❌ Ponto 5 (BD mostra NULL):
+     → Um dos pontos anteriores falhou
+     → Solução: Verificar pontos 1-4 acima
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📊 FLUXO VISUAL
+
+FRONTEND                        BACKEND                        BD
+─────────────────────           ───────────────────            ──────────
+[Seleciona DROP]                                               
+  ↓                                                            
+🎯 Console log                                                 
+[area_especialidade ✅]                                        
+  ↓                                                            
+[Resumo: ✅ Preenchido]                                        
+  ↓                                                            
+[Clica Enviar]                                                 
+  ↓                                                            
+🔍 Console log                                                 
+[FormData ✅]                                                  
+  ↓                                                            
+POST /auth/registro-colaborador ──→ 🚨 Backend log
+                                    📥 req.body ✅
+                                    area_especialidade ✅
+                                      ↓
+                                    Usuario.create()
+                                    disciplina_colaborador = "matematica"
+                                      ↓
+                                    INSERT INTO usuarios ──→ [Gravado] ✅
+                                    
+[Admin Panel]                                                  
+  ↓                                                            
+[Novo registo]                                                 
+[Mostra: Matemática ✅]                                        
+  ↓                                                            
+[Aprova com sucesso!] ←──────────────────────────────────────
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ RESULTADO FINAL
+
+Se tudo está no sítio certo:
+
+  FRONTEND CONSOLE:
+    ✅ 🎯 MUDANÇA DETECTADA
+    ✅ 📤 PREPARANDO FORMDATA
+    ✅ ✅ Adicionando: area_especialidade
+
+  BACKEND CONSOLE:
+    ✅ 🚨 REGISTO COLABORADOR
+    ✅ 📥 DUMP COMPLETO
+    ✅ "area_especialidade": "matematica"
+
+  BANCO DE DADOS:
+    ✅ Seu Nome em "COM DISCIPLINA"
+    ✅ Valor: "matematica"
+
+  ADMIN PANEL:
+    ✅ Novo registo aparece
+    ✅ Disciplina: "Matemática"
+    ✅ Botão "Aprovar" ATIVO ✅
+
+  CONCLUSÃO:
+    🎉 FUNCIONA! A disciplina está a ser salva correctamente!
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📖 Documentação Completa:
+   GUIA_DEBUG_DISCIPLINA_COMPLETO.md
+
+═══════════════════════════════════════════════════════════════════════════════

@@ -30,6 +30,12 @@ const NIVEIS_ACADEMICOS = [
   { value: 'outro',                   label: 'Outro' },
 ];
 
+const GENEROS = [
+  { value: 'Masculino', label: 'Masculino' },
+  { value: 'Feminino',  label: 'Feminino' },
+  { value: 'Outro',     label: 'Outro' },
+];
+
 const ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png'];
 const MAX_FILE_SIZE_MB   = 10;
 const MAX_FILES          = 5;
@@ -69,8 +75,8 @@ function fileIcon(file) {
 /* ─── Campo reutilizável ──────────────────────────────────────── */
 function Field({ label, error, touched, valid, children, required, hint }) {
   return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+    <div className="w-full">
+      <label className="block text-sm font-medium text-gray-700 mb-2">
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
       {children}
@@ -96,8 +102,8 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
   const fileInputRef = useRef(null);
 
   const INITIAL_FORM = {
-    nome: '', username: '', email: '', password: '', confirmPassword: '',
-    area_especialidade: '', nivel_academico: '', biografia: '',
+    nome: '', username: '', email: '', telefone: '', password: '', confirmPassword: '',
+    area_especialidade: '', nivel_academico: '', biografia: '', nascimento: '', sexo: '',
   };
 
   const [form, setForm]           = useState(INITIAL_FORM);
@@ -116,10 +122,23 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
       case 'nome':            return validateNome(value).error;
       case 'username':        return validateUsername(value).error;
       case 'email':           return validateEmail(value).error;
+      case 'telefone':        return value && !/^[0-9]{9}$/.test(value.replace(/\D/g, '')) ? 'O telefone deve ter 9 dígitos.' : null;
       case 'password':        return validatePassword(value).error;
       case 'confirmPassword': return validatePasswordConfirm(formState.password, value).error;
       case 'area_especialidade': return !value ? 'A área de especialidade é obrigatória.' : null;
       case 'nivel_academico': return !value ? 'O nível académico é obrigatório.' : null;
+      case 'sexo':            return !value ? 'O género é obrigatório.' : null;
+      case 'nascimento': {
+        if (!value) return 'A data de nascimento é obrigatória.';
+        const d = new Date(value);
+        if (isNaN(d.getTime())) return 'Data inválida.';
+        const now = new Date();
+        if (d > now) return 'A data não pode estar no futuro.';
+        const age = (now - d) / (1000 * 60 * 60 * 24 * 365.25);
+        if (age < 5) return 'Deve ter no mínimo 5 anos.';
+        if (age > 120) return 'Data de nascimento inválida.';
+        return null;
+      }
       case 'biografia':       return validarBio(value);
       default: return null;
     }
@@ -131,7 +150,20 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
 
   /* ── Handlers ── */
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+    
+    // 🔍 Debug area_especialidade changes
+    if (name === 'area_especialidade') {
+      console.log(`🎯 MUDANÇA DETECTADA: area_especialidade = "${value}"`);
+      console.log(`   Tipo do valor: ${typeof value}`);
+      console.log(`   Valor está vazio? ${value === ''}`);
+    }
+    
+    // Formatar telefone: apenas números, máximo 9
+    if (name === 'telefone') {
+      value = value.replace(/\D/g, '').slice(0, 9);
+    }
+    
     const nextForm = { ...form, [name]: value };
     setForm(nextForm);
 
@@ -204,8 +236,27 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
     setLoading(true);
     try {
       const formData = new FormData();
-      Object.entries(form).forEach(([k, v]) => formData.append(k, v));
-      files.forEach(f => formData.append('documentos', f));
+      
+      // DEBUG: Log cada campo sendo adicionado
+      console.log('🔍 ════════════════════════════════════════════════════════');
+      console.log('📤 PREPARANDO FORMDATA PARA ENVIO:');
+      console.log('🔍 Form State ANTES:', JSON.stringify(form, null, 2));
+      
+      Object.entries(form).forEach(([k, v]) => {
+        console.log(`   ✅ Adicionando: ${k} = "${v}"`);
+        formData.append(k, v);
+      });
+      
+      files.forEach(f => {
+        console.log(`   ✅ Adicionando ficheiro: ${f.name}`);
+        formData.append('documentos', f);
+      });
+      
+      console.log('📋 FormData construído. Campos:');
+      for (let pair of formData.entries()) {
+        console.log(`   - ${pair[0]}: ${pair[1]}`);
+      }
+      console.log('════════════════════════════════════════════════════════\n');
 
       const res = await fetch(`${API_BASE()}/auth/registro-colaborador`, {
         method: 'POST',
@@ -239,7 +290,7 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
 
   /* ── Render ── */
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full max-w-2xl" noValidate>
 
       {globalError && (
         <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
@@ -284,6 +335,20 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
         </InputWrapper>
       </Field>
 
+      {/* Telefone */}
+      <Field label="Telefone (opcional)" error={errors.telefone} touched={touched.telefone} valid={isValid('telefone')}
+        hint="9 dígitos (ex: 923456789)">
+        <InputWrapper error={errors.telefone} touched={touched.telefone}>
+          <input
+            name="telefone" type="tel" placeholder="923456789"
+            value={form.telefone} onChange={handleChange} onBlur={handleBlur}
+            disabled={loading}
+            className="w-full px-3 py-3 bg-transparent outline-none text-sm"
+            maxLength={9}
+          />
+        </InputWrapper>
+      </Field>
+
       {/* Área de especialidade */}
       <Field label="Área de especialidade" required error={errors.area_especialidade} touched={touched.area_especialidade}>
         <div className={`relative border rounded-xl transition-colors focus-within:ring-2 focus-within:ring-blue-500 ${
@@ -300,6 +365,36 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
           </select>
           <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
         </div>
+      </Field>
+
+      {/* Género */}
+      <Field label="Género" required error={errors.sexo} touched={touched.sexo}>
+        <div className={`relative border rounded-xl transition-colors focus-within:ring-2 focus-within:ring-blue-500 ${
+          errors.sexo && touched.sexo ? 'border-red-400' : 'border-gray-300'
+        }`}>
+          <select
+            name="sexo"
+            value={form.sexo} onChange={handleChange} onBlur={handleBlur}
+            disabled={loading}
+            className="w-full px-3 py-3 bg-transparent outline-none text-sm appearance-none pr-8"
+          >
+            <option value="">Selecione o género</option>
+            {GENEROS.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
+          </select>
+          <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        </div>
+      </Field>
+
+      {/* Data de Nascimento */}
+      <Field label="Data de nascimento" required error={errors.nascimento} touched={touched.nascimento} valid={isValid('nascimento')}>
+        <InputWrapper error={errors.nascimento} touched={touched.nascimento}>
+          <input
+            name="nascimento" type="date"
+            value={form.nascimento} onChange={handleChange} onBlur={handleBlur}
+            disabled={loading}
+            className="w-full px-3 py-3 bg-transparent outline-none text-sm"
+          />
+        </InputWrapper>
       </Field>
 
       {/* Nível académico */}
@@ -432,6 +527,31 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
         )}
       </div>
 
+      {/* Resumo antes de enviar */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 space-y-2 text-xs">
+        <p className="font-semibold text-blue-900">📋 Resumo da sua candidatura:</p>
+        <div className="space-y-1 text-blue-800">
+          <p>• <strong>Nome:</strong> {form.nome || '(vazio)'}</p>
+          <p>• <strong>Email:</strong> {form.email || '(vazio)'}</p>
+          <p>• <strong>Género:</strong> {GENEROS.find(g => g.value === form.sexo)?.label || '(vazio)'}</p>
+          <p>• <strong>Nascimento:</strong> {form.nascimento ? new Date(form.nascimento).toLocaleDateString('pt-PT') : '(vazio)'}</p>
+          <p>• <strong>Área:</strong> {ESPECIALIDADES.find(e => e.value === form.area_especialidade)?.label || '(vazio)'}
+            <span className="text-red-600 ml-2">
+              {form.area_especialidade === '' && '❌ NÃO PREENCHIDA'}
+              {form.area_especialidade !== '' && `✅ ${form.area_especialidade}`}
+            </span>
+          </p>
+          <p>• <strong>Nível:</strong> {NIVEIS_ACADEMICOS.find(n => n.value === form.nivel_academico)?.label || '(vazio)'}</p>
+          <p>• <strong>Documentos:</strong> {files.length > 0 ? `${files.length} ficheiro${files.length > 1 ? 's' : ''}` : 'Nenhum'}</p>
+        </div>
+        {form.area_especialidade !== '' && (
+          <p className="text-blue-700 text-xs italic mt-2">✅ Disciplina preenchida! Pronto para submeter.</p>
+        )}
+        {form.area_especialidade === '' && (
+          <p className="text-red-700 text-xs italic mt-2">❌ FALTA PREENCHER A DISCIPLINA!</p>
+        )}
+      </div>
+
       {/* Submit */}
       <button
         type="submit"
@@ -441,7 +561,7 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
         {loading ? (
           <><Loader2 size={18} className="animate-spin" /> Enviando candidatura...</>
         ) : (
-          'Enviar candidatura'
+          '✓ Enviar Candidatura para Análise do Admin'
         )}
       </button>
 

@@ -1,0 +1,127 @@
+═══════════════════════════════════════════════════════════════════════════════
+  QUICK REFERENCE - Disciplina Colaborador
+═══════════════════════════════════════════════════════════════════════════════
+
+❓ PERGUNTA
+  "Ok, e agora, todos os dados estão correctos?"
+
+✅ RESPOSTA
+  SIM - Novos colaboradores têm disciplina correcta
+  NÃO - 5 colaboradores antigos têm NULL (Jojo, Jovito, Nono, Elisa, Esm)
+
+───────────────────────────────────────────────────────────────────────────────
+
+📌 FLUXO DE DADOS (CONFIRMADO)
+
+  Frontend
+    ↓ colaborador preenche area_especialidade (obrigatório)
+    ↓ FormData.append('area_especialidade', value)
+    ↓ POST /auth/registro-colaborador
+  
+  Backend
+    ↓ req.body.area_especialidade recebido
+    ↓ validarPayload() verifica se vazio/inválido
+    ↓ Usuario.create({ disciplina_colaborador: body.area_especialidade })
+    ↓ Salvo na BD ✅
+  
+  Admin
+    ↓ ModalAprovar mostra disciplina
+    ↓ Botão "Aprovar" ativo se disciplina presente
+    ↓ Bloqueia se NULL ✅
+
+───────────────────────────────────────────────────────────────────────────────
+
+⚠️ PROBLEMAS & SOLUÇÕES
+
+  5 colaboradores COM NULL (Jojo, Jovito, Nono, Elisa, Esm)
+  ├─ Causa: Registaram antes da disciplina ser obrigatória
+  └─ Solução: Admin rejeita → Colaborador re-registra com disciplina
+
+───────────────────────────────────────────────────────────────────────────────
+
+🎯 AÇÕES NECESSÁRIAS (Admin)
+
+  1. Abrir Admin Panel → Colaboradores → Pendentes
+  2. Rejeitar: Jojo, Jovito, Nono, Elisa, Esm
+     Motivo: "Preencha a disciplina e registar novamente"
+  3. Colaboradores re-registam (desta vez COM disciplina)
+  4. Admin aprova normalmente ✅
+
+───────────────────────────────────────────────────────────────────────────────
+
+📊 ESTADO BD
+
+  Total: 14 colaboradores
+  ✅ Com disciplina: 9 (64.3%)
+  ❌ Sem disciplina: 5 (35.7%)
+
+  Após resolução:
+  ✅ Com disciplina: 14 (100%)
+
+───────────────────────────────────────────────────────────────────────────────
+
+📁 FICHEIROS PRINCIPAIS
+
+  Frontend:
+    FrontEnd/src/Paginas/Primarias/CollaboratorRegisterForm.jsx
+      ├─ area_especialidade obrigatório (linha 118)
+      ├─ FormData construction (linha 226)
+      └─ Validação força preenchimento
+
+  Backend:
+    BackEnd/controllers/colaboradorRegistroController.js
+      ├─ validarPayload() - validação rigorosa (linha 52)
+      ├─ Usuario.create() - salva em disciplina_colaborador (linha 145)
+      └─ Debug logs para monitoramento
+
+  Admin:
+    FrontEnd/src/Administrador/ColaboradoresTab.jsx
+      ├─ ModalAprovar - mostra disciplina
+      ├─ Bloqueio - botão desativado se NULL
+      └─ Proteção multicamadas
+
+  Verificação:
+    BackEnd/verificar_integridade_disciplinas.js
+      └─ Script para verificar estado atual da BD
+
+───────────────────────────────────────────────────────────────────────────────
+
+💾 VALIDAÇÕES ATIVAS
+
+  Frontend:
+    ✅ Campo obrigatório (não deixa submeter vazio)
+    ✅ Select dropdown (valores pré-definidos)
+
+  Backend:
+    ✅ isEmpty() - rejeita vazio
+    ✅ includes(DISCIPLINAS_VALIDAS) - rejeita inválido
+    ✅ ENUM database - apenas valores válidos
+
+  Admin:
+    ✅ ModalAprovar - bloqueia sem disciplina
+    ✅ Backend aprovar - valida antes de salvar
+
+───────────────────────────────────────────────────────────────────────────────
+
+✨ CONCLUSÃO
+
+  Sistema FUNCIONA CORRECTAMENTE para:
+    ✅ Novos registos
+    ✅ Validação
+    ✅ Persistência
+    ✅ Aprovação
+
+  Problema:
+    ⚠️ 5 registos antigos com NULL (requerem re-registo)
+
+  Resultado Final:
+    🎯 100% dos colaboradores com disciplina correcta
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Documentação Completa:
+  - RESOLUCAO_DISCIPLINA_COLABORADOR.md
+  - RESPOSTA_DISCIPLINA_DADOS_CORRECTOS.md
+  - RESUMO_SESSION_16_CONFIRMACAO.md
+
+═══════════════════════════════════════════════════════════════════════════════

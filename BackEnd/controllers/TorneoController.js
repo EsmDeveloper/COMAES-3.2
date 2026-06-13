@@ -60,11 +60,32 @@ export const TorneoController = {
         return res.status(400).json({ message: 'disciplina_especifica é obrigatória para torneios específicos', field: 'disciplina_especifica' });
       }
 
-      const TOLERANCE_MS = 5 * 60 * 1000;
+      // ✅ NOVO: Validar concorrência de torneios
+      // Não permitir criar torneio ativo se já existe outro ativo
+      if (status === 'ativo') {
+        const torneioAtivoExistente = await Torneio.count({
+          where: { status: 'ativo' }
+        });
+        
+        if (torneioAtivoExistente > 0) {
+          console.log('[TorneioController] ❌ Tentativa de criar segundo torneio ativo');
+          return res.status(409).json({ 
+            message: 'Não é possível criar dois torneios ativos ao mesmo tempo. Finalize o torneio ativo anterior.',
+            error: 'TOURNAMENT_CONFLICT',
+            existingTournament: true
+          });
+        }
+      }
+
+      const TOLERANCE_MS = 5 * 60 * 1000; // 5 minutos de tolerância
       const now = new Date(Date.now() - TOLERANCE_MS);
 
       if (inicia_em && new Date(inicia_em) < now) {
-        return res.status(400).json({ message: 'A data de inicio nao pode ser anterior ao horario atual.', field: 'inicia_em' });
+        return res.status(400).json({ 
+          message: 'A data de início deve ser diferente da hora atual. Escolha uma data posterior.',
+          field: 'inicia_em',
+          suggestedMinTime: new Date(Date.now() + 60000).toISOString() // +1 minuto
+        });
       }
       if (termina_em) {
         if (new Date(termina_em) < now) {
@@ -139,6 +160,26 @@ export const TorneoController = {
       const existingTorneio = await Torneio.findByPk(id);
       if (!existingTorneio) {
         return res.status(404).json({ message: 'Torneio nao encontrado' });
+      }
+
+      // ✅ NOVO: Validar concorrência ao ativar torneio
+      // Se tentando ativar este torneio, verificar que não há outro ativo
+      if (status === 'ativo' && existingTorneio.status !== 'ativo') {
+        const outroTorneioAtivo = await Torneio.count({
+          where: { 
+            status: 'ativo',
+            id: { [require('sequelize').Op.ne]: id } // Excluir este torneio
+          }
+        });
+        
+        if (outroTorneioAtivo > 0) {
+          console.log('[TorneioController] ❌ Tentativa de ativar segundo torneio');
+          return res.status(409).json({ 
+            message: 'Não é possível ativar dois torneios ao mesmo tempo. Finalize o torneio ativo anterior.',
+            error: 'TOURNAMENT_CONFLICT',
+            existingTournament: true
+          });
+        }
       }
 
       // Validar tipo_torneio
