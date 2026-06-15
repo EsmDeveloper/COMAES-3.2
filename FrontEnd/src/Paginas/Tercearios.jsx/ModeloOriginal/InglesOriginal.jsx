@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import { FaSignOutAlt } from "react-icons/fa";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
-// Importações para certificados e vencedores
+// ImportaÃ§Ãµes para certificados e vencedores
 import CertIngles from '../../../certificados/CertIngles';
 import useCertificado from '../../../hooks/useCertificado';
 import ModalVencedores from '../../../components/ModalVencedores';
@@ -15,7 +15,7 @@ import TournamentFinishedModal from '../../../components/TournamentFinishedModal
 import useTorneioParticipante from '../../../hooks/useTorneioParticipante';
 
 const TEMPO_QUESTAO = 120;
-const DISCIPLINA = 'Inglês';
+const DISCIPLINA = 'InglÃªs';
 
 const usefulPhrases = [
   "In my opinion,", "Firstly,", "Secondly,", "Furthermore,", 
@@ -35,7 +35,7 @@ export default function InglesOriginal() {
   const socketRef = useRef(null);
   const enunciadoRef = useRef(null);
 
-  // ── Hook centralizado de torneio ──────────────────────────────────────────
+  // â”€â”€ Hook centralizado de torneio â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const {
     torneio,
     participante,
@@ -48,7 +48,7 @@ export default function InglesOriginal() {
     dentroDoPeriodo,
     setDentroDoPeriodo,
     actualizarParticipante,
-  } = useTorneioParticipante({ disciplina: 'Inglês', disciplinaSlug: 'ingles', user, token });
+  } = useTorneioParticipante({ disciplina: 'InglÃªs', disciplinaSlug: 'ingles', user, token });
 
   // Estados locais
   const [progresso, setProgresso] = useState(0);
@@ -77,14 +77,14 @@ export default function InglesOriginal() {
     certificadoData, 
     fecharCertificado,
     abrirCertificado 
-  } = useCertificado('Inglês', participante, ranking);
+  } = useCertificado('InglÃªs', participante, ranking);
 
   // Hook para vencedores
   const { 
     mostrarVencedores, 
     vencedores, 
     fecharVencedores 
-  } = useVencedores('Inglês', ranking, torneio, participante);
+  } = useVencedores('InglÃªs', ranking, torneio, participante);
 
   const calcularTempoRestante = (torneioData) => {
     if (!torneioData?.termina_em) {
@@ -108,7 +108,7 @@ export default function InglesOriginal() {
     return { dias, horas, minutos, segundos };
   };
 
-  // Função para calcular progresso baseado no tempo
+  // FunÃ§Ã£o para calcular progresso baseado no tempo
   const calcularProgressoTemporal = (torneioData) => {
     if (!torneioData?.inicia_em || !torneioData?.termina_em) return 100;
     
@@ -153,7 +153,7 @@ export default function InglesOriginal() {
     return () => clearInterval(intervalId);
   }, [torneio]);
 
-  // Filtrar questões por dificuldade
+  // Filtrar questÃµes por dificuldade
   useEffect(() => {
     if (questoes.length > 0) {
       const filtradas = questoes.filter(q => q.dificuldade === nivelSelecionado);
@@ -161,7 +161,7 @@ export default function InglesOriginal() {
       if (filtradas.length > 0) {
         setQuestaoIndex(0);
         setQuestaoTime(TEMPO_QUESTAO);
-        // Scroll para o enunciado após mudar de nível
+        // Scroll para o enunciado apÃ³s mudar de nÃ­vel
         setTimeout(() => {
           if (enunciadoRef.current) {
             enunciadoRef.current.scrollIntoView({ 
@@ -174,14 +174,14 @@ export default function InglesOriginal() {
     }
   }, [nivelSelecionado, questoes]);
 
-  // Atualizar total de questões
+  // Atualizar total de questÃµes
   useEffect(() => {
     if (questoes.length > 0) {
       setQuestoesTotais(questoes.length);
     }
   }, [questoes]);
   
-  // Limpar timer de auto-avanço
+  // Limpar timer de auto-avanÃ§o
   useEffect(() => {
     return () => {
       if (autoAvancarTimer) {
@@ -190,7 +190,7 @@ export default function InglesOriginal() {
     };
   }, [autoAvancarTimer]);
 
-  // SCROLL AUTOMÁTICO QUANDO A QUESTÃO MUDA
+  // SCROLL AUTOMÃTICO QUANDO A QUESTÃƒO MUDA
   useEffect(() => {
     if (questoesFiltradas.length > 0 && enunciadoRef.current) {
       setTimeout(() => {
@@ -202,7 +202,7 @@ export default function InglesOriginal() {
     }
   }, [questaoIndex]);
 
-  // SCROLL AUTOMÁTICO NO CARREGAMENTO INICIAL
+  // SCROLL AUTOMÃTICO NO CARREGAMENTO INICIAL
   useEffect(() => {
     if (questoesFiltradas.length > 0 && enunciadoRef.current) {
       setTimeout(() => {
@@ -214,21 +214,21 @@ export default function InglesOriginal() {
     }
   }, [questoesFiltradas]);
 
-  // VERIFICAR TORNEIO ATIVO — gerido pelo hook useTorneioParticipante
+  // VERIFICAR TORNEIO ATIVO â€” gerido pelo hook useTorneioParticipante
 
-  // Carregar questões quando o torneio ficar disponível
+  // Carregar questÃµes quando o torneio ficar disponÃ­vel
   useEffect(() => {
     if (torneio?.id) {
       buscarQuestoes(torneio.id);
     }
   }, [torneio?.id]);
 
-  // Conectar Socket.IO — gerido pelo hook useTorneioParticipante
+  // Conectar Socket.IO â€” gerido pelo hook useTorneioParticipante
 
-  // Buscar questões do banco de dados
+  // Buscar questÃµes do banco de dados
   const buscarQuestoes = async (torneioId) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/torneios/${torneioId}/questoes/ingles`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/torneios/${torneioId}/questoes/ingles`);
       const data = await response.json();
       
       if (data.success && data.data.length > 0) {
@@ -242,20 +242,20 @@ export default function InglesOriginal() {
         setQuestoesFiltradas([]);
       }
     } catch (err) {
-      console.error('Erro ao carregar questões:', err);
+      console.error('Erro ao carregar questÃµes:', err);
       setQuestoes([]);
       setQuestoesFiltradas([]);
     }
   };
 
-  // Temporizador da questão
+  // Temporizador da questÃ£o
   useEffect(() => {
     if (questoesFiltradas.length === 0) return;
     
     const interval = setInterval(() => {
       setQuestaoTime((prev) => {
         if (prev <= 0) {
-          // Quando o tempo acaba, avança automaticamente
+          // Quando o tempo acaba, avanÃ§a automaticamente
           handleProximaQuestaoAutomatica();
           return TEMPO_QUESTAO;
         }
@@ -294,7 +294,7 @@ export default function InglesOriginal() {
     }
     
     if (questoesFiltradas.length > 0) {
-      // Avança para a próxima questão ou volta para a primeira se for a última
+      // AvanÃ§a para a prÃ³xima questÃ£o ou volta para a primeira se for a Ãºltima
       setQuestaoIndex((prev) => (prev + 1 < questoesFiltradas.length ? prev + 1 : 0));
       setQuestaoTime(TEMPO_QUESTAO);
     }
@@ -348,7 +348,7 @@ export default function InglesOriginal() {
     };
 
     try {
-      const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/avaliar`, {
+      const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/api/avaliar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
         body: JSON.stringify(payload)
@@ -356,7 +356,7 @@ export default function InglesOriginal() {
 
       const data = await resp.json();
       if (!data.success) {
-        setResultado('Erro ao avaliar: ' + (data.error || 'Resposta inválida'));
+        setResultado('Erro ao avaliar: ' + (data.error || 'Resposta invÃ¡lida'));
         setPontuacao(0);
         setAvaliacaoDetalhes(null);
       } else {
@@ -364,12 +364,12 @@ export default function InglesOriginal() {
         const total = Number(data.data.totalPontos || 0);
         setAvaliacaoDetalhes(detalhes[0] ? detalhes[0] : detalhes);
         setPontuacao(total);
-        setResultado(detalhes[0]?.feedback || 'Avaliação concluída');
+        setResultado(detalhes[0]?.feedback || 'AvaliaÃ§Ã£o concluÃ­da');
         if (data.data.participante) actualizarParticipante(data.data.participante);
       }
     } catch (err) {
       console.error('Erro ao chamar /api/avaliar', err);
-      setResultado('Erro de comunicação com o servidor');
+      setResultado('Erro de comunicaÃ§Ã£o com o servidor');
       setPontuacao(0);
       setAvaliacaoDetalhes(null);
     } finally {
@@ -387,7 +387,7 @@ export default function InglesOriginal() {
       <div className="flex justify-center items-center h-screen bg-gray-100">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando torneio de Inglês...</p>
+          <p className="mt-4 text-gray-600">Carregando torneio de InglÃªs...</p>
         </div>
       </div>
     );
@@ -397,9 +397,9 @@ export default function InglesOriginal() {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-100">
         <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-md">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Torneio Indisponível</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Torneio IndisponÃ­vel</h2>
           <p className="text-gray-600 mb-6">
-            {error || "Não há torneio de Inglês ativo no momento."}
+            {error || "NÃ£o hÃ¡ torneio de InglÃªs ativo no momento."}
           </p>
           <button 
             onClick={() => navigate("/entrar-no-torneio")}
@@ -440,7 +440,7 @@ export default function InglesOriginal() {
               className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-full shadow-lg transition-all text-[10px] sm:text-xs md:text-sm"
               title="Check Certificate"
             >
-              🏆 <span className="hidden sm:inline">Certificate</span>
+              ðŸ† <span className="hidden sm:inline">Certificate</span>
             </button>
             <div className="bg-white text-blue-600 font-bold px-2 py-1 text-[10px] sm:px-3 sm:py-1.5 sm:text-xs md:px-4 md:py-2 md:text-sm rounded-full flex items-center gap-1 shadow-md">
               English Tournament
@@ -481,9 +481,9 @@ export default function InglesOriginal() {
                     }`}
                   >
                     <td className="px-2 py-2 font-semibold">
-                      {participanteRank.posicao === 1 ? '🥇' : 
-                       participanteRank.posicao === 2 ? '🥈' : 
-                       participanteRank.posicao === 3 ? '🥉' : 
+                      {participanteRank.posicao === 1 ? 'ðŸ¥‡' : 
+                       participanteRank.posicao === 2 ? 'ðŸ¥ˆ' : 
+                       participanteRank.posicao === 3 ? 'ðŸ¥‰' : 
                        participanteRank.posicao ?? '-'}
                     </td>
                     <td className="px-2 py-2">
@@ -501,10 +501,10 @@ export default function InglesOriginal() {
                         )}
                         <div className="flex flex-col min-w-0">
                           <span className={`truncate ${isMe ? 'font-bold text-blue-700' : ''}`}>
-                            {participanteRank.usuario?.nome || 'Usuário'}
+                            {participanteRank.usuario?.nome || 'UsuÃ¡rio'}
                           </span>
                           {isMe && (
-                            <span className="text-[10px] font-bold text-blue-500 leading-none">● você</span>
+                            <span className="text-[10px] font-bold text-blue-500 leading-none">â— vocÃª</span>
                           )}
                         </div>
                       </div>
@@ -548,7 +548,7 @@ export default function InglesOriginal() {
                   {torneio?.titulo || 'English Writing Tournament'}
                 </h1>
                 
-                {/* BOTÕES DE NÍVEL */}
+                {/* BOTÃ•ES DE NÃVEL */}
                 <div className="flex gap-2 flex-wrap justify-center">
                   {[
                     { nivel: "facil", label: "Easy", pts: 5 },
@@ -564,7 +564,7 @@ export default function InglesOriginal() {
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
-                      {item.label} • {item.pts} pts
+                      {item.label} â€¢ {item.pts} pts
                       <span className="ml-1 text-xs">
                         ({questoes.filter(q => q.dificuldade === item.nivel).length})
                       </span>
@@ -573,16 +573,16 @@ export default function InglesOriginal() {
                 </div>
               </div>
 
-              {/* MENSAGEM SE NÃO HÁ QUESTÕES */}
+              {/* MENSAGEM SE NÃƒO HÃ QUESTÃ•ES */}
               {questoesFiltradas.length === 0 ? (
                 <div className="w-full max-w-4xl bg-yellow-50 border border-yellow-200 rounded-xl shadow p-6 text-center">
-                  <h3 className="text-lg font-semibold text-yellow-800 mb-2">Nenhuma questão disponível</h3>
+                  <h3 className="text-lg font-semibold text-yellow-800 mb-2">Nenhuma questÃ£o disponÃ­vel</h3>
                   <p className="text-yellow-700">
-                    Não há questões de {nivelSelecionado === 'facil' ? 'fácil' : nivelSelecionado === 'medio' ? 'médio' : 'difícil'} 
-                    disponíveis no momento.
+                    NÃ£o hÃ¡ questÃµes de {nivelSelecionado === 'facil' ? 'fÃ¡cil' : nivelSelecionado === 'medio' ? 'mÃ©dio' : 'difÃ­cil'} 
+                    disponÃ­veis no momento.
                   </p>
                   <p className="text-sm text-yellow-600 mt-2">
-                    Selecione outro nível de dificuldade.
+                    Selecione outro nÃ­vel de dificuldade.
                   </p>
                 </div>
               ) : (
@@ -596,7 +596,7 @@ export default function InglesOriginal() {
                       {questoesFiltradas[questaoIndex]?.descricao || questoesFiltradas[questaoIndex]?.enunciado}
                     </p>
                     <div className="mt-2 text-xs text-gray-500">
-                      <span>Questão {questaoIndex + 1} de {questoesFiltradas.length}</span>
+                      <span>QuestÃ£o {questaoIndex + 1} de {questoesFiltradas.length}</span>
                       <span className="ml-4 capitalize font-semibold">
                         Dificuldade: {questoesFiltradas[questaoIndex]?.dificuldade || 'N/A'}
                       </span>
@@ -611,7 +611,7 @@ export default function InglesOriginal() {
 
                   {/* EDITOR */}
                   <div className="w-full max-w-4xl bg-white rounded-xl shadow-md p-4 space-y-3">
-                    {/* FRASES ÚTEIS */}
+                    {/* FRASES ÃšTEIS */}
                     <div className="flex gap-1 md:gap-2 flex-wrap justify-center border-b pb-3 overflow-x-auto">
                       {usefulPhrases.map((phrase) => (
                         <button 
@@ -648,7 +648,7 @@ export default function InglesOriginal() {
                     </div>
                   </div>
 
-                  {/* BOTÕES DE CONTROLE - APENAS SUBMIT ESSAY */}
+                  {/* BOTÃ•ES DE CONTROLE - APENAS SUBMIT ESSAY */}
                   <div className="flex gap-3 w-full max-w-4xl">
                     <button 
                       onClick={executarResposta}
@@ -670,7 +670,7 @@ export default function InglesOriginal() {
                 </>
               )}
 
-              {/* BOTÕES MOBILE */}
+              {/* BOTÃ•ES MOBILE */}
               <div className="flex flex-col sm:flex-row w-full max-w-5xl justify-between gap-3 mt-4 lg:hidden">
                 <button 
                   onClick={() => setMostrarRanking(true)} 
@@ -692,12 +692,12 @@ export default function InglesOriginal() {
                 </button>
               </div>
 
-              {/* RESULTADO / AVALIAÇÃO */}
+              {/* RESULTADO / AVALIAÃ‡ÃƒO */}
               {resultado && (
                 <div className="w-full max-w-4xl bg-white rounded-xl shadow-md p-4 border-l-4 border-blue-600">
                   <h3 className="text-gray-700 font-semibold mb-2">Your Essay Evaluation</h3>
                   <div className="flex items-start gap-3 mb-2">
-                    <span className="text-2xl">{avaliacaoDetalhes ? (avaliacaoDetalhes.score >= 0.9 ? '✅' : avaliacaoDetalhes.score >= 0.6 ? '⚠️' : '❌') : 'ℹ️'}</span>
+                    <span className="text-2xl">{avaliacaoDetalhes ? (avaliacaoDetalhes.score >= 0.9 ? 'âœ…' : avaliacaoDetalhes.score >= 0.6 ? 'âš ï¸' : 'âŒ') : 'â„¹ï¸'}</span>
                     <p className="text-gray-800">{resultado}</p>
                   </div>
                   {pontuacao !== null && (
@@ -718,7 +718,7 @@ export default function InglesOriginal() {
           )}
         </div>
 
-        {/* SIDEBAR DIREITA - INFO USUÁRIO */}
+        {/* SIDEBAR DIREITA - INFO USUÃRIO */}
         <div className="hidden lg:flex w-64 bg-white text-gray-800 shadow-lg p-4 overflow-y-auto flex-col items-center space-y-3">
           <div className="flex flex-col items-center mb-3">
             {participante?.usuario?.imagem ? (
@@ -732,13 +732,13 @@ export default function InglesOriginal() {
                 {participante?.usuario?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || user?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'U'}
               </div>
             )}
-            <h3 className="text-lg font-bold mt-2">{participante?.usuario?.nome || user?.nome || "Usuário"}</h3>
+            <h3 className="text-lg font-bold mt-2">{participante?.usuario?.nome || user?.nome || "UsuÃ¡rio"}</h3>
             <p className="text-sm text-gray-500">Participante do Torneio</p>
           </div>
 
           {participante ? (
             <div className="w-full flex flex-col gap-2 items-center">
-              {/* PONTUAÇÃO */}
+              {/* PONTUAÃ‡ÃƒO */}
               <div className="bg-white rounded-3xl border border-blue-200 p-2 flex flex-col items-center gap-1 w-40">
                 <div className="w-14 h-14">
                   <CircularProgressbar 
@@ -753,10 +753,10 @@ export default function InglesOriginal() {
                     })} 
                   />
                 </div>
-                <span className="text-xs font-semibold text-center">Pontuação</span>
+                <span className="text-xs font-semibold text-center">PontuaÃ§Ã£o</span>
               </div>
               
-              {/* POSIÇÃO */}
+              {/* POSIÃ‡ÃƒO */}
               <div className="bg-white rounded-3xl border border-blue-200 p-2 flex flex-col items-center gap-1 w-40">
                 <div className="w-14 h-14">
                   <CircularProgressbar 
@@ -771,7 +771,7 @@ export default function InglesOriginal() {
                     })} 
                   />
                 </div>
-                <span className="text-xs font-semibold text-center">Posição</span>
+                <span className="text-xs font-semibold text-center">PosiÃ§Ã£o</span>
               </div>
               
               {/* CASOS RESOLVIDOS */}
@@ -792,7 +792,7 @@ export default function InglesOriginal() {
                 <span className="text-xs font-semibold text-center">Casos Resolvidos</span>
               </div>
 
-              {/* Botão de Verificação de Certificado */}
+              {/* BotÃ£o de VerificaÃ§Ã£o de Certificado */}
               <div className="mt-4 w-full">
                 <CertificateCheckButton 
                   onClick={abrirCertificado}
@@ -802,7 +802,7 @@ export default function InglesOriginal() {
             </div>
           ) : (
             <div className="text-center p-4">
-              <p className="text-gray-600 mb-3">Você ainda não está participando deste torneio</p>
+              <p className="text-gray-600 mb-3">VocÃª ainda nÃ£o estÃ¡ participando deste torneio</p>
               <button 
                 onClick={() => window.location.reload()}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
@@ -826,7 +826,7 @@ export default function InglesOriginal() {
               onClick={() => setMostrarRanking(false)} 
               className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl transition-colors"
             >
-              ✕
+              âœ•
             </button>
             <h2 className="text-xl font-bold mb-4 text-center border-b border-gray-300 pb-1">Student Ranking</h2>
             <table className="w-full table-auto text-sm">
@@ -850,9 +850,9 @@ export default function InglesOriginal() {
                       }`}
                     >
                       <td className="px-2 py-2 font-semibold">
-                        {participanteRank.posicao === 1 ? '🥇' : 
-                         participanteRank.posicao === 2 ? '🥈' : 
-                         participanteRank.posicao === 3 ? '🥉' : 
+                        {participanteRank.posicao === 1 ? 'ðŸ¥‡' : 
+                         participanteRank.posicao === 2 ? 'ðŸ¥ˆ' : 
+                         participanteRank.posicao === 3 ? 'ðŸ¥‰' : 
                          participanteRank.posicao ?? '-'}
                       </td>
                       <td className="px-2 py-2">
@@ -870,10 +870,10 @@ export default function InglesOriginal() {
                           )}
                           <div className="flex flex-col min-w-0">
                             <span className={`truncate ${isMe ? 'font-bold text-blue-700' : ''}`}>
-                              {participanteRank.usuario?.nome || 'Usuário'}
+                              {participanteRank.usuario?.nome || 'UsuÃ¡rio'}
                             </span>
                             {isMe && (
-                              <span className="text-[10px] font-bold text-blue-500 leading-none">● você</span>
+                              <span className="text-[10px] font-bold text-blue-500 leading-none">â— vocÃª</span>
                             )}
                           </div>
                         </div>
@@ -897,7 +897,7 @@ export default function InglesOriginal() {
         </div>
       )}
 
-      {/* OVERLAY SIDEBAR DIREITA (DADOS USUÁRIO MOBILE) */}
+      {/* OVERLAY SIDEBAR DIREITA (DADOS USUÃRIO MOBILE) */}
       {mostrarDados && (
         <div className="fixed inset-0 z-50 flex justify-end lg:hidden">
           <div 
@@ -909,7 +909,7 @@ export default function InglesOriginal() {
               onClick={() => setMostrarDados(false)} 
               className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl transition-colors"
             >
-              ✕
+              âœ•
             </button>
             <div className="flex flex-col items-center mb-3">
               {participante?.usuario?.imagem ? (
@@ -923,12 +923,12 @@ export default function InglesOriginal() {
                   {participante?.usuario?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || user?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'U'}
                 </div>
               )}
-              <h3 className="text-lg font-bold mt-2">{participante?.usuario?.nome || user?.nome || "Usuário"}</h3>
+              <h3 className="text-lg font-bold mt-2">{participante?.usuario?.nome || user?.nome || "UsuÃ¡rio"}</h3>
             </div>
             
             {participante ? (
               <div className="w-full flex flex-col mt-4 gap-4 items-center">
-                {/* PONTUAÇÃO */}
+                {/* PONTUAÃ‡ÃƒO */}
                 <div className="bg-white rounded-3xl border border-blue-200 p-2 flex flex-col items-center gap-1 w-40">
                   <div className="w-14 h-14">
                     <CircularProgressbar 
@@ -943,10 +943,10 @@ export default function InglesOriginal() {
                       })} 
                     />
                   </div>
-                  <span className="text-xs font-semibold text-center">Pontuação</span>
+                  <span className="text-xs font-semibold text-center">PontuaÃ§Ã£o</span>
                 </div>
                 
-                {/* POSIÇÃO */}
+                {/* POSIÃ‡ÃƒO */}
                 <div className="bg-white rounded-3xl border border-blue-200 p-2 flex flex-col items-center gap-1 w-40">
                   <div className="w-14 h-14">
                     <CircularProgressbar 
@@ -961,7 +961,7 @@ export default function InglesOriginal() {
                       })} 
                     />
                   </div>
-                  <span className="text-xs font-semibold text-center">Posição</span>
+                  <span className="text-xs font-semibold text-center">PosiÃ§Ã£o</span>
                 </div>
                 
                 {/* CASOS RESOLVIDOS */}
@@ -981,7 +981,7 @@ export default function InglesOriginal() {
                   <span className="text-xs font-semibold text-center">Casos Resolvidos</span>
                 </div>
 
-                {/* Botão de Verificação de Certificado Mobile */}
+                {/* BotÃ£o de VerificaÃ§Ã£o de Certificado Mobile */}
                 <div className="mt-4 w-full px-4 text-center">
                   <CertificateCheckButton 
                     onClick={abrirCertificado}
@@ -991,7 +991,7 @@ export default function InglesOriginal() {
               </div>
             ) : (
               <div className="text-center p-4">
-                <p className="text-gray-600">Você ainda não está participando</p>
+                <p className="text-gray-600">VocÃª ainda nÃ£o estÃ¡ participando</p>
               </div>
             )}
           </div>
@@ -1014,7 +1014,7 @@ export default function InglesOriginal() {
         isOpen={mostrarVencedores}
         onClose={fecharVencedores}
         vencedores={vencedores}
-        disciplina="Inglês"
+        disciplina="InglÃªs"
         torneio={torneio}
       />
     </div>

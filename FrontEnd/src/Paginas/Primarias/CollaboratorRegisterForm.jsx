@@ -1,7 +1,7 @@
-/**
+﻿/**
  * CollaboratorRegisterForm.jsx
  *
- * Formulário de registo de colaborador/professor — subcomponente do AuthContainer.
+ * FormulÃ¡rio de registo de colaborador/professor â€” subcomponente do AuthContainer.
  * Totalmente modular, reutiliza validators.js e estilos do sistema existente.
  */
 
@@ -12,21 +12,21 @@ import {
   validateUsername,
 } from '../../utils/validators';
 
-/* ─── Constantes ──────────────────────────────────────────────── */
+/* â”€â”€â”€ Constantes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const ESPECIALIDADES = [
-  { value: 'matematica',  label: 'Matemática' },
-  { value: 'programacao', label: 'Programação' },
-  { value: 'ingles',      label: 'Inglês' },
+  { value: 'matematica',  label: 'MatemÃ¡tica' },
+  { value: 'programacao', label: 'ProgramaÃ§Ã£o' },
+  { value: 'ingles',      label: 'InglÃªs' },
 ];
 
 const NIVEIS_ACADEMICOS = [
-  { value: 'estudante_universitario', label: 'Estudante universitário' },
-  { value: 'tecnico',                 label: 'Técnico' },
+  { value: 'estudante_universitario', label: 'Estudante universitÃ¡rio' },
+  { value: 'tecnico',                 label: 'TÃ©cnico' },
   { value: 'licenciado',              label: 'Licenciado' },
   { value: 'mestre',                  label: 'Mestre' },
   { value: 'doutor',                  label: 'Doutor' },
   { value: 'professor',               label: 'Professor' },
-  { value: 'profissional',            label: 'Profissional da área' },
+  { value: 'profissional',            label: 'Profissional da Ã¡rea' },
   { value: 'outro',                   label: 'Outro' },
 ];
 
@@ -41,20 +41,20 @@ const MAX_FILE_SIZE_MB   = 10;
 const MAX_FILES          = 5;
 
 const API_BASE = () =>
-  (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`);
+  (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`);
 
-/* ─── helpers ─────────────────────────────────────────────────── */
+/* â”€â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function validarBio(bio) {
   if (!bio || !bio.trim()) return null; // opcional
   if (bio.trim().length < 30) return 'A biografia deve ter pelo menos 30 caracteres.';
-  if (bio.trim().length > 500) return 'A biografia não pode ter mais de 500 caracteres.';
+  if (bio.trim().length > 500) return 'A biografia nÃ£o pode ter mais de 500 caracteres.';
   return null;
 }
 
 function validarArquivo(file) {
   const ext = '.' + file.name.split('.').pop().toLowerCase();
   if (!ALLOWED_EXTENSIONS.includes(ext))
-    return `Extensão "${ext}" não permitida. Use: PDF, DOC, DOCX, JPG, PNG.`;
+    return `ExtensÃ£o "${ext}" nÃ£o permitida. Use: PDF, DOC, DOCX, JPG, PNG.`;
   if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024)
     return `"${file.name}" excede o limite de ${MAX_FILE_SIZE_MB}MB.`;
   return null;
@@ -72,7 +72,7 @@ function fileIcon(file) {
   return <FileText size={14} className="text-gray-500" />;
 }
 
-/* ─── Campo reutilizável ──────────────────────────────────────── */
+/* â”€â”€â”€ Campo reutilizÃ¡vel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function Field({ label, error, touched, valid, children, required, hint }) {
   return (
     <div className="w-full">
@@ -82,7 +82,7 @@ function Field({ label, error, touched, valid, children, required, hint }) {
       {children}
       {hint && !error && <p className="text-xs text-gray-400 mt-0.5">{hint}</p>}
       {error && touched && <p className="text-red-600 text-xs mt-0.5">{error}</p>}
-      {valid && !error && <p className="text-green-600 text-xs mt-0.5">✓ Válido</p>}
+      {valid && !error && <p className="text-green-600 text-xs mt-0.5">âœ“ VÃ¡lido</p>}
     </div>
   );
 }
@@ -97,7 +97,7 @@ function InputWrapper({ children, error, touched }) {
   );
 }
 
-/* ─── Componente principal ────────────────────────────────────── */
+/* â”€â”€â”€ Componente principal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin }) {
   const fileInputRef = useRef(null);
 
@@ -116,27 +116,27 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
   const [loading, setLoading]     = useState(false);
   const [globalError, setGlobalError] = useState('');
 
-  /* ── Validação individual ── */
+  /* â”€â”€ ValidaÃ§Ã£o individual â”€â”€ */
   function getFieldError(name, value, formState = form) {
     switch (name) {
       case 'nome':            return validateNome(value).error;
       case 'username':        return validateUsername(value).error;
       case 'email':           return validateEmail(value).error;
-      case 'telefone':        return value && !/^[0-9]{9}$/.test(value.replace(/\D/g, '')) ? 'O telefone deve ter 9 dígitos.' : null;
+      case 'telefone':        return value && !/^[0-9]{9}$/.test(value.replace(/\D/g, '')) ? 'O telefone deve ter 9 dÃ­gitos.' : null;
       case 'password':        return validatePassword(value).error;
       case 'confirmPassword': return validatePasswordConfirm(formState.password, value).error;
-      case 'area_especialidade': return !value ? 'A área de especialidade é obrigatória.' : null;
-      case 'nivel_academico': return !value ? 'O nível académico é obrigatório.' : null;
-      case 'sexo':            return !value ? 'O género é obrigatório.' : null;
+      case 'area_especialidade': return !value ? 'A Ã¡rea de especialidade Ã© obrigatÃ³ria.' : null;
+      case 'nivel_academico': return !value ? 'O nÃ­vel acadÃ©mico Ã© obrigatÃ³rio.' : null;
+      case 'sexo':            return !value ? 'O gÃ©nero Ã© obrigatÃ³rio.' : null;
       case 'nascimento': {
-        if (!value) return 'A data de nascimento é obrigatória.';
+        if (!value) return 'A data de nascimento Ã© obrigatÃ³ria.';
         const d = new Date(value);
-        if (isNaN(d.getTime())) return 'Data inválida.';
+        if (isNaN(d.getTime())) return 'Data invÃ¡lida.';
         const now = new Date();
-        if (d > now) return 'A data não pode estar no futuro.';
+        if (d > now) return 'A data nÃ£o pode estar no futuro.';
         const age = (now - d) / (1000 * 60 * 60 * 24 * 365.25);
-        if (age < 5) return 'Deve ter no mínimo 5 anos.';
-        if (age > 120) return 'Data de nascimento inválida.';
+        if (age < 5) return 'Deve ter no mÃ­nimo 5 anos.';
+        if (age > 120) return 'Data de nascimento invÃ¡lida.';
         return null;
       }
       case 'biografia':       return validarBio(value);
@@ -148,18 +148,18 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
     return touched[name] && !errors[name] && form[name];
   }
 
-  /* ── Handlers ── */
+  /* â”€â”€ Handlers â”€â”€ */
   const handleChange = (e) => {
     let { name, value } = e.target;
     
-    // 🔍 Debug area_especialidade changes
+    // ðŸ” Debug area_especialidade changes
     if (name === 'area_especialidade') {
-      console.log(`🎯 MUDANÇA DETECTADA: area_especialidade = "${value}"`);
+      console.log(`ðŸŽ¯ MUDANÃ‡A DETECTADA: area_especialidade = "${value}"`);
       console.log(`   Tipo do valor: ${typeof value}`);
-      console.log(`   Valor está vazio? ${value === ''}`);
+      console.log(`   Valor estÃ¡ vazio? ${value === ''}`);
     }
     
-    // Formatar telefone: apenas números, máximo 9
+    // Formatar telefone: apenas nÃºmeros, mÃ¡ximo 9
     if (name === 'telefone') {
       value = value.replace(/\D/g, '').slice(0, 9);
     }
@@ -170,7 +170,7 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
     const err = getFieldError(name, value, nextForm);
     setErrors(prev => ({ ...prev, [name]: err }));
 
-    // Re-validar confirmação se senha mudar
+    // Re-validar confirmaÃ§Ã£o se senha mudar
     if (name === 'password' && touched.confirmPassword) {
       const confirmErr = getFieldError('confirmPassword', nextForm.confirmPassword, nextForm);
       setErrors(prev => ({ ...prev, confirmPassword: confirmErr }));
@@ -183,7 +183,7 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
     setErrors(prev => ({ ...prev, [name]: getFieldError(name, form[name]) }));
   };
 
-  /* ── Upload ── */
+  /* â”€â”€ Upload â”€â”€ */
   const handleFileDrop = (e) => {
     e.preventDefault();
     addFiles(Array.from(e.dataTransfer.files));
@@ -197,7 +197,7 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
 
     for (const f of newFiles) {
       if (files.length + valid.length >= MAX_FILES) {
-        errs.push(`Máximo de ${MAX_FILES} ficheiros.`);
+        errs.push(`MÃ¡ximo de ${MAX_FILES} ficheiros.`);
         break;
       }
       const err = validarArquivo(f);
@@ -214,7 +214,7 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
     setFileErrors([]);
   };
 
-  /* ── Submit ── */
+  /* â”€â”€ Submit â”€â”€ */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setGlobalError('');
@@ -238,30 +238,30 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
       const formData = new FormData();
       
       // DEBUG: Log cada campo sendo adicionado
-      console.log('🔍 ════════════════════════════════════════════════════════');
-      console.log('📤 PREPARANDO FORMDATA PARA ENVIO:');
-      console.log('🔍 Form State ANTES:', JSON.stringify(form, null, 2));
+      console.log('ðŸ” â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•');
+      console.log('ðŸ“¤ PREPARANDO FORMDATA PARA ENVIO:');
+      console.log('ðŸ” Form State ANTES:', JSON.stringify(form, null, 2));
       
       Object.entries(form).forEach(([k, v]) => {
-        console.log(`   ✅ Adicionando: ${k} = "${v}"`);
+        console.log(`   âœ… Adicionando: ${k} = "${v}"`);
         formData.append(k, v);
       });
       
       files.forEach(f => {
-        console.log(`   ✅ Adicionando ficheiro: ${f.name}`);
+        console.log(`   âœ… Adicionando ficheiro: ${f.name}`);
         formData.append('documentos', f);
       });
       
-      console.log('📋 FormData construído. Campos:');
+      console.log('ðŸ“‹ FormData construÃ­do. Campos:');
       for (let pair of formData.entries()) {
         console.log(`   - ${pair[0]}: ${pair[1]}`);
       }
-      console.log('════════════════════════════════════════════════════════\n');
+      console.log('â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n');
 
       const res = await fetch(`${API_BASE()}/auth/registro-colaborador`, {
         method: 'POST',
         body: formData,
-        // Não definir Content-Type: o browser define automaticamente com o boundary do multipart
+        // NÃ£o definir Content-Type: o browser define automaticamente com o boundary do multipart
       });
 
       const json = await res.json();
@@ -277,18 +277,18 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
         return;
       }
 
-      // Sucesso — notificar componente pai
+      // Sucesso â€” notificar componente pai
       onSuccess && onSuccess(json);
 
     } catch (err) {
       console.error(err);
-      setGlobalError('Erro de conexão com o servidor. Verifique se o backend está rodando.');
+      setGlobalError('Erro de conexÃ£o com o servidor. Verifique se o backend estÃ¡ rodando.');
     } finally {
       setLoading(false);
     }
   };
 
-  /* ── Render ── */
+  /* â”€â”€ Render â”€â”€ */
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full max-w-2xl" noValidate>
 
@@ -311,8 +311,8 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
       </Field>
 
       {/* Username */}
-      <Field label="Username público" required error={errors.username} touched={touched.username} valid={isValid('username')}
-        hint="Visível publicamente. Apenas letras, números, _ e - (3-30 caracteres).">
+      <Field label="Username pÃºblico" required error={errors.username} touched={touched.username} valid={isValid('username')}
+        hint="VisÃ­vel publicamente. Apenas letras, nÃºmeros, _ e - (3-30 caracteres).">
         <InputWrapper error={errors.username} touched={touched.username}>
           <input
             name="username" type="text" placeholder="prof_cornelio"
@@ -337,7 +337,7 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
 
       {/* Telefone */}
       <Field label="Telefone (opcional)" error={errors.telefone} touched={touched.telefone} valid={isValid('telefone')}
-        hint="9 dígitos (ex: 923456789)">
+        hint="9 dÃ­gitos (ex: 923456789)">
         <InputWrapper error={errors.telefone} touched={touched.telefone}>
           <input
             name="telefone" type="tel" placeholder="923456789"
@@ -349,8 +349,8 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
         </InputWrapper>
       </Field>
 
-      {/* Área de especialidade */}
-      <Field label="Área de especialidade" required error={errors.area_especialidade} touched={touched.area_especialidade}>
+      {/* Ãrea de especialidade */}
+      <Field label="Ãrea de especialidade" required error={errors.area_especialidade} touched={touched.area_especialidade}>
         <div className={`relative border rounded-xl transition-colors focus-within:ring-2 focus-within:ring-blue-500 ${
           errors.area_especialidade && touched.area_especialidade ? 'border-red-400' : 'border-gray-300'
         }`}>
@@ -360,15 +360,15 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
             disabled={loading}
             className="w-full px-3 py-3 bg-transparent outline-none text-sm appearance-none pr-8"
           >
-            <option value="">Selecione a área</option>
+            <option value="">Selecione a Ã¡rea</option>
             {ESPECIALIDADES.map(e => <option key={e.value} value={e.value}>{e.label}</option>)}
           </select>
           <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
         </div>
       </Field>
 
-      {/* Género */}
-      <Field label="Género" required error={errors.sexo} touched={touched.sexo}>
+      {/* GÃ©nero */}
+      <Field label="GÃ©nero" required error={errors.sexo} touched={touched.sexo}>
         <div className={`relative border rounded-xl transition-colors focus-within:ring-2 focus-within:ring-blue-500 ${
           errors.sexo && touched.sexo ? 'border-red-400' : 'border-gray-300'
         }`}>
@@ -378,7 +378,7 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
             disabled={loading}
             className="w-full px-3 py-3 bg-transparent outline-none text-sm appearance-none pr-8"
           >
-            <option value="">Selecione o género</option>
+            <option value="">Selecione o gÃ©nero</option>
             {GENEROS.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
           </select>
           <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -397,8 +397,8 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
         </InputWrapper>
       </Field>
 
-      {/* Nível académico */}
-      <Field label="Nível académico / profissional" required error={errors.nivel_academico} touched={touched.nivel_academico}>
+      {/* NÃ­vel acadÃ©mico */}
+      <Field label="NÃ­vel acadÃ©mico / profissional" required error={errors.nivel_academico} touched={touched.nivel_academico}>
         <div className={`relative border rounded-xl transition-colors focus-within:ring-2 focus-within:ring-blue-500 ${
           errors.nivel_academico && touched.nivel_academico ? 'border-red-400' : 'border-gray-300'
         }`}>
@@ -408,7 +408,7 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
             disabled={loading}
             className="w-full px-3 py-3 bg-transparent outline-none text-sm appearance-none pr-8"
           >
-            <option value="">Selecione o nível</option>
+            <option value="">Selecione o nÃ­vel</option>
             {NIVEIS_ACADEMICOS.map(n => <option key={n.value} value={n.value}>{n.label}</option>)}
           </select>
           <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -417,7 +417,7 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
 
       {/* Biografia */}
       <Field label="Biografia profissional" error={errors.biografia} touched={touched.biografia}
-        hint={`${form.biografia.trim().length}/500 caracteres (mínimo 30)`}>
+        hint={`${form.biografia.trim().length}/500 caracteres (mÃ­nimo 30)`}>
         <div className={`border rounded-xl transition-colors focus-within:ring-2 focus-within:ring-blue-500 ${
           errors.biografia && touched.biografia ? 'border-red-400' : 'border-gray-300'
         }`}>
@@ -425,7 +425,7 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
             name="biografia"
             value={form.biografia} onChange={handleChange} onBlur={handleBlur}
             disabled={loading} rows={3}
-            placeholder="Descreva brevemente a sua experiência profissional e académica..."
+            placeholder="Descreva brevemente a sua experiÃªncia profissional e acadÃ©mica..."
             className="w-full px-3 py-3 bg-transparent outline-none text-sm resize-none"
           />
         </div>
@@ -472,11 +472,11 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Documentos (opcional)
           <span className="ml-1 text-xs font-normal text-gray-400">
-            — PDF, DOC, DOCX, JPG, PNG · máx. 10MB cada · até {MAX_FILES} ficheiros
+            â€” PDF, DOC, DOCX, JPG, PNG Â· mÃ¡x. 10MB cada Â· atÃ© {MAX_FILES} ficheiros
           </span>
         </label>
         <p className="text-xs text-blue-600 mb-2">
-          💡 Adicione certificados, portfólio ou documentos relevantes para fortalecer a análise do seu perfil.
+          ðŸ’¡ Adicione certificados, portfÃ³lio ou documentos relevantes para fortalecer a anÃ¡lise do seu perfil.
         </p>
 
         {/* Zona de drop */}
@@ -529,26 +529,26 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
 
       {/* Resumo antes de enviar */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 space-y-2 text-xs">
-        <p className="font-semibold text-blue-900">📋 Resumo da sua candidatura:</p>
+        <p className="font-semibold text-blue-900">ðŸ“‹ Resumo da sua candidatura:</p>
         <div className="space-y-1 text-blue-800">
-          <p>• <strong>Nome:</strong> {form.nome || '(vazio)'}</p>
-          <p>• <strong>Email:</strong> {form.email || '(vazio)'}</p>
-          <p>• <strong>Género:</strong> {GENEROS.find(g => g.value === form.sexo)?.label || '(vazio)'}</p>
-          <p>• <strong>Nascimento:</strong> {form.nascimento ? new Date(form.nascimento).toLocaleDateString('pt-PT') : '(vazio)'}</p>
-          <p>• <strong>Área:</strong> {ESPECIALIDADES.find(e => e.value === form.area_especialidade)?.label || '(vazio)'}
+          <p>â€¢ <strong>Nome:</strong> {form.nome || '(vazio)'}</p>
+          <p>â€¢ <strong>Email:</strong> {form.email || '(vazio)'}</p>
+          <p>â€¢ <strong>GÃ©nero:</strong> {GENEROS.find(g => g.value === form.sexo)?.label || '(vazio)'}</p>
+          <p>â€¢ <strong>Nascimento:</strong> {form.nascimento ? new Date(form.nascimento).toLocaleDateString('pt-PT') : '(vazio)'}</p>
+          <p>â€¢ <strong>Ãrea:</strong> {ESPECIALIDADES.find(e => e.value === form.area_especialidade)?.label || '(vazio)'}
             <span className="text-red-600 ml-2">
-              {form.area_especialidade === '' && '❌ NÃO PREENCHIDA'}
-              {form.area_especialidade !== '' && `✅ ${form.area_especialidade}`}
+              {form.area_especialidade === '' && 'âŒ NÃƒO PREENCHIDA'}
+              {form.area_especialidade !== '' && `âœ… ${form.area_especialidade}`}
             </span>
           </p>
-          <p>• <strong>Nível:</strong> {NIVEIS_ACADEMICOS.find(n => n.value === form.nivel_academico)?.label || '(vazio)'}</p>
-          <p>• <strong>Documentos:</strong> {files.length > 0 ? `${files.length} ficheiro${files.length > 1 ? 's' : ''}` : 'Nenhum'}</p>
+          <p>â€¢ <strong>NÃ­vel:</strong> {NIVEIS_ACADEMICOS.find(n => n.value === form.nivel_academico)?.label || '(vazio)'}</p>
+          <p>â€¢ <strong>Documentos:</strong> {files.length > 0 ? `${files.length} ficheiro${files.length > 1 ? 's' : ''}` : 'Nenhum'}</p>
         </div>
         {form.area_especialidade !== '' && (
-          <p className="text-blue-700 text-xs italic mt-2">✅ Disciplina preenchida! Pronto para submeter.</p>
+          <p className="text-blue-700 text-xs italic mt-2">âœ… Disciplina preenchida! Pronto para submeter.</p>
         )}
         {form.area_especialidade === '' && (
-          <p className="text-red-700 text-xs italic mt-2">❌ FALTA PREENCHER A DISCIPLINA!</p>
+          <p className="text-red-700 text-xs italic mt-2">âŒ FALTA PREENCHER A DISCIPLINA!</p>
         )}
       </div>
 
@@ -561,12 +561,12 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
         {loading ? (
           <><Loader2 size={18} className="animate-spin" /> Enviando candidatura...</>
         ) : (
-          '✓ Enviar Candidatura para Análise do Admin'
+          'âœ“ Enviar Candidatura para AnÃ¡lise do Admin'
         )}
       </button>
 
       <p className="text-center text-sm text-gray-600">
-        Já tem uma conta?{' '}
+        JÃ¡ tem uma conta?{' '}
         <button type="button" onClick={onSwitchToLogin}
           className="text-blue-600 font-semibold hover:underline focus:outline-none">
           Entrar

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Layout from './Layout';
@@ -30,7 +30,7 @@ import {
   CartesianGrid, XAxis, YAxis, Tooltip
 } from 'recharts';
 
-/* ─── Design Tokens ───────────────────────────────────────────── */
+/* â”€â”€â”€ Design Tokens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const tokens = {
   primary: '#4F6EF7',
   primarySoft: '#EEF1FE',
@@ -50,7 +50,7 @@ const tokens = {
   subtle: '#9CA3AF',
 };
 
-/* ─── Shared Styles ─────────────────────────────────────────────── */
+/* â”€â”€â”€ Shared Styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const cardStyle = {
   background: tokens.surface,
   borderRadius: '16px',
@@ -60,7 +60,7 @@ const cardStyle = {
   transition: 'all 0.2s ease',
 };
 
-/* ─── Tooltip customizado ──────────────────────────────────────── */
+/* â”€â”€â”€ Tooltip customizado â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload?.length) {
     return (
@@ -81,7 +81,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-/* ─── Stat Card Compacto ────────────────────────────────────────── */
+/* â”€â”€â”€ Stat Card Compacto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function StatCard({ title, value, icon, accent, accentSoft, subtext }) {
   return (
     <div
@@ -124,7 +124,7 @@ function StatCard({ title, value, icon, accent, accentSoft, subtext }) {
   );
 }
 
-/* ─── Section Title ────────────────────────────────────────────── */
+/* â”€â”€â”€ Section Title â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function SectionTitle({ title, subtitle }) {
   return (
     <div style={{ marginBottom: 18 }}>
@@ -138,20 +138,20 @@ function SectionTitle({ title, subtitle }) {
   );
 }
 
-/* ─── Tournament Item ──────────────────────────────────────────── */
+/* â”€â”€â”€ Tournament Item â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function TournamentItem({ tournament, onClick }) {
   const getPositionStyle = (pos) => {
-    if (pos === 1) return { bg: '#FEF9C3', text: '#92400E', label: '1º' };
-    if (pos === 2) return { bg: '#F1F5F9', text: '#475569', label: '2º' };
-    if (pos === 3) return { bg: '#FFF7ED', text: '#9A3412', label: '3º' };
+    if (pos === 1) return { bg: '#FEF9C3', text: '#92400E', label: '1Âº' };
+    if (pos === 2) return { bg: '#F1F5F9', text: '#475569', label: '2Âº' };
+    if (pos === 3) return { bg: '#FFF7ED', text: '#9A3412', label: '3Âº' };
     return { bg: tokens.primarySoft, text: tokens.primary, label: 'Finalizou' };
   };
 
   const getCategoryColor = (cat) => {
     const colors = {
-      'Matemática': { bg: tokens.primarySoft, text: tokens.primary },
-      'Programação': { bg: tokens.successSoft, text: '#059669' },
-      'Inglês': { bg: tokens.purpleSoft, text: tokens.purple },
+      'MatemÃ¡tica': { bg: tokens.primarySoft, text: tokens.primary },
+      'ProgramaÃ§Ã£o': { bg: tokens.successSoft, text: '#059669' },
+      'InglÃªs': { bg: tokens.purpleSoft, text: tokens.purple },
     };
     return colors[cat] || { bg: tokens.amberSoft, text: '#92400E' };
   };
@@ -220,7 +220,7 @@ function TournamentItem({ tournament, onClick }) {
   );
 }
 
-/* ─── Goal Progress Card ────────────────────────────────────────── */
+/* â”€â”€â”€ Goal Progress Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function GoalCard({ title, current, target, accent, accentSoft }) {
   const pct = Math.min(Math.max((current / target) * 100, 0), 100);
 
@@ -252,7 +252,7 @@ function GoalCard({ title, current, target, accent, accentSoft }) {
   );
 }
 
-/* ─── Main Component ────────────────────────────────────────────– */
+/* â”€â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â€“ */
 function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -260,7 +260,7 @@ function Dashboard() {
   const { streak, ativa } = useStreak();
 
   const [userData, setUserData] = useState({
-    username: user?.fullName || user?.nome || user?.username || 'Usuário COMAES',
+    username: user?.fullName || user?.nome || user?.username || 'UsuÃ¡rio COMAES',
     joinDate: user?.createdAt || user?.registrationDate || new Date().toISOString(),
     totalPoints: 0,
     currentRank: 0,
@@ -284,14 +284,14 @@ function Dashboard() {
       setLoading(true);
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/usuarios/${user.id}/participacoes`
+          `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/usuarios/${user.id}/participacoes`
         );
         const result = await response.json();
 
         if (result.success) {
           const participacoes = result.data;
 
-          // Calcular métricas
+          // Calcular mÃ©tricas
           const totalPoints = participacoes.reduce((acc, p) => acc + Number(p.pontuacao || 0), 0);
           const tournamentsPlayed = participacoes.length;
           const tournamentsWon = participacoes.filter(p => p.posicao === 1).length;
@@ -330,7 +330,7 @@ function Dashboard() {
             bestDiscipline: bestDiscipline || 'Geral'
           }));
 
-          // Histórico de torneios (últimos 5)
+          // HistÃ³rico de torneios (Ãºltimos 5)
           const history = participacoes
             .map(p => ({
               id: p.id,
@@ -345,7 +345,7 @@ function Dashboard() {
 
           setTournamentHistory(history);
 
-          // Progresso mensal (últimos 4 meses)
+          // Progresso mensal (Ãºltimos 4 meses)
           const monthly = {};
           participacoes.forEach(p => {
             const date = new Date(p.entrou_em || p.criado_em);
@@ -371,7 +371,7 @@ function Dashboard() {
         }
       } catch (err) {
         console.error('Erro ao carregar dashboard:', err);
-        setError('Não foi possível carregar os dados');
+        setError('NÃ£o foi possÃ­vel carregar os dados');
       } finally {
         setLoading(false);
       }
@@ -391,7 +391,7 @@ function Dashboard() {
             borderTopColor: tokens.primary,
             animation: 'spin 0.8s linear infinite',
           }} />
-          <span style={{ color: tokens.muted, fontSize: 14 }}>Carregando dashboard…</span>
+          <span style={{ color: tokens.muted, fontSize: 14 }}>Carregando dashboardâ€¦</span>
         </div>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </Layout>
@@ -411,7 +411,7 @@ function Dashboard() {
           }}>
             <LayoutDashboard size={48} color={tokens.primary} style={{ margin: '0 auto 20px' }} />
             <h2 style={{ fontSize: 20, fontWeight: 700, color: tokens.text, marginBottom: 10 }}>
-              Faça login para acessar seu dashboard
+              FaÃ§a login para acessar seu dashboard
             </h2>
             <p style={{ fontSize: 14, color: tokens.muted, marginBottom: 28 }}>
               Conecte-se para acompanhar seu progresso e desempenho.
@@ -488,7 +488,7 @@ function Dashboard() {
       `}</style>
 
       <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-        {/* ── Hero Section ── */}
+        {/* â”€â”€ Hero Section â”€â”€ */}
         <div className="dash-fade" style={{ marginBottom: 32 }}>
           <div style={{
             background: `linear-gradient(135deg, ${tokens.primary} 0%, #6B8BF5 100%)`,
@@ -523,7 +523,7 @@ function Dashboard() {
                 <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                     <Zap size={16} />
-                    Nível {nivel?.numero || 1}
+                    NÃ­vel {nivel?.numero || 1}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                     <Brain size={16} />
@@ -532,7 +532,7 @@ function Dashboard() {
                   {streak > 0 && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                       <Activity size={16} />
-                      Sequência: {streak} dias
+                      SequÃªncia: {streak} dias
                     </div>
                   )}
                 </div>
@@ -550,7 +550,7 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* ── Key Metrics Grid ── */}
+        {/* â”€â”€ Key Metrics Grid â”€â”€ */}
         <div className="dash-fade" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px 16px', marginBottom: 32 }}>
           <StatCard
             title="Torneios"
@@ -558,10 +558,10 @@ function Dashboard() {
             icon={<Trophy size={20} />}
             accent="#2563EB"
             accentSoft="#DBEAFE"
-            subtext="Total de participações"
+            subtext="Total de participaÃ§Ãµes"
           />
           <StatCard
-            title="Vitórias"
+            title="VitÃ³rias"
             value={userData.tournamentsWon}
             icon={<CheckCircle2 size={20} />}
             accent="#4F46E5"
@@ -577,23 +577,23 @@ function Dashboard() {
             subtext="Pontos acumulados"
           />
           <StatCard
-            title="Precisão"
+            title="PrecisÃ£o"
             value={`${userData.averageAccuracy}%`}
             icon={<Target size={20} />}
             accent="#1E40AF"
             accentSoft="#EFF6FF"
-            subtext="Média geral"
+            subtext="MÃ©dia geral"
           />
         </div>
 
-        {/* ── Main Content Grid ── */}
+        {/* â”€â”€ Main Content Grid â”€â”€ */}
         <div className="dash-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '16px 24px', marginBottom: 32 }}>
           {/* Left Column - Charts and Recent Tournaments */}
           <div className="dash-fade">
             {/* Progress Chart */}
             {monthlyProgress.length > 0 && (
               <div style={{ ...cardStyle, marginBottom: 24 }}>
-                <SectionTitle title="Progresso Mensal" subtitle="Pontos conquistados por mês" />
+                <SectionTitle title="Progresso Mensal" subtitle="Pontos conquistados por mÃªs" />
                 <div style={{ height: 240 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={monthlyProgress}>
@@ -623,7 +623,7 @@ function Dashboard() {
 
             {/* Recent Tournaments */}
             <div style={cardStyle}>
-              <SectionTitle title="Torneios Recentes" subtitle="Seus últimos 5 torneios" />
+              <SectionTitle title="Torneios Recentes" subtitle="Seus Ãºltimos 5 torneios" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {tournamentHistory.length > 0 ? (
                   tournamentHistory.slice(0, 5).map(t => (
@@ -650,7 +650,7 @@ function Dashboard() {
                         textDecoration: 'underline',
                       }}
                     >
-                      Explorar torneios →
+                      Explorar torneios â†’
                     </button>
                   </div>
                 )}
@@ -673,7 +673,7 @@ function Dashboard() {
               />
 
               <GoalCard
-                title="10 Vitórias"
+                title="10 VitÃ³rias"
                 current={userData.tournamentsWon}
                 target={10}
                 accent={tokens.success}
@@ -698,7 +698,7 @@ function Dashboard() {
 
             {/* Quick Actions */}
             <div style={{ ...cardStyle, marginTop: 16 }}>
-              <SectionTitle title="Ações" />
+              <SectionTitle title="AÃ§Ãµes" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <button
                   onClick={() => navigate('/torneios')}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import CreateQuestaoTesteForm from './CreateQuestaoTesteForm';
 import EditQuestaoTesteForm from './EditQuestaoTesteForm';
@@ -8,7 +8,7 @@ import ConfirmModal from '../components/ConfirmModal';
 
 /**
  * TesteConhecimentoManager
- * Gerenciador de questões do Teste de Conhecimento
+ * Gerenciador de questÃµes do Teste de Conhecimento
  * Sistema independente dos torneios
  */
 
@@ -27,9 +27,9 @@ const TesteConhecimentoManager = () => {
   const [filterCategoria, setFilterCategoria] = useState('');
   const [filterDificuldade, setFilterDificuldade] = useState('');
 
-  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
 
-  // Carregar questões
+  // Carregar questÃµes
   const carregarQuestoes = async () => {
     setLoading(true);
     setError('');
@@ -44,19 +44,19 @@ const TesteConhecimentoManager = () => {
 
       setQuestoes(res.data.data || []);
     } catch (err) {
-      setError('Erro ao carregar questões');
+      setError('Erro ao carregar questÃµes');
       console.error('Erro:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Carregar questões ao montar
+  // Carregar questÃµes ao montar
   useEffect(() => {
     carregarQuestoes();
   }, [filterCategoria, filterDificuldade]);
 
-  // Deletar questão
+  // Deletar questÃ£o
   const handleDeleteClick = (questao) => {
     setQuestionToDelete(questao);
     setShowDeleteModal(true);
@@ -70,37 +70,37 @@ const TesteConhecimentoManager = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      setSuccess('Questão deletada com sucesso');
+      setSuccess('QuestÃ£o deletada com sucesso');
       setTimeout(() => setSuccess(''), 3000);
       carregarQuestoes();
     } catch (err) {
-      setError('Erro ao deletar questão');
+      setError('Erro ao deletar questÃ£o');
       console.error('Erro:', err);
     }
   };
 
-  // Editar questão
+  // Editar questÃ£o
   const handleEdit = (questao) => {
     setSelectedQuestion(questao);
     setShowEditForm(true);
   };
 
-  // Filtrar questões
+  // Filtrar questÃµes
   const questoesFiltradas = questoes.filter(q =>
     q.enunciado.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const categoriaLabels = {
-    matematica: 'Matemática',
-    programacao: 'Programação',
-    ingles: 'Inglês',
+    matematica: 'MatemÃ¡tica',
+    programacao: 'ProgramaÃ§Ã£o',
+    ingles: 'InglÃªs',
     cultura_geral: 'Cultura Geral'
   };
 
   const dificuldadeLabels = {
-    facil: 'Fácil',
-    medio: 'Médio',
-    dificil: 'Difícil'
+    facil: 'FÃ¡cil',
+    medio: 'MÃ©dio',
+    dificil: 'DifÃ­cil'
   };
 
   return (
@@ -116,7 +116,7 @@ const TesteConhecimentoManager = () => {
               </h2>
             </div>
             <p className="text-slate-600">
-              Gerencie questões do teste de conhecimento (independente dos torneios)
+              Gerencie questÃµes do teste de conhecimento (independente dos torneios)
             </p>
           </div>
           <button
@@ -124,7 +124,7 @@ const TesteConhecimentoManager = () => {
             className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2 whitespace-nowrap"
           >
             <Plus className="w-5 h-5" />
-            <span>Nova Questão</span>
+            <span>Nova QuestÃ£o</span>
           </button>
         </div>
       </div>
@@ -174,9 +174,9 @@ const TesteConhecimentoManager = () => {
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               <option value="">Todas</option>
-              <option value="matematica">Matemática</option>
-              <option value="programacao">Programação</option>
-              <option value="ingles">Inglês</option>
+              <option value="matematica">MatemÃ¡tica</option>
+              <option value="programacao">ProgramaÃ§Ã£o</option>
+              <option value="ingles">InglÃªs</option>
               <option value="cultura_geral">Cultura Geral</option>
             </select>
           </div>
@@ -193,26 +193,26 @@ const TesteConhecimentoManager = () => {
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               <option value="">Todas</option>
-              <option value="facil">Fácil</option>
-              <option value="medio">Médio</option>
-              <option value="dificil">Difícil</option>
+              <option value="facil">FÃ¡cil</option>
+              <option value="medio">MÃ©dio</option>
+              <option value="dificil">DifÃ­cil</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* Questões Table */}
+      {/* QuestÃµes Table */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
         {loading ? (
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-slate-600">Carregando questões...</p>
+            <p className="text-slate-600">Carregando questÃµes...</p>
           </div>
         ) : questoesFiltradas.length === 0 ? (
           <div className="p-8 text-center">
             <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-500 font-medium">Nenhuma questão encontrada</p>
-            <p className="text-slate-400 text-sm">Crie uma nova questão para começar</p>
+            <p className="text-slate-500 font-medium">Nenhuma questÃ£o encontrada</p>
+            <p className="text-slate-400 text-sm">Crie uma nova questÃ£o para comeÃ§ar</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -223,8 +223,8 @@ const TesteConhecimentoManager = () => {
                   <th className="px-6 py-4 text-left font-semibold text-slate-700">Categoria</th>
                   <th className="px-6 py-4 text-left font-semibold text-slate-700">Dificuldade</th>
                   <th className="px-6 py-4 text-left font-semibold text-slate-700">Pontos</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Opções</th>
-                  <th className="px-6 py-4 text-right font-semibold text-slate-700">Ações</th>
+                  <th className="px-6 py-4 text-left font-semibold text-slate-700">OpÃ§Ãµes</th>
+                  <th className="px-6 py-4 text-right font-semibold text-slate-700">AÃ§Ãµes</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -253,7 +253,7 @@ const TesteConhecimentoManager = () => {
                       {questao.pontos}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-700">
-                      {Array.isArray(questao.opcoes) ? questao.opcoes.length : 0} opções
+                      {Array.isArray(questao.opcoes) ? questao.opcoes.length : 0} opÃ§Ãµes
                     </td>
                     <td className="px-6 py-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-2">
@@ -289,7 +289,7 @@ const TesteConhecimentoManager = () => {
           onClose={() => setShowCreateForm(false)}
           onSuccess={() => {
             setShowCreateForm(false);
-            setSuccess('Questão criada com sucesso!');
+            setSuccess('QuestÃ£o criada com sucesso!');
             setTimeout(() => setSuccess(''), 3000);
             carregarQuestoes();
           }}
@@ -307,7 +307,7 @@ const TesteConhecimentoManager = () => {
           onSuccess={() => {
             setShowEditForm(false);
             setSelectedQuestion(null);
-            setSuccess('Questão atualizada com sucesso!');
+            setSuccess('QuestÃ£o atualizada com sucesso!');
             setTimeout(() => setSuccess(''), 3000);
             carregarQuestoes();
           }}
@@ -322,8 +322,8 @@ const TesteConhecimentoManager = () => {
           setQuestionToDelete(null);
         }}
         onConfirm={confirmDelete}
-        title="Confirmar Exclusão"
-        message={`Tem certeza que deseja deletar a questão "${questionToDelete?.enunciado?.substring(0, 50)}..."? Esta ação não pode ser desfeita.`}
+        title="Confirmar ExclusÃ£o"
+        message={`Tem certeza que deseja deletar a questÃ£o "${questionToDelete?.enunciado?.substring(0, 50)}..."? Esta aÃ§Ã£o nÃ£o pode ser desfeita.`}
         confirmText="Deletar"
         cancelText="Cancelar"
         type="danger"

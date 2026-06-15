@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Bell, 
   Send, 
@@ -26,7 +26,7 @@ const NotificationsTab = ({ token }) => {
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   
-  // Estados do formulário
+  // Estados do formulÃ¡rio
   const [formData, setFormData] = useState({
     titulo: '',
     mensagem: '',
@@ -43,7 +43,7 @@ const NotificationsTab = ({ token }) => {
   const [sortBy, setSortBy] = useState('nome');
   const [sortOrder, setSortOrder] = useState('asc');
 
-  // Tipos de notificação disponíveis
+  // Tipos de notificaÃ§Ã£o disponÃ­veis
   const notificationTypes = [
     { value: 'geral', label: 'Geral', color: 'bg-gray-500' },
     { value: 'torneio', label: 'Torneio', color: 'bg-yellow-500' },
@@ -53,7 +53,7 @@ const NotificationsTab = ({ token }) => {
     { value: 'lembrete', label: 'Lembrete', color: 'bg-purple-500' }
   ];
 
-  // Carregar usuários
+  // Carregar usuÃ¡rios
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -63,8 +63,8 @@ const NotificationsTab = ({ token }) => {
         setUsers(Array.isArray(data) ? data : []);
         setError(null);
       } catch (err) {
-        console.error('Erro ao carregar usuários:', err);
-        setError('Erro ao carregar usuários');
+        console.error('Erro ao carregar usuÃ¡rios:', err);
+        setError('Erro ao carregar usuÃ¡rios');
       } finally {
         setLoading(false);
       }
@@ -73,7 +73,7 @@ const NotificationsTab = ({ token }) => {
     if (token) fetchUsers();
   }, [token]);
 
-  // Carregar notificações
+  // Carregar notificaÃ§Ãµes
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -81,7 +81,7 @@ const NotificationsTab = ({ token }) => {
         const data = await service.notificacao.getAll();
         setNotifications(Array.isArray(data) ? data : []);
       } catch (err) {
-        console.error('Erro ao carregar notificações:', err);
+        console.error('Erro ao carregar notificaÃ§Ãµes:', err);
       }
     };
 
@@ -90,7 +90,7 @@ const NotificationsTab = ({ token }) => {
     }
   }, [token, activeTab]);
 
-  // Filtrar e ordenar usuários
+  // Filtrar e ordenar usuÃ¡rios
   const filteredUsers = useCallback(() => {
     let filtered = users.filter(user => {
       const searchLower = searchTerm.toLowerCase();
@@ -119,7 +119,7 @@ const NotificationsTab = ({ token }) => {
     return filtered;
   }, [users, searchTerm, filterType, sortBy, sortOrder]);
 
-  // Filtrar notificações
+  // Filtrar notificaÃ§Ãµes
   const filteredNotifications = useCallback(() => {
     return notifications.filter(notif => {
       const matchType = filterType === 'all' || notif.tipo === filterType;
@@ -130,7 +130,7 @@ const NotificationsTab = ({ token }) => {
     });
   }, [notifications, filterType, filterStatus]);
 
-  // Selecionar/desselecionar usuário
+  // Selecionar/desselecionar usuÃ¡rio
   const toggleUserSelection = (userId) => {
     const newSelected = new Set(selectedUsers);
     if (newSelected.has(userId)) {
@@ -153,17 +153,17 @@ const NotificationsTab = ({ token }) => {
     }
   };
 
-  // Enviar notificações
+  // Enviar notificaÃ§Ãµes
   const handleSendNotifications = async (e) => {
     e.preventDefault();
     
     if (!formData.titulo.trim() || !formData.mensagem.trim()) {
-      setError('Título e mensagem são obrigatórios');
+      setError('TÃ­tulo e mensagem sÃ£o obrigatÃ³rios');
       return;
     }
 
     if (selectedUsers.size === 0) {
-      setError('Selecione pelo menos um usuário');
+      setError('Selecione pelo menos um usuÃ¡rio');
       return;
     }
 
@@ -171,8 +171,8 @@ const NotificationsTab = ({ token }) => {
       setLoading(true);
       setError(null);
 
-      // Enviar para todos os usuários selecionados de uma vez
-      const API_BASE = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}`;
+      // Enviar para todos os usuÃ¡rios selecionados de uma vez
+      const API_BASE = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}`;
       
       const response = await fetch(`${API_BASE}/api/notificacoes`, {
         method: 'POST',
@@ -191,41 +191,41 @@ const NotificationsTab = ({ token }) => {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Erro ao enviar notificações');
+        throw new Error(data.error || 'Erro ao enviar notificaÃ§Ãµes');
       }
 
-      setSuccess(`Notificações enviadas para ${selectedUsers.size} usuário(s)`);
+      setSuccess(`NotificaÃ§Ãµes enviadas para ${selectedUsers.size} usuÃ¡rio(s)`);
       setFormData({ titulo: '', mensagem: '', tipo: 'geral' });
       setSelectedUsers(new Set());
       setSelectAll(false);
 
-      // Limpar mensagem de sucesso após 3 segundos
+      // Limpar mensagem de sucesso apÃ³s 3 segundos
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      console.error('Erro ao enviar notificações:', err);
-      setError(err.message || 'Erro ao enviar notificações');
+      console.error('Erro ao enviar notificaÃ§Ãµes:', err);
+      setError(err.message || 'Erro ao enviar notificaÃ§Ãµes');
     } finally {
       setLoading(false);
     }
   };
 
-  // Deletar notificação
+  // Deletar notificaÃ§Ã£o
   const handleDeleteNotification = async (id) => {
-    if (!window.confirm('Tem certeza que deseja deletar esta notificação?')) return;
+    if (!window.confirm('Tem certeza que deseja deletar esta notificaÃ§Ã£o?')) return;
 
     try {
       const service = adminService(token);
       await service.notificacao.delete(id);
       setNotifications(notifications.filter(n => n.id !== id));
-      setSuccess('Notificação deletada com sucesso');
+      setSuccess('NotificaÃ§Ã£o deletada com sucesso');
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      console.error('Erro ao deletar notificação:', err);
-      setError('Erro ao deletar notificação');
+      console.error('Erro ao deletar notificaÃ§Ã£o:', err);
+      setError('Erro ao deletar notificaÃ§Ã£o');
     }
   };
 
-  // Marcar como lida/não lida
+  // Marcar como lida/nÃ£o lida
   const handleToggleReadStatus = async (id, currentStatus) => {
     try {
       const service = adminService(token);
@@ -265,9 +265,9 @@ const NotificationsTab = ({ token }) => {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <Bell className="w-8 h-8 text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-800">Centro de Notificações</h1>
+          <h1 className="text-3xl font-bold text-gray-800">Centro de NotificaÃ§Ãµes</h1>
         </div>
-        <p className="text-gray-600">Gerencie e envie notificações para usuários da plataforma</p>
+        <p className="text-gray-600">Gerencie e envie notificaÃ§Ãµes para usuÃ¡rios da plataforma</p>
       </div>
 
       {/* Mensagens de Erro/Sucesso */}
@@ -303,7 +303,7 @@ const NotificationsTab = ({ token }) => {
         >
           <div className="flex items-center gap-2">
             <Send className="w-4 h-4" />
-            Enviar Notificações
+            Enviar NotificaÃ§Ãµes
           </div>
         </button>
         <button
@@ -316,15 +316,15 @@ const NotificationsTab = ({ token }) => {
         >
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4" />
-            Histórico
+            HistÃ³rico
           </div>
         </button>
       </div>
 
-      {/* TAB: ENVIAR NOTIFICAÇÕES */}
+      {/* TAB: ENVIAR NOTIFICAÃ‡Ã•ES */}
       {activeTab === 'send' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Formulário */}
+          {/* FormulÃ¡rio */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Compor Mensagem</h2>
@@ -333,7 +333,7 @@ const NotificationsTab = ({ token }) => {
                 {/* Tipo */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tipo de Notificação
+                    Tipo de NotificaÃ§Ã£o
                   </label>
                   <select
                     value={formData.tipo}
@@ -348,16 +348,16 @@ const NotificationsTab = ({ token }) => {
                   </select>
                 </div>
 
-                {/* Título */}
+                {/* TÃ­tulo */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Título *
+                    TÃ­tulo *
                   </label>
                   <input
                     type="text"
                     value={formData.titulo}
                     onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
-                    placeholder="Ex: Novo Torneio Disponível"
+                    placeholder="Ex: Novo Torneio DisponÃ­vel"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     maxLength={100}
                   />
@@ -380,32 +380,32 @@ const NotificationsTab = ({ token }) => {
                   <p className="text-xs text-gray-500 mt-1">{formData.mensagem.length}/500</p>
                 </div>
 
-                {/* Info de seleção */}
+                {/* Info de seleÃ§Ã£o */}
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <p className="text-sm text-blue-800">
-                    <strong>{selectedUsers.size}</strong> usuário(s) selecionado(s)
+                    <strong>{selectedUsers.size}</strong> usuÃ¡rio(s) selecionado(s)
                   </p>
                 </div>
 
-                {/* Botão Enviar */}
+                {/* BotÃ£o Enviar */}
                 <button
                   type="submit"
                   disabled={loading || selectedUsers.size === 0}
                   className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                   <Send className="w-4 h-4" />
-                  {loading ? 'Enviando...' : 'Enviar Notificações'}
+                  {loading ? 'Enviando...' : 'Enviar NotificaÃ§Ãµes'}
                 </button>
               </form>
             </div>
           </div>
 
-          {/* Lista de Usuários */}
+          {/* Lista de UsuÃ¡rios */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <Users className="w-5 h-5" />
-                Selecionar Usuários
+                Selecionar UsuÃ¡rios
               </h2>
 
               {/* Filtros e Busca */}
@@ -426,7 +426,7 @@ const NotificationsTab = ({ token }) => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Tipo de Usuário
+                      Tipo de UsuÃ¡rio
                     </label>
                     <select
                       value={filterType}
@@ -435,7 +435,7 @@ const NotificationsTab = ({ token }) => {
                     >
                       <option value="all">Todos</option>
                       <option value="admin">Admin</option>
-                      <option value="user">Usuário</option>
+                      <option value="user">UsuÃ¡rio</option>
                     </select>
                   </div>
 
@@ -469,12 +469,12 @@ const NotificationsTab = ({ token }) => {
                 </div>
               </div>
 
-              {/* Lista de Usuários */}
+              {/* Lista de UsuÃ¡rios */}
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {loading ? (
-                  <div className="text-center py-8 text-gray-500">Carregando usuários...</div>
+                  <div className="text-center py-8 text-gray-500">Carregando usuÃ¡rios...</div>
                 ) : filteredUsers().length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">Nenhum usuário encontrado</div>
+                  <div className="text-center py-8 text-gray-500">Nenhum usuÃ¡rio encontrado</div>
                 ) : (
                   filteredUsers().map(user => (
                     <div
@@ -503,12 +503,12 @@ const NotificationsTab = ({ token }) => {
         </div>
       )}
 
-      {/* TAB: HISTÓRICO */}
+      {/* TAB: HISTÃ“RICO */}
       {activeTab === 'history' && (
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
             <Clock className="w-5 h-5" />
-            Histórico de Notificações
+            HistÃ³rico de NotificaÃ§Ãµes
           </h2>
 
           {/* Filtros */}
@@ -542,7 +542,7 @@ const NotificationsTab = ({ token }) => {
               >
                 <option value="all">Todos</option>
                 <option value="lido">Lido</option>
-                <option value="nao-lido">Não Lido</option>
+                <option value="nao-lido">NÃ£o Lido</option>
               </select>
             </div>
 
@@ -554,7 +554,7 @@ const NotificationsTab = ({ token }) => {
                 <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Buscar título..."
+                  placeholder="Buscar tÃ­tulo..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -563,12 +563,12 @@ const NotificationsTab = ({ token }) => {
             </div>
           </div>
 
-          {/* Lista de Notificações */}
+          {/* Lista de NotificaÃ§Ãµes */}
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {loading ? (
-              <div className="text-center py-8 text-gray-500">Carregando notificações...</div>
+              <div className="text-center py-8 text-gray-500">Carregando notificaÃ§Ãµes...</div>
             ) : filteredNotifications().length === 0 ? (
-              <div className="text-center py-8 text-gray-500">Nenhuma notificação encontrada</div>
+              <div className="text-center py-8 text-gray-500">Nenhuma notificaÃ§Ã£o encontrada</div>
             ) : (
               filteredNotifications().map(notif => (
                 <div
@@ -587,11 +587,11 @@ const NotificationsTab = ({ token }) => {
                         {getTypeLabel(notif.tipo)}
                       </div>
 
-                      {/* Conteúdo */}
+                      {/* ConteÃºdo */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-bold text-gray-800 truncate">
-                            {notif.titulo || 'Sem título'}
+                            {notif.titulo || 'Sem tÃ­tulo'}
                           </h3>
                           {notif.lido ? (
                             <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
@@ -603,12 +603,12 @@ const NotificationsTab = ({ token }) => {
                           {notif.mensagem || 'Sem mensagem'}
                         </p>
                         <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                          <span>Usuário ID: {notif.usuario_id}</span>
+                          <span>UsuÃ¡rio ID: {notif.usuario_id}</span>
                           <span>{formatDate(notif.criado_em)}</span>
                         </div>
                       </div>
 
-                      {/* Ações */}
+                      {/* AÃ§Ãµes */}
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <button
                           onClick={(e) => {
@@ -616,7 +616,7 @@ const NotificationsTab = ({ token }) => {
                             handleToggleReadStatus(notif.id, notif.lido);
                           }}
                           className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-                          title={notif.lido ? 'Marcar como não lida' : 'Marcar como lida'}
+                          title={notif.lido ? 'Marcar como nÃ£o lida' : 'Marcar como lida'}
                         >
                           {notif.lido ? (
                             <EyeOff className="w-4 h-4 text-gray-600" />

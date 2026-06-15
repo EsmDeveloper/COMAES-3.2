@@ -33,6 +33,8 @@ import Missao from "./models/Missao.js";
 import MissaoUsuario from "./models/MissaoUsuario.js";
 import Ranking from "./models/Ranking.js";
 import BlocoQuestoes from "./models/BlocoQuestoes.js";
+import BlocoQuestaoItem from "./models/BlocoQuestaoItem.js";
+import Disciplina from "./models/Disciplina.js";
 
 // ===== CONFIGURAR ASSOCIA��ES ANTES DE IMPORTAR ROTAS =====
 // CR�TICO: Este import deve vir ANTES das rotas para garantir que
@@ -58,6 +60,7 @@ import nivelRoutes from './routes/nivelRoutes.js';
 import streakRoutes from './routes/streakRoutes.js';
 import { missoesRouter, dashboardGamificacaoRouter } from './routes/missoesRoutes.js';
 import rankingRoutes from './routes/rankingRoutes.js';
+import disciplinasRoutes from './routes/disciplinasRoutes.js';
 import { sendResetEmail, sendWelcomeEmail } from './services/emailService.js';
 import { setIO } from './services/socketService.js';
 import { setupEncerramentoScheduler } from './jobs/verificarEncerramentosScheduler.js';
@@ -69,6 +72,7 @@ import validate, { rules } from './middlewares/validate.js';
 import { startTorneioCron } from './services/torneioCron.js';
 import { registrarColaborador, suspenderColaborador, getDocumentosColaborador } from './controllers/colaboradorRegistroController.js';
 import { uploadColaboradorDocs, handleColaboradorUploadErrors } from './middlewares/security/colaboradorUpload.js';
+import { validateRegistrationPayload } from './validation/registerValidation.js';
 
 dotenv.config();
 
@@ -236,6 +240,10 @@ app.use('/api/questoes', questoesRoutes);
 // Registrar rotas de Blocos de Questões
 app.use('/api/blocos', blocosRoutes);
 
+// ALIAS para blocos de colaboradores (compatibilidade com frontend)
+// O frontend chama /api/blocos-colaboradores, mapear para /api/blocos
+app.use('/api/blocos-colaboradores', blocosRoutes);
+
 // Registrar rotas de Colaborador - Blocos e Questões (com aprovação)
 app.use('/api/colaborador', colaboradorBlocosQuestoesRoutes);
 app.use('/api/admin', colaboradorBlocosQuestoesRoutes);
@@ -270,6 +278,9 @@ app.use('/api/usuarios', dashboardGamificacaoRouter);
 
 // Registrar rotas de rankings educacionais gamificados
 app.use('/api/rankings', rankingRoutes);
+
+// Registrar rotas de disciplinas (admin only)
+app.use('/api/disciplinas', disciplinasRoutes);
 
 // Registrar rotas de suporte (chat IA + tickets)
 app.use('/api/support', supportRoutes);
@@ -462,13 +473,11 @@ app.post('/auth/login', validate(rules.login), async (req, res) => {
       {
         id: user.id,
         email: user.email,
-        isAdmin: user.isAdmin,
         role: user.role || (user.isAdmin ? 'admin' : 'estudante'),
-        disciplina_colaborador: user.disciplina_colaborador || null,
-        status_colaborador: userStatus
+        disciplina_colaborador: user.disciplina_colaborador || null
       },
       process.env.JWT_SECRET || 'secret',
-      { expiresIn: '7d' }
+      { expiresIn: '24h' }
     );
 
     // Extrair dados do utilizador sem a password
@@ -638,13 +647,11 @@ app.post('/auth/registro', validate(rules.register), async (req, res) => {
         {
           id: novoUsuario.id,
           email: novoUsuario.email,
-          isAdmin: novoUsuario.isAdmin,
           role: novoUsuario.role,
-          disciplina_colaborador: novoUsuario.disciplina_colaborador,
-          status_colaborador: novoUsuario.status_colaborador
+          disciplina_colaborador: novoUsuario.disciplina_colaborador
         },
         process.env.JWT_SECRET || 'secret',
-        { expiresIn: '7d' }
+        { expiresIn: '24h' }
       );
 
       // Remover senha do retorno

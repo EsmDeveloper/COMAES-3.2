@@ -208,7 +208,6 @@ export const suspenderColaborador = async (req, res) => {
 
     // Notificar via socket
     if (req.io) {
-      // 1. Notificar admin (para atualizar painel)
       req.io.emit('colaborador_suspenso', {
         id: user.id,
         email: user.email,
@@ -217,7 +216,6 @@ export const suspenderColaborador = async (req, res) => {
         data_suspensao: new Date()
       });
 
-      // 2. Notificar o colaborador específico
       req.io.emit(`colaborador_status_${user.id}`, {
         status: 'suspenso',
         id: user.id,
@@ -230,7 +228,7 @@ export const suspenderColaborador = async (req, res) => {
     const { password: _, ...safe } = user.get({ plain: true });
     res.json({ success: true, message: 'Colaborador suspenso com sucesso.', data: safe });
   } catch (e) {
-    console.error(e);
+    console.error('❌ Erro ao suspender colaborador:', e.message);
     res.status(500).json({ message: 'Erro ao suspender colaborador.' });
   }
 };

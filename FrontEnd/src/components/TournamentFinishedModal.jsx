@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaTrophy, FaMedal, FaTimes, FaDownload, FaCalendarTimes, FaUsers, FaChartBar } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
@@ -14,20 +14,20 @@ const formatarData = (data) =>
     hour: '2-digit', minute: '2-digit',
   });
 
-const medalEmoji = (pos) => ({ 1: '🥇', 2: '🥈', 3: '🥉' }[pos] ?? null);
+const medalEmoji = (pos) => ({ 1: 'ðŸ¥‡', 2: 'ðŸ¥ˆ', 3: 'ðŸ¥‰' }[pos] ?? null);
 
 // ---------------------------------------------------------------------------
-// Lógica de cenário — calculada a partir dos dados do backend
+// LÃ³gica de cenÃ¡rio â€” calculada a partir dos dados do backend
 // ---------------------------------------------------------------------------
 //
-// Cenários (por prioridade):
-//  ENTROU_DEPOIS        — entrou depois do torneio terminar
-//  TORNEIO_VAZIO        — torneio sem participantes confirmados
-//  SEM_PONTUACAO_GERAL  — todos os participantes têm 0 pts / 0 respostas
-//  PARTICIPANTE_INATIVO — este user tem 0 pts e 0 respostas (mas outros pontuaram)
-//  VENCEDOR             — posição 1, 2 ou 3 com pontuação > 0
-//  CLASSIFICADO         — posição >= 4 com pontuação > 0
-//  SEM_POSICAO          — participou mas posição não pôde ser determinada
+// CenÃ¡rios (por prioridade):
+//  ENTROU_DEPOIS        â€” entrou depois do torneio terminar
+//  TORNEIO_VAZIO        â€” torneio sem participantes confirmados
+//  SEM_PONTUACAO_GERAL  â€” todos os participantes tÃªm 0 pts / 0 respostas
+//  PARTICIPANTE_INATIVO â€” este user tem 0 pts e 0 respostas (mas outros pontuaram)
+//  VENCEDOR             â€” posiÃ§Ã£o 1, 2 ou 3 com pontuaÃ§Ã£o > 0
+//  CLASSIFICADO         â€” posiÃ§Ã£o >= 4 com pontuaÃ§Ã£o > 0
+//  SEM_POSICAO          â€” participou mas posiÃ§Ã£o nÃ£o pÃ´de ser determinada
 //
 const detectarCenario = (p) => {
   if (!p) return 'SEM_POSICAO';
@@ -70,7 +70,7 @@ export default function TournamentFinishedModal({
   const apiBase =
     import.meta.env.VITE_API_URL ||
     import.meta.env.VITE_API_BASE_URL ||
-    `http://${window.location.hostname}:3000`;
+    `http://${window.location.hostname}:3001`;
 
   useEffect(() => {
     setShowModal(isOpen);
@@ -110,7 +110,7 @@ export default function TournamentFinishedModal({
         const data = await res.json();
         const pdfUrl = data?.certificateURL?.startsWith('http')
           ? data.certificateURL : `${apiBase}${data.certificateURL}`;
-        if (!pdfUrl) { alert('PDF não retornado pelo servidor.'); return; }
+        if (!pdfUrl) { alert('PDF nÃ£o retornado pelo servidor.'); return; }
         const link = document.createElement('a');
         link.href = pdfUrl;
         link.download = `certificado-${userParticipation.disciplina_competida}-${userParticipation.usuario?.nome || 'participante'}.pdf`;
@@ -123,7 +123,7 @@ export default function TournamentFinishedModal({
         alert(errData?.error || `Erro ao gerar certificado (HTTP ${res.status})`);
       }
     } catch (err) {
-      alert(err?.message || 'Falha de conexão ao gerar certificado.');
+      alert(err?.message || 'Falha de conexÃ£o ao gerar certificado.');
     } finally {
       setIsGenerating(false);
     }
@@ -131,22 +131,22 @@ export default function TournamentFinishedModal({
 
   if (!showModal || !tournament) return null;
 
-  // ── Render helpers ────────────────────────────────────────────────────────
+  // â”€â”€ Render helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  // 1. VENCEDOR — posição 1-3 com pontuação real
+  // 1. VENCEDOR â€” posiÃ§Ã£o 1-3 com pontuaÃ§Ã£o real
   const renderVencedor = () => (
     <div className="bg-gradient-to-br from-white to-yellow-50 rounded-2xl shadow-2xl overflow-hidden border-2 border-yellow-500 max-h-[86vh] overflow-y-auto">
       <div className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white p-5 text-center relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <span className="absolute top-3 left-3 text-5xl">🏆</span>
-          <span className="absolute top-3 right-3 text-5xl">🎉</span>
-          <span className="absolute bottom-3 left-1/2 -translate-x-1/2 text-4xl">✨</span>
+          <span className="absolute top-3 left-3 text-5xl">ðŸ†</span>
+          <span className="absolute top-3 right-3 text-5xl">ðŸŽ‰</span>
+          <span className="absolute bottom-3 left-1/2 -translate-x-1/2 text-4xl">âœ¨</span>
         </div>
         <div className="text-4xl mb-2 relative z-10">{medalEmoji(userParticipation.posicao)}</div>
         <h1 className="text-2xl md:text-3xl font-bold mb-1 relative z-10">
-          {userParticipation.posicao === 1 && 'VOCÊ É CAMPEÃO!'}
-          {userParticipation.posicao === 2 && 'VICE-CAMPEÃO!'}
-          {userParticipation.posicao === 3 && 'TOP 3 — MEDALHISTA!'}
+          {userParticipation.posicao === 1 && 'VOCÃŠ Ã‰ CAMPEÃƒO!'}
+          {userParticipation.posicao === 2 && 'VICE-CAMPEÃƒO!'}
+          {userParticipation.posicao === 3 && 'TOP 3 â€” MEDALHISTA!'}
         </h1>
         <p className="text-yellow-100 text-sm mb-1">{tournament.titulo}</p>
         <p className="text-xs text-yellow-200">Finalizado em {formatarData(tournament.termina_em || new Date())}</p>
@@ -154,11 +154,11 @@ export default function TournamentFinishedModal({
       <div className="p-5">
         <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-4 mb-4 border border-yellow-300 text-center space-y-2">
           <p className="text-gray-700 text-lg">
-            <span className="font-bold">Sua posição:</span>
-            <span className="text-2xl font-bold text-orange-600 ml-2">{userParticipation.posicao}º lugar</span>
+            <span className="font-bold">Sua posiÃ§Ã£o:</span>
+            <span className="text-2xl font-bold text-orange-600 ml-2">{userParticipation.posicao}Âº lugar</span>
           </p>
           <p className="text-gray-700 text-lg">
-            <span className="font-bold">Pontuação final:</span>
+            <span className="font-bold">PontuaÃ§Ã£o final:</span>
             <span className="text-xl font-bold text-green-600 ml-2">{userParticipation.pontuacao} pontos</span>
           </p>
           <p className="text-gray-700">
@@ -182,18 +182,18 @@ export default function TournamentFinishedModal({
             <FaTrophy /> Ver Ranking
           </motion.button>
         </div>
-        <p className="mt-4 text-center text-gray-600 font-semibold">Compartilhe seu sucesso! 🎉</p>
+        <p className="mt-4 text-center text-gray-600 font-semibold">Compartilhe seu sucesso! ðŸŽ‰</p>
       </div>
     </div>
   );
 
-  // 2. CLASSIFICADO — posição >= 4 com pontuação real
+  // 2. CLASSIFICADO â€” posiÃ§Ã£o >= 4 com pontuaÃ§Ã£o real
   const renderClassificado = () => (
     <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-2xl overflow-hidden border-2 border-blue-600 max-h-[86vh] overflow-y-auto">
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-5 text-center relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <span className="absolute top-4 left-4 text-6xl">🏆</span>
-          <span className="absolute top-4 right-4 text-6xl">🎯</span>
+          <span className="absolute top-4 left-4 text-6xl">ðŸ†</span>
+          <span className="absolute top-4 right-4 text-6xl">ðŸŽ¯</span>
         </div>
         <h1 className="text-2xl md:text-3xl font-bold mb-1 relative z-10">TORNEIO FINALIZADO</h1>
         <p className="text-blue-100 text-sm mb-1">{tournament.titulo}</p>
@@ -203,8 +203,8 @@ export default function TournamentFinishedModal({
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-4 border border-blue-200 text-center space-y-2">
           <h3 className="text-lg font-bold text-gray-800">Obrigado por Participar!</h3>
           <p className="text-gray-700 text-lg">
-            <span className="font-semibold">Sua posição final:</span>
-            <span className="text-2xl font-bold text-blue-600 ml-2 block">{userParticipation.posicao}º lugar</span>
+            <span className="font-semibold">Sua posiÃ§Ã£o final:</span>
+            <span className="text-2xl font-bold text-blue-600 ml-2 block">{userParticipation.posicao}Âº lugar</span>
           </p>
           <p className="text-gray-700">
             <span className="font-semibold">Pontos conquistados:</span>
@@ -217,7 +217,7 @@ export default function TournamentFinishedModal({
           )}
         </div>
         <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-4 mb-4 border border-yellow-300">
-          <h3 className="text-lg font-bold text-center text-gray-800 mb-3">🏆 Nossos Vencedores 🏆</h3>
+          <h3 className="text-lg font-bold text-center text-gray-800 mb-3">ðŸ† Nossos Vencedores ðŸ†</h3>
           {loadingWinners ? (
             <div className="text-center py-6">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
@@ -232,7 +232,7 @@ export default function TournamentFinishedModal({
                   className="bg-white rounded-lg p-3 border-l-4 flex items-center gap-3"
                   style={{ borderColor: ['#FFD700', '#C0C0C0', '#CD7F32'][idx] }}
                 >
-                  <span className="text-3xl">{['🥇', '🥈', '🥉'][idx]}</span>
+                  <span className="text-3xl">{['ðŸ¥‡', 'ðŸ¥ˆ', 'ðŸ¥‰'][idx]}</span>
                   <div className="flex-1">
                     <p className="font-bold text-gray-800">{winner.nome}</p>
                     <p className="text-sm text-gray-600">{winner.pontuacao} pontos</p>
@@ -241,13 +241,13 @@ export default function TournamentFinishedModal({
                     idx === 0 ? 'bg-yellow-200 text-yellow-800' :
                     idx === 1 ? 'bg-gray-200 text-gray-800' : 'bg-orange-200 text-orange-800'
                   }`}>
-                    {idx === 0 ? 'CAMPEÃO' : `${idx + 1}º LUGAR`}
+                    {idx === 0 ? 'CAMPEÃƒO' : `${idx + 1}Âº LUGAR`}
                   </span>
                 </motion.div>
               ))}
             </div>
           ) : (
-            <p className="text-center text-gray-500 text-sm">Vencedores não disponíveis</p>
+            <p className="text-center text-gray-500 text-sm">Vencedores nÃ£o disponÃ­veis</p>
           )}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -265,18 +265,18 @@ export default function TournamentFinishedModal({
           </motion.button>
         </div>
         <div className="mt-4 text-center">
-          <p className="text-gray-700 font-semibold mb-1">Não desista! 💪</p>
+          <p className="text-gray-700 font-semibold mb-1">NÃ£o desista! ðŸ’ª</p>
           <p className="text-gray-600 text-sm">Participe de outros torneios para melhorar e competir pelos primeiros lugares!</p>
         </div>
       </div>
     </div>
   );
 
-  // 3. SEM_PONTUACAO_GERAL — ninguém pontuou, torneio sem vencedores reais
+  // 3. SEM_PONTUACAO_GERAL â€” ninguÃ©m pontuou, torneio sem vencedores reais
   const renderSemPontuacaoGeral = () => (
     <div className="bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-2xl overflow-hidden border-2 border-slate-400 max-h-[86vh] overflow-y-auto">
       <div className="bg-gradient-to-r from-slate-600 to-slate-800 text-white p-5 text-center">
-        <div className="text-4xl mb-2">📊</div>
+        <div className="text-4xl mb-2">ðŸ“Š</div>
         <h1 className="text-xl md:text-2xl font-bold mb-1">TORNEIO ENCERRADO</h1>
         <p className="text-slate-200 text-sm mb-1">{tournament.titulo}</p>
         <p className="text-xs text-slate-300">Encerrado em {formatarData(tournament.termina_em || new Date())}</p>
@@ -284,23 +284,23 @@ export default function TournamentFinishedModal({
       <div className="p-5 space-y-4">
         <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 text-center">
           <FaChartBar className="text-amber-500 text-3xl mx-auto mb-2" />
-          <h3 className="font-bold text-gray-800 mb-2">Nenhuma pontuação válida registrada</h3>
+          <h3 className="font-bold text-gray-800 mb-2">Nenhuma pontuaÃ§Ã£o vÃ¡lida registrada</h3>
           <p className="text-gray-600 text-sm leading-relaxed">
-            Este torneio encerrou sem que nenhum participante completasse desafios válidos.
-            Não há vencedores oficiais a declarar nesta edição.
+            Este torneio encerrou sem que nenhum participante completasse desafios vÃ¡lidos.
+            NÃ£o hÃ¡ vencedores oficiais a declarar nesta ediÃ§Ã£o.
           </p>
         </div>
         {userParticipation?.posicao && (
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
             <p className="text-gray-600 text-sm">
-              Você estava na posição <span className="font-bold text-slate-700">{userParticipation.posicao}º</span> com{' '}
-              <span className="font-bold">0 pontos</span> — igual a todos os demais participantes.
+              VocÃª estava na posiÃ§Ã£o <span className="font-bold text-slate-700">{userParticipation.posicao}Âº</span> com{' '}
+              <span className="font-bold">0 pontos</span> â€” igual a todos os demais participantes.
             </p>
           </div>
         )}
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
           <p className="text-blue-800 text-sm font-medium">
-            Fique atento aos próximos torneios e participe ativamente para garantir sua classificação!
+            Fique atento aos prÃ³ximos torneios e participe ativamente para garantir sua classificaÃ§Ã£o!
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -321,21 +321,21 @@ export default function TournamentFinishedModal({
     </div>
   );
 
-  // 4. PARTICIPANTE_INATIVO — este user não pontuou, mas outros pontuaram
+  // 4. PARTICIPANTE_INATIVO â€” este user nÃ£o pontuou, mas outros pontuaram
   const renderParticipanteInativo = () => (
     <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-2xl overflow-hidden border-2 border-blue-400 max-h-[86vh] overflow-y-auto">
       <div className="bg-gradient-to-r from-blue-500 to-blue-700 text-white p-5 text-center">
-        <div className="text-4xl mb-2">🏁</div>
+        <div className="text-4xl mb-2">ðŸ</div>
         <h1 className="text-xl md:text-2xl font-bold mb-1">TORNEIO FINALIZADO</h1>
         <p className="text-blue-100 text-sm mb-1">{tournament.titulo}</p>
         <p className="text-xs text-blue-200">Encerrado em {formatarData(tournament.termina_em || new Date())}</p>
       </div>
       <div className="p-5 space-y-4">
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
-          <h3 className="font-bold text-gray-800 mb-2">Você participou, mas não pontuou</h3>
+          <h3 className="font-bold text-gray-800 mb-2">VocÃª participou, mas nÃ£o pontuou</h3>
           <p className="text-gray-600 text-sm leading-relaxed">
-            Você se inscreveu neste torneio, mas não enviou respostas válidas durante o período de competição.
-            Por isso, não há classificação competitiva a exibir para esta participação.
+            VocÃª se inscreveu neste torneio, mas nÃ£o enviou respostas vÃ¡lidas durante o perÃ­odo de competiÃ§Ã£o.
+            Por isso, nÃ£o hÃ¡ classificaÃ§Ã£o competitiva a exibir para esta participaÃ§Ã£o.
           </p>
         </div>
         {userParticipation?.total_participantes > 0 && (
@@ -345,7 +345,7 @@ export default function TournamentFinishedModal({
         )}
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
           <p className="text-amber-800 text-sm font-medium">
-            💡 Dica: No próximo torneio, responda os desafios dentro do prazo para garantir sua pontuação e classificação!
+            ðŸ’¡ Dica: No prÃ³ximo torneio, responda os desafios dentro do prazo para garantir sua pontuaÃ§Ã£o e classificaÃ§Ã£o!
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -366,27 +366,27 @@ export default function TournamentFinishedModal({
     </div>
   );
 
-  // 5. ENTROU_DEPOIS — inscreveu-se após o encerramento
+  // 5. ENTROU_DEPOIS â€” inscreveu-se apÃ³s o encerramento
   const renderEntrouDepois = () => (
     <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-2xl overflow-hidden border-2 border-gray-400 max-h-[86vh] overflow-y-auto">
       <div className="bg-gradient-to-r from-gray-600 to-gray-800 text-white p-5 text-center">
-        <div className="text-4xl mb-2">⏰</div>
-        <h1 className="text-2xl font-bold mb-1">TORNEIO JÁ ENCERRADO</h1>
+        <div className="text-4xl mb-2">â°</div>
+        <h1 className="text-2xl font-bold mb-1">TORNEIO JÃ ENCERRADO</h1>
         <p className="text-gray-200 text-sm mb-1">{tournament.titulo}</p>
         <p className="text-xs text-gray-300">Encerrado em {formatarData(tournament.termina_em || new Date())}</p>
       </div>
       <div className="p-5 space-y-4">
         <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 text-center">
           <FaCalendarTimes className="text-amber-500 text-3xl mx-auto mb-2" />
-          <h3 className="font-bold text-gray-800 mb-2">Você chegou depois do encerramento</h3>
+          <h3 className="font-bold text-gray-800 mb-2">VocÃª chegou depois do encerramento</h3>
           <p className="text-gray-600 text-sm">
-            Este torneio já havia terminado quando você se inscreveu. Não há posição competitiva
-            nem dados de desempenho a exibir para esta participação.
+            Este torneio jÃ¡ havia terminado quando vocÃª se inscreveu. NÃ£o hÃ¡ posiÃ§Ã£o competitiva
+            nem dados de desempenho a exibir para esta participaÃ§Ã£o.
           </p>
         </div>
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
           <p className="text-blue-800 font-semibold text-sm">
-            Fique atento aos próximos torneios para competir desde o início e garantir sua classificação!
+            Fique atento aos prÃ³ximos torneios para competir desde o inÃ­cio e garantir sua classificaÃ§Ã£o!
           </p>
         </div>
         <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -399,11 +399,11 @@ export default function TournamentFinishedModal({
     </div>
   );
 
-  // 6. TORNEIO_VAZIO — sem participantes confirmados
+  // 6. TORNEIO_VAZIO â€” sem participantes confirmados
   const renderTorneioVazio = () => (
     <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-2xl overflow-hidden border-2 border-gray-300 max-h-[86vh] overflow-y-auto">
       <div className="bg-gradient-to-r from-gray-500 to-gray-700 text-white p-5 text-center">
-        <div className="text-4xl mb-2">🏟️</div>
+        <div className="text-4xl mb-2">ðŸŸï¸</div>
         <h1 className="text-2xl font-bold mb-1">TORNEIO FINALIZADO</h1>
         <p className="text-gray-200 text-sm mb-1">{tournament.titulo}</p>
         <p className="text-xs text-gray-300">Encerrado em {formatarData(tournament.termina_em || new Date())}</p>
@@ -413,7 +413,7 @@ export default function TournamentFinishedModal({
           <FaUsers className="text-gray-400 text-3xl mx-auto mb-2" />
           <h3 className="font-bold text-gray-700 mb-2">Nenhum participante competiu</h3>
           <p className="text-gray-500 text-sm">
-            Este torneio encerrou sem participantes confirmados. Não há ranking nem classificação a exibir.
+            Este torneio encerrou sem participantes confirmados. NÃ£o hÃ¡ ranking nem classificaÃ§Ã£o a exibir.
           </p>
         </div>
         <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -426,11 +426,11 @@ export default function TournamentFinishedModal({
     </div>
   );
 
-  // 7. SEM_POSICAO — fallback genérico
+  // 7. SEM_POSICAO â€” fallback genÃ©rico
   const renderSemPosicao = () => (
     <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-2xl overflow-hidden border-2 border-blue-400 max-h-[86vh] overflow-y-auto">
       <div className="bg-gradient-to-r from-blue-500 to-blue-700 text-white p-5 text-center">
-        <div className="text-4xl mb-2">🏁</div>
+        <div className="text-4xl mb-2">ðŸ</div>
         <h1 className="text-2xl font-bold mb-1">TORNEIO FINALIZADO</h1>
         <p className="text-blue-100 text-sm mb-1">{tournament.titulo}</p>
         <p className="text-xs text-blue-200">Encerrado em {formatarData(tournament.termina_em || new Date())}</p>
@@ -439,7 +439,7 @@ export default function TournamentFinishedModal({
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
           <p className="text-gray-700 font-semibold mb-1">Obrigado por participar!</p>
           <p className="text-gray-500 text-sm">
-            A sua classificação final está a ser processada. Consulte o ranking completo para ver os resultados.
+            A sua classificaÃ§Ã£o final estÃ¡ a ser processada. Consulte o ranking completo para ver os resultados.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -460,7 +460,7 @@ export default function TournamentFinishedModal({
     </div>
   );
 
-  // ── Render principal ──────────────────────────────────────────────────────
+  // â”€â”€ Render principal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   return (
     <AnimatePresence>
       {showModal && (

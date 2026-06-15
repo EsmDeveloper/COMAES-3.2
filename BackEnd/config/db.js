@@ -18,11 +18,14 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST || 'localhost',
     dialect: 'mysql',
     port: process.env.DB_PORT || 3306,
-    logging: console.log,
+    logging: false,
     dialectOptions: {
-      connectTimeout: 10000,
+      connectTimeout: 60000,
       charset: 'utf8mb4',
-      collate: 'utf8mb4_unicode_ci'
+      collate: 'utf8mb4_unicode_ci',
+      waitForConnections: true,
+      enableKeepAlive: true,
+      keepAliveInitialDelayMs: 0
     },
     define: {
       charset: 'utf8mb4',
@@ -31,8 +34,12 @@ const sequelize = new Sequelize(
     pool: {
       max: 5,
       min: 0,
-      acquire: 30000,
-      idle: 10000
+      acquire: 60000,
+      idle: 30000
+    },
+    retry: {
+      max: 5,
+      timeout: 5000
     }
   }
 );

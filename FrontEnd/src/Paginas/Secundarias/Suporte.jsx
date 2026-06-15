@@ -1,5 +1,5 @@
-// Suporte.jsx — página de suporte em tela cheia
-// Reutiliza FaqPanel, ChatPanel e useSupportChat do SupportChat.jsx (sem duplicação)
+﻿// Suporte.jsx â€” pÃ¡gina de suporte em tela cheia
+// Reutiliza FaqPanel, ChatPanel e useSupportChat do SupportChat.jsx (sem duplicaÃ§Ã£o)
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -11,7 +11,7 @@ import {
 import { validateSubject, validateMessage, runValidations, validateFileUpload } from '../../utils/validators';
 import { FaqPanel, ChatPanel, useSupportChat } from '../../components/SupportChat';
 
-/* ─── Design tokens ─────────────────────────────────────────── */
+/* â”€â”€â”€ Design tokens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const c = {
   primary:     '#4F6EF7',
   primarySoft: '#EEF1FE',
@@ -36,7 +36,7 @@ const card = {
   boxShadow: '0 1px 3px rgba(15,17,23,0.05)',
 };
 
-/* ─── Toast ─────────────────────────────────────────────────── */
+/* â”€â”€â”€ Toast â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function Toast({ type, message, onClose }) {
   useEffect(() => {
     if (!message) return;
@@ -66,7 +66,7 @@ function Toast({ type, message, onClose }) {
   );
 }
 
-/* ─── Section wrapper ───────────────────────────────────────── */
+/* â”€â”€â”€ Section wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function Section({ title, description, children }) {
   return (
     <div style={{ ...card, overflow: 'hidden' }}>
@@ -79,7 +79,7 @@ function Section({ title, description, children }) {
   );
 }
 
-/* ─── Channel row ───────────────────────────────────────────── */
+/* â”€â”€â”€ Channel row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function ChannelRow({ icon, label, value, action, last }) {
   return (
     <div style={{
@@ -101,13 +101,13 @@ function ChannelRow({ icon, label, value, action, last }) {
   );
 }
 
-/* ─── Main ──────────────────────────────────────────────────── */
+/* â”€â”€â”€ Main â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export default function Suporte() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const fileRef  = useRef(null);
 
-  // Tab activa na página: 'faq' | 'chat' | 'contact'
+  // Tab activa na pÃ¡gina: 'faq' | 'chat' | 'contact'
   // Se veio do modal com uma tab guardada, restaurar
   const [pageTab, setPageTab] = useState(() => {
     const saved = sessionStorage.getItem('support_active_tab');
@@ -118,22 +118,22 @@ export default function Suporte() {
   const [toast, setToast]     = useState({ type: '', message: '' });
   const [sending, setSending] = useState(false);
 
-  // Formulário de contacto
+  // FormulÃ¡rio de contacto
   const [contact, setContact] = useState({ assunto: '', mensagem: '' });
 
-  // Formulário de bug
+  // FormulÃ¡rio de bug
   const [bug, setBug]         = useState({ categoria: '', descricao: '', gravidade: 'media' });
   const [bugFiles, setBugFiles] = useState([]);
   const [activeForm, setActiveForm] = useState(null); // 'contact' | 'bug'
 
-  // Chat IA — reutiliza o mesmo hook do componente flutuante
+  // Chat IA â€” reutiliza o mesmo hook do componente flutuante
   const chat = useSupportChat();
   const chatInputRef = useRef(null);
 
   const showToast = (type, msg) => setToast({ type, message: msg });
 
-  // Reduzir: guarda estado, navega para o painel do utilizador (onde o Layout com SupportChat está montado)
-  // Usa /painel como destino padrão — o SupportChat está disponível em qualquer rota com Layout
+  // Reduzir: guarda estado, navega para o painel do utilizador (onde o Layout com SupportChat estÃ¡ montado)
+  // Usa /painel como destino padrÃ£o â€” o SupportChat estÃ¡ disponÃ­vel em qualquer rota com Layout
   const handleReduce = (targetTab) => {
     const tab = targetTab || (pageTab === 'contact' ? 'faq' : pageTab);
     sessionStorage.setItem('support_reopen_modal', '1');
@@ -148,7 +148,7 @@ export default function Suporte() {
     setTimeout(() => chatInputRef.current?.focus(), 200);
   };
 
-  /* ── Submit contacto ── */
+  /* â”€â”€ Submit contacto â”€â”€ */
   const submitContact = async (e) => {
     e.preventDefault();
     const { valid, errors: errs } = runValidations({
@@ -158,7 +158,7 @@ export default function Suporte() {
     if (!valid) { showToast('error', Object.values(errs)[0]); return; }
     setSending(true);
     try {
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
       const token   = localStorage.getItem('comaes_token');
       const res = await fetch(`${apiBase}/suporte/tickets`, {
         method: 'POST',
@@ -166,17 +166,17 @@ export default function Suporte() {
         body: JSON.stringify({ assunto: contact.assunto, mensagem: contact.mensagem, tipo: 'contato' }),
       });
       if (!res.ok) throw new Error();
-      showToast('success', 'Mensagem enviada. Responderemos em até 48 horas.');
+      showToast('success', 'Mensagem enviada. Responderemos em atÃ© 48 horas.');
       setContact({ assunto: '', mensagem: '' });
       setActiveForm(null);
     } catch {
-      showToast('error', 'Não foi possível enviar. Tente novamente.');
+      showToast('error', 'NÃ£o foi possÃ­vel enviar. Tente novamente.');
     } finally {
       setSending(false);
     }
   };
 
-  /* ── Submit bug ── */
+  /* â”€â”€ Submit bug â”€â”€ */
   const submitBug = async (e) => {
     e.preventDefault();
     if (!bug.categoria) { showToast('error', 'Selecione uma categoria.'); return; }
@@ -184,7 +184,7 @@ export default function Suporte() {
     if (!msgResult.valid) { showToast('error', msgResult.error); return; }
     setSending(true);
     try {
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
       const token   = localStorage.getItem('comaes_token');
       const res = await fetch(`${apiBase}/suporte/tickets`, {
         method: 'POST',
@@ -192,12 +192,12 @@ export default function Suporte() {
         body: JSON.stringify({ ...bug, tipo: 'bug', anexos: bugFiles.map(f => f.name) }),
       });
       if (!res.ok) throw new Error();
-      showToast('success', 'Relatório enviado. Nossa equipe irá analisar em breve.');
+      showToast('success', 'RelatÃ³rio enviado. Nossa equipe irÃ¡ analisar em breve.');
       setBug({ categoria: '', descricao: '', gravidade: 'media' });
       setBugFiles([]);
       setActiveForm(null);
     } catch {
-      showToast('error', 'Não foi possível enviar. Tente novamente.');
+      showToast('error', 'NÃ£o foi possÃ­vel enviar. Tente novamente.');
     } finally {
       setSending(false);
     }
@@ -228,7 +228,7 @@ export default function Suporte() {
     width: '100%', boxSizing: 'border-box',
   };
 
-  /* ── Não autenticado ── */
+  /* â”€â”€ NÃ£o autenticado â”€â”€ */
   if (!user) {
     return (
       <Layout>
@@ -239,7 +239,7 @@ export default function Suporte() {
             </div>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: c.text, marginBottom: 8 }}>Acesso restrito</h2>
             <p style={{ fontSize: 14, color: c.muted, marginBottom: 24, lineHeight: 1.6 }}>
-              Faça login para acessar o suporte e enviar mensagens à equipe.
+              FaÃ§a login para acessar o suporte e enviar mensagens Ã  equipe.
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
               <button onClick={() => navigate('/login')} style={{ padding: '9px 20px', borderRadius: 9, background: c.primary, color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
@@ -259,7 +259,7 @@ export default function Suporte() {
     <Layout>
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '28px 16px 72px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-        {/* ── Cabeçalho ── */}
+        {/* â”€â”€ CabeÃ§alho â”€â”€ */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 4 }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 700, color: c.text, margin: 0 }}>Suporte</h1>
@@ -267,7 +267,7 @@ export default function Suporte() {
               Encontre respostas ou converse com o nosso assistente de IA.
             </p>
           </div>
-          {/* Botão Reduzir — volta ao modal flutuante */}
+          {/* BotÃ£o Reduzir â€” volta ao modal flutuante */}
           <button
             onClick={handleReduce}
             title="Reduzir para modal"
@@ -281,7 +281,7 @@ export default function Suporte() {
             onMouseEnter={e => { e.currentTarget.style.background = '#DDE4FD'; }}
             onMouseLeave={e => { e.currentTarget.style.background = c.primarySoft; }}
           >
-            {/* ícone compress/minimize */}
+            {/* Ã­cone compress/minimize */}
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style={{ width: 15, height: 15 }}>
               <path fillRule="evenodd" d="M5 10a1 1 0 011-1h3V6a1 1 0 112 0v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 01-1-1z" clipRule="evenodd" />
               <path fillRule="evenodd" d="M9 3a1 1 0 00-1 1v2.586L6.707 5.293a1 1 0 00-1.414 1.414L7.586 9H5a1 1 0 000 2h4a1 1 0 001-1V6a1 1 0 00-1-1zm2 0a1 1 0 011 1v3h3a1 1 0 010 2h-4a1 1 0 01-1-1V4a1 1 0 011-1zM5 12a1 1 0 011 1v1.586l-1.293-1.293a1 1 0 00-1.414 1.414L5.586 16H4a1 1 0 000 2h4a1 1 0 001-1v-4a1 1 0 00-1-1zm6 0a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-1.293-1.293a1 1 0 011.414-1.414L15 13.586V12a1 1 0 011-1z" clipRule="evenodd" />
@@ -290,12 +290,12 @@ export default function Suporte() {
           </button>
         </div>
 
-        {/* ── Tabs principais ── */}
+        {/* â”€â”€ Tabs principais â”€â”€ */}
         <div style={{ display: 'flex', gap: 4, background: '#F1F3F9', borderRadius: 12, padding: 4 }}>
           {[
-            { id: 'faq',     label: '📋 Perguntas Frequentes' },
-            { id: 'chat',    label: '🤖 Assistente IA' },
-            { id: 'contact', label: '✉️ Contacto & Bugs' },
+            { id: 'faq',     label: 'ðŸ“‹ Perguntas Frequentes' },
+            { id: 'chat',    label: 'ðŸ¤– Assistente IA' },
+            { id: 'contact', label: 'âœ‰ï¸ Contacto & Bugs' },
           ].map(tab => (
             <button
               key={tab.id}
@@ -314,18 +314,18 @@ export default function Suporte() {
           ))}
         </div>
 
-        {/* ── Tab: FAQ ── */}
+        {/* â”€â”€ Tab: FAQ â”€â”€ */}
         {pageTab === 'faq' && (
           <div style={{ ...card, overflow: 'hidden' }}>
             <div style={{ padding: '16px 20px', borderBottom: `1px solid ${c.border}` }}>
               <h2 style={{ fontSize: 15, fontWeight: 700, color: c.text, margin: 0 }}>Perguntas Frequentes</h2>
-              <p style={{ fontSize: 13, color: c.muted, margin: '3px 0 0' }}>Respostas para as dúvidas mais comuns.</p>
+              <p style={{ fontSize: 13, color: c.muted, margin: '3px 0 0' }}>Respostas para as dÃºvidas mais comuns.</p>
             </div>
             {/* Reutiliza FaqPanel do SupportChat.jsx */}
             <FaqPanel onAskAssistant={handleFaqAsk} compact={false} />
             <div style={{ padding: '12px 20px', borderTop: `1px solid ${c.border}`, textAlign: 'center' }}>
               <p style={{ fontSize: 13, color: c.muted, margin: 0 }}>
-                Não encontrou o que procura?{' '}
+                NÃ£o encontrou o que procura?{' '}
                 <button
                   onClick={() => setPageTab('chat')}
                   style={{ color: c.primary, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13, textDecoration: 'underline' }}
@@ -337,7 +337,7 @@ export default function Suporte() {
           </div>
         )}
 
-        {/* ── Tab: Chat IA ── */}
+        {/* â”€â”€ Tab: Chat IA â”€â”€ */}
         {pageTab === 'chat' && (
           <div style={{ ...card, overflow: 'hidden', display: 'flex', flexDirection: 'column', height: 520 }}>
             {/* Header do chat */}
@@ -346,15 +346,15 @@ export default function Suporte() {
               padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0,
             }}>
               <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
-                🤖
+                ðŸ¤–
               </div>
               <div style={{ flex: 1 }}>
                 <p style={{ color: '#fff', fontWeight: 700, fontSize: 15, margin: 0 }}>Assistente COMAES</p>
                 <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, margin: '2px 0 0' }}>
-                  Powered by Gemini · Responde apenas sobre a plataforma
+                  Powered by Gemini Â· Responde apenas sobre a plataforma
                 </p>
               </div>
-              {/* Botão reduzir dentro do chat também */}
+              {/* BotÃ£o reduzir dentro do chat tambÃ©m */}
               <button
                 onClick={() => handleReduce('chat')}
                 title="Reduzir para modal"
@@ -378,7 +378,7 @@ export default function Suporte() {
               background: '#FFFBEB', borderBottom: `1px solid #FDE68A`,
               padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
             }}>
-              <span style={{ fontSize: 14 }}>ℹ️</span>
+              <span style={{ fontSize: 14 }}>â„¹ï¸</span>
               <p style={{ fontSize: 12, color: '#92400E', margin: 0 }}>
                 O assistente responde apenas sobre torneios, certificados, ranking, perfis e funcionalidades da COMAES.
               </p>
@@ -389,7 +389,7 @@ export default function Suporte() {
           </div>
         )}
 
-        {/* ── Tab: Contacto & Bugs ── */}
+        {/* â”€â”€ Tab: Contacto & Bugs â”€â”€ */}
         {pageTab === 'contact' && (
           <>
             {/* Canais de atendimento */}
@@ -402,7 +402,7 @@ export default function Suporte() {
                 <ChannelRow
                   icon={<MessageSquare size={15} />}
                   label="Enviar mensagem"
-                  value="Resposta em até 48 horas"
+                  value="Resposta em atÃ© 48 horas"
                   action={
                     <button
                       onClick={() => setActiveForm(activeForm === 'contact' ? null : 'contact')}
@@ -421,11 +421,11 @@ export default function Suporte() {
                     </div>
                     <div>
                       <label style={{ fontSize: 12, fontWeight: 600, color: c.muted, display: 'block', marginBottom: 6 }}>Mensagem</label>
-                      <textarea style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }} value={contact.mensagem} onChange={e => setContact(p => ({ ...p, mensagem: e.target.value }))} placeholder="Descreva a sua dúvida ou solicitação em detalhes…" />
+                      <textarea style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }} value={contact.mensagem} onChange={e => setContact(p => ({ ...p, mensagem: e.target.value }))} placeholder="Descreva a sua dÃºvida ou solicitaÃ§Ã£o em detalhesâ€¦" />
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button type="submit" disabled={sending} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 9, background: c.primary, color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? 0.7 : 1 }}>
-                        <Send size={13} /> {sending ? 'Enviando…' : 'Enviar mensagem'}
+                        <Send size={13} /> {sending ? 'Enviandoâ€¦' : 'Enviar mensagem'}
                       </button>
                       <button type="button" onClick={() => setActiveForm(null)} style={{ padding: '9px 14px', borderRadius: 9, background: 'none', color: c.muted, border: `1px solid ${c.border}`, fontSize: 13, cursor: 'pointer' }}>
                         Cancelar
@@ -462,12 +462,12 @@ export default function Suporte() {
                       <div>
                         <label style={{ fontSize: 12, fontWeight: 600, color: c.muted, display: 'block', marginBottom: 6 }}>Categoria *</label>
                         <select style={{ ...inputStyle, cursor: 'pointer' }} value={bug.categoria} onChange={e => setBug(p => ({ ...p, categoria: e.target.value }))}>
-                          <option value="">Selecione…</option>
+                          <option value="">Selecioneâ€¦</option>
                           <option value="teste">Erro em teste</option>
                           <option value="ranking">Problema no ranking</option>
                           <option value="sistema">Bug no sistema</option>
                           <option value="performance">Performance</option>
-                          <option value="conteudo">Erro no conteúdo</option>
+                          <option value="conteudo">Erro no conteÃºdo</option>
                           <option value="outro">Outro</option>
                         </select>
                       </div>
@@ -475,18 +475,18 @@ export default function Suporte() {
                         <label style={{ fontSize: 12, fontWeight: 600, color: c.muted, display: 'block', marginBottom: 6 }}>Gravidade</label>
                         <select style={{ ...inputStyle, cursor: 'pointer' }} value={bug.gravidade} onChange={e => setBug(p => ({ ...p, gravidade: e.target.value }))}>
                           <option value="baixa">Baixa</option>
-                          <option value="media">Média</option>
+                          <option value="media">MÃ©dia</option>
                           <option value="alta">Alta</option>
-                          <option value="critica">Crítica</option>
+                          <option value="critica">CrÃ­tica</option>
                         </select>
                       </div>
                     </div>
                     <div>
-                      <label style={{ fontSize: 12, fontWeight: 600, color: c.muted, display: 'block', marginBottom: 6 }}>Descrição *</label>
-                      <textarea style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }} value={bug.descricao} onChange={e => setBug(p => ({ ...p, descricao: e.target.value }))} placeholder="Descreva o problema: o que aconteceu, o que deveria acontecer e como reproduzir…" />
+                      <label style={{ fontSize: 12, fontWeight: 600, color: c.muted, display: 'block', marginBottom: 6 }}>DescriÃ§Ã£o *</label>
+                      <textarea style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }} value={bug.descricao} onChange={e => setBug(p => ({ ...p, descricao: e.target.value }))} placeholder="Descreva o problema: o que aconteceu, o que deveria acontecer e como reproduzirâ€¦" />
                     </div>
                     <div>
-                      <label style={{ fontSize: 12, fontWeight: 600, color: c.muted, display: 'block', marginBottom: 6 }}>Evidências <span style={{ fontWeight: 400 }}>(opcional)</span></label>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: c.muted, display: 'block', marginBottom: 6 }}>EvidÃªncias <span style={{ fontWeight: 400 }}>(opcional)</span></label>
                       <button type="button" onClick={() => fileRef.current?.click()} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 14px', borderRadius: 9, background: c.bg, color: c.muted, border: `1px solid ${c.border}`, fontSize: 13, cursor: 'pointer' }}>
                         <Upload size={13} /> Anexar arquivo
                       </button>
@@ -507,7 +507,7 @@ export default function Suporte() {
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button type="submit" disabled={sending} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 9, background: c.primary, color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? 0.7 : 1 }}>
-                        <Send size={13} /> {sending ? 'Enviando…' : 'Enviar relatório'}
+                        <Send size={13} /> {sending ? 'Enviandoâ€¦' : 'Enviar relatÃ³rio'}
                       </button>
                       <button type="button" onClick={() => setActiveForm(null)} style={{ padding: '9px 14px', borderRadius: 9, background: 'none', color: c.muted, border: `1px solid ${c.border}`, fontSize: 13, cursor: 'pointer' }}>
                         Cancelar
@@ -521,7 +521,7 @@ export default function Suporte() {
             {/* Status */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 18px', borderRadius: 12, background: '#ECFDF5', border: '1px solid #A7F3D0', fontSize: 13, color: '#065F46' }}>
               <CheckCircle size={15} style={{ flexShrink: 0 }} />
-              <span>Todos os sistemas operando normalmente. Tempo médio de resposta: 24–48 horas.</span>
+              <span>Todos os sistemas operando normalmente. Tempo mÃ©dio de resposta: 24â€“48 horas.</span>
             </div>
           </>
         )}

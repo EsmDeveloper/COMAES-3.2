@@ -1,4 +1,4 @@
-/**
+﻿/**
  * TorneiosTab.jsx
  * Gerenciamento completo de torneios
  * Implementa: carregamento correto de dados, feedback visual, tratamento de erros
@@ -28,7 +28,7 @@ import { ModalOverlay, DeleteConfirmationModal, ViewDetailsModal } from './compo
 import { TournamentService } from './services/TournamentService';
 import BlocosService from './services/BlocosService';
 
-// Mapeamento de status para configuração visual
+// Mapeamento de status para configuraÃ§Ã£o visual
 const STATUS_CONFIG = {
   rascunho: {
     label: 'Rascunho',
@@ -79,13 +79,13 @@ export default function TorneiosTab() {
       const data = await TournamentService.fetchAll(token);
       console.log('[TorneiosTab] Torneios carregados:', data?.length || 0);
       
-      // Garantir que é array (não é erro)
+      // Garantir que Ã© array (nÃ£o Ã© erro)
       const torneiosData = Array.isArray(data) ? data : [];
       setTorneios(torneiosData);
     } catch (err) {
       console.error('[TorneiosTab] Erro ao carregar torneios:', err);
       // Apenas mostrar erro se for falha real de rede/servidor
-      // Não mostrar erro se a lista estiver vazia (isso é normal)
+      // NÃ£o mostrar erro se a lista estiver vazia (isso Ã© normal)
       setTorneios([]);
     } finally {
       setLoading(false);
@@ -100,7 +100,7 @@ export default function TorneiosTab() {
   }, [token, fetchTorneios]);
 
   // ============================================
-  // NOTIFICAÇÕES
+  // NOTIFICAÃ‡Ã•ES
   // ============================================
   const showToast = useCallback((message, type = 'success') => {
     setToast({ show: true, message, type });
@@ -111,12 +111,12 @@ export default function TorneiosTab() {
   // HANDLERS DE MODAL
   // ============================================
   const handleOpenCreate = useCallback(() => {
-    console.log('[TorneiosTab] Abrindo modal de criação');
+    console.log('[TorneiosTab] Abrindo modal de criaÃ§Ã£o');
     setModalForm({ open: true, mode: 'create', data: null });
   }, []);
 
   const handleOpenEdit = useCallback((torneio) => {
-    console.log('[TorneiosTab] Abrindo modal de edição para:', {
+    console.log('[TorneiosTab] Abrindo modal de ediÃ§Ã£o para:', {
       id: torneio.id,
       titulo: torneio.titulo,
       status: torneio.status,
@@ -139,11 +139,11 @@ export default function TorneiosTab() {
       try {
         console.log('[TorneiosTab] Salvando torneio:', { mode: modalForm.mode, payload });
 
-        // Validar: se tentando ativar um torneio, verificar se já existe outro ativo
+        // Validar: se tentando ativar um torneio, verificar se jÃ¡ existe outro ativo
         if (payload.status === 'ativo' && modalForm.mode === 'create') {
           const torneioAtivoExistente = torneios.some(t => t.status === 'ativo');
           if (torneioAtivoExistente) {
-            showToast('❌ Já existe um torneio ativo! Finalize-o antes de criar outro.', 'error');
+            showToast('âŒ JÃ¡ existe um torneio ativo! Finalize-o antes de criar outro.', 'error');
             setIsProcessing(false);
             return;
           }
@@ -152,7 +152,7 @@ export default function TorneiosTab() {
         if (modalForm.mode === 'edit' && payload.status === 'ativo') {
           const outroTorneioAtivo = torneios.some(t => t.id !== modalForm.data.id && t.status === 'ativo');
           if (outroTorneioAtivo) {
-            showToast('❌ Já existe outro torneio ativo! Finalize-o antes de ativar este.', 'error');
+            showToast('âŒ JÃ¡ existe outro torneio ativo! Finalize-o antes de ativar este.', 'error');
             setIsProcessing(false);
             return;
           }
@@ -180,8 +180,8 @@ export default function TorneiosTab() {
             );
             const falhas = resultados.filter(r => r.status === 'rejected');
             if (falhas.length > 0) {
-              console.warn('[TorneiosTab] Alguns blocos não foram associados:', falhas);
-              showToast(`Torneio criado, mas ${falhas.length} bloco(s) não foram associados.`, 'warning');
+              console.warn('[TorneiosTab] Alguns blocos nÃ£o foram associados:', falhas);
+              showToast(`Torneio criado, mas ${falhas.length} bloco(s) nÃ£o foram associados.`, 'warning');
             } else {
               showToast(`Torneio criado com ${blocosParaAssociar.length} bloco(s) associado(s)!`);
             }
@@ -209,16 +209,16 @@ export default function TorneiosTab() {
             )
           );
 
-          showToast('Alterações salvas com sucesso!');
+          showToast('AlteraÃ§Ãµes salvas com sucesso!');
         }
 
         handleCloseForm();
       } catch (err) {
         console.error('[TorneiosTab] Erro ao salvar:', err);
         
-        // ✅ Tratamento especial para erro de concorrência
+        // âœ… Tratamento especial para erro de concorrÃªncia
         if (err.message && err.message.includes('TOURNAMENT_CONFLICT')) {
-          showToast('❌ Não é possível criar/ativar dois torneios ao mesmo tempo. Finalize o torneio anterior.', 'error');
+          showToast('âŒ NÃ£o Ã© possÃ­vel criar/ativar dois torneios ao mesmo tempo. Finalize o torneio anterior.', 'error');
         } else {
           showToast(err.message || 'Erro ao salvar torneio', 'error');
         }
@@ -233,7 +233,7 @@ export default function TorneiosTab() {
   // FINALIZAR TORNEIO
   // ============================================
   const handleFinalizeTorneio = useCallback(async (torneioId) => {
-    if (!window.confirm('Tem certeza que deseja finalizar este torneio? Esta ação irá gerar certificados para os vencedores.')) {
+    if (!window.confirm('Tem certeza que deseja finalizar este torneio? Esta aÃ§Ã£o irÃ¡ gerar certificados para os vencedores.')) {
       return;
     }
 
@@ -241,14 +241,14 @@ export default function TorneiosTab() {
     try {
       console.log('[TorneiosTab] Finalizando torneio:', torneioId);
       
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/torneios/${torneioId}/finalizar`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/api/torneios/${torneioId}/finalizar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          disciplinas: ['Matemática', 'Programação', 'Inglês']
+          disciplinas: ['MatemÃ¡tica', 'ProgramaÃ§Ã£o', 'InglÃªs']
         })
       });
 
@@ -286,12 +286,12 @@ export default function TorneiosTab() {
       // Remover da lista
       setTorneios(prev => prev.filter(t => t.id !== modalDelete.id));
 
-      // Fechar modal de visualização se estava aberto
+      // Fechar modal de visualizaÃ§Ã£o se estava aberto
       if (modalView.data?.id === modalDelete.id) {
         setModalView({ open: false, data: null });
       }
 
-      showToast('Torneio excluído com sucesso!');
+      showToast('Torneio excluÃ­do com sucesso!');
       setModalDelete({ open: false, id: null, title: '' });
     } catch (err) {
       console.error('[TorneiosTab] Erro ao excluir:', err);
@@ -315,7 +315,7 @@ export default function TorneiosTab() {
   });
 
   // ============================================
-  // FORMATAR DATA PARA EXIBIÇÃO
+  // FORMATAR DATA PARA EXIBIÃ‡ÃƒO
   // ============================================
   const formatDate = (dateStr) => {
     if (!dateStr) return '-';
@@ -334,7 +334,7 @@ export default function TorneiosTab() {
   };
 
   // ============================================
-  // RENDERIZAÇÃO
+  // RENDERIZAÃ‡ÃƒO
   // ============================================
   return (
     <div className="p-2 sm:p-4">
@@ -344,7 +344,7 @@ export default function TorneiosTab() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder="Buscar torneios por título, status..."
+            placeholder="Buscar torneios por tÃ­tulo, status..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
@@ -365,9 +365,9 @@ export default function TorneiosTab() {
             <tr>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Torneio</th>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Tipo</th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Período</th>
+              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">PerÃ­odo</th>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase text-right">Ações</th>
+              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase text-right">AÃ§Ãµes</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -407,12 +407,12 @@ export default function TorneiosTab() {
                         {t.tipo_torneio === 'especifico' ? (
                           <>
                             <BookOpen size={14} />
-                            Específico {t.disciplina_especifica && `(${t.disciplina_especifica})`}
+                            EspecÃ­fico {t.disciplina_especifica && `(${t.disciplina_especifica})`}
                           </>
                         ) : (
                           <>
                             <Globe size={14} />
-                            Genérico
+                            GenÃ©rico
                           </>
                         )}
                       </span>
@@ -420,7 +420,7 @@ export default function TorneiosTab() {
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-600">
                         <div className="flex items-center gap-1">
-                          <span className="text-xs text-gray-400">Início:</span>
+                          <span className="text-xs text-gray-400">InÃ­cio:</span>
                           <span className="font-medium">{formatDate(t.inicia_em)}</span>
                         </div>
                         <div className="flex items-center gap-1 mt-1">
@@ -502,7 +502,7 @@ export default function TorneiosTab() {
         </div>
       )}
 
-      {/* Modal de Formulário */}
+      {/* Modal de FormulÃ¡rio */}
       <ModalOverlay
         isOpen={modalForm.open}
         onClose={handleCloseForm}
@@ -517,7 +517,7 @@ export default function TorneiosTab() {
         />
       </ModalOverlay>
 
-      {/* Modal de Exclusão */}
+      {/* Modal de ExclusÃ£o */}
       <DeleteConfirmationModal
         isOpen={modalDelete.open}
         onClose={() => setModalDelete({ open: false, id: null, title: '' })}
@@ -526,7 +526,7 @@ export default function TorneiosTab() {
         isLoading={isProcessing}
       />
 
-      {/* Modal de Visualização */}
+      {/* Modal de VisualizaÃ§Ã£o */}
       <ViewDetailsModal
         isOpen={modalView.open}
         onClose={() => setModalView({ open: false, data: null })}

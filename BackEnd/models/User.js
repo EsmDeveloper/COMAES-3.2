@@ -116,7 +116,7 @@ const Usuario = sequelize.define('Usuario', {
     comment: 'Documentos enviados pelo colaborador',
   },
   status_colaborador: {
-    type: DataTypes.ENUM('pendente', 'aprovado', 'rejeitado'),
+    type: DataTypes.ENUM('pendente', 'aprovado', 'rejeitado', 'suspenso'),
     allowNull: false,
     defaultValue: 'pendente',
   },

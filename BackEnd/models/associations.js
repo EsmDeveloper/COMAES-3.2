@@ -179,10 +179,16 @@ export const setupAssociations = () => {
   });
 
   // BlocoQuestaoItem direto (para queries com include)
-  BlocoQuestoes.hasMany(BlocoQuestaoItem, { foreignKey: 'bloco_id', as: 'items' });
+  BlocoQuestoes.hasMany(BlocoQuestaoItem, { foreignKey: 'bloco_id', as: 'itens' });
   BlocoQuestaoItem.belongsTo(BlocoQuestoes, { foreignKey: 'bloco_id', as: 'bloco' });
-  QuestaoTesteConhecimento.hasMany(BlocoQuestaoItem, { foreignKey: 'questao_id', as: 'blocoItems' });
-  BlocoQuestaoItem.belongsTo(QuestaoTesteConhecimento, { foreignKey: 'questao_id', as: 'questao' });
+  
+  // BlocoQuestaoItem <-> Questao (nova tabela de questões)
+  Questao.hasMany(BlocoQuestaoItem, { foreignKey: 'questao_id', as: 'blocoItems' });
+  BlocoQuestaoItem.belongsTo(Questao, { foreignKey: 'questao_id', as: 'questao' });
+  
+  // Mantendo compatibilidade com a antiga tabela questoes_teste_conhecimento
+  QuestaoTesteConhecimento.hasMany(BlocoQuestaoItem, { foreignKey: 'questao_id', as: 'blocoItemsAntigos' });
+  BlocoQuestaoItem.belongsTo(QuestaoTesteConhecimento, { foreignKey: 'questao_id', as: 'questaoAntiga' });
 
   // Torneio <-> BlocoQuestoes (N:M via TorneioBloco)
   Torneio.belongsToMany(BlocoQuestoes, {

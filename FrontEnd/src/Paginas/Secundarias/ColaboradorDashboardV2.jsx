@@ -1,7 +1,7 @@
-/**
+﻿/**
  * ColaboradorDashboardV2.jsx
  * Dashboard do Colaborador com design estilo Admin
- * Permite: Ver/editar perfil, gerenciar blocos, questões e ver estatísticas
+ * Permite: Ver/editar perfil, gerenciar blocos, questÃµes e ver estatÃ­sticas
  */
 
 import { useState, useEffect } from 'react';
@@ -17,7 +17,7 @@ import {
   ArrowRight, ChevronDown, Search, Filter, Loader
 } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
 
 // Abas do Dashboard
 function MeusDadosTab({ user, onUpdate }) {
@@ -46,7 +46,7 @@ function MeusDadosTab({ user, onUpdate }) {
         <p className="text-gray-600">Visualize e edite seu perfil de colaborador</p>
       </div>
 
-      {/* Conteúdo */}
+      {/* ConteÃºdo */}
       <div className="bg-white rounded-2xl shadow-lg p-8">
         <div className="flex items-start justify-between mb-6">
           <div>
@@ -112,15 +112,15 @@ function MeusDadosTab({ user, onUpdate }) {
               }`}
             >
               <option value="">Selecione uma disciplina</option>
-              <option value="matematica">Matemática</option>
-              <option value="programacao">Programação</option>
-              <option value="ingles">Inglês</option>
+              <option value="matematica">MatemÃ¡tica</option>
+              <option value="programacao">ProgramaÃ§Ã£o</option>
+              <option value="ingles">InglÃªs</option>
             </select>
           </div>
 
-          {/* Nível Acadêmico */}
+          {/* NÃ­vel AcadÃªmico */}
           <div>
-            <label className="text-sm font-semibold text-slate-700 mb-2 block">Nível Acadêmico</label>
+            <label className="text-sm font-semibold text-slate-700 mb-2 block">NÃ­vel AcadÃªmico</label>
             <select
               value={dados.nivel_academico}
               onChange={(e) => setDados({ ...dados, nivel_academico: e.target.value })}
@@ -131,9 +131,9 @@ function MeusDadosTab({ user, onUpdate }) {
                   : 'border-gray-200 bg-gray-50 text-gray-600'
               }`}
             >
-              <option value="">Selecione nível</option>
-              <option value="estudante_universitario">Estudante Universitário</option>
-              <option value="tecnico">Técnico</option>
+              <option value="">Selecione nÃ­vel</option>
+              <option value="estudante_universitario">Estudante UniversitÃ¡rio</option>
+              <option value="tecnico">TÃ©cnico</option>
               <option value="licenciado">Licenciado</option>
               <option value="mestre">Mestre</option>
               <option value="doutor">Doutor</option>
@@ -172,11 +172,11 @@ function MeusDadosTab({ user, onUpdate }) {
                 ? 'border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400'
                 : 'border-gray-200 bg-gray-50 text-gray-600'
             }`}
-            placeholder="Descreva sua experiência e especialidades..."
+            placeholder="Descreva sua experiÃªncia e especialidades..."
           />
         </div>
 
-        {/* Botão Salvar */}
+        {/* BotÃ£o Salvar */}
         {editando && (
           <div className="mt-6 flex gap-3 justify-end">
             <button
@@ -189,7 +189,7 @@ function MeusDadosTab({ user, onUpdate }) {
               onClick={handleSave}
               className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:opacity-90 transition"
             >
-              Salvar Alterações
+              Salvar AlteraÃ§Ãµes
             </button>
           </div>
         )}
@@ -200,7 +200,7 @@ function MeusDadosTab({ user, onUpdate }) {
         <h3 className="font-bold text-slate-800 mb-4">Status do Colaborador</h3>
         <div className="grid grid-cols-3 gap-4">
           <div className="p-4 bg-green-50 rounded-xl border-2 border-green-200">
-            <div className="text-green-700 font-semibold">✅ Aprovado</div>
+            <div className="text-green-700 font-semibold">âœ… Aprovado</div>
             <div className="text-sm text-green-600">Status atual</div>
           </div>
           <div className="p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
@@ -209,7 +209,7 @@ function MeusDadosTab({ user, onUpdate }) {
           </div>
           <div className="p-4 bg-indigo-50 rounded-xl border-2 border-indigo-200">
             <div className="text-indigo-700 font-bold text-lg">12</div>
-            <div className="text-sm text-indigo-600">Questões Criadas</div>
+            <div className="text-sm text-indigo-600">QuestÃµes Criadas</div>
           </div>
         </div>
       </div>
@@ -315,8 +315,8 @@ function MeusBlocosTab() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Meus Blocos de Questões</h2>
-          <p className="text-gray-600">Crie e gerencie seus blocos de questões</p>
+          <h2 className="text-2xl font-bold text-slate-800">Meus Blocos de QuestÃµes</h2>
+          <p className="text-gray-600">Crie e gerencie seus blocos de questÃµes</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
@@ -354,7 +354,7 @@ function MeusBlocosTab() {
       {!loading && blocos.length === 0 && (
         <div className="text-center py-12 bg-white rounded-2xl">
           <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-600">Ainda não tem blocos criados</p>
+          <p className="text-gray-600">Ainda nÃ£o tem blocos criados</p>
           <button
             onClick={() => setShowForm(true)}
             className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
@@ -379,13 +379,13 @@ function MeusBlocosTab() {
                     ? 'bg-green-100 text-green-700'
                     : 'bg-yellow-100 text-yellow-700'
                 }`}>
-                  {bloco.status === 'publicado' ? '✅ Publicado' : '📝 Rascunho'}
+                  {bloco.status === 'publicado' ? 'âœ… Publicado' : 'ðŸ“ Rascunho'}
                 </span>
               </div>
 
               <div className="flex gap-2 mb-4">
                 <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-lg">
-                  🔢 {bloco.disciplina || 'Não definida'}
+                  ðŸ”¢ {bloco.disciplina || 'NÃ£o definida'}
                 </span>
               </div>
 
@@ -446,7 +446,7 @@ function MinhasQuestoesTab() {
       setLoading(true);
       const token = localStorage.getItem('comaes_token');
 
-      // Fetch questões
+      // Fetch questÃµes
       const resQ = await fetch(`${API_BASE}/api/colaborador/questoes?limite=20`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -482,9 +482,9 @@ function MinhasQuestoesTab() {
       if (json.sucesso) {
         setQuestoes([json.dados, ...questoes]);
         setShowForm(false);
-        // TODO: Show toast "Questão criada com sucesso!"
+        // TODO: Show toast "QuestÃ£o criada com sucesso!"
       } else {
-        setError(json.mensagem || 'Erro ao criar questão');
+        setError(json.mensagem || 'Erro ao criar questÃ£o');
       }
     } catch (err) {
       setError(err.message);
@@ -493,7 +493,7 @@ function MinhasQuestoesTab() {
   };
 
   const handleDeleteQuestao = async (id) => {
-    if (!window.confirm('Tem certeza que deseja deletar esta questão?')) return;
+    if (!window.confirm('Tem certeza que deseja deletar esta questÃ£o?')) return;
 
     try {
       const token = localStorage.getItem('comaes_token');
@@ -504,9 +504,9 @@ function MinhasQuestoesTab() {
       const json = await res.json();
       if (json.sucesso) {
         setQuestoes(questoes.filter(q => q.id !== id));
-        // TODO: Show toast "Questão deletada com sucesso!"
+        // TODO: Show toast "QuestÃ£o deletada com sucesso!"
       } else {
-        setError(json.mensagem || 'Erro ao deletar questão');
+        setError(json.mensagem || 'Erro ao deletar questÃ£o');
       }
     } catch (err) {
       setError(err.message);
@@ -535,15 +535,15 @@ function MinhasQuestoesTab() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Minhas Questões</h2>
-          <p className="text-gray-600">Crie questões para adicionar aos blocos</p>
+          <h2 className="text-2xl font-bold text-slate-800">Minhas QuestÃµes</h2>
+          <p className="text-gray-600">Crie questÃµes para adicionar aos blocos</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
           className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold flex items-center gap-2 hover:opacity-90"
         >
           <Plus className="w-4 h-4" />
-          Criar Questão
+          Criar QuestÃ£o
         </button>
       </div>
 
@@ -574,12 +574,12 @@ function MinhasQuestoesTab() {
       {!loading && questoes.length === 0 && (
         <div className="text-center py-12 bg-white rounded-2xl">
           <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-600">Ainda não tem questões criadas</p>
+          <p className="text-gray-600">Ainda nÃ£o tem questÃµes criadas</p>
           <button
             onClick={() => setShowForm(true)}
             className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
           >
-            Criar Primeira Questão
+            Criar Primeira QuestÃ£o
           </button>
         </div>
       )}
@@ -590,12 +590,12 @@ function MinhasQuestoesTab() {
           <table className="w-full">
             <thead className="bg-slate-100 border-b-2 border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-bold text-slate-800">Título</th>
+                <th className="px-6 py-3 text-left text-sm font-bold text-slate-800">TÃ­tulo</th>
                 <th className="px-6 py-3 text-left text-sm font-bold text-slate-800">Tipo</th>
                 <th className="px-6 py-3 text-left text-sm font-bold text-slate-800">Dificuldade</th>
                 <th className="px-6 py-3 text-left text-sm font-bold text-slate-800">Status</th>
                 <th className="px-6 py-3 text-left text-sm font-bold text-slate-800">Data</th>
-                <th className="px-6 py-3 text-left text-sm font-bold text-slate-800">Ações</th>
+                <th className="px-6 py-3 text-left text-sm font-bold text-slate-800">AÃ§Ãµes</th>
               </tr>
             </thead>
             <tbody>
@@ -603,10 +603,10 @@ function MinhasQuestoesTab() {
                 <tr key={questao.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                   <td className="px-6 py-3 text-sm text-slate-800">{questao.titulo}</td>
                   <td className="px-6 py-3 text-sm text-gray-600">
-                    {questao.tipo === 'multipla_escolha' ? 'Múltipla' : questao.tipo === 'texto' ? 'Texto' : 'Código'}
+                    {questao.tipo === 'multipla_escolha' ? 'MÃºltipla' : questao.tipo === 'texto' ? 'Texto' : 'CÃ³digo'}
                   </td>
                   <td className="px-6 py-3 text-sm text-gray-600">
-                    {questao.dificuldade === 'facil' ? '⭐ Fácil' : questao.dificuldade === 'medio' ? '⭐⭐ Médio' : '⭐⭐⭐ Difícil'}
+                    {questao.dificuldade === 'facil' ? 'â­ FÃ¡cil' : questao.dificuldade === 'medio' ? 'â­â­ MÃ©dio' : 'â­â­â­ DifÃ­cil'}
                   </td>
                   <td className="px-6 py-3 text-sm">
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
@@ -616,7 +616,7 @@ function MinhasQuestoesTab() {
                         ? 'bg-red-100 text-red-700'
                         : 'bg-yellow-100 text-yellow-700'
                     }`}>
-                      {questao.status_aprovacao === 'aprovada' ? '✅ Aprovada' : questao.status_aprovacao === 'rejeitada' ? '❌ Rejeitada' : '⏳ Pendente'}
+                      {questao.status_aprovacao === 'aprovada' ? 'âœ… Aprovada' : questao.status_aprovacao === 'rejeitada' ? 'âŒ Rejeitada' : 'â³ Pendente'}
                     </span>
                   </td>
                   <td className="px-6 py-3 text-sm text-gray-600">
@@ -637,7 +637,7 @@ function MinhasQuestoesTab() {
                         }}
                         disabled={questao.status_aprovacao !== 'pendente'}
                         className="p-2 hover:bg-gray-100 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-                        title={questao.status_aprovacao !== 'pendente' ? 'Apenas questões pendentes podem ser editadas' : 'Editar'}
+                        title={questao.status_aprovacao !== 'pendente' ? 'Apenas questÃµes pendentes podem ser editadas' : 'Editar'}
                       >
                         <Edit className="w-4 h-4 text-blue-600" />
                       </button>
@@ -645,7 +645,7 @@ function MinhasQuestoesTab() {
                         onClick={() => handleDeleteQuestao(questao.id)}
                         disabled={questao.status_aprovacao === 'aprovada'}
                         className="p-2 hover:bg-gray-100 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-                        title={questao.status_aprovacao === 'aprovada' ? 'Questões aprovadas não podem ser deletadas' : 'Deletar'}
+                        title={questao.status_aprovacao === 'aprovada' ? 'QuestÃµes aprovadas nÃ£o podem ser deletadas' : 'Deletar'}
                       >
                         <Trash2 className="w-4 h-4 text-red-600" />
                       </button>
@@ -664,29 +664,29 @@ function MinhasQuestoesTab() {
 function EstatisticasTab() {
   return (
     <div className="max-w-6xl mx-auto">
-      <h2 className="text-2xl font-bold text-slate-800 mb-6">Estatísticas</h2>
+      <h2 className="text-2xl font-bold text-slate-800 mb-6">EstatÃ­sticas</h2>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-8">
         <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border-l-4 border-blue-500 hover:shadow-xl transition-shadow">
           <div className="text-xs sm:text-sm text-gray-600 mb-2 font-medium">Total de Blocos</div>
           <div className="text-2xl sm:text-3xl font-bold text-blue-600">3</div>
-          <div className="text-xs text-gray-500 mt-2">+1 este mês</div>
+          <div className="text-xs text-gray-500 mt-2">+1 este mÃªs</div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border-l-4 border-indigo-500 hover:shadow-xl transition-shadow">
-          <div className="text-xs sm:text-sm text-gray-600 mb-2 font-medium">Questões Aprovadas</div>
+          <div className="text-xs sm:text-sm text-gray-600 mb-2 font-medium">QuestÃµes Aprovadas</div>
           <div className="text-2xl sm:text-3xl font-bold text-indigo-600">8</div>
-          <div className="text-xs text-gray-500 mt-2">100% aprovação</div>
+          <div className="text-xs text-gray-500 mt-2">100% aprovaÃ§Ã£o</div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border-l-4 border-cyan-500 hover:shadow-xl transition-shadow">
-          <div className="text-xs sm:text-sm text-gray-600 mb-2 font-medium">Questões Pendentes</div>
+          <div className="text-xs sm:text-sm text-gray-600 mb-2 font-medium">QuestÃµes Pendentes</div>
           <div className="text-2xl sm:text-3xl font-bold text-cyan-600">2</div>
-          <div className="text-xs text-gray-500 mt-2">Aguardando revisão</div>
+          <div className="text-xs text-gray-500 mt-2">Aguardando revisÃ£o</div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border-l-4 border-blue-400 hover:shadow-xl transition-shadow">
-          <div className="text-xs sm:text-sm text-gray-600 mb-2 font-medium">Total de Questões</div>
+          <div className="text-xs sm:text-sm text-gray-600 mb-2 font-medium">Total de QuestÃµes</div>
           <div className="text-2xl sm:text-3xl font-bold text-blue-400">12</div>
           <div className="text-xs text-gray-500 mt-2">3 disciplinas</div>
         </div>
@@ -705,8 +705,8 @@ export default function ColaboradorDashboardV2() {
   const tabs = [
     { id: 'dados', label: 'Meus Dados', icon: UserCircle },
     { id: 'blocos', label: 'Meus Blocos', icon: BookOpen },
-    { id: 'questoes', label: 'Minhas Questões', icon: FileText },
-    { id: 'estatisticas', label: 'Estatísticas', icon: BarChart3 },
+    { id: 'questoes', label: 'Minhas QuestÃµes', icon: FileText },
+    { id: 'estatisticas', label: 'EstatÃ­sticas', icon: BarChart3 },
   ];
 
   const renderContent = () => {
@@ -774,7 +774,7 @@ export default function ColaboradorDashboardV2() {
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Header Móvel */}
+          {/* Header MÃ³vel */}
           <div className="md:hidden bg-white shadow-sm p-4 flex items-center justify-between">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}

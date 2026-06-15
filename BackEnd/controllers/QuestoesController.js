@@ -741,6 +741,599 @@ export const QuestoesController = {
       console.error('Erro ao obter estatísticas:', error);
       respostaErro(res, 500, 'Erro ao obter estatísticas', { detalhes: error.message });
     }
+  },
+
+  /**
+   * POST /api/questoes/colaborador/criar
+   * TASK 4.1: Criar questão como colaborador
+   * - Validar dados da questão
+   * - Verificar disciplina corresponde a disciplina_colaborador
+   * - Definir status_aprovacao como 'pendente'
+   * - Definir autor_id como id do colaborador
+   */
+  createQuestao: async (req, res) => {
+    try {
+      const dados = { ...req.body };
+
+      // Verificar se é colaborador
+      const isColaborador = req.user?.isColaborador || req.user?.role === 'colaborador';
+      if (!isColaborador) {
+        return respostaErro(res, 403, 'Apenas colaboradores podem criar questões');
+      }
+
+      // Verificar se disciplina_colaborador está definido
+      if (!req.user?.disciplina_colaborador) {
+        return respostaErro(res, 400, 'Colaborador não possui disciplina atribuída');
+      }
+
+      // Validar que disciplina fornecida corresponde à do colaborador (Requisito 2.2)
+      if (dados.disciplina !== req.user.disciplina_colaborador) {
+        return respostaErro(res, 403, 'Você só pode criar questões para sua disciplina');
+      }
+
+      console.log(`📝 Colaborador criando questão:`, { 
+        colaboradorId: req.user.id,
+        titulo: dados.titulo, 
+        disciplina: dados.disciplina
+      });
+
+      // Normalizar opções se tipo for múltipla escolha
+      if (dados.tipo === 'multipla_escolha' && Array.isArray(dados.opcoes)) {
+        dados.opcoes = dados.opcoes
+          .map(o => typeof o === 'object' ? o.texto : o)
+          .filter(t => t && t.trim());
+      }
+
+      // Validar dados da questão
+      const erros = validarQuestao(dados);
+      if (erros.length > 0) {
+        return respostaErro(res, 422, 'Erro de validação', erros);
+      }
+
+      // Criar questão com status pendente e autor definido
+      const questao = await Questao.create({
+        torneio_id: dados.torneio_id || null,
+        bloco_id: dados.bloco_id || null,
+        titulo: dados.titulo,
+        descricao: dados.descricao,
+        disciplina: dados.disciplina,
+        tipo: dados.tipo,
+        dificuldade: dados.dificuldade,
+        opcoes: (dados.tipo === 'multipla_escolha' && dados.opcoes) ? dados.opcoes : null,
+        resposta_correta: dados.resposta_correta,
+        explicacao: dados.explicacao || null,
+        pontos: dados.pontos || 10,
+        linguagem: dados.linguagem || null,
+        midia: dados.midia || null,
+        autor_id: req.user.id,  // Definir autor_id (Requisito 2.3)
+        status_aprovacao: 'pendente'  // Definir status como pendente (Requisito 2.1)
+      });
+
+      console.log(`✅ Questão criada com sucesso - ID: ${questao.id}, Status: pendente, Autor: ${req.user.id}`);
+
+      // Retornar questão criada (Requisito 2.6)
+      const questaoData = questao.toJSON();
+      respostaSucesso(res, 201, questaoData, 'Questão criada com sucesso e aguardando aprovação');
+    } catch (error) {
+      console.error('❌ Erro ao criar questão:', error);
+      respostaErro(res, 500, 'Erro ao criar questão', { detalhes: error.message });
+    }
+  },
+
+  /**
+   * GET /api/questoes/colaborador/minhas
+   * TASK 4.2: Listar questões do colaborador
+   * - Filtrar por autor_id (colaborador logado)
+   * - Filtrar por disciplina_colaborador
+   * - Aplicar filtros opcionais (dificuldade, status_aprovacao)
+   * - Retornar array vazio se nenhuma questão
+   */
+  getMinhasQuestoes: async (req, res) => {
+    try {
+      // Verificar se é colaborador
+      const isColaborador = req.user?.isColaborador || req.user?.role === 'colaborador';
+      if (!isColaborador) {
+        return respostaErro(res, 403, 'Apenas colaboradores podem acessar este endpoint');
+      }
+
+      // Verificar se disciplina_colaborador está definido
+      if (!req.user?.disciplina_colaborador) {
+        return respostaErro(res, 400, 'Colaborador não possui disciplina atribuída');
+      }
+
+      const { dificuldade, status_aprovacao, pagina = 1, limite = 20 } = req.query;
+
+      console.log(`📋 Listando questões do colaborador ${req.user.id}`, { 
+        dificuldade, 
+        status_aprovacao,
+        pagina,
+        limite
+      });
+
+      // Construir filtro (Requisito 3.1 e 3.2)
+      const where = {
+        autor_id: req.user.id,  // Filtro por autor (Requisito 3.1)
+        disciplina: req.user.disciplina_colaborador  // Filtro por disciplina (Requisito 3.2)
+      };
+
+      // Se filtro de disciplina fornecido, verificar se é a disciplina do colaborador (Requisito 3.3)
+      if (req.query.disciplina && req.query.disciplina !== req.user.disciplina_colaborador) {
+        return respostaErro(res, 403, 'Você só pode ver questões da sua disciplina');
+      }
+
+      // Aplicar filtros opcionais (Requisito 3.4)
+      if (dificuldade) {
+        where.dificuldade = dificuldade;
+      }
+
+      if (status_aprovacao) {
+        where.status_aprovacao = status_aprovacao;
+      }
+
+      // Implementar paginação
+      const offset = (parseInt(pagina) - 1) * parseInt(limite);
+
+      // Buscar questões ordenadas por data de criação
+      const { count, rows } = await Questao.findAndCountAll({
+        where,
+        limit: parseInt(limite),
+        offset,
+        order: [['created_at', 'DESC']]  // Ordenar por createdAt conforme design
+      });
+
+      console.log(`✅ ${rows.length} questões encontradas para colaborador ${req.user.id}`);
+
+      // Normalizar opções antes de retornar
+      const questoesNormalizadas = rows.map(questao => {
+        const questaoData = questao.toJSON();
+        
+        if (questaoData.opcoes) {
+          if (typeof questaoData.opcoes === 'string') {
+            try {
+              questaoData.opcoes = JSON.parse(questaoData.opcoes);
+            } catch (e) {
+              questaoData.opcoes = [];
+            }
+          }
+          if (!Array.isArray(questaoData.opcoes)) {
+            questaoData.opcoes = [];
+          }
+        }
+
+        return questaoData;
+      });
+
+      // Retornar array vazio se nenhuma questão (Requisito 3.5)
+      respostaSucesso(res, 200, {
+        questoes: questoesNormalizadas,
+        total: count,
+        pagina: parseInt(pagina),
+        limite: parseInt(limite),
+        totalPaginas: Math.ceil(count / parseInt(limite))
+      }, count === 0 ? 'Você não possui questões criadas' : 'Questões listadas com sucesso');
+    } catch (error) {
+      console.error('❌ Erro ao listar minhas questões:', error);
+      respostaErro(res, 500, 'Erro ao listar questões', { detalhes: error.message });
+    }
+  },
+
+  /**
+   * PUT /api/questoes/colaborador/:id
+   * TASK 4.3: Atualizar questão do colaborador
+   * - Verificar que questão pertence ao colaborador (autor_id)
+   * - Evitar edição de questões aprovadas (set back to 'pendente')
+   * - Validar disciplina se mudada (deve corresponder à disciplina_colaborador)
+   * - Atualizar apenas campos fornecidos
+   */
+  updateQuestao: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const dados = { ...req.body };
+
+      // Verificar se é colaborador
+      const isColaborador = req.user?.isColaborador || req.user?.role === 'colaborador';
+      if (!isColaborador) {
+        return respostaErro(res, 403, 'Apenas colaboradores podem editar suas questões');
+      }
+
+      // Buscar questão
+      const questao = await Questao.findByPk(id);
+      if (!questao) {
+        return respostaErro(res, 404, `Questão com ID ${id} não encontrada`);
+      }
+
+      // Verificar se questão pertence ao colaborador (Requisito 4.1)
+      if (questao.autor_id !== req.user.id) {
+        return respostaErro(res, 403, 'Acesso negado');  // Requisito 4.2
+      }
+
+      console.log(`✏️ Colaborador atualizando questão ID ${id}`, { 
+        statusAtual: questao.status_aprovacao,
+        colaboradorId: req.user.id
+      });
+
+      // Normalizar opções se tipo for múltipla escolha
+      if (dados.tipo === 'multipla_escolha' && Array.isArray(dados.opcoes)) {
+        dados.opcoes = dados.opcoes
+          .map(o => typeof o === 'object' ? o.texto : o)
+          .filter(t => t && t.trim());
+      }
+
+      // Regra: Não é possível editar questões já aprovadas (Requisito 4.3)
+      // Se questão foi aprovada e está sendo editada, voltar ao status pendente
+      if (questao.status_aprovacao === 'aprovada') {
+        console.log(`📝 Questão aprovada será revisada. Status voltará para pendente.`);
+        dados.status_aprovacao = 'pendente';
+        dados.revisado_por = null;
+        dados.revisado_em = null;
+        dados.motivo_rejeicao = null;
+      } else {
+        // Para questões pendentes/rejeitadas, manter como pendente
+        dados.status_aprovacao = 'pendente';
+        dados.revisado_por = null;
+        dados.revisado_em = null;
+        dados.motivo_rejeicao = null;
+      }
+
+      // Se disciplina for mudada, validar se corresponde à disciplina do colaborador (Requisito 4.5)
+      if (dados.disciplina && dados.disciplina !== req.user.disciplina_colaborador) {
+        return respostaErro(res, 403, 'Você só pode criar questões para sua disciplina');
+      }
+
+      // Não permitir que colaborador mude disciplina (por segurança)
+      delete dados.disciplina;
+
+      // Atualizar apenas campos fornecidos (Requisito 4.4)
+      const camposAtualizaveis = [
+        'titulo', 'descricao', 'tipo', 'dificuldade',
+        'opcoes', 'resposta_correta', 'explicacao', 'pontos', 'linguagem', 'midia',
+        'status_aprovacao', 'revisado_por', 'revisado_em', 'motivo_rejeicao'
+      ];
+
+      for (const campo of camposAtualizaveis) {
+        if (dados[campo] !== undefined) {
+          questao[campo] = dados[campo];
+        }
+      }
+
+      await questao.save();
+
+      console.log(`✅ Questão atualizada com sucesso - ID: ${questao.id}, Novo status: ${questao.status_aprovacao}`);
+
+      // Normalizar opções antes de retornar
+      const questaoData = questao.toJSON();
+      if (questaoData.opcoes) {
+        if (typeof questaoData.opcoes === 'string') {
+          try {
+            questaoData.opcoes = JSON.parse(questaoData.opcoes);
+          } catch (e) {
+            questaoData.opcoes = [];
+          }
+        }
+        if (!Array.isArray(questaoData.opcoes)) {
+          questaoData.opcoes = [];
+        }
+      }
+
+      // Retornar questão atualizada
+      respostaSucesso(res, 200, questaoData, 'Questão atualizada com sucesso');
+    } catch (error) {
+      console.error('❌ Erro ao atualizar questão:', error);
+      respostaErro(res, 500, 'Erro ao atualizar questão', { detalhes: error.message });
+    }
+  },
+
+  /**
+   * DELETE /api/questoes/colaborador/:id
+   * TASK 4.4: Deletar questão do colaborador
+   * - Verificar que questão pertence ao colaborador (autor_id)
+   * - Deletar permanentemente
+   * - Cascade delete respostas associadas
+   */
+  deleteQuestao: async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Verificar se é colaborador
+      const isColaborador = req.user?.isColaborador || req.user?.role === 'colaborador';
+      if (!isColaborador) {
+        return respostaErro(res, 403, 'Apenas colaboradores podem deletar suas questões');
+      }
+
+      // Buscar questão
+      const questao = await Questao.findByPk(id);
+      if (!questao) {
+        return respostaErro(res, 404, `Questão com ID ${id} não encontrada`);
+      }
+
+      // Verificar se questão pertence ao colaborador (Requisito 5.1)
+      if (questao.autor_id !== req.user.id) {
+        return respostaErro(res, 403, 'Acesso negado');  // Requisito 5.2
+      }
+
+      console.log(`🗑️ Colaborador deletando questão ID ${id}`, { 
+        colaboradorId: req.user.id,
+        disciplina: questao.disciplina
+      });
+
+      // Deletar permanentemente (Requisito 5.3)
+      // Cascade delete é automático conforme configurado no modelo (onDelete: 'CASCADE' em bloco_id)
+      await questao.destroy();
+
+      console.log(`✅ Questão deletada com sucesso - ID: ${id}`);
+
+      // Retornar mensagem de sucesso (Requisito 5.4 - cascade handles respostas)
+      respostaSucesso(res, 200, { deletedId: id }, 'Questão deletada com sucesso');
+    } catch (error) {
+      console.error('❌ Erro ao deletar questão:', error);
+      respostaErro(res, 500, 'Erro ao deletar questão', { detalhes: error.message });
+    }
+  },
+
+  /**
+   * GET /api/questoes/admin/pendentes
+   * TASK 5.1: Listar questões pendentes de aprovação (admin)
+   * - Retornar todas as questões onde status_aprovacao = 'pendente' (Requisito 6.1)
+   * - Incluir questões de todas as disciplinas e todos os colaboradores (Requisito 6.2)
+   * - Ordenar por createdAt descendente (newest first) (Requisito 6.3)
+   * - Incluir informação do autor (nome, email) com cada questão (Requisito 6.4)
+   * - Suportar paginação
+   * - Apenas admin pode acessar
+   */
+  getPendingQuestoes: async (req, res) => {
+    try {
+      // Verificar se é admin
+      const isAdmin = req.user?.isAdmin || req.user?.role === 'admin';
+      if (!isAdmin) {
+        return respostaErro(res, 403, 'Apenas administradores podem listar questões pendentes');
+      }
+
+      const { pagina = 1, limite = 20, disciplina, dificuldade } = req.query;
+
+      console.log(`📋 Admin listando questões pendentes`, { 
+        pagina, 
+        limite, 
+        disciplina,
+        dificuldade
+      });
+
+      // Construir filtro - sempre buscar pendentes (Requisito 6.1)
+      const where = {
+        status_aprovacao: 'pendente'
+      };
+
+      // Filtros opcionais
+      if (disciplina) {
+        where.disciplina = disciplina;
+      }
+
+      if (dificuldade) {
+        where.dificuldade = dificuldade;
+      }
+
+      // Implementar paginação
+      const offset = (parseInt(pagina) - 1) * parseInt(limite);
+
+      // Buscar questões com informações do autor (Requisito 6.4)
+      const { count, rows } = await Questao.findAndCountAll({
+        where,
+        limit: parseInt(limite),
+        offset,
+        order: [['created_at', 'DESC']],  // Ordenar por createdAt DESC (Requisito 6.3)
+        include: [
+          {
+            association: 'autor',
+            attributes: ['id', 'nome', 'email']
+          }
+        ]
+      });
+
+      console.log(`✅ ${rows.length} questões pendentes encontradas (total: ${count})`);
+
+      // Normalizar opções e incluir informações do autor
+      const questoesComAutor = rows.map(questao => {
+        const questaoData = questao.toJSON();
+        
+        // Normalizar opções
+        if (questaoData.opcoes) {
+          if (typeof questaoData.opcoes === 'string') {
+            try {
+              questaoData.opcoes = JSON.parse(questaoData.opcoes);
+            } catch (e) {
+              questaoData.opcoes = [];
+            }
+          }
+          if (!Array.isArray(questaoData.opcoes)) {
+            questaoData.opcoes = [];
+          }
+        }
+
+        // Incluir informações do autor
+        return {
+          ...questaoData,
+          autor_nome: questao.autor?.nome || 'Sem informação',
+          autor_email: questao.autor?.email || 'Sem informação'
+        };
+      });
+
+      respostaSucesso(res, 200, {
+        questoes: questoesComAutor,
+        total: count,
+        pagina: parseInt(pagina),
+        limite: parseInt(limite),
+        totalPaginas: Math.ceil(count / parseInt(limite))
+      }, count === 0 ? 'Nenhuma questão pendente' : 'Questões pendentes listadas com sucesso');
+    } catch (error) {
+      console.error('❌ Erro ao listar questões pendentes:', error);
+      respostaErro(res, 500, 'Erro ao listar questões pendentes', { detalhes: error.message });
+    }
+  },
+
+  /**
+   * PUT /api/questoes/:id/aprovar
+   * TASK 5.2: Aprovar questão (admin)
+   * - Definir status_aprovacao como 'aprovada' (Requisito 7.1)
+   * - Definir revisado_por como id do admin (Requisito 7.2)
+   * - Definir revisado_em como timestamp atual (Requisito 7.3)
+   * - Retornar erro se questão não encontrada (Requisito 7.4)
+   * - Retornar erro se já está aprovada (Requisito 7.5)
+   * - Retornar questão atualizada com todos os campos de revisão (Requisito 7.6)
+   * - Apenas admin pode aprovar
+   */
+  approveQuestao: async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Verificar se é admin
+      const isAdmin = req.user?.isAdmin || req.user?.role === 'admin';
+      if (!isAdmin) {
+        return respostaErro(res, 403, 'Apenas administradores podem aprovar questões');
+      }
+
+      console.log(`✅ Admin aprovando questão ID ${id}`, { adminId: req.user.id });
+
+      // Buscar questão (Requisito 7.4 - validar existência)
+      const questao = await Questao.findByPk(id, {
+        include: [
+          {
+            association: 'autor',
+            attributes: ['id', 'nome', 'email']
+          }
+        ]
+      });
+
+      if (!questao) {
+        return respostaErro(res, 404, 'Questão não encontrada');  // Requisito 7.4
+      }
+
+      // Verificar se já está aprovada (Requisito 7.5)
+      if (questao.status_aprovacao === 'aprovada') {
+        return respostaErro(res, 400, 'Questão já está aprovada');  // Requisito 7.5
+      }
+
+      // Atualizar status da questão (Requisito 7.1, 7.2, 7.3)
+      questao.status_aprovacao = 'aprovada';
+      questao.revisado_por = req.user.id;
+      questao.revisado_em = new Date();
+
+      await questao.save();
+
+      console.log(`✅ Questão aprovada com sucesso - ID: ${questao.id}, Revisado por: ${req.user.id}`);
+
+      // Normalizar opções antes de retornar
+      const questaoData = questao.toJSON();
+      if (questaoData.opcoes) {
+        if (typeof questaoData.opcoes === 'string') {
+          try {
+            questaoData.opcoes = JSON.parse(questaoData.opcoes);
+          } catch (e) {
+            questaoData.opcoes = [];
+          }
+        }
+        if (!Array.isArray(questaoData.opcoes)) {
+          questaoData.opcoes = [];
+        }
+      }
+
+      // Incluir informações do autor
+      const questaoComAutor = {
+        ...questaoData,
+        autor_nome: questao.autor?.nome || 'Sem informação',
+        autor_email: questao.autor?.email || 'Sem informação'
+      };
+
+      // Retornar questão atualizada (Requisito 7.6 - com todos os campos de revisão)
+      respostaSucesso(res, 200, questaoComAutor, 'Questão aprovada com sucesso');
+    } catch (error) {
+      console.error('❌ Erro ao aprovar questão:', error);
+      respostaErro(res, 500, 'Erro ao aprovar questão', { detalhes: error.message });
+    }
+  },
+
+  /**
+   * PUT /api/questoes/:id/rejeitar
+   * TASK 5.3: Rejeitar questão (admin)
+   * - Exigir parâmetro motivo_rejeicao (Requisito 8.1)
+   * - Retornar erro se não houver motivo (Requisito 8.2)
+   * - Definir status_aprovacao como 'rejeitada' (Requisito 8.3)
+   * - Definir motivo_rejeicao com o motivo fornecido (Requisito 8.4)
+   * - Definir revisado_por como id do admin e revisado_em como timestamp (Requisito 8.5)
+   * - Retornar questão atualizada com todos os campos (Requisito 8.6)
+   * - Apenas admin pode rejeitar
+   */
+  rejectQuestao: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { motivo_rejeicao } = req.body;
+
+      // Verificar se é admin
+      const isAdmin = req.user?.isAdmin || req.user?.role === 'admin';
+      if (!isAdmin) {
+        return respostaErro(res, 403, 'Apenas administradores podem rejeitar questões');
+      }
+
+      // Validar motivo_rejeicao (Requisito 8.1 e 8.2)
+      if (!motivo_rejeicao || typeof motivo_rejeicao !== 'string' || motivo_rejeicao.trim().length === 0) {
+        return respostaErro(res, 400, 'Motivo da rejeição é obrigatório');  // Requisito 8.2
+      }
+
+      console.log(`❌ Admin rejeitando questão ID ${id}`, { 
+        adminId: req.user.id,
+        motivo: motivo_rejeicao.substring(0, 50) + '...'
+      });
+
+      // Buscar questão
+      const questao = await Questao.findByPk(id, {
+        include: [
+          {
+            association: 'autor',
+            attributes: ['id', 'nome', 'email']
+          }
+        ]
+      });
+
+      if (!questao) {
+        return respostaErro(res, 404, 'Questão não encontrada');
+      }
+
+      // Atualizar status da questão (Requisito 8.3, 8.4, 8.5)
+      questao.status_aprovacao = 'rejeitada';
+      questao.motivo_rejeicao = motivo_rejeicao.trim();
+      questao.revisado_por = req.user.id;
+      questao.revisado_em = new Date();
+
+      await questao.save();
+
+      console.log(`✅ Questão rejeitada com sucesso - ID: ${questao.id}, Revisado por: ${req.user.id}`);
+
+      // Normalizar opções antes de retornar
+      const questaoData = questao.toJSON();
+      if (questaoData.opcoes) {
+        if (typeof questaoData.opcoes === 'string') {
+          try {
+            questaoData.opcoes = JSON.parse(questaoData.opcoes);
+          } catch (e) {
+            questaoData.opcoes = [];
+          }
+        }
+        if (!Array.isArray(questaoData.opcoes)) {
+          questaoData.opcoes = [];
+        }
+      }
+
+      // Incluir informações do autor
+      const questaoComAutor = {
+        ...questaoData,
+        autor_nome: questao.autor?.nome || 'Sem informação',
+        autor_email: questao.autor?.email || 'Sem informação'
+      };
+
+      // Retornar questão atualizada (Requisito 8.6 - com todos os campos)
+      respostaSucesso(res, 200, questaoComAutor, 'Questão rejeitada com sucesso');
+    } catch (error) {
+      console.error('❌ Erro ao rejeitar questão:', error);
+      respostaErro(res, 500, 'Erro ao rejeitar questão', { detalhes: error.message });
+    }
   }
 };
 

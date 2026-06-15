@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from 'framer-motion';
 import { useAuth, getPostLoginRoute } from "../../context/AuthContext";
@@ -24,12 +24,12 @@ function Cadastro() {
   const [serverError, setServerError] = useState("");
 
   const escolas = [
-    "Instituto Politécnico Industrial de Lunada - IPIL",
+    "Instituto PolitÃ©cnico Industrial de Lunada - IPIL",
     "Instituto Medio de Economia de Luanda - IMEL",
-    "Instituto Médio Comercial de Luanda - IMCL",
-    "Instituto de Telecomunicações de Luanda - ITEL",
-    "Instituto Médio Politécnico Nova Vida - IMP NV",
-    "Instituto Médio Politécnico Alda Lara - IMPAL",
+    "Instituto MÃ©dio Comercial de Luanda - IMCL",
+    "Instituto de TelecomunicaÃ§Ãµes de Luanda - ITEL",
+    "Instituto MÃ©dio PolitÃ©cnico Nova Vida - IMP NV",
+    "Instituto MÃ©dio PolitÃ©cnico Alda Lara - IMPAL",
   ];
 
   const handleChange = (e) => {
@@ -61,7 +61,7 @@ function Cadastro() {
 
     setIsLoading(true);
     try {
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
       const res = await fetch(`${apiBase}/auth/registro`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -95,13 +95,13 @@ function Cadastro() {
       const loginBody = await loginRes.json();
       if (loginRes.ok) {
         login(loginBody.data, loginBody.token);
-        // Redirecionar para o destino correto com base no papel — registo público cria estudantes
+        // Redirecionar para o destino correto com base no papel â€” registo pÃºblico cria estudantes
         navigate(getPostLoginRoute(loginBody.data), { replace: true });
       } else {
         navigate('/login');
       }
     } catch {
-      setServerError('Erro de conexão. Verifique sua internet e tente novamente.');
+      setServerError('Erro de conexÃ£o. Verifique sua internet e tente novamente.');
     } finally {
       setIsLoading(false);
     }
@@ -126,7 +126,7 @@ function Cadastro() {
             <img src={logotipo} alt="Comaes" className="h-24 w-auto object-contain" />
           </div>
           <p className="text-center text-gray-700 mb-6">
-            Cadastre-se na melhor plataforma de competições educativas online
+            Cadastre-se na melhor plataforma de competiÃ§Ãµes educativas online
           </p>
 
           {serverError && (
@@ -199,7 +199,7 @@ function Cadastro() {
                 maxLength={128} autoComplete="new-password" />
               {errors.senha
                 ? <p className="text-red-600 text-xs mt-1">{errors.senha}</p>
-                : <p className="text-gray-400 text-xs mt-1">Mín. 8 caracteres, maiúscula, número e símbolo.</p>}
+                : <p className="text-gray-400 text-xs mt-1">MÃ­n. 8 caracteres, maiÃºscula, nÃºmero e sÃ­mbolo.</p>}
             </div>
 
             <div>
@@ -222,7 +222,7 @@ function Cadastro() {
           </form>
 
           <p className="mt-4 text-center text-sm">
-            Já tem uma conta?{' '}
+            JÃ¡ tem uma conta?{' '}
             <Link to="/login" className="text-blue-600 font-semibold hover:underline">Entrar</Link>
           </p>
         </div>

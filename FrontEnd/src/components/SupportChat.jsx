@@ -1,23 +1,23 @@
-// components/SupportChat.jsx
-// Componente unificado: botão flutuante + modal compacto + modo tela cheia
-// Usado tanto no Layout (flutuante) quanto na página /suporte (tela cheia)
+﻿// components/SupportChat.jsx
+// Componente unificado: botÃ£o flutuante + modal compacto + modo tela cheia
+// Usado tanto no Layout (flutuante) quanto na pÃ¡gina /suporte (tela cheia)
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 
-// ── FAQ estático ─────────────────────────────────────────────────────────────
+// â”€â”€ FAQ estÃ¡tico â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const FAQ_ITEMS = [
   {
     category: 'Torneios',
-    icon: '🏆',
+    icon: 'ðŸ†',
     questions: [
       {
         q: 'Como participar de um torneio?',
-        a: 'Aceda a "Entrar no Torneio", escolha a disciplina e clique em "Inscrever-me". A participação é confirmada automaticamente.',
+        a: 'Aceda a "Entrar no Torneio", escolha a disciplina e clique em "Inscrever-me". A participaÃ§Ã£o Ã© confirmada automaticamente.',
       },
       {
-        q: 'Quais disciplinas estão disponíveis?',
-        a: 'Matemática, Inglês e Programação. Cada torneio pode ter uma ou mais disciplinas activas.',
+        q: 'Quais disciplinas estÃ£o disponÃ­veis?',
+        a: 'MatemÃ¡tica, InglÃªs e ProgramaÃ§Ã£o. Cada torneio pode ter uma ou mais disciplinas activas.',
       },
       {
         q: 'Como criar um torneio?',
@@ -27,51 +27,51 @@ export const FAQ_ITEMS = [
   },
   {
     category: 'Certificados',
-    icon: '🎓',
+    icon: 'ðŸŽ“',
     questions: [
       {
         q: 'Como obter o meu certificado?',
-        a: 'Certificados são emitidos automaticamente para os 3 primeiros colocados após o encerramento do torneio. Aceda ao seu perfil para descarregar.',
+        a: 'Certificados sÃ£o emitidos automaticamente para os 3 primeiros colocados apÃ³s o encerramento do torneio. Aceda ao seu perfil para descarregar.',
       },
       {
         q: 'Posso validar um certificado?',
-        a: 'Sim. Cada certificado tem um código único. Aceda a /validador/[código] para verificar a autenticidade.',
+        a: 'Sim. Cada certificado tem um cÃ³digo Ãºnico. Aceda a /validador/[cÃ³digo] para verificar a autenticidade.',
       },
     ],
   },
   {
-    category: 'Perfis e Permissões',
-    icon: '👤',
+    category: 'Perfis e PermissÃµes',
+    icon: 'ðŸ‘¤',
     questions: [
       {
-        q: 'Qual a diferença entre colaborador e admin?',
-        a: 'Colaboradores podem criar e gerir questões. Administradores têm acesso total: criam torneios, gerem utilizadores e emitem certificados.',
+        q: 'Qual a diferenÃ§a entre colaborador e admin?',
+        a: 'Colaboradores podem criar e gerir questÃµes. Administradores tÃªm acesso total: criam torneios, gerem utilizadores e emitem certificados.',
       },
       {
         q: 'O que pode fazer um estudante?',
-        a: 'Estudantes participam de torneios, respondem quizzes, visualizam o ranking e obtêm certificados ao terminar no pódio.',
+        a: 'Estudantes participam de torneios, respondem quizzes, visualizam o ranking e obtÃªm certificados ao terminar no pÃ³dio.',
       },
     ],
   },
   {
     category: 'Ranking',
-    icon: '📊',
+    icon: 'ðŸ“Š',
     questions: [
       {
-        q: 'Como é calculado o ranking?',
-        a: 'O ranking é calculado pela pontuação total obtida nas respostas. Questões difíceis valem mais pontos. É actualizado em tempo real.',
+        q: 'Como Ã© calculado o ranking?',
+        a: 'O ranking Ã© calculado pela pontuaÃ§Ã£o total obtida nas respostas. QuestÃµes difÃ­ceis valem mais pontos. Ã‰ actualizado em tempo real.',
       },
     ],
   },
 ];
 
-// ── Hook de chat reutilizável ─────────────────────────────────────────────────
+// â”€â”€ Hook de chat reutilizÃ¡vel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function useSupportChat() {
   const { token } = useAuth();
   const [messages, setMessages] = useState([
     {
       role: 'model',
-      text: 'Olá! Sou o assistente virtual da COMAES. Como posso ajudar?',
+      text: 'OlÃ¡! Sou o assistente virtual da COMAES. Como posso ajudar?',
       ts: Date.now(),
     },
   ]);
@@ -80,7 +80,7 @@ export function useSupportChat() {
 
   const apiBase =
     import.meta.env.VITE_API_BASE_URL ||
-    `http://${window.location.hostname}:3000`;
+    `http://${window.location.hostname}:3001`;
 
   const buildHistory = useCallback(() => {
     return messages
@@ -132,7 +132,7 @@ export function useSupportChat() {
         ...prev,
         {
           role: 'model',
-          text: 'Serviço indisponível. Tente novamente mais tarde.',
+          text: 'ServiÃ§o indisponÃ­vel. Tente novamente mais tarde.',
           ts: Date.now(),
           isError: true,
         },
@@ -151,7 +151,7 @@ export function useSupportChat() {
   return { messages, input, setInput, loading, sendMessage, clearChat };
 }
 
-// ── Painel de FAQ ─────────────────────────────────────────────────────────────
+// â”€â”€ Painel de FAQ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function FaqPanel({ onAskAssistant, compact = false }) {
   const [expandedFaq, setExpandedFaq] = useState(null);
 
@@ -175,7 +175,7 @@ export function FaqPanel({ onAskAssistant, compact = false }) {
                   className="w-full text-left px-3 py-2.5 flex items-start gap-2 hover:bg-gray-50 transition-colors"
                 >
                   <span className="text-blue-500 mt-0.5 flex-shrink-0 text-xs">
-                    {isExpanded ? '▼' : '▶'}
+                    {isExpanded ? 'â–¼' : 'â–¶'}
                   </span>
                   <span className={`font-medium text-gray-800 ${compact ? 'text-xs' : 'text-sm'}`}>
                     {item.q}
@@ -199,7 +199,7 @@ export function FaqPanel({ onAskAssistant, compact = false }) {
                             onClick={() => onAskAssistant(item.q)}
                             className="mt-2 text-[11px] text-blue-600 hover:text-blue-800 font-semibold underline"
                           >
-                            Perguntar ao assistente →
+                            Perguntar ao assistente â†’
                           </button>
                         )}
                       </div>
@@ -215,7 +215,7 @@ export function FaqPanel({ onAskAssistant, compact = false }) {
   );
 }
 
-// ── Painel de Chat ────────────────────────────────────────────────────────────
+// â”€â”€ Painel de Chat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function ChatPanel({ chat, compact = false, inputRef: externalInputRef }) {
   const { messages, input, setInput, loading, sendMessage, clearChat } = chat;
   const internalRef = useRef(null);
@@ -244,7 +244,7 @@ export function ChatPanel({ chat, compact = false, inputRef: externalInputRef })
           >
             {msg.role === 'model' && (
               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs mr-2 flex-shrink-0 mt-0.5 select-none">
-                🤖
+                ðŸ¤–
               </div>
             )}
             <div
@@ -263,11 +263,11 @@ export function ChatPanel({ chat, compact = false, inputRef: externalInputRef })
           </div>
         ))}
 
-        {/* Indicador de digitação */}
+        {/* Indicador de digitaÃ§Ã£o */}
         {loading && (
           <div className="flex justify-start">
             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs mr-2 flex-shrink-0 select-none">
-              🤖
+              ðŸ¤–
             </div>
             <div className="bg-gray-100 px-3 py-2.5 rounded-2xl rounded-bl-sm flex items-center gap-1">
               <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -287,7 +287,7 @@ export function ChatPanel({ chat, compact = false, inputRef: externalInputRef })
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Escreva a sua dúvida..."
+            placeholder="Escreva a sua dÃºvida..."
             rows={1}
             maxLength={500}
             disabled={loading}
@@ -309,7 +309,7 @@ export function ChatPanel({ chat, compact = false, inputRef: externalInputRef })
         </div>
         <div className="flex items-center justify-between mt-1.5">
           <p className="text-[10px] text-gray-400">
-            Enter para enviar · Shift+Enter para nova linha
+            Enter para enviar Â· Shift+Enter para nova linha
           </p>
           <button
             onClick={clearChat}
@@ -323,7 +323,7 @@ export function ChatPanel({ chat, compact = false, inputRef: externalInputRef })
   );
 }
 
-// ── Componente flutuante (usado no Layout) ────────────────────────────────────
+// â”€â”€ Componente flutuante (usado no Layout) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function SupportChat() {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -331,7 +331,7 @@ export default function SupportChat() {
   const inputRef = useRef(null);
   const chat = useSupportChat();
 
-  // Ao montar E a cada mudança de rota: verificar se voltou da página /suporte
+  // Ao montar E a cada mudanÃ§a de rota: verificar se voltou da pÃ¡gina /suporte
   // useEffect com location.pathname garante que dispara quando navigate(-1) resolve
   useEffect(() => {
     const reopen = sessionStorage.getItem('support_reopen_modal');
@@ -340,7 +340,7 @@ export default function SupportChat() {
       const tab = sessionStorage.getItem('support_active_tab') || 'faq';
       sessionStorage.removeItem('support_active_tab');
       setActiveTab(tab);
-      // Pequeno delay para garantir que o componente está totalmente montado
+      // Pequeno delay para garantir que o componente estÃ¡ totalmente montado
       setTimeout(() => setIsOpen(true), 80);
     }
   });
@@ -363,7 +363,7 @@ export default function SupportChat() {
   // Expandir: guarda estado e navega para /suporte
   const handleExpand = () => {
     sessionStorage.setItem('support_active_tab', activeTab);
-    // navegar via window para não precisar do hook useNavigate aqui
+    // navegar via window para nÃ£o precisar do hook useNavigate aqui
     window.location.href = '/suporte';
   };
 
@@ -371,7 +371,7 @@ export default function SupportChat() {
 
   return (
     <>
-      {/* ── Botão flutuante ── */}
+      {/* â”€â”€ BotÃ£o flutuante â”€â”€ */}
       <motion.button
         onClick={() => isOpen ? handleClose() : setIsOpen(true)}
         whileHover={{ scale: 1.08 }}
@@ -390,7 +390,7 @@ export default function SupportChat() {
               transition={{ duration: 0.15 }}
               className="text-xl font-bold"
             >
-              ✕
+              âœ•
             </motion.span>
           ) : (
             <motion.span
@@ -401,7 +401,7 @@ export default function SupportChat() {
               transition={{ duration: 0.15 }}
               className="text-2xl"
             >
-              🤖
+              ðŸ¤–
             </motion.span>
           )}
         </AnimatePresence>
@@ -410,7 +410,7 @@ export default function SupportChat() {
         )}
       </motion.button>
 
-      {/* ── Modal compacto ── */}
+      {/* â”€â”€ Modal compacto â”€â”€ */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -430,21 +430,21 @@ export default function SupportChat() {
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-4 py-3 flex items-center gap-3 flex-shrink-0">
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-base flex-shrink-0 select-none">
-                🤖
+                ðŸ¤–
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-white font-bold text-sm leading-tight">Assistente COMAES</p>
-                <p className="text-blue-100 text-[11px]">Online · Responde em segundos</p>
+                <p className="text-blue-100 text-[11px]">Online Â· Responde em segundos</p>
               </div>
               <div className="flex items-center gap-1.5">
-                {/* Botão expandir → abre página /suporte */}
+                {/* BotÃ£o expandir â†’ abre pÃ¡gina /suporte */}
                 <button
                   onClick={handleExpand}
                   className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/25 text-white/80 hover:text-white transition-all flex items-center justify-center"
-                  title="Expandir para página completa"
+                  title="Expandir para pÃ¡gina completa"
                   aria-label="Abrir suporte em tela cheia"
                 >
-                  {/* ícone expand */}
+                  {/* Ã­cone expand */}
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                     <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clipRule="evenodd" />
                   </svg>
@@ -454,7 +454,7 @@ export default function SupportChat() {
                   className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/25 text-white/80 hover:text-white transition-all flex items-center justify-center text-sm font-bold"
                   aria-label="Fechar"
                 >
-                  ✕
+                  âœ•
                 </button>
               </div>
             </div>
@@ -471,7 +471,7 @@ export default function SupportChat() {
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  {tab === 'faq' ? '📋 FAQ' : '💬 Chat IA'}
+                  {tab === 'faq' ? 'ðŸ“‹ FAQ' : 'ðŸ’¬ Chat IA'}
                 </button>
               ))}
             </div>
@@ -480,7 +480,7 @@ export default function SupportChat() {
               <div className="flex-1 overflow-y-auto">
                 <FaqPanel onAskAssistant={handleFaqAsk} compact />
                 <p className="text-center text-[10px] text-gray-400 py-3">
-                  Não encontrou?{' '}
+                  NÃ£o encontrou?{' '}
                   <button onClick={() => setActiveTab('chat')} className="text-blue-500 underline font-medium">
                     Pergunte ao assistente
                   </button>

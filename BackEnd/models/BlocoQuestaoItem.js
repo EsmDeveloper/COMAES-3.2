@@ -21,7 +21,7 @@ const BlocoQuestaoItem = sequelize.define('BlocoQuestaoItem', {
   questao_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    references: { model: 'questoes_teste_conhecimento', key: 'id' },
+    references: { model: 'questoes', key: 'id' },
     onDelete: 'CASCADE',
   },
   ordem: {

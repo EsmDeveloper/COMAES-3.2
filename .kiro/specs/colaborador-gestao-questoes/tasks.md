@@ -8,19 +8,19 @@ The implementation follows a JavaScript (Node.js/Express) backend with React fro
 
 ## Tasks
 
-- [ ] 1. Set up project structure and core types
+- [x] 1. Set up project structure and core types
   - Review existing User model for role and disciplina_colaborador fields
   - Verify Questao model has status_aprovacao, revisado_por, revisado_em, motivo_rejeicao fields
   - Verify Disciplina model structure
   - _Requirements: 1.1, 1.2, 1.5, 1.6_
 
-- [ ] 2. Implement backend authentication enhancements
-  - [ ] 2.1 Update AuthController to include disciplina_colaborador in JWT payload
+- [x] 2. Implement backend authentication enhancements
+  - [x] 2.1 Update AuthController to include disciplina_colaborador in JWT payload
     - Modify jwt.sign() to include disciplina_colaborador field
     - Ensure role is included in token payload
     - _Requirements: 1.5, 16.1_
   
-  - [ ]* 2.2 Write unit tests for AuthController login
+  - [x]* 2.2 Write unit tests for AuthController login
     - Test valid credentials return JWT with correct payload
     - Test invalid email returns "Email inválido"
     - Test invalid password returns "Senha incorreta"
@@ -28,52 +28,52 @@ The implementation follows a JavaScript (Node.js/Express) backend with React fro
     - Test password is not included in response
     - _Requirements: 1.2, 1.3, 1.4, 1.6_
 
-- [ ] 3. Implement Role-Based Access Control middleware
-  - [ ] 3.1 Create RoleMiddleware for route protection
+- [x] 3. Implement Role-Based Access Control middleware
+  - [x] 3.1 Create RoleMiddleware for route protection
     - Create middleware to check user role
     - Implement permission mapping (estudante, colaborador, admin)
     - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5_
   
-  - [ ] 3.2 Create ColaboradorMiddleware for collaborator-specific routes
+  - [x] 3.2 Create ColaboradorMiddleware for collaborator-specific routes
     - Verify user has role 'colaborador'
     - Verify disciplina_colaborador is defined
     - _Requirements: 14.2, 14.4_
 
-  - [ ]* 3.3 Write unit tests for RoleMiddleware
+  - [x]* 3.3 Write unit tests for RoleMiddleware
     - Test estudante cannot access collaborator routes (403)
     - Test estudante cannot access admin routes (403)
     - Test colaborador cannot access admin routes (403)
     - Test admin can access all routes
     - _Requirements: 14.1, 14.2, 14.3, 14.4_
 
-- [ ] 4. Implement QuestaoController - Colaborador operations
-  - [ ] 4.1 Implement createQuestao method
+- [x] 4. Implement QuestaoController - Colaborador operations
+  - [x] 4.1 Implement createQuestao method
     - Validate question data (titulo, descricao, disciplina, tipo, etc.)
     - Check disciplina matches collaborator's disciplina_colaborador
     - Set status_aprovacao to 'pendente'
     - Set autor_id to collaborator's id
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6_
   
-  - [ ] 4.2 Implement getMinhasQuestoes method
+  - [x] 4.2 Implement getMinhasQuestoes method
     - Filter by autor_id (collaborator's id)
     - Filter by disciplina_colaborador
     - Apply optional filters (dificuldade, status_aprovacao)
     - Return empty array if no questions
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
   
-  - [ ] 4.3 Implement updateQuestao method
+  - [x] 4.3 Implement updateQuestao method
     - Verify question's autor_id matches collaborator
     - Prevent editing approved questions (set back to 'pendente')
     - Validate disciplina if changed (must match disciplina_colaborador)
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
   
-  - [ ] 4.4 Implement deleteQuestao method
+  - [x] 4.4 Implement deleteQuestao method
     - Verify question's autor_id matches collaborator
     - Permanently remove question
     - Cascade delete associated responses
     - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-  - [ ]* 4.5 Write unit tests for QuestaoController collaborator methods
+  - [x]* 4.5 Write unit tests for QuestaoController collaborator methods
     - Test createQuestao validates disciplina match
     - Test createQuestao sets status_aprovacao to 'pendente'
     - Test getMinhasQuestoes filters by autor_id and disciplina
@@ -81,36 +81,36 @@ The implementation follows a JavaScript (Node.js/Express) backend with React fro
     - Test deleteQuestao prevents deleting others' questions
     - _Requirements: 2.1, 2.2, 3.1, 3.2, 4.1, 4.3, 5.1, 5.2_
 
-- [ ] 5. Implement QuestaoController - Admin operations
-  - [ ] 5.1 Implement getPendingQuestoes method
+- [x] 5. Implement QuestaoController - Admin operations
+  - [x] 5.1 Implement getPendingQuestoes method
     - Return all questions where status_aprovacao = 'pendente'
     - Include all disciplines and collaborators
     - Order by createdAt descending
     - Include autor information (nome, email)
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
   
-  - [ ] 5.2 Implement approveQuestao method
+  - [x] 5.2 Implement approveQuestao method
     - Set status_aprovacao to 'aprovada'
     - Set revisado_por to admin's id
     - Set revisado_em to current timestamp
     - Return error if already approved
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6_
   
-  - [ ] 5.3 Implement rejectQuestao method
+  - [x] 5.3 Implement rejectQuestao method
     - Require motivo_rejeicao
     - Set status_aprovacao to 'rejeitada'
     - Set revisado_por, revisado_em, motivo_rejeicao
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6_
 
-  - [ ]* 5.4 Write unit tests for admin operations
+  - [x]* 5.4 Write unit tests for admin operations
     - Test getPendingQuestoes returns correct questions
     - Test approveQuestao updates status correctly
     - Test rejectQuestao requires motivo_rejeicao
     - Test rejectQuestao validates already approved
     - _Requirements: 6.1, 7.1, 7.5, 8.1, 8.2_
 
-- [ ] 6. Implement DisciplinaController for admin
-  - [ ] 6.1 Implement createDisciplina method
+- [x] 6. Implement DisciplinaController for admin
+  - [x] 6.1 Implement createDisciplina method
     - Require nome (unique)
     - Auto-generate slug from nome
     - Validate unique constraint
@@ -118,13 +118,13 @@ The implementation follows a JavaScript (Node.js/Express) backend with React fro
     - Set ativo to true by default
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6_
   
-  - [ ] 6.2 Implement getAllDisciplinas method
+  - [x] 6.2 Implement getAllDisciplinas method
     - Return all disciplinas (regardless of ativo)
     - Order by nome ascending
     - Include collaborator count if requested
     - _Requirements: 10.1, 10.2, 10.3_
   
-  - [ ] 6.3 Implement getColaboradoresByDisciplina method
+  - [x] 6.3 Implement getColaboradoresByDisciplina method
     - Return users where disciplina_colaborador matches
     - Include id, nome, email, disciplina_colaborador
     - _Requirements: 12.1, 12.2_

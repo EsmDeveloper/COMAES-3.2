@@ -1,6 +1,6 @@
-/**
+﻿/**
  * QuestionsColaboradorPendentesTab.jsx
- * Aba para admin revisar questões pendentes de colaboradores
+ * Aba para admin revisar questÃµes pendentes de colaboradores
  * Permite filtrar por colaborador, disciplina e status
  */
 
@@ -11,7 +11,7 @@ import {
   Loader, AlertTriangle, CheckCircle, XCircle, Code
 } from 'lucide-react';
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
 
 // Badge de status
 function StatusBadge({ status }) {
@@ -40,7 +40,7 @@ function StatusBadge({ status }) {
   );
 }
 
-// Badge de tipo de questão
+// Badge de tipo de questÃ£o
 function TipoBadge({ tipo }) {
   const styles = {
     multipla_escolha: 'bg-purple-100 text-purple-700',
@@ -48,9 +48,9 @@ function TipoBadge({ tipo }) {
     codigo: 'bg-green-100 text-green-700',
   };
   const labels = {
-    multipla_escolha: 'Múltipla Escolha',
+    multipla_escolha: 'MÃºltipla Escolha',
     texto: 'Texto',
-    codigo: 'Código',
+    codigo: 'CÃ³digo',
   };
   const icons = {
     multipla_escolha: BookOpen,
@@ -75,9 +75,9 @@ function DificuldadeBadge({ dificuldade }) {
     dificil: 'bg-red-100 text-red-700',
   };
   const labels = {
-    facil: 'Fácil',
-    medio: 'Médio',
-    dificil: 'Difícil',
+    facil: 'FÃ¡cil',
+    medio: 'MÃ©dio',
+    dificil: 'DifÃ­cil',
   };
   return (
     <span className={`px-2.5 py-1 rounded-full text-sm font-medium ${styles[dificuldade] || styles.medio}`}>
@@ -86,7 +86,7 @@ function DificuldadeBadge({ dificuldade }) {
   );
 }
 
-// Modal de rejeição
+// Modal de rejeiÃ§Ã£o
 function RejectQuestionModal({ isOpen, onClose, onConfirm, question }) {
   const [motivo, setMotivo] = useState('');
   const [loading, setLoading] = useState(false);
@@ -102,7 +102,7 @@ function RejectQuestionModal({ isOpen, onClose, onConfirm, question }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!motivo.trim()) {
-      setError('O motivo da rejeição é obrigatório');
+      setError('O motivo da rejeiÃ§Ã£o Ã© obrigatÃ³rio');
       return;
     }
     setLoading(true);
@@ -124,7 +124,7 @@ function RejectQuestionModal({ isOpen, onClose, onConfirm, question }) {
         <div className="border-b border-slate-200 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <AlertTriangle className="w-5 h-5 text-red-600" />
-            <h2 className="text-lg font-bold text-slate-800">Rejeitar Questão</h2>
+            <h2 className="text-lg font-bold text-slate-800">Rejeitar QuestÃ£o</h2>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition">
             <X className="w-5 h-5" />
@@ -133,7 +133,7 @@ function RejectQuestionModal({ isOpen, onClose, onConfirm, question }) {
 
         <form onSubmit={handleSubmit} className="p-6">
           <div className="mb-4">
-            <p className="text-sm text-slate-600 mb-3">Você está rejeitando a questão:</p>
+            <p className="text-sm text-slate-600 mb-3">VocÃª estÃ¡ rejeitando a questÃ£o:</p>
             <p className="font-semibold text-slate-800 bg-slate-50 p-3.5 rounded-xl line-clamp-2 border-l-4 border-red-500">
               {question?.titulo}
             </p>
@@ -141,7 +141,7 @@ function RejectQuestionModal({ isOpen, onClose, onConfirm, question }) {
 
           <div className="mb-6">
             <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Motivo da Rejeição *
+              Motivo da RejeiÃ§Ã£o *
             </label>
             <textarea
               value={motivo}
@@ -149,7 +149,7 @@ function RejectQuestionModal({ isOpen, onClose, onConfirm, question }) {
                 setMotivo(e.target.value);
                 setError('');
               }}
-              placeholder="Explique por que esta questão está sendo rejeitada..."
+              placeholder="Explique por que esta questÃ£o estÃ¡ sendo rejeitada..."
               maxLength={500}
               rows={4}
               className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition resize-none"
@@ -188,7 +188,7 @@ function RejectQuestionModal({ isOpen, onClose, onConfirm, question }) {
   );
 }
 
-// Modal de visualização detalhada
+// Modal de visualizaÃ§Ã£o detalhada
 function QuestionDetailModal({ isOpen, onClose, question, onApprove, onReject }) {
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
@@ -305,10 +305,10 @@ function QuestionDetailModal({ isOpen, onClose, question, onApprove, onReject })
               </div>
             )}
 
-            {/* Conteúdo por tipo */}
+            {/* ConteÃºdo por tipo */}
             {question.tipo === 'multipla_escolha' && question.opcoes && question.opcoes.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3">Opções</h3>
+                <h3 className="text-sm font-semibold text-slate-700 mb-3">OpÃ§Ãµes</h3>
                 <div className="space-y-2">
                   {question.opcoes.map((opcao, idx) => (
                     <div
@@ -355,10 +355,10 @@ function QuestionDetailModal({ isOpen, onClose, question, onApprove, onReject })
               </>
             )}
 
-            {/* Explicação */}
+            {/* ExplicaÃ§Ã£o */}
             {question.explicacao && (
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-2">Explicação</h3>
+                <h3 className="text-sm font-semibold text-slate-700 mb-2">ExplicaÃ§Ã£o</h3>
                 <p className="text-slate-600 text-sm bg-blue-50 border border-blue-200 p-3.5 rounded-xl leading-relaxed">
                   {question.explicacao}
                 </p>
@@ -398,12 +398,12 @@ function QuestionDetailModal({ isOpen, onClose, question, onApprove, onReject })
               </div>
             </div>
 
-            {/* Motivo da rejeição (se rejeitado) */}
+            {/* Motivo da rejeiÃ§Ã£o (se rejeitado) */}
             {question.motivo_rejeicao && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-3.5">
                 <p className="text-xs font-semibold text-red-700 mb-2 flex items-center gap-2">
                   <XCircle className="w-4 h-4" />
-                  Motivo da Rejeição
+                  Motivo da RejeiÃ§Ã£o
                 </p>
                 <p className="text-sm text-red-900">{question.motivo_rejeicao}</p>
               </div>
@@ -425,7 +425,7 @@ function QuestionDetailModal({ isOpen, onClose, question, onApprove, onReject })
                   ) : (
                     <>
                       <CheckCircle className="w-4 h-4" />
-                      Aprovar Questão
+                      Aprovar QuestÃ£o
                     </>
                   )}
                 </button>
@@ -473,7 +473,7 @@ export default function QuestionsColaboradorPendentesTab() {
 
   const token = localStorage.getItem('comaes_token');
 
-  // Fetch questões
+  // Fetch questÃµes
   const fetchQuestions = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -499,10 +499,10 @@ export default function QuestionsColaboradorPendentesTab() {
         setQuestions(json.dados.questoes || []);
         setTotalPaginas(json.dados.paginacao?.totalPaginas || 1);
       } else {
-        setError(json.mensagem || 'Erro ao carregar questões');
+        setError(json.mensagem || 'Erro ao carregar questÃµes');
       }
     } catch (err) {
-      setError('Erro de conexão: ' + err.message);
+      setError('Erro de conexÃ£o: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -548,9 +548,9 @@ export default function QuestionsColaboradorPendentesTab() {
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <BookOpen className="w-6 h-6 text-purple-600" />
-          <h2 className="text-2xl font-bold text-slate-800">Questões de Colaboradores</h2>
+          <h2 className="text-2xl font-bold text-slate-800">QuestÃµes de Colaboradores</h2>
         </div>
-        <p className="text-slate-600">Revise e aprove questões criadas por colaboradores</p>
+        <p className="text-slate-600">Revise e aprove questÃµes criadas por colaboradores</p>
       </div>
 
       {/* Filtros */}
@@ -561,7 +561,7 @@ export default function QuestionsColaboradorPendentesTab() {
             <Search className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
             <input
               type="text"
-              placeholder="Buscar por título..."
+              placeholder="Buscar por tÃ­tulo..."
               value={filtros.busca}
               onChange={(e) => {
                 setFiltros({ ...filtros, busca: e.target.value });
@@ -618,13 +618,13 @@ export default function QuestionsColaboradorPendentesTab() {
               className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-400 transition font-medium"
             >
               <option value="">Todos Tipos</option>
-              <option value="multipla_escolha">Múltipla Escolha</option>
+              <option value="multipla_escolha">MÃºltipla Escolha</option>
               <option value="texto">Texto</option>
-              <option value="codigo">Código</option>
+              <option value="codigo">CÃ³digo</option>
             </select>
           </div>
 
-          {/* Ordenação */}
+          {/* OrdenaÃ§Ã£o */}
           <div>
             <select
               value={filtros.ordenacao}
@@ -633,18 +633,18 @@ export default function QuestionsColaboradorPendentesTab() {
             >
               <option value="recentes">Mais Recentes</option>
               <option value="antigos">Mais Antigos</option>
-              <option value="titulo">Por Título (A-Z)</option>
+              <option value="titulo">Por TÃ­tulo (A-Z)</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* Conteúdo */}
+      {/* ConteÃºdo */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="flex flex-col items-center gap-3">
             <Loader className="w-8 h-8 text-purple-600 animate-spin" />
-            <p className="text-slate-600 font-medium">Carregando questões...</p>
+            <p className="text-slate-600 font-medium">Carregando questÃµes...</p>
           </div>
         </div>
       ) : error ? (
@@ -658,8 +658,8 @@ export default function QuestionsColaboradorPendentesTab() {
       ) : questions.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
           <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-          <p className="text-slate-600 text-lg font-medium">Nenhuma questão para revisar</p>
-          <p className="text-slate-500 text-sm mt-2">Todas as questões foram revisadas ou não há questões aguardando revisão</p>
+          <p className="text-slate-600 text-lg font-medium">Nenhuma questÃ£o para revisar</p>
+          <p className="text-slate-500 text-sm mt-2">Todas as questÃµes foram revisadas ou nÃ£o hÃ¡ questÃµes aguardando revisÃ£o</p>
         </div>
       ) : (
         <>
@@ -669,12 +669,12 @@ export default function QuestionsColaboradorPendentesTab() {
               <table className="w-full">
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Título</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">TÃ­tulo</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Autor</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Tipo</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Status</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Criado em</th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">Ações</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">AÃ§Ãµes</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -719,7 +719,7 @@ export default function QuestionsColaboradorPendentesTab() {
             </div>
           </div>
 
-          {/* Paginação */}
+          {/* PaginaÃ§Ã£o */}
           {totalPaginas > 1 && (
             <div className="mt-6 flex items-center justify-center gap-2">
               <button
@@ -747,7 +747,7 @@ export default function QuestionsColaboradorPendentesTab() {
                 disabled={pagina === totalPaginas}
                 className="px-3 py-2 rounded-lg border-2 border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition"
               >
-                Próxima
+                PrÃ³xima
               </button>
             </div>
           )}

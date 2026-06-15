@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   Users, Trophy, BookOpen, FileText, TrendingUp,
@@ -6,7 +6,7 @@ import {
   UserPlus, Clock as ClockIcon
 } from 'lucide-react';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid,
+  XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, AreaChart, Area
 } from 'recharts';
 
@@ -15,7 +15,7 @@ import {
 // ============================================
 const NovosUsuariosChart = () => {
   const { token } = useAuth();
-  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -108,7 +108,7 @@ const NovosUsuariosChart = () => {
     <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
       <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
         <UserPlus className="w-5 h-5 text-blue-600" />
-        Novos usuários (últimos 30 dias)
+        Novos usuários (útimos 30 dias)
       </h3>
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
@@ -167,7 +167,7 @@ const NovosUsuariosChart = () => {
 // ============================================
 const AtividadesRecentes = () => {
   const { token } = useAuth();
-  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
 
   const [atividades, setAtividades] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -347,7 +347,7 @@ const AtividadesRecentes = () => {
 // ============================================
 const AdminStats = () => {
   const { token } = useAuth();
-  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -567,7 +567,7 @@ const AdminStats = () => {
         <div className="bg-white rounded-2xl p-6 shadow-lg">
           <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-blue-500" />
-            Evolução de Usuários (Últimos 30 dias)
+            Evolução de Usuários (últimos 30 dias)
           </h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -624,7 +624,7 @@ const AdminStats = () => {
         <div className="bg-white rounded-2xl p-6 shadow-lg">
           <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
             <FileText className="w-5 h-5 text-green-500" />
-            Últimos Testes Concluídos
+            últimos Testes Concluídos
           </h3>
           <div className="space-y-3">
             {ultimasAtividades.ultimosTestes.length > 0 ? (
@@ -665,7 +665,7 @@ const AdminStats = () => {
         <div className="bg-white rounded-2xl p-6 shadow-lg">
           <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
             <Trophy className="w-5 h-5 text-yellow-500" />
-            Últimos Torneios Criados
+            últimos Torneios Criados
           </h3>
           <div className="space-y-3">
             {ultimasAtividades.ultimosTorneios.length > 0 ? (

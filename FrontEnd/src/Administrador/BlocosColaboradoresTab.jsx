@@ -1,7 +1,7 @@
-/**
+﻿/**
  * BlocosColaboradoresTab.jsx
- * Aba para admin revisar blocos de questões criados por colaboradores
- * Permite aprovar/rejeitar blocos antes de ficarem disponíveis nos testes
+ * Aba para admin revisar blocos de questÃµes criados por colaboradores
+ * Permite aprovar/rejeitar blocos antes de ficarem disponÃ­veis nos testes
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -11,7 +11,7 @@ import {
   Loader, AlertTriangle, CheckCircle, XCircle
 } from 'lucide-react';
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
 
 // Badge de status
 function StatusBadge({ status }) {
@@ -23,7 +23,7 @@ function StatusBadge({ status }) {
   };
   const labels = {
     rascunho: 'Rascunho',
-    aguardando_revisao: 'Aguardando Revisão',
+    aguardando_revisao: 'Aguardando RevisÃ£o',
     aprovado: 'Aprovado',
     rejeitado: 'Rejeitado',
   };
@@ -51,9 +51,9 @@ function DificuldadeBadge({ dificuldade }) {
     dificil: 'bg-red-100 text-red-700',
   };
   const labels = {
-    facil: 'Fácil',
-    medio: 'Médio',
-    dificil: 'Difícil',
+    facil: 'FÃ¡cil',
+    medio: 'MÃ©dio',
+    dificil: 'DifÃ­cil',
   };
   return (
     <span className={`px-2.5 py-1 rounded-full text-sm font-medium ${styles[dificuldade] || styles.medio}`}>
@@ -62,7 +62,7 @@ function DificuldadeBadge({ dificuldade }) {
   );
 }
 
-// Modal de rejeição
+// Modal de rejeiÃ§Ã£o
 function RejeitarBlocoModal({ isOpen, onClose, onConfirm, bloco }) {
   const [motivo, setMotivo] = useState('');
   const [loading, setLoading] = useState(false);
@@ -78,7 +78,7 @@ function RejeitarBlocoModal({ isOpen, onClose, onConfirm, bloco }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!motivo.trim()) {
-      setError('O motivo da rejeição é obrigatório');
+      setError('O motivo da rejeiÃ§Ã£o Ã© obrigatÃ³rio');
       return;
     }
     setLoading(true);
@@ -109,7 +109,7 @@ function RejeitarBlocoModal({ isOpen, onClose, onConfirm, bloco }) {
         
         <form onSubmit={handleSubmit} className="p-6">
           <div className="mb-4">
-            <p className="text-sm text-slate-600 mb-3">Você está rejeitando o bloco:</p>
+            <p className="text-sm text-slate-600 mb-3">VocÃª estÃ¡ rejeitando o bloco:</p>
             <p className="font-semibold text-slate-800 bg-slate-50 p-3.5 rounded-xl line-clamp-2 border-l-4 border-red-500">
               {bloco?.titulo}
             </p>
@@ -117,7 +117,7 @@ function RejeitarBlocoModal({ isOpen, onClose, onConfirm, bloco }) {
 
           <div className="mb-6">
             <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Motivo da Rejeição *
+              Motivo da RejeiÃ§Ã£o *
             </label>
             <textarea
               value={motivo}
@@ -125,7 +125,7 @@ function RejeitarBlocoModal({ isOpen, onClose, onConfirm, bloco }) {
                 setMotivo(e.target.value);
                 setError('');
               }}
-              placeholder="Explique por que este bloco está sendo rejeitado..."
+              placeholder="Explique por que este bloco estÃ¡ sendo rejeitado..."
               maxLength={500}
               rows={4}
               className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition resize-none"
@@ -164,7 +164,7 @@ function RejeitarBlocoModal({ isOpen, onClose, onConfirm, bloco }) {
   );
 }
 
-// Modal de visualização detalhada
+// Modal de visualizaÃ§Ã£o detalhada
 function BlocoDetailModal({ isOpen, onClose, bloco, onApprove, onReject }) {
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
@@ -260,15 +260,15 @@ function BlocoDetailModal({ isOpen, onClose, bloco, onApprove, onReject }) {
               <div>
                 <p className="text-xs font-semibold text-slate-600 mb-1">Ativo</p>
                 <span className={`px-2.5 py-1 rounded-full text-sm font-medium ${bloco.ativo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                  {bloco.ativo ? 'Sim' : 'Não'}
+                  {bloco.ativo ? 'Sim' : 'NÃ£o'}
                 </span>
               </div>
             </div>
 
-            {/* Descrição */}
+            {/* DescriÃ§Ã£o */}
             {bloco.descricao && (
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-2">Descrição</h3>
+                <h3 className="text-sm font-semibold text-slate-700 mb-2">DescriÃ§Ã£o</h3>
                 <p className="text-slate-600 text-sm leading-relaxed bg-slate-50 p-3.5 rounded-xl">
                   {bloco.descricao}
                 </p>
@@ -308,12 +308,12 @@ function BlocoDetailModal({ isOpen, onClose, bloco, onApprove, onReject }) {
               </div>
             </div>
 
-            {/* Motivo da rejeição (se rejeitado) */}
+            {/* Motivo da rejeiÃ§Ã£o (se rejeitado) */}
             {bloco.motivo_rejeicao && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-3.5">
                 <p className="text-xs font-semibold text-red-700 mb-2 flex items-center gap-2">
                   <XCircle className="w-4 h-4" />
-                  Motivo da Rejeição
+                  Motivo da RejeiÃ§Ã£o
                 </p>
                 <p className="text-sm text-red-900">{bloco.motivo_rejeicao}</p>
               </div>
@@ -407,7 +407,7 @@ export default function BlocosColaboradoresTab() {
         setError(json.mensagem || 'Erro ao carregar blocos');
       }
     } catch (err) {
-      setError('Erro de conexão: ' + err.message);
+      setError('Erro de conexÃ£o: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -435,7 +435,7 @@ export default function BlocosColaboradoresTab() {
           <BookOpen className="w-6 h-6 text-blue-600" />
           <h2 className="text-2xl font-bold text-slate-800">Blocos de Colaboradores</h2>
         </div>
-        <p className="text-slate-600">Revise e aprove blocos de questões criados por colaboradores</p>
+        <p className="text-slate-600">Revise e aprove blocos de questÃµes criados por colaboradores</p>
       </div>
 
       {/* Filtros */}
@@ -446,7 +446,7 @@ export default function BlocosColaboradoresTab() {
             <Search className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
             <input
               type="text"
-              placeholder="Buscar por título..."
+              placeholder="Buscar por tÃ­tulo..."
               value={filtros.busca}
               onChange={(e) => {
                 setFiltros({ ...filtros, busca: e.target.value });
@@ -466,14 +466,14 @@ export default function BlocosColaboradoresTab() {
               }}
               className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-400 transition font-medium"
             >
-              <option value="aguardando_revisao">Aguardando Revisão</option>
+              <option value="aguardando_revisao">Aguardando RevisÃ£o</option>
               <option value="aprovado">Aprovados</option>
               <option value="rejeitado">Rejeitados</option>
               <option value="todos">Todos</option>
             </select>
           </div>
 
-          {/* Ordenação */}
+          {/* OrdenaÃ§Ã£o */}
           <div>
             <select
               value={filtros.ordenacao}
@@ -482,13 +482,13 @@ export default function BlocosColaboradoresTab() {
             >
               <option value="recentes">Mais Recentes</option>
               <option value="antigos">Mais Antigos</option>
-              <option value="titulo">Por Título (A-Z)</option>
+              <option value="titulo">Por TÃ­tulo (A-Z)</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* Conteúdo */}
+      {/* ConteÃºdo */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="flex flex-col items-center gap-3">
@@ -508,7 +508,7 @@ export default function BlocosColaboradoresTab() {
         <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
           <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-4" />
           <p className="text-slate-600 text-lg font-medium">Nenhum bloco para revisar</p>
-          <p className="text-slate-500 text-sm mt-2">Todos os blocos foram revisados ou não há blocos aguardando revisão</p>
+          <p className="text-slate-500 text-sm mt-2">Todos os blocos foram revisados ou nÃ£o hÃ¡ blocos aguardando revisÃ£o</p>
         </div>
       ) : (
         <>
@@ -518,12 +518,12 @@ export default function BlocosColaboradoresTab() {
               <table className="w-full">
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Título</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">TÃ­tulo</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Criador</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Status</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Dificuldade</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Criado em</th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">Ações</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">AÃ§Ãµes</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -571,7 +571,7 @@ export default function BlocosColaboradoresTab() {
             </div>
           </div>
 
-          {/* Paginação */}
+          {/* PaginaÃ§Ã£o */}
           {totalPaginas > 1 && (
             <div className="mt-6 flex items-center justify-center gap-2">
               <button
@@ -599,7 +599,7 @@ export default function BlocosColaboradoresTab() {
                 disabled={pagina === totalPaginas}
                 className="px-3 py-2 rounded-lg border-2 border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition"
               >
-                Próxima
+                PrÃ³xima
               </button>
             </div>
           )}

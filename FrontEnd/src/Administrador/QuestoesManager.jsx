@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import CreateQuestaoForm from './CreateQuestaoForm';
 import EditQuestaoForm from './EditQuestaoForm';
@@ -8,7 +8,7 @@ import ConfirmModal from '../components/ConfirmModal';
 
 /**
  * QuestoesManager
- * Gerenciador de questões usando modelo único Questao.js
+ * Gerenciador de questÃµes usando modelo Ãºnico Questao.js
  */
 
 const QuestoesManager = () => {
@@ -27,9 +27,9 @@ const QuestoesManager = () => {
   const [filterTorneio, setFilterTorneio] = useState('');
   const [torneios, setTorneios] = useState([]);
 
-  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
 
-  // Carregar questões
+  // Carregar questÃµes
   const carregarQuestoes = async () => {
     setLoading(true);
     setError('');
@@ -44,7 +44,7 @@ const QuestoesManager = () => {
 
       setQuestoes(res.data.dados?.questoes || []);
     } catch (err) {
-      setError('Erro ao carregar questões');
+      setError('Erro ao carregar questÃµes');
       console.error('Erro:', err);
     } finally {
       setLoading(false);
@@ -67,12 +67,12 @@ const QuestoesManager = () => {
     carregarTorneios();
   }, [token, apiBase]);
 
-  // Carregar questões ao montar
+  // Carregar questÃµes ao montar
   useEffect(() => {
     carregarQuestoes();
   }, [filterDisciplina, filterTorneio]);
 
-  // Deletar questão
+  // Deletar questÃ£o
   const handleDeleteClick = (questao) => {
     setQuestionToDelete(questao);
     setShowDeleteModal(true);
@@ -86,25 +86,25 @@ const QuestoesManager = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      setSuccess('Questão deletada com sucesso');
+      setSuccess('QuestÃ£o deletada com sucesso');
       setTimeout(() => setSuccess(''), 3000);
       setShowDeleteModal(false);
       setQuestionToDelete(null);
       carregarQuestoes();
     } catch (err) {
-      setError('Erro ao deletar questão');
+      setError('Erro ao deletar questÃ£o');
       console.error('Erro:', err);
       setShowDeleteModal(false);
     }
   };
 
-  // Editar questão
+  // Editar questÃ£o
   const handleEdit = (questao) => {
     setSelectedQuestion(questao);
     setShowEditForm(true);
   };
 
-  // Filtrar questões
+  // Filtrar questÃµes
   const questoesFiltradas = questoes.filter(q =>
     q.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
     q.descricao.toLowerCase().includes(searchTerm.toLowerCase())
@@ -117,10 +117,10 @@ const QuestoesManager = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-3xl font-bold text-slate-800 mb-2">
-              Gerenciar Questões
+              Gerenciar QuestÃµes
             </h2>
             <p className="text-slate-600">
-              Crie, edite e gerencie questões usando o modelo único Questao.js
+              Crie, edite e gerencie questÃµes usando o modelo Ãºnico Questao.js
             </p>
           </div>
           <button
@@ -128,7 +128,7 @@ const QuestoesManager = () => {
             className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2 whitespace-nowrap"
           >
             <Plus className="w-5 h-5" />
-            <span>Nova Questão</span>
+            <span>Nova QuestÃ£o</span>
           </button>
         </div>
       </div>
@@ -159,7 +159,7 @@ const QuestoesManager = () => {
             </label>
             <input
               type="text"
-              placeholder="Buscar por título ou descrição..."
+              placeholder="Buscar por tÃ­tulo ou descriÃ§Ã£o..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -178,9 +178,9 @@ const QuestoesManager = () => {
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Todas</option>
-              <option value="matematica">Matemática</option>
-              <option value="ingles">Inglês</option>
-              <option value="programacao">Programação</option>
+              <option value="matematica">MatemÃ¡tica</option>
+              <option value="ingles">InglÃªs</option>
+              <option value="programacao">ProgramaÃ§Ã£o</option>
             </select>
           </div>
 
@@ -204,29 +204,29 @@ const QuestoesManager = () => {
         </div>
       </div>
 
-      {/* Questões Table */}
+      {/* QuestÃµes Table */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
         {loading ? (
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-slate-600">Carregando questões...</p>
+            <p className="text-slate-600">Carregando questÃµes...</p>
           </div>
         ) : questoesFiltradas.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-slate-500 font-medium">Nenhuma questão encontrada</p>
-            <p className="text-slate-400 text-sm">Crie uma nova questão para começar</p>
+            <p className="text-slate-500 font-medium">Nenhuma questÃ£o encontrada</p>
+            <p className="text-slate-400 text-sm">Crie uma nova questÃ£o para comeÃ§ar</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200">
               <thead className="bg-gradient-to-r from-slate-50 to-blue-50">
                 <tr>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Título</th>
+                  <th className="px-6 py-4 text-left font-semibold text-slate-700">TÃ­tulo</th>
                   <th className="px-6 py-4 text-left font-semibold text-slate-700">Disciplina</th>
                   <th className="px-6 py-4 text-left font-semibold text-slate-700">Tipo</th>
                   <th className="px-6 py-4 text-left font-semibold text-slate-700">Dificuldade</th>
                   <th className="px-6 py-4 text-left font-semibold text-slate-700">Pontos</th>
-                  <th className="px-6 py-4 text-right font-semibold text-slate-700">Ações</th>
+                  <th className="px-6 py-4 text-right font-semibold text-slate-700">AÃ§Ãµes</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -320,8 +320,8 @@ const QuestoesManager = () => {
         isOpen={showDeleteModal && !!questionToDelete}
         onClose={() => { setShowDeleteModal(false); setQuestionToDelete(null); }}
         onConfirm={confirmDelete}
-        title="Confirmar Exclusão"
-        message={questionToDelete ? `Tem certeza que deseja deletar a questão "${questionToDelete.titulo}"? Esta ação não pode ser desfeita.` : ''}
+        title="Confirmar ExclusÃ£o"
+        message={questionToDelete ? `Tem certeza que deseja deletar a questÃ£o "${questionToDelete.titulo}"? Esta aÃ§Ã£o nÃ£o pode ser desfeita.` : ''}
         confirmText="Deletar"
         cancelText="Cancelar"
         type="danger"

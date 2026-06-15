@@ -1,10 +1,10 @@
-/**
+﻿/**
  * ColaboradorBlocosTab.jsx
- * Gestão de Blocos de Questões para Colaboradores
+ * GestÃ£o de Blocos de QuestÃµes para Colaboradores
  * - Criar blocos na sua disciplina
  * - Editar blocos pendentes
- * - Adicionar/remover questões dos blocos
- * - Submeter para aprovação do admin
+ * - Adicionar/remover questÃµes dos blocos
+ * - Submeter para aprovaÃ§Ã£o do admin
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -15,13 +15,13 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
 const MAX_Q = 30;
 
 const DIFICULDADES = [
-  { id: 'facil', label: 'Fácil', cor: 'green' },
-  { id: 'medio', label: 'Médio', cor: 'yellow' },
-  { id: 'dificil', label: 'Difícil', cor: 'red' },
+  { id: 'facil', label: 'FÃ¡cil', cor: 'green' },
+  { id: 'medio', label: 'MÃ©dio', cor: 'yellow' },
+  { id: 'dificil', label: 'DifÃ­cil', cor: 'red' },
 ];
 
 const COR_DIF = {
@@ -30,7 +30,7 @@ const COR_DIF = {
   red: { bg: 'bg-red-100', text: 'text-red-800', dot: 'bg-red-500' },
 };
 
-// ── Modal de criação/edição de bloco ──────────────────────────────────────────
+// â”€â”€ Modal de criaÃ§Ã£o/ediÃ§Ã£o de bloco â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function BlocoFormModal({ bloco, onClose, onSave, loading, disciplina }) {
   const [titulo, setTitulo] = useState(bloco?.titulo || '');
   const [dificuldade, setDificuldade] = useState(bloco?.dificuldade || 'facil');
@@ -39,7 +39,7 @@ function BlocoFormModal({ bloco, onClose, onSave, loading, disciplina }) {
 
   const handleSave = () => {
     if (!titulo.trim()) {
-      setErro('O título é obrigatório.');
+      setErro('O tÃ­tulo Ã© obrigatÃ³rio.');
       return;
     }
     onSave({
@@ -55,7 +55,7 @@ function BlocoFormModal({ bloco, onClose, onSave, loading, disciplina }) {
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-blue-50 rounded-t-2xl">
           <h2 className="text-lg font-bold text-slate-800">
-            {bloco ? 'Editar Bloco' : 'Criar Bloco de Questões'}
+            {bloco ? 'Editar Bloco' : 'Criar Bloco de QuestÃµes'}
           </h2>
           <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100">
             <X className="w-5 h-5" />
@@ -71,23 +71,23 @@ function BlocoFormModal({ bloco, onClose, onSave, loading, disciplina }) {
           )}
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Título *</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">TÃ­tulo *</label>
             <input
               type="text"
               value={titulo}
               onChange={(e) => setTitulo(e.target.value)}
-              placeholder="Ex: Funções Avançadas em Python"
+              placeholder="Ex: FunÃ§Ãµes AvanÃ§adas em Python"
               className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Descrição</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">DescriÃ§Ã£o</label>
             <textarea
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
               rows={2}
-              placeholder="Descrição opcional do bloco..."
+              placeholder="DescriÃ§Ã£o opcional do bloco..."
               className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             />
           </div>
@@ -109,10 +109,10 @@ function BlocoFormModal({ bloco, onClose, onSave, loading, disciplina }) {
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <p className="text-xs text-blue-700">
-              <strong>Disciplina:</strong> {disciplina?.name || 'Não definida'}
+              <strong>Disciplina:</strong> {disciplina?.name || 'NÃ£o definida'}
             </p>
             <p className="text-xs text-blue-600 mt-1">
-              Este bloco será enviado para aprovação do administrador.
+              Este bloco serÃ¡ enviado para aprovaÃ§Ã£o do administrador.
             </p>
           </div>
         </div>
@@ -139,7 +139,7 @@ function BlocoFormModal({ bloco, onClose, onSave, loading, disciplina }) {
   );
 }
 
-// ── Card de Bloco ─────────────────────────────────────────────────────────────
+// â”€â”€ Card de Bloco â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function BlocoCard({ bloco, onEdit, onDelete, onAddQuestao, onRemoveQuestao, onSubmit }) {
   const [expandido, setExpandido] = useState(false);
 
@@ -165,9 +165,9 @@ function BlocoCard({ bloco, onEdit, onDelete, onAddQuestao, onRemoveQuestao, onS
                 bloco.status === 'aprovado' ? 'bg-green-100 text-green-700' :
                 'bg-red-100 text-red-700'
               }`}>
-                {bloco.status === 'pendente' ? '⏳ Pendente' :
-                 bloco.status === 'aprovado' ? '✅ Aprovado' :
-                 '❌ Rejeitado'}
+                {bloco.status === 'pendente' ? 'â³ Pendente' :
+                 bloco.status === 'aprovado' ? 'âœ… Aprovado' :
+                 'âŒ Rejeitado'}
               </span>
             </div>
             <h3 className="font-bold text-slate-800 truncate">{bloco.titulo}</h3>
@@ -175,7 +175,7 @@ function BlocoCard({ bloco, onEdit, onDelete, onAddQuestao, onRemoveQuestao, onS
               <span className={`font-semibold ${cheio ? 'text-red-600' : 'text-slate-700'}`}>
                 {count}
               </span>
-              /{MAX_Q} questões
+              /{MAX_Q} questÃµes
             </p>
           </div>
 
@@ -202,7 +202,7 @@ function BlocoCard({ bloco, onEdit, onDelete, onAddQuestao, onRemoveQuestao, onS
               <button
                 onClick={() => onSubmit(bloco)}
                 className="p-1.5 rounded-lg text-blue-500 hover:bg-blue-100"
-                title="Enviar para aprovação"
+                title="Enviar para aprovaÃ§Ã£o"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -224,12 +224,12 @@ function BlocoCard({ bloco, onEdit, onDelete, onAddQuestao, onRemoveQuestao, onS
         </div>
       </div>
 
-      {/* Lista de questões */}
+      {/* Lista de questÃµes */}
       {expandido && (
         <div className="border-t border-blue-200 bg-white/80">
           {questoes.length === 0 ? (
             <div className="px-4 py-6 text-center">
-              <p className="text-sm text-slate-400">Nenhuma questão neste bloco.</p>
+              <p className="text-sm text-slate-400">Nenhuma questÃ£o neste bloco.</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
@@ -268,7 +268,7 @@ function BlocoCard({ bloco, onEdit, onDelete, onAddQuestao, onRemoveQuestao, onS
                 }`}
               >
                 <Plus className="w-3.5 h-3.5" />
-                {cheio ? `Limite de ${MAX_Q} questões atingido` : 'Adicionar questão'}
+                {cheio ? `Limite de ${MAX_Q} questÃµes atingido` : 'Adicionar questÃ£o'}
               </button>
             </div>
           )}
@@ -278,7 +278,7 @@ function BlocoCard({ bloco, onEdit, onDelete, onAddQuestao, onRemoveQuestao, onS
   );
 }
 
-// ── Componente principal ──────────────────────────────────────────────────────
+// â”€â”€ Componente principal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function ColaboradorBlocosTab({ token }) {
   const { user } = useAuth();
 
@@ -299,7 +299,6 @@ export default function ColaboradorBlocosTab({ token }) {
   const [blocoParaDeletar, setBlocoParaDeletar] = useState(null);
 
   const disciplina = user?.disciplina_colaborador || user?.disciplina;
-  const disciplinaId = user?.disciplina_id;
 
   const showMsg = (msg, isError = false) => {
     if (isError) {
@@ -311,51 +310,57 @@ export default function ColaboradorBlocosTab({ token }) {
     }
   };
 
-  // ── Carregar blocos do colaborador ────────────────────────────────────────
+  // â”€â”€ Carregar blocos do colaborador â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const carregarBlocos = useCallback(async () => {
-    if (!token || !disciplinaId) return;
+    if (!token) return;
 
     setLoading(true);
     setError('');
     try {
       const response = await axios.get(
-        `${API_BASE}/colaborador/blocos`,
+        `${API_BASE}/api/colaborador/blocos`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-          params: {
-            disciplina_id: disciplinaId,
-          },
         }
       );
 
-      const lista = response.data?.blocos || [];
+      console.log('ðŸ“‹ Resposta da API /colaborador/blocos:', response.data);
+
+      const lista = response.data?.dados?.blocos || response.data?.blocos || [];
+      console.log('âœ… Blocos carregados:', lista.length, 'blocos');
       setBlocos(lista);
     } catch (e) {
-      showMsg('Erro ao carregar blocos: ' + (e.response?.data?.mensagem || e.response?.data?.message || e.message), true);
+      console.error('âŒ Erro ao carregar blocos:', e);
+      console.error('Status:', e.response?.status);
+      console.error('Mensagem:', e.response?.data);
+      
+      const mensagemErro = e.response?.data?.mensagem || 
+                          e.response?.data?.message || 
+                          e.message || 
+                          'Erro desconhecido';
+      
+      showMsg('Erro ao carregar blocos: ' + mensagemErro, true);
     } finally {
       setLoading(false);
     }
-  }, [token, disciplinaId]);
+  }, [token]);
 
   useEffect(() => {
     carregarBlocos();
   }, [carregarBlocos]);
 
-  // ── Handlers de Bloco ────────────────────────────────────────────────────
+  // â”€â”€ Handlers de Bloco â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleCriarBloco = async (dados) => {
-    if (!token || !disciplinaId) return;
+    if (!token) return;
 
     setSaving(true);
     try {
       await axios.post(
-        `${API_BASE}/colaborador/blocos`,
-        {
-          ...dados,
-          disciplina_id: disciplinaId,
-        },
+        `${API_BASE}/api/colaborador/blocos`,
+        dados,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -380,7 +385,7 @@ export default function ColaboradorBlocosTab({ token }) {
     setSaving(true);
     try {
       await axios.put(
-        `${API_BASE}/colaborador/blocos/${blocoEditando.id}`,
+        `${API_BASE}/api/colaborador/blocos/${blocoEditando.id}`,
         dados,
         {
           headers: {
@@ -407,7 +412,7 @@ export default function ColaboradorBlocosTab({ token }) {
     setSaving(true);
     try {
       await axios.delete(
-        `${API_BASE}/colaborador/blocos/${blocoParaDeletar.id}`,
+        `${API_BASE}/api/colaborador/blocos/${blocoParaDeletar.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -417,7 +422,7 @@ export default function ColaboradorBlocosTab({ token }) {
 
       setBlocoParaDeletar(null);
       setShowDeleteBloco(false);
-      showMsg('Bloco excluído.');
+      showMsg('Bloco excluÃ­do.');
       carregarBlocos();
     } catch (e) {
       showMsg(e.response?.data?.mensagem || e.response?.data?.message || e.message, true);
@@ -432,7 +437,7 @@ export default function ColaboradorBlocosTab({ token }) {
     setSaving(true);
     try {
       await axios.post(
-        `${API_BASE}/colaborador/blocos/${bloco.id}/submeter`,
+        `${API_BASE}/api/colaborador/blocos/${bloco.id}/submeter`,
         {},
         {
           headers: {
@@ -441,7 +446,7 @@ export default function ColaboradorBlocosTab({ token }) {
         }
       );
 
-      showMsg('Bloco enviado para aprovação!');
+      showMsg('Bloco enviado para aprovaÃ§Ã£o!');
       carregarBlocos();
     } catch (e) {
       showMsg(e.response?.data?.mensagem || e.response?.data?.message || e.message, true);
@@ -456,7 +461,7 @@ export default function ColaboradorBlocosTab({ token }) {
     setSaving(true);
     try {
       await axios.delete(
-        `${API_BASE}/colaborador/blocos/${bloco.id}/questoes/${questao.id}`,
+        `${API_BASE}/api/colaborador/blocos/${bloco.id}/questoes/${questao.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -464,7 +469,7 @@ export default function ColaboradorBlocosTab({ token }) {
         }
       );
 
-      showMsg('Questão removida do bloco.');
+      showMsg('QuestÃ£o removida do bloco.');
       carregarBlocos();
     } catch (e) {
       showMsg(e.response?.data?.mensagem || e.response?.data?.message || e.message, true);
@@ -473,7 +478,7 @@ export default function ColaboradorBlocosTab({ token }) {
     }
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const blocosFiltrados = blocos.filter((b) => {
     if (filtroStatus && b.status !== filtroStatus) return false;
     return true;
@@ -487,7 +492,7 @@ export default function ColaboradorBlocosTab({ token }) {
           <div className="flex items-center gap-3">
             <Layers className="w-8 h-8 text-blue-600" />
             <div>
-              <h2 className="text-2xl font-bold text-slate-800">Meus Blocos de Questões</h2>
+              <h2 className="text-2xl font-bold text-slate-800">Meus Blocos de QuestÃµes</h2>
               <p className="text-sm text-slate-500">{blocos.length} blocos criados</p>
             </div>
           </div>
@@ -527,9 +532,9 @@ export default function ColaboradorBlocosTab({ token }) {
             className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Todos os status</option>
-            <option value="pendente">⏳ Pendentes</option>
-            <option value="aprovado">✅ Aprovados</option>
-            <option value="rejeitado">❌ Rejeitados</option>
+            <option value="pendente">â³ Pendentes</option>
+            <option value="aprovado">âœ… Aprovados</option>
+            <option value="rejeitado">âŒ Rejeitados</option>
           </select>
         </div>
       </div>
@@ -544,10 +549,10 @@ export default function ColaboradorBlocosTab({ token }) {
         <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-12 text-center">
           <Layers className="w-12 h-12 text-slate-300 mx-auto mb-4" />
           <p className="text-slate-500 font-medium">
-            {filtroStatus ? 'Nenhum bloco encontrado' : 'Você não criou nenhum bloco ainda'}
+            {filtroStatus ? 'Nenhum bloco encontrado' : 'VocÃª nÃ£o criou nenhum bloco ainda'}
           </p>
           <p className="text-slate-400 text-sm mt-1">
-            Crie seu primeiro bloco de questões para começar.
+            Crie seu primeiro bloco de questÃµes para comeÃ§ar.
           </p>
           <button
             onClick={() => {
@@ -574,7 +579,7 @@ export default function ColaboradorBlocosTab({ token }) {
                 setShowDeleteBloco(true);
               }}
               onAddQuestao={() => {
-                // Implementado em próxima fase
+                // Implementado em prÃ³xima fase
                 showMsg('Funcionalidade em desenvolvimento', true);
               }}
               onRemoveQuestao={handleRemoverQuestao}
@@ -594,18 +599,18 @@ export default function ColaboradorBlocosTab({ token }) {
             setBlocoEditando(null);
           }}
           onSave={blocoEditando ? handleEditarBloco : handleCriarBloco}
-          disciplina={{ id: disciplinaId, name: disciplina }}
+          disciplina={{ name: disciplina }}
         />
       )}
 
-      {/* Modal de Confirmação - Deletar */}
+      {/* Modal de ConfirmaÃ§Ã£o - Deletar */}
       {showDeleteBloco && blocoParaDeletar && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
             <h3 className="text-lg font-bold text-slate-800 mb-2">Excluir bloco?</h3>
             <p className="text-sm text-slate-600 mb-6">
               Tem certeza que deseja excluir o bloco "<strong>{blocoParaDeletar.titulo}</strong>"?
-              Esta ação não pode ser desfeita.
+              Esta aÃ§Ã£o nÃ£o pode ser desfeita.
             </p>
             <div className="flex gap-3">
               <button

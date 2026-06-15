@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { X, Save, AlertCircle, CheckCircle } from 'lucide-react';
@@ -6,7 +6,7 @@ import axios from 'axios';
 
 /**
  * EditQuestaoForm
- * Formulário para editar questões existentes
+ * FormulÃ¡rio para editar questÃµes existentes
  */
 
 const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
@@ -16,7 +16,7 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
   const [success, setSuccess] = useState('');
   const [torneios, setTorneios] = useState([]);
 
-  // Função helper para parsear opções com segurança
+  // FunÃ§Ã£o helper para parsear opÃ§Ãµes com seguranÃ§a
   const parseOpcoes = (opcoes) => {
     if (!opcoes) return [];
     if (Array.isArray(opcoes)) return opcoes;
@@ -46,7 +46,7 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
   useEffect(() => {
     const carregarTorneios = async () => {
       try {
-        const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+        const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
         const res = await axios.get(`${apiBase}/api/admin/torneio`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -97,27 +97,27 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
     setLoading(true);
 
     try {
-      // Validações
+      // ValidaÃ§Ãµes
       if (!formData.torneio_id) {
         throw new Error('Selecione um torneio');
       }
       if (!formData.titulo.trim()) {
-        throw new Error('Título é obrigatório');
+        throw new Error('TÃ­tulo Ã© obrigatÃ³rio');
       }
       if (!formData.descricao.trim()) {
-        throw new Error('Descrição é obrigatória');
+        throw new Error('DescriÃ§Ã£o Ã© obrigatÃ³ria');
       }
       if (!formData.resposta_correta.trim()) {
-        throw new Error('Resposta correta é obrigatória');
+        throw new Error('Resposta correta Ã© obrigatÃ³ria');
       }
 
-      // Validar opções para múltipla escolha
+      // Validar opÃ§Ãµes para mÃºltipla escolha
       if (formData.tipo === 'multipla_escolha') {
         if (formData.opcoes.length < 2) {
-          throw new Error('Adicione pelo menos 2 opções para múltipla escolha');
+          throw new Error('Adicione pelo menos 2 opÃ§Ãµes para mÃºltipla escolha');
         }
         if (formData.opcoes.some(o => !o.trim())) {
-          throw new Error('Todas as opções devem ser preenchidas');
+          throw new Error('Todas as opÃ§Ãµes devem ser preenchidas');
         }
       }
 
@@ -137,21 +137,21 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
       };
 
       // Enviar para API
-      const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+      const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
       const res = await axios.put(`${apiBase}/api/questoes/${questao.id}`, dados, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      setSuccess('Questão atualizada com sucesso!');
+      setSuccess('QuestÃ£o atualizada com sucesso!');
 
       // Chamar callback
       if (onSuccess) {
         setTimeout(() => onSuccess(res.data.dados), 1500);
       }
     } catch (err) {
-      const mensagem = err.response?.data?.mensagem || err.message || 'Erro ao atualizar questão';
+      const mensagem = err.response?.data?.mensagem || err.message || 'Erro ao atualizar questÃ£o';
       setError(mensagem);
-      console.error('Erro ao atualizar questão:', err);
+      console.error('Erro ao atualizar questÃ£o:', err);
     } finally {
       setLoading(false);
     }
@@ -162,7 +162,7 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between border-b border-blue-700">
-          <h2 className="text-2xl font-bold text-white">Editar Questão</h2>
+          <h2 className="text-2xl font-bold text-white">Editar QuestÃ£o</h2>
           <button
             onClick={onClose}
             className="text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
@@ -220,12 +220,12 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
                 disabled
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-100 cursor-not-allowed opacity-75"
               >
-                <option value="matematica">Matemática</option>
-                <option value="ingles">Inglês</option>
-                <option value="programacao">Programação</option>
+                <option value="matematica">MatemÃ¡tica</option>
+                <option value="ingles">InglÃªs</option>
+                <option value="programacao">ProgramaÃ§Ã£o</option>
               </select>
               <p className="text-xs text-slate-500 mt-1">
-                A disciplina não pode ser alterada após a criação.
+                A disciplina nÃ£o pode ser alterada apÃ³s a criaÃ§Ã£o.
               </p>
             </div>
 
@@ -239,39 +239,39 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="multipla_escolha">Múltipla Escolha</option>
+                <option value="multipla_escolha">MÃºltipla Escolha</option>
                 <option value="texto">Texto</option>
-                <option value="codigo">Código</option>
+                <option value="codigo">CÃ³digo</option>
               </select>
             </div>
           </div>
 
-          {/* Título */}
+          {/* TÃ­tulo */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Título *
+              TÃ­tulo *
             </label>
             <input
               type="text"
               name="titulo"
               value={formData.titulo}
               onChange={handleInputChange}
-              placeholder="Ex: Resolva a equação quadrática"
+              placeholder="Ex: Resolva a equaÃ§Ã£o quadrÃ¡tica"
               required
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          {/* Descrição */}
+          {/* DescriÃ§Ã£o */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Descrição *
+              DescriÃ§Ã£o *
             </label>
             <textarea
               name="descricao"
               value={formData.descricao}
               onChange={handleInputChange}
-              placeholder="Descreva a questão em detalhes"
+              placeholder="Descreva a questÃ£o em detalhes"
               required
               rows="4"
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -290,9 +290,9 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="facil">Fácil</option>
-                <option value="medio">Médio</option>
-                <option value="dificil">Difícil</option>
+                <option value="facil">FÃ¡cil</option>
+                <option value="medio">MÃ©dio</option>
+                <option value="dificil">DifÃ­cil</option>
               </select>
             </div>
 
@@ -313,11 +313,11 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
             </div>
           </div>
 
-          {/* Linguagem (para código) */}
+          {/* Linguagem (para cÃ³digo) */}
           {formData.tipo === 'codigo' && (
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Linguagem de Programação
+                Linguagem de ProgramaÃ§Ã£o
               </label>
               <select
                 name="linguagem"
@@ -333,11 +333,11 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
             </div>
           )}
 
-          {/* Opções (para múltipla escolha) */}
+          {/* OpÃ§Ãµes (para mÃºltipla escolha) */}
           {formData.tipo === 'multipla_escolha' && (
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Opções *
+                OpÃ§Ãµes *
               </label>
               <div className="space-y-2">
                 {formData.opcoes.map((opcao, index) => (
@@ -346,7 +346,7 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
                       type="text"
                       value={opcao}
                       onChange={(e) => handleOpcaoChange(index, e.target.value)}
-                      placeholder={`Opção ${index + 1}`}
+                      placeholder={`OpÃ§Ã£o ${index + 1}`}
                       className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <button
@@ -364,7 +364,7 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
                 onClick={adicionarOpcao}
                 className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
               >
-                + Adicionar Opção
+                + Adicionar OpÃ§Ã£o
               </button>
             </div>
           )}
@@ -385,16 +385,16 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
             />
           </div>
 
-          {/* Explicação */}
+          {/* ExplicaÃ§Ã£o */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Explicação (Opcional)
+              ExplicaÃ§Ã£o (Opcional)
             </label>
             <textarea
               name="explicacao"
               value={formData.explicacao}
               onChange={handleInputChange}
-              placeholder="Explique por que essa é a resposta correta"
+              placeholder="Explique por que essa Ã© a resposta correta"
               rows="3"
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -415,7 +415,7 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Save className="w-5 h-5" />
-              {loading ? 'Salvando...' : 'Salvar Alterações'}
+              {loading ? 'Salvando...' : 'Salvar AlteraÃ§Ãµes'}
             </button>
           </div>
         </form>

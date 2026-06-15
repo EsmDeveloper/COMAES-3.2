@@ -1,4 +1,4 @@
-// Layout.jsx - header fixo corrigido
+﻿// Layout.jsx - header fixo corrigido
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,7 +8,7 @@ import {
   FaHeadset, FaCogs, FaInfoCircle, FaFacebook, FaInstagram,
   FaWhatsapp, FaLinkedin, FaHome, FaTimes, FaQuestionCircle,
 } from "react-icons/fa";
-// FaHeadset mantido apenas no menuItems mobile — botão flutuante antigo removido
+// FaHeadset mantido apenas no menuItems mobile â€” botÃ£o flutuante antigo removido
 import { useAuth } from "../../context/AuthContext";
 import NotificacoesModal from "./Notificacoes";
 import LogoutModal from "../../components/LogoutModal";
@@ -38,24 +38,24 @@ export default function Layout({ children }) {
   // Menu para colaboradores (acesso restrito)
   const collaboratorMenuItems = [
     { icon: <FaHome />, text: "Home", link: "/" },
-    { icon: <FaQuestionCircle />, text: "Minhas Questões", link: "/colaborador/questoes" },
-    { icon: <FaBullhorn />, text: "Portal de Notícias", link: "/portal-de-noticias" },
-    { icon: <FaUserCircle />, text: "Perfil do Usuário", link: "/perfil" },
-    { icon: <FaCogs />, text: "Configurações", link: "/configuracoes" },
-    { icon: <FaInfoCircle />, text: "Sobre nós", link: "/sobre-nos" },
+    { icon: <FaQuestionCircle />, text: "Minhas QuestÃµes", link: "/colaborador/questoes" },
+    { icon: <FaBullhorn />, text: "Portal de NotÃ­cias", link: "/portal-de-noticias" },
+    { icon: <FaUserCircle />, text: "Perfil do UsuÃ¡rio", link: "/perfil" },
+    { icon: <FaCogs />, text: "ConfiguraÃ§Ãµes", link: "/configuracoes" },
+    { icon: <FaInfoCircle />, text: "Sobre nÃ³s", link: "/sobre-nos" },
     { icon: <FaHeadset />, text: "Suporte", link: "/suporte" },
   ];
 
-  // Menu padrão para estudantes e outros
+  // Menu padrÃ£o para estudantes e outros
   const standardMenuItems = [
     { icon: <FaHome />, text: "Home", link: "/" },
     { icon: <FaTrophy />, text: "Entrar no Torneio", link: "/entrar-no-torneio" },
     { icon: <FaBook />, text: "Teste seu Conhecimento", link: "/teste-seu-conhecimento" },
-    { icon: <FaBullhorn />, text: "Portal de Notícias", link: "/portal-de-noticias" },
+    { icon: <FaBullhorn />, text: "Portal de NotÃ­cias", link: "/portal-de-noticias" },
     { icon: <FaChartLine />, text: "Dashboard", link: "/painel" },
-    { icon: <FaUserCircle />, text: "Perfil do Usuário", link: "/perfil" },
-    { icon: <FaCogs />, text: "Configurações", link: "/configuracoes" },
-    { icon: <FaInfoCircle />, text: "Sobre nós", link: "/sobre-nos" },
+    { icon: <FaUserCircle />, text: "Perfil do UsuÃ¡rio", link: "/perfil" },
+    { icon: <FaCogs />, text: "ConfiguraÃ§Ãµes", link: "/configuracoes" },
+    { icon: <FaInfoCircle />, text: "Sobre nÃ³s", link: "/sobre-nos" },
     { icon: <FaHeadset />, text: "Suporte", link: "/suporte" },
   ];
 
@@ -63,18 +63,18 @@ export default function Layout({ children }) {
   const menuItems = isColaborador ? collaboratorMenuItems : standardMenuItems;
   const allMenuItems = menuItems;
 
-  // Desktop nav para colaboradores (versão restrita)
+  // Desktop nav para colaboradores (versÃ£o restrita)
   const collaboratorDesktopNav = [
-    { icon: <FaQuestionCircle />, text: "Questões", link: "/colaborador/questoes" },
-    { icon: <FaBullhorn />, text: "Notícias", link: "/portal-de-noticias" },
+    { icon: <FaQuestionCircle />, text: "QuestÃµes", link: "/colaborador/questoes" },
+    { icon: <FaBullhorn />, text: "NotÃ­cias", link: "/portal-de-noticias" },
     { icon: <FaInfoCircle />, text: "Sobre", link: "/sobre-nos" },
   ];
 
-  // Desktop nav padrão — itens enxutos para não abarrotar
+  // Desktop nav padrÃ£o â€” itens enxutos para nÃ£o abarrotar
   const standardDesktopNav = [
     { icon: <FaTrophy />, text: "Torneios", link: "/entrar-no-torneio" },
     { icon: <FaBook />, text: "Testes", link: "/teste-seu-conhecimento" },
-    { icon: <FaBullhorn />, text: "Notícias", link: "/portal-de-noticias" },
+    { icon: <FaBullhorn />, text: "NotÃ­cias", link: "/portal-de-noticias" },
     { icon: <FaChartLine />, text: "Dashboard", link: "/painel" },
     { icon: <FaInfoCircle />, text: "Sobre", link: "/sobre-nos" },
   ];
@@ -96,13 +96,13 @@ export default function Layout({ children }) {
     const fetchNotificationCount = async () => {
       if (user && user.id) {
         try {
-          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/api/notificacoes/usuario/${user.id}/nao-lidas/count`, {
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/api/notificacoes/usuario/${user.id}/nao-lidas/count`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('comaes_token')}` }
           });
           const data = await response.json();
           if (data.success) setNotificationCount(data.count);
         } catch (error) {
-          console.error("Erro ao buscar contagem de notificações:", error);
+          console.error("Erro ao buscar contagem de notificaÃ§Ãµes:", error);
         }
       } else {
         setNotificationCount(0);
@@ -137,23 +137,23 @@ export default function Layout({ children }) {
   const confirmLogout = () => {
     setShowLogoutModal(false);
     logout();
-    // Após logout, sempre para o login — não para a Home pública
+    // ApÃ³s logout, sempre para o login â€” nÃ£o para a Home pÃºblica
     navigate("/login");
   };
 
-  // Admin não deve ver a navbar educacional — wrapper mínimo sem navbar
+  // Admin nÃ£o deve ver a navbar educacional â€” wrapper mÃ­nimo sem navbar
   if (isAdmin) {
     return (
       <div className="flex flex-col min-h-screen bg-gray-50 font-sans text-gray-900">
         <div className="bg-gray-900 text-white px-6 py-3 flex items-center justify-between shadow-sm">
           <span className="text-xs font-semibold tracking-widest uppercase text-gray-400">
-            Área Administrativa
+            Ãrea Administrativa
           </span>
           <button
             onClick={() => navigate('/administrador')}
             className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg font-semibold transition"
           >
-            ← Painel Admin
+            â† Painel Admin
           </button>
         </div>
         <main className="flex-1 px-4 py-6 sm:px-6 md:px-8 max-w-7xl mx-auto w-full">
@@ -238,7 +238,7 @@ export default function Layout({ children }) {
                     )
                   }
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{user.name || user.username || "Usuário"}</p>
+                    <p className="text-sm font-medium text-white truncate">{user.name || user.username || "UsuÃ¡rio"}</p>
                     <p className="text-xs text-gray-400 truncate">{user.email || ""}</p>
                   </div>
                   <button
@@ -258,11 +258,11 @@ export default function Layout({ children }) {
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
         onNotificationRead={() => {
-          // Atualizar contador quando uma notificação é lida
+          // Atualizar contador quando uma notificaÃ§Ã£o Ã© lida
           setNotificationCount(prev => Math.max(0, prev - 1));
         }}
         onAllRead={() => {
-          // Zerar contador quando todas são marcadas como lidas
+          // Zerar contador quando todas sÃ£o marcadas como lidas
           setNotificationCount(0);
         }}
       />
@@ -333,7 +333,7 @@ export default function Layout({ children }) {
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(true)}
-                title="Notificações"
+                title="NotificaÃ§Ãµes"
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-white hover:bg-white hover:text-blue-600 transition-all duration-150"
               >
                 <FaBell className="text-sm sm:text-base" />
@@ -369,7 +369,7 @@ export default function Layout({ children }) {
                   className="flex items-center gap-2 px-2 py-1 rounded-lg bg-blue-500 text-white hover:bg-blue-400 transition-all duration-150"
                 >
                   <span className="hidden sm:block text-sm font-medium">
-                    {user.name || user.username || "Usuário"}
+                    {user.name || user.username || "UsuÃ¡rio"}
                   </span>
                   {user.avatar
                     ? <img src={user.avatar} alt="avatar" className="w-7 h-7 rounded-full object-cover" />
@@ -393,7 +393,7 @@ export default function Layout({ children }) {
                       </div>
                       <div className="py-1">
                         <Link to="/perfil" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Meu Perfil</Link>
-                        <Link to="/configuracoes" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Configurações</Link>
+                        <Link to="/configuracoes" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">ConfiguraÃ§Ãµes</Link>
                         {(user.isAdmin || user.role === 'admin') && (
                           <Link to="/administrador" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Painel Admin</Link>
                         )}
@@ -418,13 +418,13 @@ export default function Layout({ children }) {
         {children}
       </motion.main>
 
-      {/* Assistente de suporte com IA — único ponto de entrada flutuante */}
+      {/* Assistente de suporte com IA â€” Ãºnico ponto de entrada flutuante */}
       <SupportChat />
 
       <footer className="bg-gray-900 text-gray-300 mt-auto w-full">
         <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8 flex flex-col items-center gap-5">
           <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm">
-            <Link to="/sobre-nos" className="text-gray-400 hover:text-blue-500 transition-colors duration-150">Sobre Nós</Link>
+            <Link to="/sobre-nos" className="text-gray-400 hover:text-blue-500 transition-colors duration-150">Sobre NÃ³s</Link>
             <Link to="/suporte" className="text-gray-400 hover:text-blue-500 transition-colors duration-150">Suporte</Link>
             <Link to="/privacidade" className="text-gray-400 hover:text-blue-500 transition-colors duration-150">Privacidade</Link>
           </div>

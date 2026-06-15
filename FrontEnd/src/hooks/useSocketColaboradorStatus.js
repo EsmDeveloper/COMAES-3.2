@@ -1,12 +1,12 @@
-/**
+﻿/**
  * useSocketColaboradorStatus.js
  *
  * Hook customizado para escutar eventos de status do colaborador
- * Permite que o colaborador receba notificação instantânea quando:
- * - Sua solicitação é aprovada
- * - Sua solicitação é rejeitada
+ * Permite que o colaborador receba notificaÃ§Ã£o instantÃ¢nea quando:
+ * - Sua solicitaÃ§Ã£o Ã© aprovada
+ * - Sua solicitaÃ§Ã£o Ã© rejeitada
  *
- * Evento específico: `colaborador_status_${userId}`
+ * Evento especÃ­fico: `colaborador_status_${userId}`
  */
 
 import { useEffect, useCallback } from 'react';
@@ -14,7 +14,7 @@ import io from 'socket.io-client';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || 
                    import.meta.env.VITE_API_BASE_URL || 
-                   `http://${window.location.hostname}:3000`;
+                   `http://${window.location.hostname}:3001`;
 
 let socket = null;
 
@@ -38,26 +38,26 @@ export const useSocketColaboradorStatus = ({
           transports: ['websocket', 'polling']
         });
 
-        // Eventos de conexão
+        // Eventos de conexÃ£o
         socket.on('connect', () => {
-          console.log('✅ Socket.IO conectado (status colaborador)');
+          console.log('âœ… Socket.IO conectado (status colaborador)');
         });
 
         socket.on('disconnect', () => {
-          console.log('❌ Socket.IO desconectado');
+          console.log('âŒ Socket.IO desconectado');
         });
 
-        // Evento específico para este colaborador
+        // Evento especÃ­fico para este colaborador
         socket.on(`colaborador_status_${userId}`, (data) => {
-          console.log('📢 Status do colaborador atualizado:', data);
+          console.log('ðŸ“¢ Status do colaborador atualizado:', data);
           
           if (data.status === 'aprovado') {
-            console.log('✅ Colaborador aprovado!');
+            console.log('âœ… Colaborador aprovado!');
             if (onAprovado) {
               onAprovado(data);
             }
           } else if (data.status === 'rejeitado') {
-            console.log('❌ Colaborador rejeitado!');
+            console.log('âŒ Colaborador rejeitado!');
             if (onRejeitado) {
               onRejeitado(data);
             }
@@ -66,7 +66,7 @@ export const useSocketColaboradorStatus = ({
 
         // Tratamento de erros
         socket.on('error', (error) => {
-          console.error('❌ Erro Socket.IO:', error);
+          console.error('âŒ Erro Socket.IO:', error);
         });
       }
     } catch (err) {
@@ -78,7 +78,7 @@ export const useSocketColaboradorStatus = ({
     if (socket?.connected) {
       socket.disconnect();
       socket = null;
-      console.log('🔌 Socket.IO desconectado');
+      console.log('ðŸ”Œ Socket.IO desconectado');
     }
   }, []);
 
@@ -87,7 +87,7 @@ export const useSocketColaboradorStatus = ({
       connect();
     }
     return () => {
-      // Não desconectar ao unmount para evitar reconexões contínuas
+      // NÃ£o desconectar ao unmount para evitar reconexÃµes contÃ­nuas
     };
   }, [enabled, userId, connect]);
 

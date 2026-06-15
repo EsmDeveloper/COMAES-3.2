@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+﻿import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Layout from './Layout';
@@ -6,68 +6,68 @@ import { QuestionCardEnhanced } from '../../components/components_teste/Question
 import { ResultScreenEnhanced } from '../../components/components_teste/ResultScreenEnhanced';
 import { Calculator, Code2, Languages, Trophy, Clock, Zap, Target, RotateCcw, ChevronLeft, CheckCircle2, XCircle, Square, ChevronDown } from 'lucide-react';
 
-// ─── Constants ────────────────────────────────────────────────────
+// â”€â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
 const TIME_PER_QUESTION = 30;
 
 const AREAS = {
   matematica: {
     key: 'matematica',
-    title: 'Matemática',
+    title: 'MatemÃ¡tica',
     Icon: Calculator,
     color: 'blue',
     btnGradient: 'from-blue-600 to-indigo-600',
     badge: 'bg-blue-100 text-blue-700',
-    description: 'Álgebra, geometria, cálculo e raciocínio lógico',
+    description: 'Ãlgebra, geometria, cÃ¡lculo e raciocÃ­nio lÃ³gico',
   },
   programacao: {
     key: 'programacao',
-    title: 'Programação',
+    title: 'ProgramaÃ§Ã£o',
     Icon: Code2,
     color: 'indigo',
     btnGradient: 'from-indigo-600 to-blue-600',
     badge: 'bg-indigo-100 text-indigo-700',
-    description: 'Lógica, algoritmos, linguagens e desenvolvimento',
+    description: 'LÃ³gica, algoritmos, linguagens e desenvolvimento',
   },
   ingles: {
     key: 'ingles',
-    title: 'Inglês',
+    title: 'InglÃªs',
     Icon: Languages,
     color: 'slate',
     btnGradient: 'from-slate-600 to-blue-600',
     badge: 'bg-slate-100 text-slate-700',
-    description: 'Gramática, vocabulário e compreensão textual',
+    description: 'GramÃ¡tica, vocabulÃ¡rio e compreensÃ£o textual',
   },
 };
 
 const CORRECT_MSGS = [
   'Excelente! Resposta certa!',
   'Muito bem! Continue assim!',
-  'Perfeito! Estás a arrasar!',
+  'Perfeito! EstÃ¡s a arrasar!',
   'Brilhante! Continua!',
 ];
 const WRONG_MSGS = [
-  'Não desistas! A próxima será melhor.',
+  'NÃ£o desistas! A prÃ³xima serÃ¡ melhor.',
   'Continue aprendendo, tu consegues!',
   'Boa tentativa! Segue em frente.',
-  'Aprende com o erro e avança!',
+  'Aprende com o erro e avanÃ§a!',
 ];
 const TIMEOUT_MSGS = [
-  'Tempo esgotado! Mais rapidez na próxima.',
-  'O tempo acabou! Não desistas.',
+  'Tempo esgotado! Mais rapidez na prÃ³xima.',
+  'O tempo acabou! NÃ£o desistas.',
 ];
 
 const NIVEIS = [
-  { key: '', label: 'Todos os níveis', color: 'bg-slate-100 text-slate-700', dot: 'bg-slate-400' },
-  { key: 'facil', label: 'Fácil', color: 'bg-green-100 text-green-700', dot: 'bg-green-500' },
-  { key: 'medio', label: 'Médio', color: 'bg-yellow-100 text-yellow-700', dot: 'bg-yellow-500' },
-  { key: 'dificil', label: 'Difícil', color: 'bg-red-100 text-red-700', dot: 'bg-red-500' },
+  { key: '', label: 'Todos os nÃ­veis', color: 'bg-slate-100 text-slate-700', dot: 'bg-slate-400' },
+  { key: 'facil', label: 'FÃ¡cil', color: 'bg-green-100 text-green-700', dot: 'bg-green-500' },
+  { key: 'medio', label: 'MÃ©dio', color: 'bg-yellow-100 text-yellow-700', dot: 'bg-yellow-500' },
+  { key: 'dificil', label: 'DifÃ­cil', color: 'bg-red-100 text-red-700', dot: 'bg-red-500' },
 ];
 
 const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-// ─── Circular Timer ───────────────────────────────────────────────
+// â”€â”€â”€ Circular Timer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function CircularTimer({ timeLeft, total = TIME_PER_QUESTION }) {
   const radius = 26;
@@ -95,7 +95,7 @@ function CircularTimer({ timeLeft, total = TIME_PER_QUESTION }) {
   );
 }
 
-// ─── Progress Bar ─────────────────────────────────────────────────
+// â”€â”€â”€ Progress Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function ProgressBar({ current, total }) {
   const pct = total > 0 ? Math.round((current / total) * 100) : 0;
@@ -109,23 +109,23 @@ function ProgressBar({ current, total }) {
   );
 }
 
-// ─── Medal ────────────────────────────────────────────────────────
+// â”€â”€â”€ Medal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function Medal({ pct }) {
-  if (pct >= 90) return <span className="text-5xl">🥇</span>;
-  if (pct >= 70) return <span className="text-5xl">🥈</span>;
-  if (pct >= 50) return <span className="text-5xl">🥉</span>;
-  return <span className="text-5xl">🎓</span>;
+  if (pct >= 90) return <span className="text-5xl">ðŸ¥‡</span>;
+  if (pct >= 70) return <span className="text-5xl">ðŸ¥ˆ</span>;
+  if (pct >= 50) return <span className="text-5xl">ðŸ¥‰</span>;
+  return <span className="text-5xl">ðŸŽ“</span>;
 }
 
 function motivationalMsg(pct) {
-  if (pct >= 90) return 'Desempenho excepcional! És um verdadeiro campeão COMAES!';
-  if (pct >= 70) return 'Muito bom resultado! Continua a estudar e chegarás ao topo!';
-  if (pct >= 50) return 'Bom esforço! Com mais prática vais melhorar muito!';
-  return 'Não desistas! Cada tentativa é um passo para a excelência!';
+  if (pct >= 90) return 'Desempenho excepcional! Ã‰s um verdadeiro campeÃ£o COMAES!';
+  if (pct >= 70) return 'Muito bom resultado! Continua a estudar e chegarÃ¡s ao topo!';
+  if (pct >= 50) return 'Bom esforÃ§o! Com mais prÃ¡tica vais melhorar muito!';
+  return 'NÃ£o desistas! Cada tentativa Ã© um passo para a excelÃªncia!';
 }
 
-// ─── Score Popup (feedback visual de pontuação) ───────────────────
+// â”€â”€â”€ Score Popup (feedback visual de pontuaÃ§Ã£o) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function ScorePopup({ points, visible }) {
   if (!visible || !points) return null;
@@ -138,7 +138,7 @@ function ScorePopup({ points, visible }) {
   );
 }
 
-// ─── Nivel Selector ───────────────────────────────────────────────
+// â”€â”€â”€ Nivel Selector â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function NivelSelector({ value, onChange }) {
   const [open, setOpen] = useState(false);
@@ -164,7 +164,7 @@ function NivelSelector({ value, onChange }) {
             >
               <span className={`w-2 h-2 rounded-full ${n.dot}`} />
               {n.label}
-              {value === n.key && <span className="ml-auto text-blue-600">✓</span>}
+              {value === n.key && <span className="ml-auto text-blue-600">âœ“</span>}
             </button>
           ))}
         </div>
@@ -173,7 +173,7 @@ function NivelSelector({ value, onChange }) {
   );
 }
 
-// ─── Stop Confirm Modal ───────────────────────────────────────────
+// â”€â”€â”€ Stop Confirm Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function StopConfirmModal({ isOpen, onConfirm, onCancel, score, answered }) {
   if (!isOpen) return null;
@@ -186,8 +186,8 @@ function StopConfirmModal({ isOpen, onConfirm, onCancel, score, answered }) {
           </div>
           <h3 className="text-lg font-bold text-slate-800 mb-1">Parar o Quiz?</h3>
           <p className="text-sm text-slate-500">
-            Respondeste a <strong>{answered}</strong> questão{answered !== 1 ? 's' : ''} e acumulaste <strong>{score} pontos</strong>.
-            O resultado será calculado com base nas questões respondidas.
+            Respondeste a <strong>{answered}</strong> questÃ£o{answered !== 1 ? 's' : ''} e acumulaste <strong>{score} pontos</strong>.
+            O resultado serÃ¡ calculado com base nas questÃµes respondidas.
           </p>
         </div>
         <div className="flex gap-3">
@@ -209,7 +209,7 @@ function StopConfirmModal({ isOpen, onConfirm, onCancel, score, answered }) {
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────
+// â”€â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function Teste() {
   const { user } = useAuth();
@@ -219,7 +219,7 @@ export default function Teste() {
   const [phase, setPhase] = useState('select');
   const [selectedArea, setSelectedArea] = useState(null);
   const [selectedNivel, setSelectedNivel] = useState(''); // '' = all levels
-  const [selectedTestMode, setSelectedTestMode] = useState('closed'); // 'closed' = múltipla escolha | 'guided' = guiado
+  const [selectedTestMode, setSelectedTestMode] = useState('closed'); // 'closed' = mÃºltipla escolha | 'guided' = guiado
   const [areaCounts, setAreaCounts] = useState({ matematica: null, programacao: null, ingles: null });
   const [bestPerformances, setBestPerformances] = useState({ matematica: null, programacao: null, ingles: null });
 
@@ -289,7 +289,7 @@ export default function Teste() {
     loadBestPerformances();
   }, [user]);
 
-  // Timer helpers — separated to avoid cancelling feedback timer
+  // Timer helpers â€” separated to avoid cancelling feedback timer
   const clearMainTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = null;
@@ -349,7 +349,7 @@ export default function Teste() {
     setCurrentIdx(prev => {
       const next = prev + 1;
       if (next >= questions.length) {
-        // Test finished — save result
+        // Test finished â€” save result
         saveTestResult();
         setPhase('result');
         return prev;
@@ -377,7 +377,7 @@ export default function Teste() {
     feedbackTimerRef.current = setTimeout(() => advanceQuestion(), 2500);
   }, [answered, questoesRespondidas, currentIdx, clearMainTimer, advanceQuestion]);
 
-  // Countdown — only clears main timer, never feedback timer
+  // Countdown â€” only clears main timer, never feedback timer
   useEffect(() => {
     if (phase !== 'quiz' || answered || loadingQuiz) return;
     clearMainTimer();
@@ -426,8 +426,8 @@ export default function Teste() {
       const res = await fetch(`${API_BASE}/api/questoes/quiz/${areaKey}?limit=10${nivelParam}`);
       const json = await res.json();
       if (!json.success || !Array.isArray(json.data) || json.data.length === 0) {
-        const nivelLabel = nivelKey ? ` no nível "${NIVEIS.find(n => n.key === nivelKey)?.label}"` : '';
-        setQuizError(`Nenhuma questão disponível para esta área${nivelLabel}. Tenta outro nível ou aguarda o administrador criar questões.`);
+        const nivelLabel = nivelKey ? ` no nÃ­vel "${NIVEIS.find(n => n.key === nivelKey)?.label}"` : '';
+        setQuizError(`Nenhuma questÃ£o disponÃ­vel para esta Ã¡rea${nivelLabel}. Tenta outro nÃ­vel ou aguarda o administrador criar questÃµes.`);
         setLoadingQuiz(false);
         return;
       }
@@ -450,18 +450,18 @@ export default function Teste() {
       
       setQuestions(questoesMapeadas);
     } catch {
-      setQuizError('Erro ao carregar questões. Verifica a ligação ao servidor.');
+      setQuizError('Erro ao carregar questÃµes. Verifica a ligaÃ§Ã£o ao servidor.');
     } finally {
       setLoadingQuiz(false);
     }
   };
 
-  // Stop quiz early — show confirm modal
+  // Stop quiz early â€” show confirm modal
   const handleStopQuiz = () => {
     setShowStopModal(true);
   };
 
-  // Confirm stop — save partial result and go to result screen
+  // Confirm stop â€” save partial result and go to result screen
   const confirmStopQuiz = useCallback(() => {
     clearAllTimers();
     setShowStopModal(false);
@@ -513,11 +513,11 @@ export default function Teste() {
     }
 
     const msg = isCorrect ? pickRandom(CORRECT_MSGS) : pickRandom(WRONG_MSGS);
-    // Adicionar explicação da resposta correta
+    // Adicionar explicaÃ§Ã£o da resposta correta
     const feedbackObj = { 
       type: isCorrect ? 'correct' : 'wrong', 
       msg,
-      explanation: q.explicacao || (isCorrect ? 'Parabéns! Esta é a resposta correta.' : `A resposta correta é: ${q.resposta_correta}`)
+      explanation: q.explicacao || (isCorrect ? 'ParabÃ©ns! Esta Ã© a resposta correta.' : `A resposta correta Ã©: ${q.resposta_correta}`)
     };
     setFeedback(feedbackObj);
     setAssistantMsg(msg);
@@ -527,7 +527,7 @@ export default function Teste() {
     feedbackTimerRef.current = setTimeout(() => advanceQuestion(), 2500);
   }, [answered, feedback, questoesRespondidas, questions, currentIdx, timeLeft, streak, clearMainTimer, clearFeedbackTimer, advanceQuestion]);
 
-  // ─── Not logged in ────────────────────────────────────────────────
+  // â”€â”€â”€ Not logged in â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (!user) {
     return (
       <Layout>
@@ -554,7 +554,7 @@ export default function Teste() {
     );
   }
 
-  // ─── Area Selection ───────────────────────────────────────────────
+  // â”€â”€â”€ Area Selection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (phase === 'select') {
     return (
       <Layout>
@@ -566,14 +566,14 @@ export default function Teste() {
               Testa o teu Conhecimento
             </h1>
             <p className="text-base text-gray-600 max-w-xl mx-auto">
-              Olá, <span className="font-semibold text-blue-600">{user.nome || user.name || 'Competidor'}</span>!
-              Escolhe uma área e mostra o que sabes.
+              OlÃ¡, <span className="font-semibold text-blue-600">{user.nome || user.name || 'Competidor'}</span>!
+              Escolhe uma Ã¡rea e mostra o que sabes.
             </p>
           </div>
 
           {/* Difficulty selector */}
           <div className="flex items-center justify-center gap-3 mb-8">
-            <span className="text-sm font-semibold text-slate-600">Nível de dificuldade:</span>
+            <span className="text-sm font-semibold text-slate-600">NÃ­vel de dificuldade:</span>
             <div className="flex gap-2">
               {NIVEIS.map(n => (
                 <button
@@ -604,7 +604,7 @@ export default function Teste() {
                     : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
                 }`}
               >
-                ✅ Respostas Fechadas
+                âœ… Respostas Fechadas
               </button>
               <button
                 onClick={() => setSelectedTestMode('guided')}
@@ -614,7 +614,7 @@ export default function Teste() {
                     : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
                 }`}
               >
-                💡 Modo Guiado
+                ðŸ’¡ Modo Guiado
               </button>
             </div>
           </div>
@@ -642,26 +642,26 @@ export default function Teste() {
                   {bestPct !== null ? (
                     <div className="mb-4">
                       <span className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 rounded-full px-3 py-1.5 text-xs font-semibold">
-                        🏆 Melhor: {bestPct}%
+                        ðŸ† Melhor: {bestPct}%
                       </span>
                     </div>
                   ) : (
                     <div className="mb-4">
                       <span className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-500 rounded-full px-3 py-1.5 text-xs font-semibold">
-                        ✨ Não iniciado
+                        âœ¨ NÃ£o iniciado
                       </span>
                     </div>
                   )}
 
                   <div className="flex items-center justify-between mb-5">
                     <span className="text-xs text-gray-400">
-                      {count === null ? 'A carregar...' : count === 0 ? 'Sem questões' : `${count} questões`}
+                      {count === null ? 'A carregar...' : count === 0 ? 'Sem questÃµes' : `${count} questÃµes`}
                     </span>
-                    <span className="text-xs text-gray-400">30s / questão</span>
+                    <span className="text-xs text-gray-400">30s / questÃ£o</span>
                   </div>
 
                   <button className={`w-full py-2.5 rounded-xl bg-gradient-to-r ${area.btnGradient} text-white font-semibold text-sm hover:opacity-90 transition`}>
-                    {selectedNivel ? `Iniciar · ${nivelLabel} →` : 'Iniciar →'}
+                    {selectedNivel ? `Iniciar Â· ${nivelLabel} â†’` : 'Iniciar â†’'}
                   </button>
                 </div>
               );
@@ -673,10 +673,10 @@ export default function Teste() {
             <h2 className="text-xl font-bold text-slate-800 text-center mb-6">Como funciona</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               {[
-                { Icon: Clock,  label: '30s por questão',    color: 'text-blue-600',    bg: 'bg-blue-50' },
-                { Icon: Zap,    label: 'Bónus por rapidez',  color: 'text-yellow-600',  bg: 'bg-yellow-50' },
-                { Icon: Target, label: 'Sequência de acertos', color: 'text-red-500',   bg: 'bg-red-50' },
-                { Icon: Trophy, label: 'XP e pontuação',     color: 'text-indigo-600',  bg: 'bg-indigo-50' },
+                { Icon: Clock,  label: '30s por questÃ£o',    color: 'text-blue-600',    bg: 'bg-blue-50' },
+                { Icon: Zap,    label: 'BÃ³nus por rapidez',  color: 'text-yellow-600',  bg: 'bg-yellow-50' },
+                { Icon: Target, label: 'SequÃªncia de acertos', color: 'text-red-500',   bg: 'bg-red-50' },
+                { Icon: Trophy, label: 'XP e pontuaÃ§Ã£o',     color: 'text-indigo-600',  bg: 'bg-indigo-50' },
               ].map(({ Icon, label, color, bg }) => (
                 <div key={label} className="flex flex-col items-center gap-2">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${bg}`}>
@@ -693,7 +693,7 @@ export default function Teste() {
     );
   }
 
-  // ─── Quiz ─────────────────────────────────────────────────────────
+  // â”€â”€â”€ Quiz â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (phase === 'quiz') {
     const area = AREAS[selectedArea] || AREAS.matematica;
     const { Icon } = area;
@@ -708,7 +708,7 @@ export default function Teste() {
           <div className="max-w-7xl mx-auto w-full px-6 py-16 flex items-center justify-center">
             <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-10 text-center">
               <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-slate-700 font-semibold">A carregar questões...</p>
+              <p className="text-slate-700 font-semibold">A carregar questÃµes...</p>
               <p className="text-sm text-gray-400 mt-1">{area.title}</p>
             </div>
           </div>
@@ -725,11 +725,11 @@ export default function Teste() {
               <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
                 <XCircle className="w-7 h-7 text-red-500" />
               </div>
-              <h2 className="text-xl font-bold text-slate-800 mb-3">Sem questões disponíveis</h2>
+              <h2 className="text-xl font-bold text-slate-800 mb-3">Sem questÃµes disponÃ­veis</h2>
               <p className="text-sm text-gray-600 mb-6">{quizError}</p>
               <button onClick={() => setPhase('select')}
                 className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition text-sm">
-                ← Voltar
+                â† Voltar
               </button>
             </div>
           </div>
@@ -768,16 +768,16 @@ export default function Teste() {
                 <NivelSelector value={selectedNivel} onChange={(v) => startQuiz(selectedArea, v)} />
                 {streak > 1 && (
                   <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-700">
-                    🔥 {streak}x
+                    ðŸ”¥ {streak}x
                   </span>
                 )}
                 <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
-                  ⚡ {xp} XP
+                  âš¡ {xp} XP
                 </span>
                 {/* Score with popup */}
                 <div className="relative">
                   <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-700">
-                    🏆 {score} pts
+                    ðŸ† {score} pts
                   </span>
                   <ScorePopup points={lastEarned} visible={showScorePopup} />
                 </div>
@@ -796,7 +796,7 @@ export default function Teste() {
             <div className="mb-5">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium text-slate-700">
-                  Questão <span className="font-bold text-slate-800">{currentIdx + 1}</span> de <span className="font-bold text-slate-800">{totalQ}</span>
+                  QuestÃ£o <span className="font-bold text-slate-800">{currentIdx + 1}</span> de <span className="font-bold text-slate-800">{totalQ}</span>
                 </span>
                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${area.badge}`}>
                   {area.title}
@@ -834,7 +834,7 @@ export default function Teste() {
             {/* Assistant bubble */}
             {assistantMsg && answered && (
               <div className="flex items-start gap-3 mb-4">
-                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 text-base">🤖</div>
+                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 text-base">ðŸ¤–</div>
                 <div className="bg-slate-100 border border-slate-200 rounded-2xl rounded-tl-none px-4 py-2.5 text-sm text-slate-700 font-medium max-w-xs">
                   {assistantMsg}
                 </div>
@@ -851,7 +851,7 @@ export default function Teste() {
                     <p className="text-base font-bold text-green-800 mb-2">{q.resposta_correta}</p>
                     {q.explicacao && (
                       <div className="mt-3 pt-3 border-t border-green-200">
-                        <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">Explicação:</p>
+                        <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">ExplicaÃ§Ã£o:</p>
                         <p className="text-sm text-green-700 leading-relaxed">{q.explicacao}</p>
                       </div>
                     )}
@@ -866,7 +866,7 @@ export default function Teste() {
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">Informação complementar:</p>
+                    <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">InformaÃ§Ã£o complementar:</p>
                     <p className="text-sm text-blue-700 leading-relaxed">{q.explicacao}</p>
                   </div>
                 </div>
@@ -878,14 +878,14 @@ export default function Teste() {
               <div className="rounded-xl bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-300 p-4 mb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl">🎯</span>
+                    <span className="text-2xl">ðŸŽ¯</span>
                     <div>
                       <p className="text-xs font-semibold text-yellow-600 uppercase tracking-wide">Pontos ganhos</p>
                       <p className="text-2xl font-bold text-yellow-800">{answers.find(a => a.idx === currentIdx)?.points} pts</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-yellow-600 font-semibold">Bónus por tempo:</p>
+                    <p className="text-xs text-yellow-600 font-semibold">BÃ³nus por tempo:</p>
                     <p className="text-lg text-yellow-700 font-bold">+{Math.max(0, timeLeft - 5)}s</p>
                   </div>
                 </div>
@@ -939,16 +939,16 @@ export default function Teste() {
                 className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm ml-auto"
               >
                 {currentIdx === totalQ - 1 && answered ? (
-                  <>✓ Terminar</>
+                  <>âœ“ Terminar</>
                 ) : (
-                  <>Próxima <ChevronLeft className="w-4 h-4 rotate-180" /></>
+                  <>PrÃ³xima <ChevronLeft className="w-4 h-4 rotate-180" /></>
                 )}
               </button>
             </div>
 
             {/* Progress map */}
             <div className="bg-white rounded-xl shadow border border-gray-200 p-4 mb-4">
-              <p className="text-xs font-semibold text-slate-600 mb-3 uppercase tracking-wide">Progresso das questões</p>
+              <p className="text-xs font-semibold text-slate-600 mb-3 uppercase tracking-wide">Progresso das questÃµes</p>
               <div className="flex flex-wrap gap-2">
                 {questions.map((_, idx) => {
                   const answerObj = answers.find(a => a.idx === idx);
@@ -980,9 +980,9 @@ export default function Teste() {
                           : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
                       }`}
                       title={
-                        isCurrent ? 'Questão atual' :
+                        isCurrent ? 'QuestÃ£o atual' :
                         isAnswered ? (isCorrect ? 'Respondida (Correto)' : 'Respondida (Errado)') :
-                        'Não respondida'
+                        'NÃ£o respondida'
                       }
                     >
                       {idx + 1}
@@ -1003,8 +1003,8 @@ export default function Teste() {
                 <p className="text-2xl sm:text-3xl font-bold text-green-700 mt-1">{correctCount}/{totalQ}</p>
               </div>
               <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4 border border-yellow-200">
-                <p className="text-xs text-yellow-600 font-semibold uppercase tracking-wide">Sequência</p>
-                <p className="text-2xl sm:text-3xl font-bold text-yellow-700 mt-1">{streak}🔥</p>
+                <p className="text-xs text-yellow-600 font-semibold uppercase tracking-wide">SequÃªncia</p>
+                <p className="text-2xl sm:text-3xl font-bold text-yellow-700 mt-1">{streak}ðŸ”¥</p>
               </div>
               <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
                 <p className="text-xs text-purple-600 font-semibold uppercase tracking-wide">XP</p>
@@ -1019,7 +1019,7 @@ export default function Teste() {
                   onClick={() => { clearFeedbackTimer(); advanceQuestion(); }}
                   className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:bg-blue-700 transition shadow-md"
                 >
-                  {currentIdx >= totalQ - 1 ? 'Ver Resultado 🏆' : 'Próxima →'}
+                  {currentIdx >= totalQ - 1 ? 'Ver Resultado ðŸ†' : 'PrÃ³xima â†’'}
                 </button>
               </div>
             )}
@@ -1036,7 +1036,7 @@ export default function Teste() {
               </div>
               <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 text-center">
                 <div className="text-lg font-bold text-yellow-600">{bestStreak}</div>
-                <div className="text-xs text-gray-500 mt-0.5">Melhor sequência</div>
+                <div className="text-xs text-gray-500 mt-0.5">Melhor sequÃªncia</div>
               </div>
             </div>
 
@@ -1046,7 +1046,7 @@ export default function Teste() {
     );
   }
 
-  // ─── Result ───────────────────────────────────────────────────────
+  // â”€â”€â”€ Result â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (phase === 'result') {
     const area = AREAS[selectedArea] || AREAS.matematica;
     const totalQ = questions.length;

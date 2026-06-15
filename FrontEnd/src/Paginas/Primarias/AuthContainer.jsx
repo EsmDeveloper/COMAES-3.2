@@ -56,9 +56,7 @@ function AuthContainer({ initialMode = "login" }) {
   const [showCadastroSenha, setShowCadastroSenha]     = useState(false);
   const [showConfirmaSenha, setShowConfirmaSenha]     = useState(false);
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.includes(':3001')
-    ? `http://${window.location.hostname}:3000`
-    : (import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
 
   const escolas = [
     "Instituto Politécnico Industrial de Lunada - IPIL", 

@@ -8,7 +8,8 @@
 import Questao from '../models/Questao.js';
 import BlocoQuestoes from '../models/BlocoQuestoes.js';
 import Usuario from '../models/User.js';
-import { Op, sequelize } from 'sequelize';
+import { Op } from 'sequelize';
+import { sequelize } from '../config/db.js';
 
 // ────────────────────────────────────────────────────────────────────────────
 // HELPER FUNCTIONS

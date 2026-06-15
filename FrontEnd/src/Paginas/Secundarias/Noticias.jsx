@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import Layout from './Layout';
 import {
   Newspaper, TrendingUp, Calendar, User, Clock,
@@ -6,7 +6,7 @@ import {
   Bookmark, BookmarkCheck, Filter, Search, Eye, X
 } from 'lucide-react';
 
-/* ─── Design tokens ──────────────────────────────────────────── */
+/* â”€â”€â”€ Design tokens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const t = {
   primary:     '#4F6EF7',
   primarySoft: '#EEF1FE',
@@ -24,23 +24,23 @@ const t = {
   subtle:      '#9CA3AF',
 };
 
-/* ─── Category config ────────────────────────────────────────── */
+/* â”€â”€â”€ Category config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const catConfig = {
-  novidade:    { label: '🎉 Novidade',    bg: t.primarySoft, color: t.primary,  accent: t.primary,  badgeBg: '#DBEAFE', badgeColor: '#1D4ED8' },
-  'atualização':{ label: '🔄 Atualização',bg: t.successSoft, color: t.success,  accent: t.success,  badgeBg: '#D1FAE5', badgeColor: '#065F46' },
-  evento:      { label: '📅 Evento',      bg: t.purpleSoft,  color: t.purple,   accent: t.purple,   badgeBg: '#EDE9FE', badgeColor: '#5B21B6' },
-  dica:        { label: '💡 Dica',        bg: t.amberSoft,   color: t.amber,    accent: '#D97706',  badgeBg: '#FEF3C7', badgeColor: '#92400E' },
+  novidade:    { label: 'ðŸŽ‰ Novidade',    bg: t.primarySoft, color: t.primary,  accent: t.primary,  badgeBg: '#DBEAFE', badgeColor: '#1D4ED8' },
+  'atualizaÃ§Ã£o':{ label: 'ðŸ”„ AtualizaÃ§Ã£o',bg: t.successSoft, color: t.success,  accent: t.success,  badgeBg: '#D1FAE5', badgeColor: '#065F46' },
+  evento:      { label: 'ðŸ“… Evento',      bg: t.purpleSoft,  color: t.purple,   accent: t.purple,   badgeBg: '#EDE9FE', badgeColor: '#5B21B6' },
+  dica:        { label: 'ðŸ’¡ Dica',        bg: t.amberSoft,   color: t.amber,    accent: '#D97706',  badgeBg: '#FEF3C7', badgeColor: '#92400E' },
 };
 
 const ALL_CATS = [
-  { id: 'all',          label: 'Todas',        emoji: '📰' },
-  { id: 'novidade',     label: 'Novidades',    emoji: '🎉' },
-  { id: 'atualização',  label: 'Atualizações', emoji: '🔄' },
-  { id: 'evento',       label: 'Eventos',      emoji: '📅' },
-  { id: 'dica',         label: 'Dicas',        emoji: '💡' },
+  { id: 'all',          label: 'Todas',        emoji: 'ðŸ“°' },
+  { id: 'novidade',     label: 'Novidades',    emoji: 'ðŸŽ‰' },
+  { id: 'atualizaÃ§Ã£o',  label: 'AtualizaÃ§Ãµes', emoji: 'ðŸ”„' },
+  { id: 'evento',       label: 'Eventos',      emoji: 'ðŸ“…' },
+  { id: 'dica',         label: 'Dicas',        emoji: 'ðŸ’¡' },
 ];
 
-/* ─── Helpers ────────────────────────────────────────────────── */
+/* â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const cardBase = {
   background: t.surface,
   borderRadius: 18,
@@ -49,7 +49,7 @@ const cardBase = {
   overflow: 'hidden',
 };
 
-/* ─── Pill badge ─────────────────────────────────────────────── */
+/* â”€â”€â”€ Pill badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function Badge({ cat }) {
   const cfg = catConfig[cat] || catConfig['novidade'];
   return (
@@ -64,7 +64,7 @@ function Badge({ cat }) {
   );
 }
 
-/* ─── News Card ──────────────────────────────────────────────── */
+/* â”€â”€â”€ News Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function NewsCard({ id, category, title, excerpt, author, date, readTime, views, isBookmarked, onBookmark, imageUrl, tags = [] }) {
   const cfg = catConfig[category] || catConfig['novidade'];
   const [hovered, setHovered] = useState(false);
@@ -190,11 +190,11 @@ function NewsCard({ id, category, title, excerpt, author, date, readTime, views,
   );
 }
 
-/* ─── Featured Hero Card ─────────────────────────────────────── */
+/* â”€â”€â”€ Featured Hero Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function FeaturedCard({ title, description, imageUrl, category = 'novidade', ctaText = 'Saiba mais' }) {
   const gradients = {
     novidade:    'linear-gradient(135deg, #4F6EF7 0%, #6B8BF5 100%)',
-    'atualização':'linear-gradient(135deg, #10B981 0%, #34D399 100%)',
+    'atualizaÃ§Ã£o':'linear-gradient(135deg, #10B981 0%, #34D399 100%)',
     evento:      'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)',
     dica:        'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)',
   };
@@ -236,14 +236,14 @@ function FeaturedCard({ title, description, imageUrl, category = 'novidade', cta
          }}
         onMouseEnter={e=>e.target.style.background='#fff'}
         onMouseLeave={e=>e.target.style.background='rgba(255,255,255,0.95)'}>
-          {ctaText} →
+          {ctaText} â†’
         </button>
       </div>
     </div>
   );
 }
 
-/* ─── Quick Update ───────────────────────────────────────────── */
+/* â”€â”€â”€ Quick Update â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function QuickUpdateCard({ icon: Icon, title, description, date, color = 'blue' }) {
   const colors = {
     blue:   { bg: t.primarySoft, color: t.primary },
@@ -278,7 +278,7 @@ function QuickUpdateCard({ icon: Icon, title, description, date, color = 'blue' 
   );
 }
 
-/* ─── Main Component ─────────────────────────────────────────── */
+/* â”€â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export default function News() {
   const [news, setNews]           = useState([]);
   const [bookmarked, setBookmarked] = useState([]);
@@ -291,7 +291,7 @@ export default function News() {
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const itemsPerPage = 5;
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
 
   useEffect(() => {
     const loadNews = async () => {
@@ -301,13 +301,13 @@ export default function News() {
         const result = await response.json();
         if (result.success) {
           const transformed = result.data.map(item => {
-            // Parse seguro de tags — suporta string simples, JSON array, ou double-encoded
+            // Parse seguro de tags â€” suporta string simples, JSON array, ou double-encoded
             const parseTags = (raw) => {
               if (!raw) return [];
               if (Array.isArray(raw)) return raw;
               try {
                 let parsed = JSON.parse(raw);
-                // double-encoded: resultado ainda é string
+                // double-encoded: resultado ainda Ã© string
                 if (typeof parsed === 'string') parsed = JSON.parse(parsed);
                 if (Array.isArray(parsed)) return parsed;
                 if (typeof parsed === 'string') {
@@ -315,7 +315,7 @@ export default function News() {
                 }
                 return [];
               } catch {
-                // fallback: tratar como string separada por vírgulas
+                // fallback: tratar como string separada por vÃ­rgulas
                 return String(raw).replace(/['"\\]/g, '').split(',').map(t => t.trim()).filter(Boolean);
               }
             };
@@ -324,12 +324,12 @@ export default function News() {
 
             let category = 'novidade';
             if (tagsArr.some(t => t.toLowerCase().includes('evento'))) category = 'evento';
-            else if (tagsArr.some(t => t.toLowerCase().includes('atualização') || t.toLowerCase().includes('update'))) category = 'atualização';
+            else if (tagsArr.some(t => t.toLowerCase().includes('atualizaÃ§Ã£o') || t.toLowerCase().includes('update'))) category = 'atualizaÃ§Ã£o';
             else if (tagsArr.some(t => t.toLowerCase().includes('dica'))) category = 'dica';
             return {
               id: item.id, category,
               title: item.titulo,
-              excerpt: item.resumo || item.conteudo.substring(0, 150) + '…',
+              excerpt: item.resumo || item.conteudo.substring(0, 150) + 'â€¦',
               author: item.autor?.nome || item.usuario?.nome || 'Equipe COMAES',
               date: item.publicado_em
                 ? new Date(item.publicado_em).toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' })
@@ -345,12 +345,12 @@ export default function News() {
           setCatCounts({
             all: transformed.length,
             novidade:      transformed.filter(n => n.category === 'novidade').length,
-            'atualização': transformed.filter(n => n.category === 'atualização').length,
+            'atualizaÃ§Ã£o': transformed.filter(n => n.category === 'atualizaÃ§Ã£o').length,
             evento:        transformed.filter(n => n.category === 'evento').length,
             dica:          transformed.filter(n => n.category === 'dica').length,
           });
 
-          // Incrementar visualizações de todas as notícias carregadas (entrada na aba)
+          // Incrementar visualizaÃ§Ãµes de todas as notÃ­cias carregadas (entrada na aba)
           transformed.forEach(item => {
             fetch(`${API_BASE}/noticias/${item.id}/visualizar`, { method: 'POST' })
               .then(r => r.json())
@@ -361,11 +361,11 @@ export default function News() {
                   ));
                 }
               })
-              .catch(() => {}); // silencioso — não bloqueia a UI
+              .catch(() => {}); // silencioso â€” nÃ£o bloqueia a UI
           });
         }
       } catch (error) {
-        console.error("Erro ao carregar notícias:", error);
+        console.error("Erro ao carregar notÃ­cias:", error);
       } finally {
         setLoading(false);
       }
@@ -374,7 +374,7 @@ export default function News() {
   }, []);
 
   useEffect(() => {
-    setCurrentPage(1); // Volta para a primeira página ao filtrar ou pesquisar
+    setCurrentPage(1); // Volta para a primeira pÃ¡gina ao filtrar ou pesquisar
   }, [filter, search]);
 
   const filteredNews = news.filter(item => {
@@ -392,10 +392,10 @@ export default function News() {
   const handleNewsletter = (e) => {
     e.preventDefault();
     if (!emailNewsletter || !emailNewsletter.includes('@')) {
-      setToast({ show: true, message: 'Insira um e-mail válido.', type: 'error' });
+      setToast({ show: true, message: 'Insira um e-mail vÃ¡lido.', type: 'error' });
       return;
     }
-    setToast({ show: true, message: 'Inscrição realizada com sucesso! 🎉', type: 'success' });
+    setToast({ show: true, message: 'InscriÃ§Ã£o realizada com sucesso! ðŸŽ‰', type: 'success' });
     setEmailNewsletter('');
     setTimeout(() => setToast({ ...toast, show: false }), 4000);
   };
@@ -411,7 +411,7 @@ export default function News() {
 
   const featuredNews = (news.filter(n => n.tags.some(tg => tg.toLowerCase().includes('destaque'))) || news).slice(0, 2);
   const displayFeatured = featuredNews.length > 0 ? featuredNews : news.slice(0, 2);
-  const quickUpdates = news.filter(n => n.category === 'atualização' || n.category === 'novidade').slice(0, 3);
+  const quickUpdates = news.filter(n => n.category === 'atualizaÃ§Ã£o' || n.category === 'novidade').slice(0, 3);
   const popular = [...news].sort((a,b) => b.views - a.views).slice(0, 4);
 
   if (loading) {
@@ -420,7 +420,7 @@ export default function News() {
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         <div style={{  display:'flex', alignItems:'center', justifyContent:'center', height:'60vh', flexDirection:'column', gap:16  }}>
           <div style={{  width:40, height:40, borderRadius:'50%', border:`3px solid ${t.border}`, borderTopColor:t.primary, animation:'spin 0.8s linear infinite'  }}/>
-          <span style={{  color:t.muted, fontSize:15  }}>Carregando notícias…</span>
+          <span style={{  color:t.muted, fontSize:15  }}>Carregando notÃ­ciasâ€¦</span>
         </div>
       </Layout>
     );
@@ -436,7 +436,7 @@ export default function News() {
 
       <div style={{  maxWidth: 1200, margin: '0 auto'  }}>
 
-        {/* ── Page header ── */}
+        {/* â”€â”€ Page header â”€â”€ */}
         <div className="anim" style={{  marginBottom: 32, animationDelay:'0ms'  }}>
           <div style={{ 
             background: `linear-gradient(135deg, ${t.primary} 0%, #6B8BF5 100%)`,
@@ -450,15 +450,15 @@ export default function News() {
               <div style={{  display:'flex', alignItems:'center', gap:8, marginBottom:8  }}>
                 <Newspaper size={14} style={{  opacity:0.75  }}/>
                 <span style={{  fontSize:12, opacity:0.75, fontWeight:500, letterSpacing:'0.06em', textTransform:'uppercase'  }}>
-                  Notícias COMAES
+                  NotÃ­cias COMAES
                 </span>
               </div>
-              <h1 style={{  fontSize:28, fontWeight:800, marginBottom:6  }}>Notícias da Plataforma</h1>
-              <p style={{  fontSize:14, opacity:0.8  }}>Fique por dentro das novidades, atualizações e eventos</p>
+              <h1 style={{  fontSize:28, fontWeight:800, marginBottom:6  }}>NotÃ­cias da Plataforma</h1>
+              <p style={{  fontSize:14, opacity:0.8  }}>Fique por dentro das novidades, atualizaÃ§Ãµes e eventos</p>
             </div>
             <div style={{  display:'flex', gap:24, position:'relative'  }}>
               {[
-                { label:'Publicações', value: news.length },
+                { label:'PublicaÃ§Ãµes', value: news.length },
                 { label:'Salvos', value: bookmarked.length },
               ].map(s => (
                 <div key={s.label} style={{ 
@@ -472,7 +472,7 @@ export default function News() {
           </div>
         </div>
 
-        {/* ── Search + Filter bar ── */}
+        {/* â”€â”€ Search + Filter bar â”€â”€ */}
         <div className="anim" style={{  marginBottom:28, animationDelay:'50ms'  }}>
           <div style={{  display:'flex', gap:12, flexWrap:'wrap', alignItems:'center'  }}>
             {/* Search */}
@@ -480,7 +480,7 @@ export default function News() {
               <Search size={16} style={{  position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:t.subtle  }}/>
               <input
                 type="text"
-                placeholder="Pesquisar notícias, tags…"
+                placeholder="Pesquisar notÃ­cias, tagsâ€¦"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 style={{ 
@@ -534,7 +534,7 @@ export default function News() {
           </div>
         </div>
 
-        {/* ── Featured strip ── */}
+        {/* â”€â”€ Featured strip â”€â”€ */}
         {displayFeatured.length > 0 && (
           <div className="anim" style={{ 
             display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))',
@@ -547,7 +547,7 @@ export default function News() {
           </div>
         )}
 
-        {/* ── Main layout ── */}
+        {/* â”€â”€ Main layout â”€â”€ */}
         <div style={{  display:'flex', flexWrap: 'wrap', gap:24, alignItems:'start'  }}>
 
           {/* Left: news list */}
@@ -593,7 +593,7 @@ export default function News() {
                   ...cardBase, padding:'60px 24px', textAlign:'center',
                  }}>
                   <Newspaper size={40} style={{  color:t.border, margin:'0 auto 14px'  }}/>
-                  <h4 style={{  fontSize:16, fontWeight:600, color:t.text, marginBottom:6  }}>Nenhuma notícia encontrada</h4>
+                  <h4 style={{  fontSize:16, fontWeight:600, color:t.text, marginBottom:6  }}>Nenhuma notÃ­cia encontrada</h4>
                   <p style={{  fontSize:14, color:t.muted  }}>Tente alterar os filtros ou termos de busca</p>
                   <button onClick={() => { setFilter('all'); setSearch('');  }} style={{ 
                     marginTop:16, padding:'9px 20px', background:t.primarySoft,
@@ -638,28 +638,28 @@ export default function News() {
                     padding:'9px 16px', borderRadius:10, fontSize:13, fontWeight:600, cursor:'pointer',
                     border:`1.5px solid ${t.border}`, background: t.surface, color: t.muted, opacity: currentPage === totalPages ? 0.5 : 1
                   }}
-                >Próxima</button>
+                >PrÃ³xima</button>
               </div>
             )}
           </div>
 
-          {/* ── Sidebar ── */}
+          {/* â”€â”€ Sidebar â”€â”€ */}
           <div className="anim news-sidebar" style={{  display:'flex', flexDirection:'column', gap:18, flex: '1 1 310px', minWidth: 'min(100%, 310px)', animationDelay:'160ms'  }}>
 
             {/* Quick updates */}
             <div style={{  ...cardBase, padding:'22px 20px'  }}>
               <div style={{  display:'flex', alignItems:'center', gap:8, marginBottom:16, paddingBottom:14, borderBottom:`1px solid ${t.border}`  }}>
                 <Zap size={16} color={t.amber}/>
-                <span style={{  fontSize:15, fontWeight:700, color:t.text  }}>Atualizações Recentes</span>
+                <span style={{  fontSize:15, fontWeight:700, color:t.text  }}>AtualizaÃ§Ãµes Recentes</span>
               </div>
               <div style={{  display:'flex', flexDirection:'column', gap:8  }}>
                 {quickUpdates.map((n, i) => (
                   <QuickUpdateCard key={i}
-                    icon={n.category === 'atualização' ? TrendingUp : Zap}
+                    icon={n.category === 'atualizaÃ§Ã£o' ? TrendingUp : Zap}
                     title={n.title}
-                    description={n.excerpt.substring(0, 65) + '…'}
+                    description={n.excerpt.substring(0, 65) + 'â€¦'}
                     date={n.date}
-                    color={n.category === 'atualização' ? 'blue' : 'green'}
+                    color={n.category === 'atualizaÃ§Ã£o' ? 'blue' : 'green'}
                   />
                 ))}
               </div>
@@ -755,10 +755,10 @@ export default function News() {
              }}>
               <div style={{  position:'absolute', top:-30, right:-30, width:120, height:120, borderRadius:'50%', background:'rgba(255,255,255,0.07)'  }}/>
               <div style={{  position:'relative'  }}>
-                <div style={{  fontSize:18, marginBottom:8  }}>📬</div>
+                <div style={{  fontSize:18, marginBottom:8  }}>ðŸ“¬</div>
                 <h3 style={{  fontSize:15, fontWeight:700, color:'#fff', marginBottom:8  }}>Receba Novidades</h3>
                 <p style={{  fontSize:13, color:'rgba(255,255,255,0.75)', marginBottom:18, lineHeight:1.55  }}>
-                  Inscreva-se para receber as principais notícias por email
+                  Inscreva-se para receber as principais notÃ­cias por email
                 </p>
                 <form onSubmit={handleNewsletter}>
                   <input type="email" placeholder="Seu email"
@@ -778,7 +778,7 @@ export default function News() {
                  }}
                 onMouseEnter={e=>e.target.style.background='rgba(255,255,255,0.25)'}
                 onMouseLeave={e=>e.target.style.background='rgba(255,255,255,0.15)'}>
-                  Inscrever-se →
+                  Inscrever-se â†’
                 </button>
                 </form>
               </div>

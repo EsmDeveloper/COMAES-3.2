@@ -663,13 +663,19 @@ const getColaboradores = async (req, res) => {
     });
     
     console.log('✅ [getColaboradores] Colaboradores retornados:');
+    console.log('   Total:', colaboradores.length);
     if (colaboradores.length > 0) {
       console.log('   Primeiro:', {
         id: colaboradores[0].id,
         nome: colaboradores[0].nome,
+        status_colaborador: colaboradores[0].status_colaborador,
         disciplina_colaborador: colaboradores[0].disciplina_colaborador,
         nivel_academico: colaboradores[0].nivel_academico
       });
+      
+      // DEBUG: Mostrar todos os status unicos
+      const statuses = [...new Set(colaboradores.map(c => c.status_colaborador))];
+      console.log('   Status únicos encontrados:', statuses);
     }
     
     // Estatísticas
@@ -677,11 +683,14 @@ const getColaboradores = async (req, res) => {
     const aprovados = colaboradores.filter(c => c.status_colaborador === 'aprovado').length;
     const pendentes = colaboradores.filter(c => c.status_colaborador === 'pendente').length;
     const rejeitados = colaboradores.filter(c => c.status_colaborador === 'rejeitado').length;
+    const suspensos = colaboradores.filter(c => c.status_colaborador === 'suspenso').length;
+    
+    console.log('   Estatísticas:', { total, aprovados, pendentes, rejeitados, suspensos });
     
     res.status(200).json({
       message: 'Colaboradores obtidos com sucesso',
       data: colaboradores,
-      estatisticas: { total, aprovados, pendentes, rejeitados }
+      estatisticas: { total, aprovados, pendentes, rejeitados, suspensos }
     });
   } catch (error) {
     console.error('Erro ao obter colaboradores:', error);

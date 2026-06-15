@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { X, Save, AlertCircle, CheckCircle, Plus, Trash2 } from 'lucide-react';
@@ -6,11 +6,11 @@ import axios from 'axios';
 
 /**
  * CreateQuestaoTesteForm
- * Formulário para criar questões do Teste de Conhecimento
+ * FormulÃ¡rio para criar questÃµes do Teste de Conhecimento
  * 
  * Props:
- * - onClose: função para fechar o modal
- * - onSuccess: função chamada quando a questão é criada
+ * - onClose: funÃ§Ã£o para fechar o modal
+ * - onSuccess: funÃ§Ã£o chamada quando a questÃ£o Ã© criada
  * - categoriaFixa: (opcional) fixa a categoria se fornecida
  * - dificuldadeFixa: (opcional) fixa a dificuldade se fornecida
  */
@@ -55,7 +55,7 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
 
   const removerOpcao = (index) => {
     if (formData.opcoes.length <= 2) {
-      setError('Deve haver pelo menos 2 opções');
+      setError('Deve haver pelo menos 2 opÃ§Ãµes');
       setTimeout(() => setError(''), 3000);
       return;
     }
@@ -71,18 +71,18 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
     setLoading(true);
 
     try {
-      // Validações
+      // ValidaÃ§Ãµes
       if (!formData.enunciado.trim()) {
-        throw new Error('Enunciado é obrigatório');
+        throw new Error('Enunciado Ã© obrigatÃ³rio');
       }
 
       const opcoesValidas = formData.opcoes.filter(o => o.trim());
       if (opcoesValidas.length < 2) {
-        throw new Error('Adicione pelo menos 2 opções válidas');
+        throw new Error('Adicione pelo menos 2 opÃ§Ãµes vÃ¡lidas');
       }
 
       if (!formData.resposta_correta.trim()) {
-        throw new Error('Resposta correta é obrigatória');
+        throw new Error('Resposta correta Ã© obrigatÃ³ria');
       }
 
       // Preparar dados
@@ -96,20 +96,20 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
       };
 
       // Enviar para API
-      const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`;
+      const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
       const res = await axios.post(`${apiBase}/api/teste-conhecimento/questoes`, dados, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      // Chamar callback — passa a questão criada para que o BlocoQuestoesManager possa associá-la
+      // Chamar callback â€” passa a questÃ£o criada para que o BlocoQuestoesManager possa associÃ¡-la
       if (onSuccess) {
         const questaoCriada = res.data?.data || res.data?.dados || res.data || null;
         onSuccess(questaoCriada);
       }
     } catch (err) {
-      const mensagem = err.response?.data?.error || err.message || 'Erro ao criar questão';
+      const mensagem = err.response?.data?.error || err.message || 'Erro ao criar questÃ£o';
       setError(mensagem);
-      console.error('Erro ao criar questão:', err);
+      console.error('Erro ao criar questÃ£o:', err);
     } finally {
       setLoading(false);
     }
@@ -120,7 +120,7 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
       <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full my-8">
         {/* Header */}
         <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex items-center justify-between border-b border-purple-700 rounded-t-2xl">
-          <h2 className="text-2xl font-bold text-white">Nova Questão - Teste de Conhecimento</h2>
+          <h2 className="text-2xl font-bold text-white">Nova QuestÃ£o - Teste de Conhecimento</h2>
           <button
             onClick={onClose}
             className="text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
@@ -147,9 +147,9 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
               </label>
               {categoriaFixa ? (
                 <div className="px-4 py-2 bg-green-50 border border-green-200 rounded-lg text-green-800 font-medium">
-                  {formData.categoria === 'matematica' ? 'Matemática' :
-                   formData.categoria === 'programacao' ? 'Programação' :
-                   formData.categoria === 'ingles' ? 'Inglês' : 'Cultura Geral'}
+                  {formData.categoria === 'matematica' ? 'MatemÃ¡tica' :
+                   formData.categoria === 'programacao' ? 'ProgramaÃ§Ã£o' :
+                   formData.categoria === 'ingles' ? 'InglÃªs' : 'Cultura Geral'}
                   <input type="hidden" name="categoria" value={formData.categoria} />
                 </div>
               ) : (
@@ -159,9 +159,9 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
-                  <option value="matematica">Matemática</option>
-                  <option value="programacao">Programação</option>
-                  <option value="ingles">Inglês</option>
+                  <option value="matematica">MatemÃ¡tica</option>
+                  <option value="programacao">ProgramaÃ§Ã£o</option>
+                  <option value="ingles">InglÃªs</option>
                   <option value="cultura_geral">Cultura Geral</option>
                 </select>
               )}
@@ -173,8 +173,8 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
               </label>
               {dificuldadeFixa ? (
                 <div className="px-4 py-2 bg-green-50 border border-green-200 rounded-lg text-green-800 font-medium">
-                  {formData.dificuldade === 'facil' ? 'Fácil' :
-                   formData.dificuldade === 'medio' ? 'Médio' : 'Difícil'}
+                  {formData.dificuldade === 'facil' ? 'FÃ¡cil' :
+                   formData.dificuldade === 'medio' ? 'MÃ©dio' : 'DifÃ­cil'}
                   <input type="hidden" name="dificuldade" value={formData.dificuldade} />
                 </div>
               ) : (
@@ -184,9 +184,9 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
-                  <option value="facil">Fácil</option>
-                  <option value="medio">Médio</option>
-                  <option value="dificil">Difícil</option>
+                  <option value="facil">FÃ¡cil</option>
+                  <option value="medio">MÃ©dio</option>
+                  <option value="dificil">DifÃ­cil</option>
                 </select>
               )}
             </div>
@@ -201,17 +201,17 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
               name="enunciado"
               value={formData.enunciado}
               onChange={handleInputChange}
-              placeholder="Digite o enunciado da questão"
+              placeholder="Digite o enunciado da questÃ£o"
               required
               rows="4"
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
-          {/* Opções */}
+          {/* OpÃ§Ãµes */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Opções de Resposta *
+              OpÃ§Ãµes de Resposta *
             </label>
             <div className="space-y-2">
               {formData.opcoes.map((opcao, index) => (
@@ -223,7 +223,7 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
                     type="text"
                     value={opcao}
                     onChange={(e) => handleOpcaoChange(index, e.target.value)}
-                    placeholder={`Opção ${String.fromCharCode(65 + index)}`}
+                    placeholder={`OpÃ§Ã£o ${String.fromCharCode(65 + index)}`}
                     className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                   {formData.opcoes.length > 2 && (
@@ -244,7 +244,7 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
               className="mt-3 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              Adicionar Opção
+              Adicionar OpÃ§Ã£o
             </button>
           </div>
 
@@ -258,12 +258,12 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
               name="resposta_correta"
               value={formData.resposta_correta}
               onChange={handleInputChange}
-              placeholder="Digite a resposta correta (exatamente como aparece nas opções)"
+              placeholder="Digite a resposta correta (exatamente como aparece nas opÃ§Ãµes)"
               required
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
             <p className="text-xs text-slate-500 mt-1">
-              Dica: Copie e cole a opção correta para evitar erros
+              Dica: Copie e cole a opÃ§Ã£o correta para evitar erros
             </p>
           </div>
 
@@ -299,7 +299,7 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
               className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Save className="w-5 h-5" />
-              {loading ? 'Criando...' : 'Criar Questão'}
+              {loading ? 'Criando...' : 'Criar QuestÃ£o'}
             </button>
           </div>
         </form>

@@ -1,4 +1,4 @@
-// pages/Recuperar.jsx
+﻿// pages/Recuperar.jsx
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -20,7 +20,7 @@ function Recuperar() {
     } else {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        newErrors.email = "Digite um email válido";
+        newErrors.email = "Digite um email vÃ¡lido";
       }
     }
 
@@ -31,21 +31,21 @@ function Recuperar() {
     
     (async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3000`}/auth/recover`, {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/auth/recover`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email })
         });
         const body = await res.json();
         if (!res.ok) {
-          setErrors({ geral: body.error || 'Conta não encontrada' });
+          setErrors({ geral: body.error || 'Conta nÃ£o encontrada' });
           return;
         }
-        setSucesso(body.message || 'Enviamos um código de confirmação para o seu email.');
-        // Após recuperação bem-sucedida, redirecionar para login — não para Home
+        setSucesso(body.message || 'Enviamos um cÃ³digo de confirmaÃ§Ã£o para o seu email.');
+        // ApÃ³s recuperaÃ§Ã£o bem-sucedida, redirecionar para login â€” nÃ£o para Home
         setTimeout(() => navigate('/login'), 2000);
       } catch (err) {
-        setErrors({ geral: 'Erro ao processar recuperação. Tente novamente.' });
+        setErrors({ geral: 'Erro ao processar recuperaÃ§Ã£o. Tente novamente.' });
       }
     })();
   };
@@ -84,7 +84,7 @@ function Recuperar() {
           transition={{ duration: 0.5 }}
           className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-gray-200"
         >
-          {/* Logo no formulário */}
+          {/* Logo no formulÃ¡rio */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -115,7 +115,7 @@ function Recuperar() {
             transition={{ delay: 0.3 }}
             className="text-center text-gray-700 mb-6"
           >
-            Digite o seu <b>Email</b> para receber o código de confirmação.
+            Digite o seu <b>Email</b> para receber o cÃ³digo de confirmaÃ§Ã£o.
           </motion.p>
 
           {/* FORM */}
@@ -163,7 +163,7 @@ function Recuperar() {
               >
                 {sucesso}
                 <br />
-                <span className="text-gray-600">Redirecionando para a página inicial...</span>
+                <span className="text-gray-600">Redirecionando para a pÃ¡gina inicial...</span>
               </motion.div>
             )}
 
@@ -175,7 +175,7 @@ function Recuperar() {
               className="w-full mt-2 p-3 bg-blue-600 text-white rounded-xl text-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={sucesso}
             >
-              {sucesso ? "Enviado ✓" : "Enviar Código"}
+              {sucesso ? "Enviado âœ“" : "Enviar CÃ³digo"}
             </motion.button>
           </form>
 
