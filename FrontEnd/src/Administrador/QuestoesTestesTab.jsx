@@ -515,19 +515,33 @@ const QuestoesTestesTab = () => {
               </div>
             ) : (
               <div className="space-y-2 mb-6 max-h-48 overflow-y-auto">
-                {blocos.map(bloco => (
-                  <button
-                    key={bloco.id}
-                    onClick={() => handleAgruparEmBloco(bloco.id)}
-                    disabled={salvando}
-                    className="w-full p-3 text-left border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-colors disabled:opacity-50"
-                  >
-                    <p className="font-semibold text-gray-900">{bloco.titulo}</p>
-                    <p className="text-xs text-gray-500">
-                      {bloco.questoes?.length || 0} questões · {bloco.categoria?.toUpperCase() || 'Sem categoria'}
-                    </p>
-                  </button>
-                ))}
+                {blocos.map(bloco => {
+                  // Verificar compatibilidade de disciplina
+                  const disciplinaCompativel = questaoSelecionada?.disciplina === bloco.disciplina;
+                  
+                  return (
+                    <button
+                      key={bloco.id}
+                      onClick={() => disciplinaCompativel && handleAgruparEmBloco(bloco.id)}
+                      disabled={salvando || !disciplinaCompativel}
+                      className={`w-full p-3 text-left border rounded-lg transition-colors ${
+                        disciplinaCompativel 
+                          ? 'border-gray-200 hover:bg-blue-50 hover:border-blue-500' 
+                          : 'border-red-200 bg-red-50 cursor-not-allowed'
+                      }`}
+                    >
+                      <p className="font-semibold text-gray-900">{bloco.titulo}</p>
+                      <p className="text-xs text-gray-500">
+                        {bloco.questoes?.length || 0} questões · {bloco.disciplina?.toUpperCase() || 'Sem disciplina'}
+                      </p>
+                      {!disciplinaCompativel && (
+                        <p className="text-xs text-red-600 mt-1 font-semibold">
+                          ⚠️ Disciplina incompatível ({questaoSelecionada?.disciplina})
+                        </p>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
 
