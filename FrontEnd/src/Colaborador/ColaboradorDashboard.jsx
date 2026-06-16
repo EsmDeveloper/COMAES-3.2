@@ -59,6 +59,7 @@ const COR_DIFICULDADE = {
 const MAX_QUESTOES_POR_BLOCO = 30;
 
 const CriarBlocosTab = ({ token, apiBase }) => {
+  const navigate = useNavigate();
   const [blocos, setBlocos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submittingBlocoId, setSubmittingBlocoId] = useState(null);
@@ -496,9 +497,23 @@ const CriarBlocosTab = ({ token, apiBase }) => {
 
                       {/* Painel expandido */}
                       {expandedBlocoId === bloco.id && (
-                        <div className="border-t border-white/50 bg-white/80 px-4 py-6 text-center">
-                          <p className="text-sm text-slate-400">Nenhuma questão neste bloco.</p>
-                          <p className="text-xs text-slate-400 mt-2">As questões podem ser adicionadas após criação do bloco</p>
+                        <div className="border-t border-white/50 bg-white/80">
+                          <div className="px-4 py-6 text-center">
+                            <p className="text-sm text-slate-400">Nenhuma questão neste bloco.</p>
+                            <p className="text-xs text-slate-400 mt-2">Adicione pelo menos 5 questões para enviar para aprovação</p>
+                          </div>
+
+                          {/* Botão adicionar questão */}
+                          <div className="px-4 py-3 border-t border-slate-100">
+                            <button
+                              onClick={() => navigate('/colaborador/questoes', { state: { blocoId: bloco.id } })}
+                              disabled={loading}
+                              className="w-full py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-all bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50"
+                            >
+                              <Plus className="w-4 h-4" />
+                              Adicionar Questão
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
