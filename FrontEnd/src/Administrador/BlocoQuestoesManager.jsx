@@ -625,14 +625,11 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
         }
       }
       
-      // Fallback: simular blocos padrão para primeira execução
-      console.log(`📋 Usando blocos padrão (fallback)`);
-      const blocosIniciais = [];
-      dispatch({ type: 'SET_BLOCOS', payload: blocosIniciais });
-      // sem fallback
+      // Sem fallback - mostrar lista vazia quando não há blocos
+      dispatch({ type: 'SET_BLOCOS', payload: [] });
     } catch (err) {
-      console.error('❌ Erro ao carregar blocos:', err);
-      console.log(`Nenhum bloco encontrado ou erro ao carregar: ${err.message}`);
+      console.error('Erro ao carregar blocos:', err);
+      dispatch({ type: 'SET_BLOCOS', payload: [] });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
