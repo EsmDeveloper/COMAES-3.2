@@ -66,6 +66,10 @@ const CriarBlocosTab = ({ token, apiBase }) => {
   const [expandedBlocoId, setExpandedBlocoId] = useState(null);
   const [editingBloco, setEditingBloco] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showAddQuestaoModal, setShowAddQuestaoModal] = useState(false);
+  const [selectedBlocoForQuestoes, setSelectedBlocoForQuestoes] = useState(null);
+  const [questoesDisponiveis, setQuestoesDisponiveis] = useState([]);
+  const [carregandoQuestoes, setCarregandoQuestoes] = useState(false);
   const [formData, setFormData] = useState({
     titulo: '',
     descricao: '',
@@ -266,6 +270,66 @@ const CriarBlocosTab = ({ token, apiBase }) => {
       showMessage('Erro ao enviar bloco: ' + error.message, 'error');
     } finally {
       setSubmittingBlocoId(null);
+    }
+  };
+
+  const handleOpenAddQuestaoModal = async (bloco) => {
+    setSelectedBlocoForQuestoes(bloco);
+    setCarregandoQuestoes(true);
+    setShowAddQuestaoModal(true);
+    
+    try {
+      const response = await fetch(`${apiBase}/api/questoes/colaborador/minhas`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao carregar questões');
+      }
+
+      const data = await response.json();
+      const questoes = data.dados?.questoes || data.questoes || [];
+      setQuestoesDisponiveis(questoes);
+      console.log(`✅ ${questoes.length} questões carregadas`);
+    } catch (error) {
+      console.error('Erro ao carregar questões:', error);
+      showMessage('Erro ao carregar questões: ' + error.message, 'error');
+      setQuestoesDisponiveis([]);
+    } finally {
+      setCarregandoQuestoes(false);
+    }
+  };
+
+  const handleAdicionarQuestaoAoBloco = async (questaoId) => {
+    if (!selectedBlocoForQuestoes) return;
+
+    setCarregandoQuestoes(true);
+    try {
+      const response = await fetch(
+        `${apiBase}/api/colaborador/blocos/${selectedBlocoForQuestoes.id}/questoes/${questaoId}`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao adicionar questão');
+      }
+
+      showMessage('Questão adicionada ao bloco com sucesso!', 'success');
+      
+      // Remover questão da lista de disponíveis
+      setQuestoesDisponiveis(prev => prev.filter(q => q.id !== questaoId));
+      
+      // Recarregar blocos
+      setTimeout(() => carregarBlocos(), 500);
+    } catch (error) {
+      console.error('Erro:', error);
+      showMessage('Erro ao adicionar questão: ' + error.message, 'error');
+    } finally {
+      setCarregandoQuestoes(false);
     }
   };
 
@@ -506,8 +570,8 @@ const CriarBlocosTab = ({ token, apiBase }) => {
                           {/* Botão adicionar questão */}
                           <div className="px-4 py-3 border-t border-slate-100">
                             <button
-                              onClick={() => navigate('/colaborador/questoes', { state: { blocoId: bloco.id } })}
-                              disabled={loading}
+                              onClick={() => handleOpenAddQuestaoModal(bloco)}
+                              disabled={loading || carregandoQuestoes}
                               className="w-full py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-all bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50"
                             >
                               <Plus className="w-4 h-4" />
@@ -596,6 +660,76 @@ const CriarBlocosTab = ({ token, apiBase }) => {
                 className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
                 {loading ? 'Salvando...' : 'Salvar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Seleção de Questões */}
+      {showAddQuestaoModal && selectedBlocoForQuestoes && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-blue-50 rounded-t-2xl">
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">Adicionar Questões ao Bloco</h2>
+                <p className="text-xs text-slate-500 mt-1">{selectedBlocoForQuestoes.titulo}</p>
+              </div>
+              <button 
+                onClick={() => setShowAddQuestaoModal(false)} 
+                className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              {carregandoQuestoes ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3" />
+                  <p className="text-slate-500">Carregando questões...</p>
+                </div>
+              ) : questoesDisponiveis.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-slate-500">Nenhuma questão disponível</p>
+                  <p className="text-slate-400 text-sm mt-2">Crie questões primeiro para adicioná-las ao bloco</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {questoesDisponiveis.map((questao, index) => (
+                    <div 
+                      key={questao.id} 
+                      className="flex items-center justify-between p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-bold text-slate-400">{index + 1}.</span>
+                          <p className="text-sm font-medium text-slate-800 truncate">{questao.titulo || questao.enunciado}</p>
+                          <span className="px-2 py-0.5 text-xs rounded-full bg-slate-100 text-slate-700 whitespace-nowrap">
+                            {questao.dificuldade?.charAt(0).toUpperCase() + questao.dificuldade?.slice(1)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 truncate">{questao.enunciado || questao.descricao}</p>
+                      </div>
+                      <button
+                        onClick={() => handleAdicionarQuestaoAoBloco(questao.id)}
+                        disabled={carregandoQuestoes}
+                        className="ml-3 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 flex-shrink-0"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-slate-100 flex gap-3">
+              <button
+                onClick={() => setShowAddQuestaoModal(false)}
+                className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-semibold text-sm hover:bg-slate-200 transition-colors"
+              >
+                Fechar
               </button>
             </div>
           </div>
