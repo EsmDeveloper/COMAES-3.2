@@ -87,9 +87,8 @@ const QuestoesTestesTab = () => {
       }
       
       const data = await response.json();
-      // O backend retorna: { blocos: Array, total: number, page: number, limit: number, totalPages: number }
-      // ou: { data: { ... } } ou { dados: [...] }
-      const blocosData = data.blocos || data.data?.blocos || data.dados || data.data || [];
+      // O backend retorna: { success: true, data: { blocos: Array, total: number, ... } }
+      const blocosData = data.data?.blocos || data.blocos || [];
       
       // Validar que é um array
       if (!Array.isArray(blocosData)) {

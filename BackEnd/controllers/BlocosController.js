@@ -64,7 +64,7 @@ export const listarBlocos = async (req, res) => {
     } else {
       console.log(`🔎 Usuário ADMIN ${req.user.id} (${req.user.nome}) solicitou blocos`);
       // Admin vê:
-      // 1. Blocos criados por admin (role = 'admin')
+      // 1. Blocos criados por admin (role = 'admin') - SEM FILTRO DE STATUS (rascunho, aprovado, etc)
       // 2. Blocos APROVADOS de colaboradores (status = 'aprovado')
       // Não vê: blocos PENDENTES de colaboradores
       const admins = await User.findAll({
@@ -74,9 +74,9 @@ export const listarBlocos = async (req, res) => {
       const adminIds = admins.map(u => u.id);
       console.log(`✅ Admin IDs encontrados: ${adminIds.join(', ')}`);
       
-      // Usar OR: (criado por admin) OU (aprovado)
+      // Usar OR: (criado por admin - qualquer status) OU (aprovado de colaborador)
       where[Op.or] = [
-        { criado_por: { [Op.in]: adminIds } },  // Blocos do admin
+        { criado_por: { [Op.in]: adminIds } },  // Blocos do admin (todos os status)
         { status: 'aprovado' }  // Blocos aprovados (de colaboradores)
       ];
       console.log(`✅ Filtro aplicado: (criado_por IN (${adminIds.join(', ')}) OR status = 'aprovado')`);
