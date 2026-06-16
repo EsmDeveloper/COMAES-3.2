@@ -80,6 +80,9 @@ router.get('/estatisticas', canManageQuestoes, QuestoesController.estatisticas);
 // CRÍTICO: Deve vir ANTES de GET /:id para evitar conflito de rotas
 router.patch('/:id/aprovacao', isAdmin, QuestoesController.revisar);
 
+// Listar questões de um bloco (específico)
+router.get('/bloco/:blocoId', canManageQuestoes, QuestoesController.listarPorBloco);
+
 // Rotas genéricas com :id (estas vêm por último)
 // Obter questão por ID
 router.get('/:id', canManageQuestoes, QuestoesController.obter);

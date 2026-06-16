@@ -502,6 +502,54 @@ export const QuestoesController = {
   },
 
   /**
+   * GET /api/questoes/bloco/:blocoId
+   * Listar todas as questões de um bloco específico
+   */
+  listarPorBloco: async (req, res) => {
+    try {
+      const { blocoId } = req.params;
+
+      console.log(`📋 Listando questões do bloco ${blocoId}`);
+
+      // Buscar todas as questões associadas ao bloco
+      const questoes = await Questao.findAll({
+        where: { bloco_id: blocoId },
+        order: [['created_at', 'DESC']]
+      });
+
+      console.log(`✅ ${questoes.length} questões encontradas no bloco ${blocoId}`);
+
+      // Normalizar opções se necessário
+      const questoesNormalizadas = questoes.map(questao => {
+        const questaoData = questao.toJSON();
+        
+        if (questaoData.opcoes) {
+          if (typeof questaoData.opcoes === 'string') {
+            try {
+              questaoData.opcoes = JSON.parse(questaoData.opcoes);
+            } catch (e) {
+              questaoData.opcoes = [];
+            }
+          }
+          if (!Array.isArray(questaoData.opcoes)) {
+            questaoData.opcoes = [];
+          }
+        }
+
+        return questaoData;
+      });
+
+      respostaSucesso(res, 200, {
+        questoes: questoesNormalizadas,
+        total: questoes.length
+      }, 'Questões do bloco listadas com sucesso');
+    } catch (error) {
+      console.error('❌ Erro ao listar questões do bloco:', error);
+      respostaErro(res, 500, 'Erro ao listar questões do bloco', { detalhes: error.message });
+    }
+  },
+
+  /**
    * GET /api/questoes/quiz/:area
    * Carregar questões para quiz a partir de questoes_teste_conhecimento
    */

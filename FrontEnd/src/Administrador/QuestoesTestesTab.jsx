@@ -125,6 +125,9 @@ const QuestoesTestesTab = () => {
       const token = localStorage.getItem('comaes_token');
       const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
       
+      console.log(`🔗 Enviando questão ${questaoSelecionada.id} para bloco ${blocoId}`);
+      console.log(`📦 Payload:`, { questao_id: questaoSelecionada.id });
+      
       const response = await fetch(`${apiBase}/api/blocos/${blocoId}/questoes`, {
         method: 'POST',
         headers: {
@@ -136,6 +139,8 @@ const QuestoesTestesTab = () => {
         })
       });
 
+      console.log(`📊 Status da resposta: ${response.status}`);
+
       if (response.ok) {
         showFeedback('success', `✅ Questão adicionada ao bloco!`);
         setModalAgruparAberto(false);
@@ -146,9 +151,17 @@ const QuestoesTestesTab = () => {
         }, 1500);
       } else {
         const errorData = await response.json();
-        showFeedback('error', `❌ Erro: ${errorData?.mensagem || 'Erro ao agrupar'}`);
+        console.error(`❌ Erro da API (${response.status}):`, errorData);
+        console.error(`📋 Mensagem completa:`, JSON.stringify(errorData, null, 2));
+        
+        // Mostrar erro mais detalhado
+        const mensagemErro = errorData?.message || errorData?.mensagem || errorData?.msg || 'Erro ao agrupar';
+        const detalhes = errorData?.errors || errorData?.erros || errorData?.details || '';
+        
+        showFeedback('error', `❌ Erro: ${mensagemErro}${detalhes ? ` - ${detalhes}` : ''}`);
       }
     } catch (error) {
+      console.error('❌ Erro na requisição:', error);
       showFeedback('error', `❌ Erro: ${error.message}`);
     } finally {
       setSalvando(false);

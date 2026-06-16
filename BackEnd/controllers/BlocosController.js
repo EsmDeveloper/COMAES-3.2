@@ -20,7 +20,9 @@ import BlocoQuestoes from '../models/BlocoQuestoes.js';
 import BlocoQuestaoItem from '../models/BlocoQuestaoItem.js';
 import TorneioBloco from '../models/TorneioBloco.js';
 import QuestaoTesteConhecimento from '../models/QuestaoTesteConhecimento.js';
+import Questao from '../models/Questao.js';
 import Torneio from '../models/Torneio.js';
+import User from '../models/User.js';
 
 const MAX_QUESTOES_POR_BLOCO = 30;
 
@@ -38,6 +40,7 @@ const err = (res, msg, status = 400, details = null) =>
  * GET /api/blocos
  * Lista blocos. Admin vê todos; colaborador vê apenas da sua disciplina.
  * Suporta filtro por contexto (torneio/teste)
+ * ✅ NOVO: Retorna as questões dentro de cada bloco
  */
 export const listarBlocos = async (req, res) => {
   try {
@@ -49,9 +52,31 @@ export const listarBlocos = async (req, res) => {
       where.contexto = contexto;  // ✅ NOVO: Filtrar por contexto
     }
 
-    // Colaborador só vê sua disciplina
+    // ✅ IMPORTANTE: Separar blocos do Admin vs Colaborador
+    // Admin: vê apenas blocos criados por admin (criado_por deve ter is_colaborador = false)
+    // Colaborador: vê apenas seus próprios blocos
     if (req.user?.isColaborador) {
+      console.log(`🔎 Usuário COLABORADOR ${req.user.id} (${req.user.nome}) solicitou blocos`);
+      // Colaborador vê apenas SEUS blocos e sua disciplina
       where.disciplina = req.user.disciplina_colaborador;
+      where.criado_por = req.user.id;  // ✅ Filtrar para ver apenas seus blocos
+      console.log(`✅ Filtro aplicado: disciplina = "${req.user.disciplina_colaborador}", criado_por = ${req.user.id}`);
+    } else {
+      console.log(`🔎 Usuário ADMIN ${req.user.id} (${req.user.nome}) solicitou blocos`);
+      // Admin vê apenas blocos criados por admin
+      // Precisa usar uma subquery para verificar se criado_por é um admin
+      const admins = await User.findAll({
+        attributes: ['id'],
+        where: { is_colaborador: false }
+      });
+      const adminIds = admins.map(u => u.id);
+      console.log(`✅ Admin IDs encontrados: ${adminIds.join(', ')}`);
+      where.criado_por = { [Op.in]: adminIds };  // ✅ Apenas blocos de admin
+      console.log(`✅ Filtro aplicado: criado_por IN (${adminIds.join(', ')})`);
+    }
+
+    if (disciplina && req.user?.isColaborador) {
+      // Colaborador não pode ver outras disciplinas, então ignorar filtro
     } else if (disciplina) {
       where.disciplina = disciplina;
     }
@@ -68,18 +93,64 @@ export const listarBlocos = async (req, res) => {
       order: [['created_at', 'DESC']],
     });
 
-    // Contar questões de cada bloco
-    const blocosComContagem = await Promise.all(
+    // ✅ NOVO: Carregar questões e retornar dentro de cada bloco
+    const blocosComQuestoes = await Promise.all(
       rows.map(async (bloco) => {
-        const totalQuestoes = await BlocoQuestaoItem.count({
+        const blocoJSON = bloco.toJSON();
+        
+        // Carregar questões do novo modelo (Questao com bloco_id)
+        const questoesNovo = await Questao.findAll({
           where: { bloco_id: bloco.id },
+          attributes: ['id', 'titulo', 'descricao', 'disciplina', 'tipo', 'dificuldade', 'pontos', 'status_aprovacao']
         });
-        return { ...bloco.toJSON(), total_questoes: totalQuestoes };
+
+        // Carregar questões do modelo antigo (via BlocoQuestaoItem)
+        const questoesAntigas = await BlocoQuestaoItem.findAll({
+          where: { bloco_id: bloco.id },
+          include: [{
+            model: QuestaoTesteConhecimento,
+            as: 'questaoAntiga',  // ✅ Usar o alias correto definido nas associations
+            attributes: ['id', 'enunciado', 'dificuldade', 'pontos']
+          }]
+        });
+
+        // Combinar questões de ambos os modelos
+        const questoesFormat = [
+          ...questoesNovo.map(q => ({
+            id: q.id,
+            titulo: q.titulo,
+            enunciado: q.descricao,
+            disciplina: q.disciplina,
+            tipo: q.tipo,
+            dificuldade: q.dificuldade,
+            pontos: q.pontos,
+            status_aprovacao: q.status_aprovacao,
+            modelo: 'novo'
+          })),
+          ...questoesAntigas.map(item => ({
+            id: item.questaoAntiga?.id || item.questao_id,  // ✅ Usar questaoAntiga
+            titulo: item.questaoAntiga?.enunciado?.substring(0, 100) || 'Sem título',
+            enunciado: item.questaoAntiga?.enunciado,
+            dificuldade: item.questaoAntiga?.dificuldade,
+            pontos: item.questaoAntiga?.pontos,
+            modelo: 'antigo'
+          }))
+        ];
+
+        const totalQuestoes = questoesFormat.length;
+        
+        console.log(`📦 Bloco ${bloco.id} (${bloco.titulo}): ${questoesNovo.length} questões novo modelo + ${questoesAntigas.length} questões modelo antigo = ${totalQuestoes} total`);
+
+        return {
+          ...blocoJSON,
+          questoes: questoesFormat,
+          total_questoes: totalQuestoes
+        };
       })
     );
 
     return ok(res, {
-      blocos: blocosComContagem,
+      blocos: blocosComQuestoes,
       total: count,
       page: parseInt(page),
       limit: parseInt(limit),
@@ -266,40 +337,113 @@ export const deletarBloco = async (req, res) => {
 /**
  * POST /api/blocos/:id/questoes
  * Adiciona uma questão ao bloco.
+ * 
+ * Suporta dois tipos:
+ * 1. Questao (novo modelo unificado) - usa campo bloco_id diretamente
+ * 2. QuestaoTesteConhecimento (modelo antigo) - usa BlocoQuestaoItem
  */
 export const adicionarQuestao = async (req, res) => {
   try {
     const { id } = req.params;
     const { questao_id, ordem } = req.body;
 
-    if (!questao_id) return err(res, 'questao_id é obrigatório');
+    console.log(`\n🔗 [adicionarQuestao] Iniciando...`);
+    console.log(`   - blocoId: ${id}`);
+    console.log(`   - questaoId: ${questao_id}`);
+
+    if (!questao_id) {
+      console.error(`❌ questao_id ausente`);
+      return err(res, 'questao_id é obrigatório');
+    }
 
     const bloco = await BlocoQuestoes.findByPk(id);
-    if (!bloco) return err(res, 'Bloco não encontrado', 404);
+    if (!bloco) {
+      console.error(`❌ Bloco ${id} não encontrado`);
+      return err(res, 'Bloco não encontrado', 404);
+    }
+    console.log(`✅ Bloco encontrado:`, { id: bloco.id, titulo: bloco.titulo, disciplina: bloco.disciplina });
+
+    // Tentar primeiro com Questao (novo modelo unificado)
+    let questao = await Questao.findByPk(questao_id);
+    
+    if (questao) {
+      // ✅ Questão do novo modelo unificado
+      console.log(`✅ Questão encontrada no modelo Questao`);
+      console.log(`   - ID: ${questao.id}, Titulo: ${questao.titulo}, Disciplina: ${questao.disciplina}, BlocoID: ${questao.bloco_id}`);
+      
+      // Validar disciplina
+      if (questao.disciplina !== bloco.disciplina) {
+        const msg = `Questão de disciplina "${questao.disciplina}" não pode ser adicionada a bloco de disciplina "${bloco.disciplina}"`;
+        console.error(`❌ ${msg}`);
+        return err(res, msg, 422);
+      }
+
+      // Verificar se já está no bloco
+      if (questao.bloco_id === parseInt(id)) {
+        console.error(`❌ Questão já está neste bloco`);
+        return err(res, 'Questão já está neste bloco', 409);
+      }
+
+      // Contar questões existentes
+      const count = await Questao.count({ where: { bloco_id: id } });
+      console.log(`📊 Bloco tem ${count} questões`);
+      
+      if (count >= MAX_QUESTOES_POR_BLOCO) {
+        const msg = `Limite de ${MAX_QUESTOES_POR_BLOCO} questões por bloco atingido`;
+        console.error(`❌ ${msg}`);
+        return err(res, msg, 422);
+      }
+
+      // Atualizar questão para apontar ao bloco
+      await questao.update({ bloco_id: id });
+      console.log(`✅ Questão ${questao_id} adicionada ao bloco ${id} (novo modelo)`);
+      
+      return ok(res, questao, 'Questão adicionada ao bloco', 201);
+    } else {
+      console.log(`⚠️ Questão não encontrada no modelo Questao, tentando QuestaoTesteConhecimento...`);
+    }
+
+    // ❌ Não encontrou no novo modelo, tentar modelo antigo
+    questao = await QuestaoTesteConhecimento.findByPk(questao_id);
+    
+    if (!questao) {
+      console.error(`❌ Questão ${questao_id} não encontrada em nenhum modelo`);
+      return err(res, 'Questão não encontrada', 404);
+    }
+
+    console.log(`✅ Questão encontrada no modelo QuestaoTesteConhecimento`);
+    console.log(`   - ID: ${questao.id}, Categoria: ${questao.categoria}, Ativo: ${questao.ativo}`);
+
+    // Validar para QuestaoTesteConhecimento
+    if (!questao.ativo) {
+      console.error(`❌ Questão inativa`);
+      return err(res, 'Questão inativa não pode ser adicionada ao bloco', 422);
+    }
+    
+    if (questao.categoria !== bloco.disciplina) {
+      const msg = `Questão de categoria "${questao.categoria}" não pode ser adicionada a bloco de disciplina "${bloco.disciplina}"`;
+      console.error(`❌ ${msg}`);
+      return err(res, msg, 422);
+    }
 
     // Verificar limite
     const count = await BlocoQuestaoItem.count({ where: { bloco_id: id } });
+    console.log(`📊 Bloco tem ${count} questões (modelo antigo)`);
+    
     if (count >= MAX_QUESTOES_POR_BLOCO) {
-      return err(res, `Limite de ${MAX_QUESTOES_POR_BLOCO} questões por bloco atingido`, 422);
-    }
-
-    // Verificar se questão existe e pertence à mesma disciplina/categoria do bloco
-    const questao = await QuestaoTesteConhecimento.findByPk(questao_id);
-    if (!questao) return err(res, 'Questão não encontrada', 404);
-    if (!questao.ativo) return err(res, 'Questão inativa não pode ser adicionada ao bloco', 422);
-    if (questao.categoria !== bloco.disciplina) {
-      return err(
-        res,
-        `Questão de categoria "${questao.categoria}" não pode ser adicionada a bloco de disciplina "${bloco.disciplina}"`,
-        422
-      );
+      const msg = `Limite de ${MAX_QUESTOES_POR_BLOCO} questões por bloco atingido`;
+      console.error(`❌ ${msg}`);
+      return err(res, msg, 422);
     }
 
     // Verificar se já está no bloco
     const jaExiste = await BlocoQuestaoItem.findOne({
       where: { bloco_id: id, questao_id },
     });
-    if (jaExiste) return err(res, 'Questão já está neste bloco', 409);
+    if (jaExiste) {
+      console.error(`❌ Questão já está neste bloco`);
+      return err(res, 'Questão já está neste bloco', 409);
+    }
 
     const item = await BlocoQuestaoItem.create({
       bloco_id: parseInt(id),
@@ -307,10 +451,12 @@ export const adicionarQuestao = async (req, res) => {
       ordem: ordem ?? count,
     });
 
-    console.log(`✅ Questão ${questao_id} adicionada ao bloco ${id}`);
+    console.log(`✅ Questão ${questao_id} adicionada ao bloco ${id} (modelo antigo)`);
     return ok(res, item, 'Questão adicionada ao bloco', 201);
   } catch (error) {
-    console.error('❌ Erro ao adicionar questão ao bloco:', error);
+    console.error(`\n❌ ERRO em adicionarQuestao:`, error);
+    console.error(`   Stack:`, error.stack);
+    
     if (error.name === 'SequelizeUniqueConstraintError') {
       return err(res, 'Questão já está neste bloco', 409);
     }
@@ -321,18 +467,33 @@ export const adicionarQuestao = async (req, res) => {
 /**
  * DELETE /api/blocos/:id/questoes/:qid
  * Remove uma questão do bloco (não deleta a questão).
+ * Suporta ambos os modelos: Questao (novo) e QuestaoTesteConhecimento (antigo)
  */
 export const removerQuestao = async (req, res) => {
   try {
     const { id, qid } = req.params;
 
+    // Tentar primeiro com Questao (novo modelo)
+    let questao = await Questao.findOne({
+      where: { id: qid, bloco_id: id }
+    });
+
+    if (questao) {
+      // ✅ Removeu do novo modelo
+      await questao.update({ bloco_id: null });
+      console.log(`✅ Questão ${qid} removida do bloco ${id} (novo modelo)`);
+      return ok(res, null, 'Questão removida do bloco');
+    }
+
+    // Se não encontrou no novo modelo, tentar no antigo
     const item = await BlocoQuestaoItem.findOne({
       where: { bloco_id: id, questao_id: qid },
     });
+    
     if (!item) return err(res, 'Questão não encontrada neste bloco', 404);
 
     await item.destroy();
-    console.log(`✅ Questão ${qid} removida do bloco ${id}`);
+    console.log(`✅ Questão ${qid} removida do bloco ${id} (modelo antigo)`);
     return ok(res, null, 'Questão removida do bloco');
   } catch (error) {
     console.error('❌ Erro ao remover questão do bloco:', error);
