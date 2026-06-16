@@ -484,11 +484,10 @@ export const submeterBlocoColaborador = async (req, res) => {
  */
 export const adicionarQuestaoAoBlocoColaborador = async (req, res) => {
   try {
-    const { id } = req.params; // bloco_id
-    const { questao_id } = req.body;
-
-    if (!questao_id) {
-      return respostaErro(res, 400, 'questao_id é obrigatório');
+    const { id, questaoId } = req.params; // bloco_id e questao_id
+    
+    if (!questaoId) {
+      return respostaErro(res, 400, 'questaoId é obrigatório');
     }
 
     // Verificar se bloco existe e pertence ao colaborador
@@ -513,7 +512,7 @@ export const adicionarQuestaoAoBlocoColaborador = async (req, res) => {
     // Verificar se questão existe e pertence ao colaborador
     const questao = await Questao.findOne({
       where: {
-        id: questao_id,
+        id: questaoId,
         autor_id: req.user.id,
         disciplina: req.user.disciplina_colaborador // 🔴 VALIDAR DISCIPLINA
       }
