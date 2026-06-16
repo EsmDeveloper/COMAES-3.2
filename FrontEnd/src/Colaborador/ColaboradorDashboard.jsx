@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FileText, Plus, Clock, AlertCircle, CheckCircle, LogOut, Menu, X, Settings, UserCircle, Layers } from 'lucide-react';
+import { FileText, Plus, Clock, AlertCircle, CheckCircle, LogOut, Menu, X, Settings, UserCircle, Layers, Trash2, ChevronDown, ChevronUp, Edit, RefreshCw } from 'lucide-react';
 import './ColaboradorDashboard.css';
 
 // ============================================
@@ -31,82 +31,69 @@ const TabContent = ({ children }) => (
 // ============================================
 // COMPONENTE: Aba Criar Blocos
 // ============================================
+// ━━ Constantes (mesmo estilo do Admin) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const DISCIPLINAS = [
+  { id: 'matematica',  label: 'Matemática',  cor: 'blue'   },
+  { id: 'programacao', label: 'Programação', cor: 'indigo' },
+  { id: 'ingles',      label: 'Inglês',      cor: 'cyan'   },
+];
+
+const DIFICULDADES = [
+  { id: 'facil',   label: 'Fácil',   cor: 'blue'  },
+  { id: 'medio',   label: 'Médio',   cor: 'indigo' },
+  { id: 'dificil', label: 'Difícil', cor: 'cyan'    },
+];
+
+const COR_DISCIPLINA = {
+  blue:   { bg: 'bg-blue-50',   border: 'border-blue-200',   text: 'text-blue-700',   badge: 'bg-blue-100 text-blue-800'   },
+  indigo: { bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-700', badge: 'bg-indigo-100 text-indigo-800' },
+  cyan:   { bg: 'bg-cyan-50',   border: 'border-cyan-200',   text: 'text-cyan-700',   badge: 'bg-cyan-100 text-cyan-800'   },
+};
+
+const COR_DIFICULDADE = {
+  blue:   { bg: 'bg-blue-100',   text: 'text-blue-800',   dot: 'bg-blue-500'   },
+  indigo: { bg: 'bg-indigo-100', text: 'text-indigo-800', dot: 'bg-indigo-500' },
+  cyan:   { bg: 'bg-cyan-100',   text: 'text-cyan-800',   dot: 'bg-cyan-500'   },
+};
+
+const MAX_QUESTOES_POR_BLOCO = 30;
+
 const CriarBlocosTab = ({ token, apiBase }) => {
   const [blocos, setBlocos] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [expandedBlocoId, setExpandedBlocoId] = useState(null);
   const [formData, setFormData] = useState({
     titulo: '',
     descricao: '',
     disciplina: '',
-    dificuldade: 'facil',
-    status: 'rascunho'
+    dificuldade: 'facil'
   });
   const [message, setMessage] = useState({ text: '', type: '' });
 
-  const disciplinas = [
-    { id: 'matematica', label: 'Matemática' },
-    { id: 'ingles', label: 'Inglês' },
-    { id: 'programacao', label: 'Programação' }
-  ];
-
-  const dificuldades = [
-    { id: 'facil', label: 'Fácil' },
-    { id: 'medio', label: 'Médio' },
-    { id: 'dificil', label: 'Difícil' }
-  ];
-
   const carregarBlocos = useCallback(async () => {
-    console.log('🔄 Iniciando carregamento de blocos...');
-    console.log('Token:', token ? 'Presente' : 'Ausente');
-    console.log('API Base:', apiBase);
-    
+    console.log('🔄 Carregando blocos...');
     setLoading(true);
     try {
-      const url = `${apiBase}/api/colaborador/blocos`;
-      console.log('📡 Fazendo requisição para:', url);
-      
-      const response = await fetch(url, {
+      const response = await fetch(`${apiBase}/api/colaborador/blocos`, {
         headers: { 
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
       
-      console.log('📊 Status da resposta:', response.status);
-      console.log('📊 Headers da resposta:', Object.fromEntries(response.headers));
-      
       if (!response.ok) {
-        console.error(`❌ API retornou status ${response.status}`);
-        const errorText = await response.text();
-        console.error('Erro:', errorText);
-        setBlocos([]);
-        return;
+        throw new Error(`Erro ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('✅ Resposta completa:', JSON.stringify(data, null, 2));
+      const blocosList = data.dados?.blocos || [];
       
-      // Extrair blocos com debug
-      let blocosList = [];
-      console.log('🔍 Procurando blocos em:');
-      console.log('  - data.dados?.blocos:', data.dados?.blocos);
-      
-      if (data.dados && Array.isArray(data.dados.blocos)) {
-        blocosList = data.dados.blocos;
-        console.log('✅ Blocos encontrados em data.dados.blocos:', blocosList.length);
-      } else {
-        console.warn('⚠️ Estrutura de resposta inesperada:', data);
-        blocosList = [];
-      }
-      
-      console.log('📦 Blocos finais a setar:', blocosList);
+      console.log(`✅ ${blocosList.length} blocos carregados`);
       setBlocos(blocosList);
-      console.log('✅ Estado de blocos atualizado');
-      
     } catch (error) {
       console.error('❌ Erro ao carregar blocos:', error);
-      console.error('Stack:', error.stack);
       setBlocos([]);
+      showMessage('Erro ao carregar blocos', 'error');
     } finally {
       setLoading(false);
     }
@@ -142,8 +129,7 @@ const CriarBlocosTab = ({ token, apiBase }) => {
           titulo: formData.titulo,
           descricao: formData.descricao,
           disciplina: formData.disciplina,
-          dificuldade: formData.dificuldade,
-          status: formData.status
+          dificuldade: formData.dificuldade
         })
       });
 
@@ -153,7 +139,7 @@ const CriarBlocosTab = ({ token, apiBase }) => {
       }
 
       showMessage('Bloco criado com sucesso!', 'success');
-      setFormData({ titulo: '', descricao: '', disciplina: '', dificuldade: 'facil', status: 'rascunho' });
+      setFormData({ titulo: '', descricao: '', disciplina: '', dificuldade: 'facil' });
       // Recarregar blocos após criar com um pequeno delay
       setTimeout(() => carregarBlocos(), 500);
     } catch (error) {
@@ -250,7 +236,7 @@ const CriarBlocosTab = ({ token, apiBase }) => {
                   disabled={loading}
                 >
                   <option value="">Selecione uma disciplina</option>
-                  {disciplinas.map(d => (
+                  {DISCIPLINAS.map(d => (
                     <option key={d.id} value={d.id}>{d.label}</option>
                   ))}
                 </select>
@@ -266,24 +252,9 @@ const CriarBlocosTab = ({ token, apiBase }) => {
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   disabled={loading}
                 >
-                  {dificuldades.map(d => (
+                  {DIFICULDADES.map(d => (
                     <option key={d.id} value={d.id}>{d.label}</option>
                   ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Status
-                </label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  disabled={loading}
-                >
-                  <option value="rascunho">Rascunho</option>
-                  <option value="publicado">Publicado</option>
                 </select>
               </div>
 
@@ -298,16 +269,20 @@ const CriarBlocosTab = ({ token, apiBase }) => {
           </div>
         </div>
 
-        {/* Lista de Blocos */}
+        {/* Lista de Blocos - Estilo Admin */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-slate-800">Meus Blocos</h3>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-bold text-slate-800">Meus Blocos</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Crie e organize seus blocos de questões</p>
+              </div>
               <button
                 onClick={() => carregarBlocos()}
                 disabled={loading}
-                className="px-3 py-1 text-sm bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-lg font-medium transition-colors disabled:opacity-50"
+                className="px-3 py-1.5 text-sm bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-1"
               >
+                <RefreshCw className="w-3 h-3" />
                 {loading ? 'Recarregando...' : 'Recarregar'}
               </button>
             </div>
@@ -320,55 +295,103 @@ const CriarBlocosTab = ({ token, apiBase }) => {
             ) : blocos.length === 0 ? (
               <div className="text-center py-12">
                 <Layers className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500">Nenhum bloco criado ainda</p>
+                <p className="text-slate-500 font-medium">Nenhum bloco criado ainda</p>
                 <p className="text-slate-400 text-sm">Crie seu primeiro bloco usando o formulário ao lado</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4">
-                {blocos.map(bloco => (
-                  <div 
-                    key={bloco.id} 
-                    className="border border-slate-200 rounded-lg p-4 hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-slate-50 to-white"
-                  >
-                    <div className="flex items-start justify-between gap-4 mb-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h4 className="font-bold text-slate-800 truncate">{bloco.titulo}</h4>
-                          <span className={`px-2 py-0.5 text-xs rounded-full font-semibold whitespace-nowrap ${
-                            bloco.status === 'pendente' ? 'bg-yellow-100 text-yellow-700' :
-                            bloco.status === 'aprovado' ? 'bg-green-100 text-green-700' :
-                            'bg-red-100 text-red-700'
-                          }`}>
-                            {bloco.status === 'pendente' ? '⏳ Pendente' :
-                             bloco.status === 'aprovado' ? '✅ Aprovado' :
-                             '❌ Rejeitado'}
-                          </span>
+              <div className="space-y-3">
+                {blocos.map(bloco => {
+                  const disc = DISCIPLINAS.find(d => d.id === bloco.disciplina);
+                  const dif = DIFICULDADES.find(d => d.id === bloco.dificuldade);
+                  const corDisc = COR_DISCIPLINA[disc?.cor || 'blue'];
+                  const corDif = COR_DIFICULDADE[dif?.cor || 'green'];
+
+                  return (
+                    <div 
+                      key={bloco.id} 
+                      className={`rounded-2xl border-2 ${corDisc.border} ${corDisc.bg} overflow-hidden transition-all duration-200 hover:shadow-md`}
+                    >
+                      <div className="p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            {/* Badges */}
+                            <div className="flex items-center gap-2 flex-wrap mb-2">
+                              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${corDisc.badge}`}>
+                                {disc?.label}
+                              </span>
+                              <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${corDif.bg} ${corDif.text}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${corDif.dot}`} />
+                                {dif?.label}
+                              </span>
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
+                                bloco.status === 'pendente' ? 'bg-yellow-100 text-yellow-700' :
+                                bloco.status === 'aprovado' ? 'bg-green-100 text-green-700' :
+                                'bg-red-100 text-red-700'
+                              }`}>
+                                {bloco.status === 'pendente' ? '⏳ Pendente' :
+                                 bloco.status === 'aprovado' ? '✅ Aprovado' :
+                                 '❌ Rejeitado'}
+                              </span>
+                            </div>
+
+                            {/* Título */}
+                            <h3 className="font-bold text-slate-800 truncate mb-1">{bloco.titulo}</h3>
+
+                            {/* Descrição */}
+                            {bloco.descricao && (
+                              <p className="text-xs text-slate-500 mb-2 line-clamp-1">{bloco.descricao}</p>
+                            )}
+
+                            {/* Questões */}
+                            <p className="text-xs text-slate-500">
+                              <span className="font-semibold text-slate-700">0</span>
+                              /{MAX_QUESTOES_POR_BLOCO} questões
+                            </p>
+                          </div>
+
+                          {/* Botões de ação */}
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <button
+                              onClick={() => setExpandedBlocoId(expandedBlocoId === bloco.id ? null : bloco.id)}
+                              className="p-1.5 rounded-lg text-slate-500 hover:bg-white transition-colors"
+                              title={expandedBlocoId === bloco.id ? 'Recolher' : 'Expandir'}
+                            >
+                              {expandedBlocoId === bloco.id ? (
+                                <ChevronUp className="w-4 h-4" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4" />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleDelete(bloco.id)}
+                              disabled={loading}
+                              className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 transition-colors disabled:opacity-50"
+                              title="Excluir bloco"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
-                        {bloco.descricao && (
-                          <p className="text-sm text-slate-600 line-clamp-2 mb-2">{bloco.descricao}</p>
-                        )}
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
-                            🎓 {disciplinas.find(d => d.id === bloco.disciplina)?.label || bloco.disciplina}
-                          </span>
-                          <span className="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded-full font-medium">
-                            📊 {dificuldades.find(d => d.id === bloco.dificuldade)?.label || bloco.dificuldade}
-                          </span>
+
+                        {/* Barra de progresso */}
+                        <div className="mt-2 h-1.5 bg-white/60 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-300 bg-blue-400"
+                            style={{ width: '0%' }}
+                          />
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleDelete(bloco.id)}
-                          disabled={loading}
-                          className="px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-1"
-                          title="Deletar bloco"
-                        >
-                          🗑️
-                        </button>
-                      </div>
+
+                      {/* Painel expandido */}
+                      {expandedBlocoId === bloco.id && (
+                        <div className="border-t border-white/50 bg-white/80 px-4 py-6 text-center">
+                          <p className="text-sm text-slate-400">Nenhuma questão neste bloco.</p>
+                          <p className="text-xs text-slate-400 mt-2">As questões podem ser adicionadas após criação do bloco</p>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
