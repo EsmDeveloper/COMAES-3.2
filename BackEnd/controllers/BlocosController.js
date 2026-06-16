@@ -64,12 +64,12 @@ export const listarBlocos = async (req, res) => {
     } else {
       console.log(`🔎 Usuário ADMIN ${req.user.id} (${req.user.nome}) solicitou blocos`);
       // Admin vê:
-      // 1. Blocos criados por admin
-      // 2. Blocos APROVADOS de colaboradores
+      // 1. Blocos criados por admin (role = 'admin')
+      // 2. Blocos APROVADOS de colaboradores (status = 'aprovado')
       // Não vê: blocos PENDENTES de colaboradores
       const admins = await User.findAll({
         attributes: ['id'],
-        where: { is_colaborador: false }
+        where: { role: 'admin' }  // ✅ Usar role = 'admin', não is_colaborador
       });
       const adminIds = admins.map(u => u.id);
       console.log(`✅ Admin IDs encontrados: ${adminIds.join(', ')}`);
