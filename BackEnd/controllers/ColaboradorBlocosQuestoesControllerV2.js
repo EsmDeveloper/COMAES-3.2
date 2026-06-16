@@ -528,13 +528,13 @@ export const adicionarQuestaoAoBlocoColaborador = async (req, res) => {
       return respostaErro(res, 404, 'Questão não encontrada ou não pertence a você');
     }
 
-    console.log(`✅ Questão encontrada: ${questao.id}`);
+    console.log(`✅ Questão encontrada: ${questao.id}, bloco_id atual: ${questao.bloco_id}`);
 
-    // ⚠️ Questão já está em um bloco?
-    if (questao.bloco_id && questao.bloco_id !== id) {
-      console.warn(`⚠️ Questão já associada a outro bloco: ${questao.bloco_id}`);
-      return respostaErro(res, 400, 
-        'Questão já está associada a outro bloco. Remova dela primeiro.');
+    // ⚠️ Questão já está em um bloco diferente? Se sim, remover de lá primeiro
+    // (Permitir reasociação entre blocos)
+    if (questao.bloco_id && questao.bloco_id !== parseInt(id)) {
+      console.warn(`⚠️ Questão já estava associada ao bloco ${questao.bloco_id}, reassociando para ${id}`);
+      // Continuar e reasociar
     }
 
     // Contar quantas questões já existem no bloco
