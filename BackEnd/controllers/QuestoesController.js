@@ -42,7 +42,7 @@ const validarQuestao = (dados) => {
   const erros = [];
 
   if (!dados.titulo) erros.push('titulo é obrigatório');
-  if (!dados.descricao) erros.push('descricao é obrigatória');
+  if (!dados.descricao && !dados.enunciado) erros.push('descricao ou enunciado é obrigatório');
   if (!dados.disciplina) erros.push('disciplina é obrigatória');
   if (!dados.tipo) erros.push('tipo é obrigatório');
   if (!dados.dificuldade) erros.push('dificuldade é obrigatória');
@@ -754,6 +754,11 @@ export const QuestoesController = {
   createQuestao: async (req, res) => {
     try {
       const dados = { ...req.body };
+
+      // Normalizar enunciado → descricao
+      if (dados.enunciado && !dados.descricao) {
+        dados.descricao = dados.enunciado;
+      }
 
       // Verificar se é colaborador
       const isColaborador = req.user?.isColaborador || req.user?.role === 'colaborador';
