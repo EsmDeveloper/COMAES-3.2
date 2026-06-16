@@ -305,18 +305,24 @@ const CriarBlocosTab = ({ token, apiBase }) => {
 
     setCarregandoQuestoes(true);
     try {
-      const response = await fetch(
-        `${apiBase}/api/colaborador/blocos/${selectedBlocoForQuestoes.id}/questoes/${questaoId}`,
-        {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      const url = `${apiBase}/api/colaborador/blocos/${selectedBlocoForQuestoes.id}/questoes/${questaoId}`;
+      console.log(`🔗 Enviando para: ${url}`);
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      console.log(`📊 Status: ${response.status}`);
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Erro ao adicionar questão');
+        console.error(`❌ Erro da API:`, errorData);
+        throw new Error(errorData.message || errorData.erros?.detalhes || 'Erro ao adicionar questão');
       }
+
+      const data = await response.json();
+      console.log(`✅ Resposta:`, data);
 
       showMessage('Questão adicionada ao bloco com sucesso!', 'success');
       

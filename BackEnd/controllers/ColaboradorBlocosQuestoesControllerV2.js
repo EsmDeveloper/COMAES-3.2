@@ -486,6 +486,8 @@ export const adicionarQuestaoAoBlocoColaborador = async (req, res) => {
   try {
     const { id, questaoId } = req.params; // bloco_id e questao_id
     
+    console.log(`📝 Tentando adicionar questão ao bloco:`, { blocoId: id, questaoId, userId: req.user.id });
+    
     if (!questaoId) {
       return respostaErro(res, 400, 'questaoId é obrigatório');
     }
@@ -500,8 +502,11 @@ export const adicionarQuestaoAoBlocoColaborador = async (req, res) => {
     });
 
     if (!bloco) {
+      console.error(`❌ Bloco não encontrado: id=${id}, criado_por=${req.user.id}, disciplina=${req.user.disciplina_colaborador}`);
       return respostaErro(res, 404, 'Bloco não encontrado');
     }
+
+    console.log(`✅ Bloco encontrado: ${bloco.id}, status: ${bloco.status}`);
 
     // ⚠️ Pode adicionar questões apenas se bloco está em 'pendente'
     if (bloco.status !== 'pendente') {
@@ -519,11 +524,15 @@ export const adicionarQuestaoAoBlocoColaborador = async (req, res) => {
     });
 
     if (!questao) {
+      console.error(`❌ Questão não encontrada: id=${questaoId}, autor_id=${req.user.id}, disciplina=${req.user.disciplina_colaborador}`);
       return respostaErro(res, 404, 'Questão não encontrada ou não pertence a você');
     }
 
+    console.log(`✅ Questão encontrada: ${questao.id}`);
+
     // ⚠️ Questão já está em um bloco?
     if (questao.bloco_id && questao.bloco_id !== id) {
+      console.warn(`⚠️ Questão já associada a outro bloco: ${questao.bloco_id}`);
       return respostaErro(res, 400, 
         'Questão já está associada a outro bloco. Remova dela primeiro.');
     }
@@ -542,9 +551,10 @@ export const adicionarQuestaoAoBlocoColaborador = async (req, res) => {
     questao.bloco_id = id;
     await questao.save();
 
+    console.log(`✅ Questão adicionada ao bloco com sucesso: questão_id=${questao.id}, bloco_id=${id}`);
     respostaSucesso(res, 200, questao, 'Questão adicionada ao bloco com sucesso');
   } catch (error) {
-    console.error('Erro ao adicionar questão ao bloco:', error);
+    console.error('❌ Erro ao adicionar questão ao bloco:', error);
     respostaErro(res, 500, 'Erro ao adicionar questão', { detalhes: error.message });
   }
 };
