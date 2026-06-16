@@ -90,18 +90,13 @@ const CriarBlocosTab = ({ token, apiBase }) => {
       let blocosList = [];
       console.log('🔍 Procurando blocos em:');
       console.log('  - data.dados?.blocos:', data.dados?.blocos);
-      console.log('  - data.blocos:', data.blocos);
-      console.log('  - data.dados:', data.dados);
       
       if (data.dados && Array.isArray(data.dados.blocos)) {
         blocosList = data.dados.blocos;
         console.log('✅ Blocos encontrados em data.dados.blocos:', blocosList.length);
-      } else if (Array.isArray(data.blocos)) {
-        blocosList = data.blocos;
-        console.log('✅ Blocos encontrados em data.blocos:', blocosList.length);
-      } else if (Array.isArray(data.dados)) {
-        blocosList = data.dados;
-        console.log('✅ Blocos encontrados em data.dados:', blocosList.length);
+      } else {
+        console.warn('⚠️ Estrutura de resposta inesperada:', data);
+        blocosList = [];
       }
       
       console.log('📦 Blocos finais a setar:', blocosList);
@@ -118,10 +113,10 @@ const CriarBlocosTab = ({ token, apiBase }) => {
   }, [token, apiBase]);
 
   useEffect(() => {
-    // Por enquanto, não carregamos blocos automaticamente devido a erro no backend
-    // Após criar, recarregamos manualmente
     console.log('✅ Componente CriarBlocosTab montado');
-  }, []);
+    // Carregar blocos quando o componente é montado
+    carregarBlocos();
+  }, [carregarBlocos]);
 
   const showMessage = (text, type = 'success') => {
     setMessage({ text, type });
@@ -318,49 +313,59 @@ const CriarBlocosTab = ({ token, apiBase }) => {
             </div>
 
             {loading && blocos.length === 0 ? (
-              <div className="text-center py-8">
+              <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3" />
                 <p className="text-slate-500">Carregando blocos...</p>
               </div>
             ) : blocos.length === 0 ? (
-              <div className="text-center py-8">
+              <div className="text-center py-12">
                 <Layers className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-500">Nenhum bloco criado ainda</p>
                 <p className="text-slate-400 text-sm">Crie seu primeiro bloco usando o formulário ao lado</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 gap-4">
                 {blocos.map(bloco => (
-                  <div key={bloco.id} className="border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between gap-4">
+                  <div 
+                    key={bloco.id} 
+                    className="border border-slate-200 rounded-lg p-4 hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-slate-50 to-white"
+                  >
+                    <div className="flex items-start justify-between gap-4 mb-3">
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-slate-800 truncate">{bloco.titulo}</h4>
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="font-bold text-slate-800 truncate">{bloco.titulo}</h4>
+                          <span className={`px-2 py-0.5 text-xs rounded-full font-semibold whitespace-nowrap ${
+                            bloco.status === 'pendente' ? 'bg-yellow-100 text-yellow-700' :
+                            bloco.status === 'aprovado' ? 'bg-green-100 text-green-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {bloco.status === 'pendente' ? '⏳ Pendente' :
+                             bloco.status === 'aprovado' ? '✅ Aprovado' :
+                             '❌ Rejeitado'}
+                          </span>
+                        </div>
                         {bloco.descricao && (
-                          <p className="text-sm text-slate-600 mt-1 line-clamp-2">{bloco.descricao}</p>
+                          <p className="text-sm text-slate-600 line-clamp-2 mb-2">{bloco.descricao}</p>
                         )}
-                        <div className="flex items-center gap-2 mt-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
-                            {disciplinas.find(d => d.id === bloco.disciplina)?.label || bloco.disciplina}
+                            🎓 {disciplinas.find(d => d.id === bloco.disciplina)?.label || bloco.disciplina}
                           </span>
                           <span className="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded-full font-medium">
-                            {dificuldades.find(d => d.id === bloco.dificuldade)?.label || bloco.dificuldade}
-                          </span>
-                          <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                            bloco.status === 'publicado'
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-yellow-100 text-yellow-700'
-                          }`}>
-                            {bloco.status === 'publicado' ? 'Publicado' : 'Rascunho'}
+                            📊 {dificuldades.find(d => d.id === bloco.dificuldade)?.label || bloco.dificuldade}
                           </span>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleDelete(bloco.id)}
-                        disabled={loading}
-                        className="px-3 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-                      >
-                        Deletar
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleDelete(bloco.id)}
+                          disabled={loading}
+                          className="px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-1"
+                          title="Deletar bloco"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
