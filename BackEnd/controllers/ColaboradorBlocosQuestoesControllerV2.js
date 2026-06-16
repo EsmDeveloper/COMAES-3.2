@@ -271,7 +271,7 @@ export const listarBlocosColaborador = async (req, res) => {
         {
           model: Usuario,
           as: 'criador',
-          attributes: ['id', 'name', 'email']
+          attributes: ['id', 'nome', 'email']
         }
       ]
     });
@@ -326,12 +326,12 @@ export const obterBlocoColaborador = async (req, res) => {
         {
           model: Usuario,
           as: 'criador',
-          attributes: ['id', 'name', 'email']
+          attributes: ['id', 'nome', 'email']
         },
         {
           model: Usuario,
           as: 'aprovadorAdmin',
-          attributes: ['id', 'name', 'email'],
+          attributes: ['id', 'nome', 'email'],
           foreignKey: 'aprovado_por_id'
         }
       ]
@@ -750,12 +750,12 @@ export const listarQuestoesColaborador = async (req, res) => {
         {
           model: Usuario,
           as: 'autor',
-          attributes: ['id', 'name', 'email']
+          attributes: ['id', 'nome', 'email']
         },
         {
           model: Usuario,
           as: 'revisadoPor',
-          attributes: ['id', 'name', 'email'],
+          attributes: ['id', 'nome', 'email'],
           foreignKey: 'revisado_por'
         }
       ]
@@ -811,12 +811,12 @@ export const obterQuestaoColaborador = async (req, res) => {
         {
           model: Usuario,
           as: 'autor',
-          attributes: ['id', 'name', 'email']
+          attributes: ['id', 'nome', 'email']
         },
         {
           model: Usuario,
           as: 'revisadoPor',
-          attributes: ['id', 'name', 'email'],
+          attributes: ['id', 'nome', 'email'],
           foreignKey: 'revisado_por'
         }
       ]
@@ -1029,12 +1029,12 @@ export const listarBlocosPendentesAdmin = async (req, res) => {
         {
           model: Usuario,
           as: 'criador',
-          attributes: ['id', 'name', 'email', 'disciplina_colaborador']
+          attributes: ['id', 'nome', 'email', 'disciplina_colaborador']
         },
         {
           model: Usuario,
           as: 'aprovadorAdmin',
-          attributes: ['id', 'name', 'email'],
+          attributes: ['id', 'nome', 'email'],
           foreignKey: 'aprovado_por_id'
         }
       ]
@@ -1216,12 +1216,12 @@ export const listarQuestoesPendentesAdmin = async (req, res) => {
         {
           model: Usuario,
           as: 'autor',
-          attributes: ['id', 'name', 'email', 'disciplina_colaborador']
+          attributes: ['id', 'nome', 'email', 'disciplina_colaborador']
         },
         {
           model: Usuario,
           as: 'revisadoPor',
-          attributes: ['id', 'name', 'email'],
+          attributes: ['id', 'nome', 'email'],
           foreignKey: 'revisado_por'
         }
       ]
