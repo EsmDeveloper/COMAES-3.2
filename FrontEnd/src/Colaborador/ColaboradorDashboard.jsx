@@ -62,7 +62,15 @@ const CriarBlocosTab = ({ token, apiBase }) => {
   const [blocos, setBlocos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [expandedBlocoId, setExpandedBlocoId] = useState(null);
+  const [editingBloco, setEditingBloco] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [formData, setFormData] = useState({
+    titulo: '',
+    descricao: '',
+    disciplina: '',
+    dificuldade: 'facil'
+  });
+  const [editFormData, setEditFormData] = useState({
     titulo: '',
     descricao: '',
     disciplina: '',
@@ -170,6 +178,56 @@ const CriarBlocosTab = ({ token, apiBase }) => {
     } catch (error) {
       console.error('Erro:', error);
       showMessage('Erro ao excluir bloco: ' + error.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditClick = (bloco) => {
+    setEditingBloco(bloco);
+    setEditFormData({
+      titulo: bloco.titulo,
+      descricao: bloco.descricao || '',
+      disciplina: bloco.disciplina,
+      dificuldade: bloco.dificuldade
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editFormData.titulo.trim()) {
+      showMessage('O título é obrigatório', 'error');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${apiBase}/api/colaborador/blocos/${editingBloco.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          titulo: editFormData.titulo.trim(),
+          descricao: editFormData.descricao.trim() || null,
+          disciplina: editFormData.disciplina,
+          dificuldade: editFormData.dificuldade
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao atualizar');
+      }
+
+      showMessage('Bloco atualizado com sucesso', 'success');
+      setShowEditModal(false);
+      setEditingBloco(null);
+      setTimeout(() => carregarBlocos(), 500);
+    } catch (error) {
+      console.error('Erro:', error);
+      showMessage('Erro ao atualizar bloco: ' + error.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -352,6 +410,13 @@ const CriarBlocosTab = ({ token, apiBase }) => {
                           {/* Botões de ação */}
                           <div className="flex items-center gap-1 flex-shrink-0">
                             <button
+                              onClick={() => handleEditClick(bloco)}
+                              className="p-1.5 rounded-lg text-slate-500 hover:bg-white transition-colors"
+                              title="Editar bloco"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
                               onClick={() => setExpandedBlocoId(expandedBlocoId === bloco.id ? null : bloco.id)}
                               className="p-1.5 rounded-lg text-slate-500 hover:bg-white transition-colors"
                               title={expandedBlocoId === bloco.id ? 'Recolher' : 'Expandir'}
@@ -397,6 +462,83 @@ const CriarBlocosTab = ({ token, apiBase }) => {
           </div>
         </div>
       </div>
+
+      {/* Modal de Edição de Bloco */}
+      {showEditModal && editingBloco && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-blue-50 rounded-t-2xl">
+              <h2 className="text-lg font-bold text-slate-800">Editar Bloco</h2>
+              <button 
+                onClick={() => setShowEditModal(false)} 
+                className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Título do bloco *</label>
+                <input
+                  type="text"
+                  value={editFormData.titulo}
+                  onChange={e => setEditFormData({ ...editFormData, titulo: e.target.value })}
+                  placeholder="Ex: Álgebra Avançada"
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Descrição</label>
+                <textarea
+                  value={editFormData.descricao}
+                  onChange={e => setEditFormData({ ...editFormData, descricao: e.target.value })}
+                  rows={2}
+                  placeholder="Descrição opcional do bloco..."
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Disciplina *</label>
+                  <select
+                    value={editFormData.disciplina}
+                    onChange={e => setEditFormData({ ...editFormData, disciplina: e.target.value })}
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {DISCIPLINAS.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Dificuldade *</label>
+                  <select
+                    value={editFormData.dificuldade}
+                    onChange={e => setEditFormData({ ...editFormData, dificuldade: e.target.value })}
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {DIFICULDADES.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-slate-100 flex gap-3">
+              <button
+                onClick={() => setShowEditModal(false)}
+                disabled={loading}
+                className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-semibold text-sm hover:bg-slate-200 transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                disabled={loading}
+                className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Salvando...' : 'Salvar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </TabContent>
   );
 };
