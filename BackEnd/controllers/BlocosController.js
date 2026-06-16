@@ -53,7 +53,7 @@ export const listarBlocos = async (req, res) => {
     }
 
     // ✅ IMPORTANTE: Separar blocos do Admin vs Colaborador
-    // Admin: vê apenas blocos criados por admin (criado_por deve ter is_colaborador = false)
+    // Admin: vê blocos DELE ou blocos APROVADOS de colaboradores (para gerenciar torneios)
     // Colaborador: vê apenas seus próprios blocos
     if (req.user?.isColaborador) {
       console.log(`🔎 Usuário COLABORADOR ${req.user.id} (${req.user.nome}) solicitou blocos`);
@@ -63,16 +63,23 @@ export const listarBlocos = async (req, res) => {
       console.log(`✅ Filtro aplicado: disciplina = "${req.user.disciplina_colaborador}", criado_por = ${req.user.id}`);
     } else {
       console.log(`🔎 Usuário ADMIN ${req.user.id} (${req.user.nome}) solicitou blocos`);
-      // Admin vê apenas blocos criados por admin
-      // Precisa usar uma subquery para verificar se criado_por é um admin
+      // Admin vê:
+      // 1. Blocos criados por admin
+      // 2. Blocos APROVADOS de colaboradores
+      // Não vê: blocos PENDENTES de colaboradores
       const admins = await User.findAll({
         attributes: ['id'],
         where: { is_colaborador: false }
       });
       const adminIds = admins.map(u => u.id);
       console.log(`✅ Admin IDs encontrados: ${adminIds.join(', ')}`);
-      where.criado_por = { [Op.in]: adminIds };  // ✅ Apenas blocos de admin
-      console.log(`✅ Filtro aplicado: criado_por IN (${adminIds.join(', ')})`);
+      
+      // Usar OR: (criado por admin) OU (aprovado)
+      where[Op.or] = [
+        { criado_por: { [Op.in]: adminIds } },  // Blocos do admin
+        { status: 'aprovado' }  // Blocos aprovados (de colaboradores)
+      ];
+      console.log(`✅ Filtro aplicado: (criado_por IN (${adminIds.join(', ')}) OR status = 'aprovado')`);
     }
 
     if (disciplina && req.user?.isColaborador) {
