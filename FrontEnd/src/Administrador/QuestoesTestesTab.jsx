@@ -516,8 +516,11 @@ const QuestoesTestesTab = () => {
             ) : (
               <div className="space-y-2 mb-6 max-h-48 overflow-y-auto">
                 {blocos.map(bloco => {
-                  // Verificar compatibilidade de disciplina
-                  const disciplinaCompativel = questaoSelecionada?.disciplina === bloco.disciplina;
+                  // Verificar compatibilidade de disciplina/categoria
+                  // Questões de teste têm 'categoria', blocos têm 'disciplina'
+                  const questaoCategoria = questaoSelecionada?.categoria || questaoSelecionada?.disciplina;
+                  const blocoCategoria = bloco.disciplina;
+                  const disciplinaCompativel = questaoCategoria === blocoCategoria;
                   
                   return (
                     <button
@@ -536,7 +539,7 @@ const QuestoesTestesTab = () => {
                       </p>
                       {!disciplinaCompativel && (
                         <p className="text-xs text-red-600 mt-1 font-semibold">
-                          ⚠️ Disciplina incompatível ({questaoSelecionada?.disciplina})
+                          ⚠️ Disciplina incompatível ({questaoCategoria || 'nenhuma'})
                         </p>
                       )}
                     </button>
