@@ -276,6 +276,19 @@ export const listarBlocosColaborador = async (req, res) => {
       ]
     });
 
+    // Adicionar contagem de questões para cada bloco
+    const blocosComQuestoes = await Promise.all(
+      rows.map(async (bloco) => {
+        const totalQuestoes = await Questao.count({
+          where: { bloco_id: bloco.id }
+        });
+        return {
+          ...bloco.toJSON(),
+          total_questoes: totalQuestoes
+        };
+      })
+    );
+
     // Estatísticas
     const pendentes = await BlocoQuestoes.count({
       where: { criado_por: req.user.id, status: 'pendente' }
@@ -288,7 +301,7 @@ export const listarBlocosColaborador = async (req, res) => {
     });
 
     respostaSucesso(res, 200, {
-      blocos: rows,
+      blocos: blocosComQuestoes,
       paginacao: {
         pagina: parseInt(pagina),
         limite: parseInt(limite),
