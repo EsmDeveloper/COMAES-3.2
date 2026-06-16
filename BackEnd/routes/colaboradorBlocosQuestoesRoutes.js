@@ -215,6 +215,14 @@ router.get(
   listarBlocosPendentesAdmin
 );
 
+// ✅ ALIAS para compatibilidade com frontend
+router.get(
+  '/blocos-colaboradores-pendentes',
+  auth,
+  isAdmin,
+  listarBlocosPendentesAdmin
+);
+
 router.post(
   '/blocos/:id/aprovar',
   auth,
