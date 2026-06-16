@@ -17,7 +17,6 @@ import ColaboradoresPendentesTab from './ColaboradoresPendentesTab';
 import ColaboradoresTab from './ColaboradoresTab';
 import BlocosColaboradoresTab from './BlocosColaboradoresTab';
 import QuestionsColaboradorPendentesTab from './QuestionsColaboradorPendentesTab';
-import DisciplinasAdmin from './DisciplinasAdmin';
 import LogoutModal from '../components/LogoutModal';
 import { 
   BarChart3, Trophy, BookOpen, Users, Bell, Settings, 
@@ -72,7 +71,6 @@ const AdminDashboard = () => {
       icon: BookOpen,
       color: 'from-purple-500 to-pink-600',
       items: [
-        { id: 'disciplinas', label: 'Gerenciar Disciplinas', icon: BookOpen },
         { id: 'questoes-torneios', label: 'Questões de Torneios', icon: Trophy },
         { id: 'questoes-testes', label: 'Questões dos Testes', icon: BookOpen },
         { id: 'questoes-pendentes', label: 'Questões Pendentes', icon: Clock },
@@ -348,8 +346,6 @@ const AdminDashboard = () => {
                 <TorneiosTab />
               ) : activeTab === 'certificados' ? (
                 <CertificadosTab />
-              ) : activeTab === 'disciplinas' ? (
-                <DisciplinasAdmin />
               ) : activeTab === 'notificacao' ? (
                 <NotificationsTab token={token} />
               ) : activeTab === 'questoes-torneios' ? (

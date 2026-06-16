@@ -208,6 +208,11 @@ app.get("/", async (req, res) => {
   });
 });
 
+// ⚠️ IMPORTANTE: Registrar rotas de Colaborador - Blocos e Questões ANTES de adminPanelRoutes
+// Porque adminPanelRoutes tem uma rota catch-all /:model que capturaria essas requisições
+app.use('/api/colaborador', colaboradorBlocosQuestoesRoutes);
+app.use('/api/admin', colaboradorBlocosQuestoesRoutes);
+
 // Registrar rotas administrativas do painel (CRUD genérico + rotas específicas)
 app.use('/api/admin', adminPanelRoutes);
 
@@ -259,10 +264,6 @@ app.use('/api/blocos', blocosRoutes);
 // ALIAS para blocos de colaboradores (compatibilidade com frontend)
 // O frontend chama /api/blocos-colaboradores, mapear para /api/blocos
 app.use('/api/blocos-colaboradores', blocosRoutes);
-
-// Registrar rotas de Colaborador - Blocos e Questões (com aprovação)
-app.use('/api/colaborador', colaboradorBlocosQuestoesRoutes);
-app.use('/api/admin', colaboradorBlocosQuestoesRoutes);
 
 // Registrar rotas de associação Torneio ↔ Bloco
 app.use('/api/torneios/:id/blocos', torneiBlocosRouter);
