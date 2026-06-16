@@ -61,6 +61,10 @@ import streakRoutes from './routes/streakRoutes.js';
 import { missoesRouter, dashboardGamificacaoRouter } from './routes/missoesRoutes.js';
 import rankingRoutes from './routes/rankingRoutes.js';
 import disciplinasRoutes from './routes/disciplinasRoutes.js';
+import questoesColaboradorRoutes from './routes/questoesColaboradorRoutes.js';
+import questoesAdminRoutes from './routes/questoesAdminRoutes.js';
+import disciplinasAdminRoutes from './routes/disciplinasAdminRoutes.js';
+import usuariosAdminRoutes from './routes/usuariosAdminRoutes.js';
 import { sendResetEmail, sendWelcomeEmail } from './services/emailService.js';
 import { setIO } from './services/socketService.js';
 import { setupEncerramentoScheduler } from './jobs/verificarEncerramentosScheduler.js';
@@ -236,6 +240,18 @@ app.use('/api/tournaments', tournamentsRoutes);
 
 // Registrar rotas de questões (especializado - REFATORADO para Questao.js)
 app.use('/api/questoes', questoesRoutes);
+
+// ─── Task 8.1: Registrar rotas de questões para colaboradores ───
+app.use('/api/questoes', questoesColaboradorRoutes);
+
+// ─── Task 8.2: Registrar rotas de questões para admin (aprovação/rejeição) ───
+app.use('/api/questoes', questoesAdminRoutes);
+
+// ─── Task 8.2: Registrar rotas de disciplinas para admin ───
+app.use('/api/disciplinas', disciplinasAdminRoutes);
+
+// ─── Task 8.2: Registrar rotas de usuários para admin (atribuir colaborador) ───
+app.use('/api/usuarios', usuariosAdminRoutes);
 
 // Registrar rotas de Blocos de Questões
 app.use('/api/blocos', blocosRoutes);

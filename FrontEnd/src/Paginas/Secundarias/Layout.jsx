@@ -1,4 +1,4 @@
-﻿// Layout.jsx - header fixo corrigido
+// Layout.jsx - header with role-based navigation
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -6,9 +6,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   FaBars, FaUserCircle, FaChartLine, FaBell, FaBook, FaTrophy, FaBullhorn,
   FaHeadset, FaCogs, FaInfoCircle, FaFacebook, FaInstagram,
-  FaWhatsapp, FaLinkedin, FaHome, FaTimes, FaQuestionCircle,
+  FaWhatsapp, FaLinkedin, FaHome, FaTimes, FaCheckCircle,
 } from "react-icons/fa";
-// FaHeadset mantido apenas no menuItems mobile â€” botÃ£o flutuante antigo removido
+import { Sliders } from "lucide-react";
+
 import { useAuth } from "../../context/AuthContext";
 import NotificacoesModal from "./Notificacoes";
 import LogoutModal from "../../components/LogoutModal";
@@ -31,55 +32,76 @@ export default function Layout({ children }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Detectar role
-  const isAdmin       = user?.isAdmin === true || user?.isAdmin === 1 || user?.role === 'admin';
+  // Role detection
+  const isAdmin = user?.isAdmin === true || user?.isAdmin === 1 || user?.role === 'admin';
   const isColaborador = user?.role === 'colaborador';
 
-  // Menu para colaboradores (acesso restrito)
+  // Menu for collaborators - restricted access with question management items
   const collaboratorMenuItems = [
     { icon: <FaHome />, text: "Home", link: "/" },
-    { icon: <FaQuestionCircle />, text: "Minhas QuestÃµes", link: "/colaborador/questoes" },
-    { icon: <FaBullhorn />, text: "Portal de NotÃ­cias", link: "/portal-de-noticias" },
-    { icon: <FaUserCircle />, text: "Perfil do UsuÃ¡rio", link: "/perfil" },
-    { icon: <FaCogs />, text: "ConfiguraÃ§Ãµes", link: "/configuracoes" },
-    { icon: <FaInfoCircle />, text: "Sobre nÃ³s", link: "/sobre-nos" },
+    { icon: <FaBook />, text: "Minhas Questoes", link: "/colaborador/questoes" },
+    { icon: <FaChartLine />, text: "Meu Dashboard", link: "/colaborador/dashboard" },
+    { icon: <FaBullhorn />, text: "Portal de Noticias", link: "/portal-de-noticias" },
+    { icon: <FaUserCircle />, text: "Perfil do Usuario", link: "/perfil" },
+    { icon: <FaCogs />, text: "Configuracoes", link: "/configuracoes" },
+    { icon: <FaInfoCircle />, text: "Sobre nos", link: "/sobre-nos" },
     { icon: <FaHeadset />, text: "Suporte", link: "/suporte" },
   ];
 
-  // Menu padrÃ£o para estudantes e outros
+  // Menu for admins - with approval and discipline management
+  const adminMenuItems = [
+    { icon: <FaHome />, text: "Home", link: "/" },
+    { icon: <FaCheckCircle />, text: "Aprovar Questoes", link: "/administrador" },
+    { icon: <Sliders size={18} />, text: "Gerenciar Disciplinas", link: "/administrador" },
+    { icon: <FaUserCircle />, text: "Perfil do Usuario", link: "/perfil" },
+    { icon: <FaCogs />, text: "Configuracoes", link: "/configuracoes" },
+    { icon: <FaInfoCircle />, text: "Sobre nos", link: "/sobre-nos" },
+    { icon: <FaHeadset />, text: "Suporte", link: "/suporte" },
+  ];
+
+  // Standard menu for students and unauthenticated users
   const standardMenuItems = [
     { icon: <FaHome />, text: "Home", link: "/" },
     { icon: <FaTrophy />, text: "Entrar no Torneio", link: "/entrar-no-torneio" },
     { icon: <FaBook />, text: "Teste seu Conhecimento", link: "/teste-seu-conhecimento" },
-    { icon: <FaBullhorn />, text: "Portal de NotÃ­cias", link: "/portal-de-noticias" },
+    { icon: <FaBullhorn />, text: "Portal de Noticias", link: "/portal-de-noticias" },
     { icon: <FaChartLine />, text: "Dashboard", link: "/painel" },
-    { icon: <FaUserCircle />, text: "Perfil do UsuÃ¡rio", link: "/perfil" },
-    { icon: <FaCogs />, text: "ConfiguraÃ§Ãµes", link: "/configuracoes" },
-    { icon: <FaInfoCircle />, text: "Sobre nÃ³s", link: "/sobre-nos" },
+    { icon: <FaUserCircle />, text: "Perfil do Usuario", link: "/perfil" },
+    { icon: <FaCogs />, text: "Configuracoes", link: "/configuracoes" },
+    { icon: <FaInfoCircle />, text: "Sobre nos", link: "/sobre-nos" },
     { icon: <FaHeadset />, text: "Suporte", link: "/suporte" },
   ];
 
-  // Usar menu apropriado conforme o perfil
-  const menuItems = isColaborador ? collaboratorMenuItems : standardMenuItems;
-  const allMenuItems = menuItems;
+  // Select menu based on role
+  const menuItems = isAdmin ? adminMenuItems : isColaborador ? collaboratorMenuItems : standardMenuItems;
 
-  // Desktop nav para colaboradores (versÃ£o restrita)
+  // Desktop nav for collaborators
   const collaboratorDesktopNav = [
-    { icon: <FaQuestionCircle />, text: "QuestÃµes", link: "/colaborador/questoes" },
-    { icon: <FaBullhorn />, text: "NotÃ­cias", link: "/portal-de-noticias" },
+    { icon: <FaBook />, text: "Questoes", link: "/colaborador/questoes" },
+    { icon: <FaChartLine />, text: "Dashboard", link: "/colaborador/dashboard" },
+    { icon: <FaBullhorn />, text: "Noticias", link: "/portal-de-noticias" },
     { icon: <FaInfoCircle />, text: "Sobre", link: "/sobre-nos" },
   ];
 
-  // Desktop nav padrÃ£o â€” itens enxutos para nÃ£o abarrotar
+  // Desktop nav for admins
+  const adminDesktopNav = [
+    { icon: <FaCheckCircle />, text: "Aprovar", link: "/administrador" },
+    { icon: <Sliders size={16} />, text: "Disciplinas", link: "/administrador" },
+    { icon: <FaUserCircle />, text: "Perfil", link: "/perfil" },
+    { icon: <FaInfoCircle />, text: "Sobre", link: "/sobre-nos" },
+  ];
+
+  // Desktop nav for students - lean menu
   const standardDesktopNav = [
     { icon: <FaTrophy />, text: "Torneios", link: "/entrar-no-torneio" },
     { icon: <FaBook />, text: "Testes", link: "/teste-seu-conhecimento" },
-    { icon: <FaBullhorn />, text: "NotÃ­cias", link: "/portal-de-noticias" },
+    { icon: <FaBullhorn />, text: "Noticias", link: "/portal-de-noticias" },
     { icon: <FaChartLine />, text: "Dashboard", link: "/painel" },
     { icon: <FaInfoCircle />, text: "Sobre", link: "/sobre-nos" },
   ];
 
-  const desktopNavItems = isColaborador ? collaboratorDesktopNav : standardDesktopNav;
+  const desktopNavItems = isAdmin ? adminDesktopNav : isColaborador ? collaboratorDesktopNav : standardDesktopNav;
+  const allMenuItems = menuItems;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -102,7 +124,7 @@ export default function Layout({ children }) {
           const data = await response.json();
           if (data.success) setNotificationCount(data.count);
         } catch (error) {
-          console.error("Erro ao buscar contagem de notificaÃ§Ãµes:", error);
+          console.error("Erro ao buscar notificacoes:", error);
         }
       } else {
         setNotificationCount(0);
@@ -137,23 +159,22 @@ export default function Layout({ children }) {
   const confirmLogout = () => {
     setShowLogoutModal(false);
     logout();
-    // ApÃ³s logout, sempre para o login â€” nÃ£o para a Home pÃºblica
     navigate("/login");
   };
 
-  // Admin nÃ£o deve ver a navbar educacional â€” wrapper mÃ­nimo sem navbar
+  // Admin should not see the educational navbar - minimal wrapper
   if (isAdmin) {
     return (
       <div className="flex flex-col min-h-screen bg-gray-50 font-sans text-gray-900">
         <div className="bg-gray-900 text-white px-6 py-3 flex items-center justify-between shadow-sm">
           <span className="text-xs font-semibold tracking-widest uppercase text-gray-400">
-            Ãrea Administrativa
+            Area Administrativa
           </span>
           <button
             onClick={() => navigate('/administrador')}
             className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg font-semibold transition"
           >
-            â† Painel Admin
+            Painel Admin
           </button>
         </div>
         <main className="flex-1 px-4 py-6 sm:px-6 md:px-8 max-w-7xl mx-auto w-full">
@@ -238,7 +259,7 @@ export default function Layout({ children }) {
                     )
                   }
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{user.name || user.username || "UsuÃ¡rio"}</p>
+                    <p className="text-sm font-medium text-white truncate">{user.name || user.username || "Usuario"}</p>
                     <p className="text-xs text-gray-400 truncate">{user.email || ""}</p>
                   </div>
                   <button
@@ -258,16 +279,14 @@ export default function Layout({ children }) {
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
         onNotificationRead={() => {
-          // Atualizar contador quando uma notificaÃ§Ã£o Ã© lida
           setNotificationCount(prev => Math.max(0, prev - 1));
         }}
         onAllRead={() => {
-          // Zerar contador quando todas sÃ£o marcadas como lidas
           setNotificationCount(0);
         }}
       />
 
-      {/* HEADER FIXO - sticky top-0 */}
+      {/* HEADER - sticky top-0 */}
       <motion.header
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -275,7 +294,7 @@ export default function Layout({ children }) {
         className={`sticky top-0 z-50 w-full transition-all duration-300 bg-blue-600 text-white ${scrolled ? 'shadow-lg' : ''}`}
       >
         <div className="flex items-center justify-between px-3 py-2 sm:px-6 max-w-7xl mx-auto">
-          
+
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setMenuOpen(true)}
@@ -284,7 +303,6 @@ export default function Layout({ children }) {
               <FaBars className="text-lg" />
             </button>
             <Link to="/" className="flex items-center">
-              {/* Desktop: full logo | Mobile: compact icon */}
               <img src={logo} alt="Comaes" className="hidden md:block h-10 w-auto object-contain cursor-pointer" />
               <img src={logoShort} alt="Comaes" className="block md:hidden h-9 w-9 object-contain cursor-pointer rounded-md" />
             </Link>
@@ -299,8 +317,8 @@ export default function Layout({ children }) {
                   to={item.link}
                   className={`
                     flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200
-                    ${isActive 
-                      ? 'bg-white/20 text-white shadow-sm' 
+                    ${isActive
+                      ? 'bg-white/20 text-white shadow-sm'
                       : 'text-white/90 hover:bg-white/10 hover:shadow-md hover:text-white'
                     }
                   `}
@@ -333,7 +351,7 @@ export default function Layout({ children }) {
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(true)}
-                title="NotificaÃ§Ãµes"
+                title="Notificacoes"
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-white hover:bg-white hover:text-blue-600 transition-all duration-150"
               >
                 <FaBell className="text-sm sm:text-base" />
@@ -369,7 +387,7 @@ export default function Layout({ children }) {
                   className="flex items-center gap-2 px-2 py-1 rounded-lg bg-blue-500 text-white hover:bg-blue-400 transition-all duration-150"
                 >
                   <span className="hidden sm:block text-sm font-medium">
-                    {user.name || user.username || "UsuÃ¡rio"}
+                    {user.name || user.username || "Usuario"}
                   </span>
                   {user.avatar
                     ? <img src={user.avatar} alt="avatar" className="w-7 h-7 rounded-full object-cover" />
@@ -393,7 +411,7 @@ export default function Layout({ children }) {
                       </div>
                       <div className="py-1">
                         <Link to="/perfil" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Meu Perfil</Link>
-                        <Link to="/configuracoes" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">ConfiguraÃ§Ãµes</Link>
+                        <Link to="/configuracoes" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Configuracoes</Link>
                         {(user.isAdmin || user.role === 'admin') && (
                           <Link to="/administrador" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Painel Admin</Link>
                         )}
@@ -418,13 +436,13 @@ export default function Layout({ children }) {
         {children}
       </motion.main>
 
-      {/* Assistente de suporte com IA â€” Ãºnico ponto de entrada flutuante */}
+      {/* Support AI assistant */}
       <SupportChat />
 
       <footer className="bg-gray-900 text-gray-300 mt-auto w-full">
         <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8 flex flex-col items-center gap-5">
           <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm">
-            <Link to="/sobre-nos" className="text-gray-400 hover:text-blue-500 transition-colors duration-150">Sobre NÃ³s</Link>
+            <Link to="/sobre-nos" className="text-gray-400 hover:text-blue-500 transition-colors duration-150">Sobre Nos</Link>
             <Link to="/suporte" className="text-gray-400 hover:text-blue-500 transition-colors duration-150">Suporte</Link>
             <Link to="/privacidade" className="text-gray-400 hover:text-blue-500 transition-colors duration-150">Privacidade</Link>
           </div>

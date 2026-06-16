@@ -225,4 +225,51 @@ export const DisciplinaController = {
       });
     }
   },
+
+  /**
+   * Task 13.1: Delete a Disciplina
+   * Admin only
+   */
+  deleteDisciplina: async (req, res) => {
+    try {
+      // Verify admin role
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({
+          message: 'Acesso negado. Apenas administradores podem deletar disciplinas.',
+        });
+      }
+
+      const { id } = req.params;
+
+      // Validate id parameter
+      if (!id) {
+        return res.status(400).json({
+          message: 'ID da disciplina é obrigatório',
+          field: 'id',
+        });
+      }
+
+      // Find the disciplina
+      const disciplina = await Disciplina.findByPk(id);
+
+      if (!disciplina) {
+        return res.status(404).json({
+          message: 'Disciplina não encontrada',
+        });
+      }
+
+      // Delete the disciplina
+      await disciplina.destroy();
+
+      return res.status(200).json({
+        message: 'Disciplina deletada com sucesso',
+      });
+    } catch (error) {
+      console.error('Erro ao deletar disciplina:', error);
+      return res.status(500).json({
+        message: 'Erro ao deletar disciplina',
+        error: error.message,
+      });
+    }
+  },
 };

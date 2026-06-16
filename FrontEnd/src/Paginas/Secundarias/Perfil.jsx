@@ -298,12 +298,25 @@ function ColaboradorPerfilLayout({ user, token, onSave, saving, editMode, setEdi
   };
 
   return (
-    <Layout>
+    <>
       <LogoutModal
         isOpen={showLogout}
         onConfirm={() => { setShowLogout(false); logout(); navigate('/login'); }}
         onCancel={() => setShowLogout(false)}
       />
+
+      {/* Simple header with back button */}
+      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
+        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center">
+          <button
+            onClick={() => navigate('/colaborador/dashboard')}
+            className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition text-sm font-medium"
+          >
+            <ArrowLeft size={18} />
+            Voltar
+          </button>
+        </div>
+      </div>
 
       <div className="max-w-3xl mx-auto px-4 py-8 flex flex-col gap-5">
 
@@ -417,63 +430,11 @@ function ColaboradorPerfilLayout({ user, token, onSave, saving, editMode, setEdi
           </div>
         </div>
 
-        {/* Questões recentes */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-          <SectionTitle>Questões Submetidas</SectionTitle>
-          {loadingQ ? (
-            <div className="flex justify-center py-8">
-              <div className="w-7 h-7 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : questoes.length === 0 ? (
-            <div className="text-center py-10">
-              <BookMarked size={32} className="mx-auto text-gray-200 mb-2" />
-              <p className="text-sm text-gray-500">Ainda não submeteu questões.</p>
-              <button onClick={() => navigate('/colaborador/questoes')}
-                className="mt-3 px-4 py-2 bg-teal-600 text-white rounded-xl text-sm font-semibold hover:bg-teal-700 transition">
-                Criar questão
-              </button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="text-left text-xs font-semibold text-gray-400 pb-2 pr-4">Enunciado</th>
-                    <th className="text-left text-xs font-semibold text-gray-400 pb-2 pr-4">Dificuldade</th>
-                    <th className="text-left text-xs font-semibold text-gray-400 pb-2">Estado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {questoes.slice(0, 8).map(q => (
-                    <tr key={q.id} className="hover:bg-gray-50">
-                      <td className="py-2.5 pr-4 max-w-[200px] truncate font-medium text-gray-800">
-                        {q.enunciado || q.texto_pergunta || `Questão #${q.id}`}
-                      </td>
-                      <td className="py-2.5 pr-4 capitalize text-gray-500 text-xs">
-                        {q.dificuldade || '—'}
-                      </td>
-                      <td className="py-2.5">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${statusBadgeCls[q.status_aprovacao] || 'bg-gray-100 text-gray-600'}`}>
-                          {q.status_aprovacao || 'pendente'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {questoes.length > 8 && (
-                <button onClick={() => navigate('/colaborador/questoes')}
-                  className="mt-3 text-sm text-teal-600 hover:underline font-medium flex items-center gap-1">
-                  Ver todas ({questoes.length}) <ChevronRight size={14} />
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+
 
       </div>
       <Toast type={toast.type} msg={toast.msg} onClose={() => setToast({ type: '', msg: '' })} />
-    </Layout>
+    </>
   );
 }
 

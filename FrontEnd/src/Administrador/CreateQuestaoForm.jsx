@@ -71,10 +71,25 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    // Se mudou dificuldade, atualizar pontos automaticamente
+    if (name === 'dificuldade') {
+      const pontosMap = {
+        'facil': 5,
+        'medio': 10,
+        'dificil': 20
+      };
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        pontos: pontosMap[value] || 10
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
     setError('');
   };
 

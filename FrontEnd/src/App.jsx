@@ -13,7 +13,7 @@ import ProtectedColaboradorRoute from './context/ProtectedColaboradorRoute';
 import ProtectedEstudanteRoute from './context/ProtectedEstudanteRoute';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import MinhasQuestoes from './Paginas/Secundarias/MinhasQuestoes';
-import ColaboradorDashboard from './Paginas/Secundarias/ColaboradorDashboard';
+import ColaboradorDashboard from './Colaborador/ColaboradorDashboard';
 import ColaboradorBlocosTab from './Paginas/Secundarias/ColaboradorBlocosTab';
 import Home from "./Paginas/Secundarias/Home";
 import EntrarTorneio from "./Paginas/Secundarias/EntrarTorneio";
@@ -38,6 +38,9 @@ import NotFoundPage from "./Paginas/Secundarias/NotFoundPage";
 import NavbarDemo from "./components/ui/resizable-navbar-demo";
 
 import { useAuth } from './context/AuthContext';
+import DisciplinasAdmin from './Administrador/DisciplinasAdmin';
+import QuestoesPendentesTab from './Administrador/QuestoesPendentesTab';
+import ColaboradoresTab from './Administrador/ColaboradoresTab';
 
 /**
  * SmartHome — rota "/" inteligente.
@@ -88,10 +91,36 @@ function AnimatedRoutes() {
             </ProtectedAdminRoute>
           }
         />
+        
+        {/* Admin sub-routes — direct access to specific tabs (all protected) */}
+        <Route
+          path="/admin/disciplinas"
+          element={
+            <ProtectedAdminRoute>
+              <PageTransition><DisciplinasAdmin /></PageTransition>
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/questoes/pendentes"
+          element={
+            <ProtectedAdminRoute>
+              <PageTransition><QuestoesPendentesTab /></PageTransition>
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/colaboradores"
+          element={
+            <ProtectedAdminRoute>
+              <PageTransition><ColaboradoresTab /></PageTransition>
+            </ProtectedAdminRoute>
+          }
+        />
+        
         {/* Alias /admin/dashboard → /administrador para clareza de URL */}
         <Route path="/admin"           element={<Navigate to="/administrador" replace />} />
         <Route path="/admin/dashboard" element={<Navigate to="/administrador" replace />} />
-        <Route path="/admin/*"         element={<Navigate to="/administrador" replace />} />
 
         {/* ── AMBIENTE DO COLABORADOR ───────────────────────────────── */}
         <Route

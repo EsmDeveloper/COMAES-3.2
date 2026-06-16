@@ -7,6 +7,7 @@
 import bcrypt from 'bcryptjs';
 import { Op } from 'sequelize';
 import Usuario from '../models/User.js';
+import Disciplina from '../models/Disciplina.js';
 
 // ── Validation helpers (mirrors BackEnd/middlewares/validate.js) ──────────
 const RE = {
@@ -698,6 +699,84 @@ const getColaboradores = async (req, res) => {
   }
 };
 
+// ── PUT /api/usuarios/:id/atribuir-disciplina ──────────────────────────────────────
+// Assign a user as colaborador to a specific disciplina
+// Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6
+const assignColaborador = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { disciplina } = req.body;
+    const requestingUser = req.user;
+
+    // Verify user is admin
+    if (!requestingUser?.isAdmin) {
+      return res.status(403).json({ 
+        message: 'Apenas administradores podem atribuir disciplinas.' 
+      });
+    }
+
+    // Validate disciplina is provided
+    if (isEmpty(disciplina)) {
+      return res.status(400).json({ 
+        message: 'Disciplina é obrigatória.' 
+      });
+    }
+
+    // Validate disciplina is valid (from User model ENUM)
+    const validDisciplinas = ['matematica', 'ingles', 'programacao'];
+    if (!validDisciplinas.includes(disciplina.toLowerCase())) {
+      return res.status(400).json({ 
+        message: 'Disciplina inválida. Valores válidos: matematica, ingles, programacao' 
+      });
+    }
+
+    // Find user
+    const user = await Usuario.unscoped().findByPk(id);
+    if (!user) {
+      return res.status(404).json({ 
+        message: 'Usuário não encontrado.' 
+      });
+    }
+
+    // Validate user is not admin
+    if (user.isAdmin === true) {
+      return res.status(403).json({ 
+        message: 'Não é possível atribuir disciplina a admin.' 
+      });
+    }
+
+    // Validate disciplina exists in database
+    const disciplinaExists = await Disciplina.findOne({
+      where: { slug: disciplina.toLowerCase() }
+    });
+    
+    if (!disciplinaExists) {
+      return res.status(404).json({ 
+        message: 'Disciplina não encontrada na base de dados.' 
+      });
+    }
+
+    // Update user role and disciplina
+    await user.update({
+      role: 'colaborador',
+      disciplina_colaborador: disciplina.toLowerCase()
+    });
+
+    // Return updated user (without password)
+    const { password: _, ...userSafe } = user.get({ plain: true });
+    res.status(200).json({
+      message: 'Usuário atribuído como colaborador com sucesso.',
+      data: userSafe
+    });
+  } catch (error) {
+    console.error('Erro ao atribuir disciplina:', error);
+    res.status(500).json({ 
+      message: 'Erro ao atribuir disciplina.', 
+      error: error.message 
+    });
+  }
+};
+
 export default { 
   getAllUsers, 
   createUser, 
@@ -709,5 +788,6 @@ export default {
   getColaboradoresPendentes,
   aprovarColaborador,
   rejeitarColaborador,
-  getColaboradores
+  getColaboradores,
+  assignColaborador
 };

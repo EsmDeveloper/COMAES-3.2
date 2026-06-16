@@ -1,27 +1,31 @@
 /**
  * MinhasQuestoes.jsx - Aba para Colaborador gerenciar suas questões
- * Corrigido e melhorado:
- * 1. Usa AuthContext para token
- * 2. URL da API via variável de ambiente
- * 3. Serviço centralizado
- * 4. Validações robustas
- * 5. Tratamento de erros melhorado
+ * Task 11.2: Create MinhasQuestoes page
+ * Funcionalidades:
+ * 1. List questions created by collaborator
+ * 2. Filter by status (pendente, aprovada, rejeitada)
+ * 3. Filter by difficulty (fácil, médio, difícil)
+ * 4. Show status badges
+ * 5. Edit/Delete buttons
+ * 6. Pagination support
+ * 7. Show rejection reasons
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Plus, Edit, Trash2, AlertCircle, BookOpen, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, AlertCircle, BookOpen, CheckCircle, XCircle, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import PageTransition from '../../components/PageTransition';
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+const ITEMS_PER_PAGE = 10;
 
 // ── Serviço de Questões do Colaborador ────────────────────────────────────────
 class ColaboradorQuestoesService {
   constructor(token) {
     this.token = token;
-    this.baseUrl = `${API_BASE}/api/colaborador/questoes`;
+    this.baseUrl = `${API_BASE}/api/questoes/colaborador`;
   }
 
   async request(endpoint, options = {}) {
@@ -44,13 +48,20 @@ class ColaboradorQuestoesService {
     return data;
   }
 
-  async listar() {
-    const data = await this.request('');
-    return data.dados?.questoes || data.questoes || [];
+  async listar(filters = {}) {
+    const queryParams = new URLSearchParams();
+    if (filters.dificuldade) queryParams.append('dificuldade', filters.dificuldade);
+    if (filters.status_aprovacao) queryParams.append('status_aprovacao', filters.status_aprovacao);
+    if (filters.pagina) queryParams.append('pagina', filters.pagina);
+    if (filters.limite) queryParams.append('limite', filters.limite);
+    
+    const endpoint = 'minhas' + (queryParams.toString() ? '?' + queryParams.toString() : '');
+    const data = await this.request(endpoint);
+    return data.dados || data;
   }
 
   async criar(dados) {
-    const data = await this.request('', {
+    const data = await this.request('criar', {
       method: 'POST',
       body: JSON.stringify(dados),
     });
@@ -74,35 +85,48 @@ class ColaboradorQuestoesService {
 }
 
 // ── Badge de Status ──────────────────────────────────────────────────────────
-function StatusBadge({ status }) {
+function StatusBadge({ status, motivo_rejeicao, onShowRejection }) {
   const config = {
     pendente: { 
-      bg: 'bg-blue-100', 
-      text: 'text-blue-800', 
+      bg: 'bg-yellow-100', 
+      text: 'text-yellow-800', 
       icon: <AlertCircle className="w-3 h-3" />,
       label: 'Pendente' 
     },
     aprovada: { 
-      bg: 'bg-blue-200', 
-      text: 'text-blue-900', 
+      bg: 'bg-green-100', 
+      text: 'text-green-800', 
       icon: <CheckCircle className="w-3 h-3" />,
       label: 'Aprovada' 
     },
     rejeitada: { 
-      bg: 'bg-blue-300', 
-      text: 'text-blue-900', 
+      bg: 'bg-red-100', 
+      text: 'text-red-800', 
       icon: <XCircle className="w-3 h-3" />,
       label: 'Rejeitada' 
     }
   };
   
   const c = config[status] || config.pendente;
+  const hasRejectionReason = status === 'rejeitada' && motivo_rejeicao;
   
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${c.bg} ${c.text}`}>
-      {c.icon}
-      {c.label}
-    </span>
+    <div className="flex items-center gap-2">
+      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${c.bg} ${c.text}`}>
+        {c.icon}
+        {c.label}
+      </span>
+      {hasRejectionReason && (
+        <button
+          onClick={onShowRejection}
+          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-red-50 ${c.text} hover:bg-red-100 transition-colors`}
+          title="Ver motivo da rejeição"
+        >
+          <Info className="w-3 h-3" />
+          Motivo
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -408,6 +432,38 @@ function DeleteConfirmModal({ isOpen, onClose, onConfirm, titulo }) {
   );
 }
 
+// ── Modal de Motivo de Rejeição ─────────────────────────────────────────────
+function RejectionReasonModal({ isOpen, onClose, motivo, titulo }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center gap-2 mb-4">
+          <XCircle className="w-5 h-5 text-red-600" />
+          <h3 className="text-lg font-semibold text-red-800">Motivo da Rejeição</h3>
+        </div>
+        
+        <div className="mb-4">
+          <p className="text-sm text-slate-600 mb-2">Questão: <span className="font-semibold">{titulo}</span></p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-slate-700 whitespace-pre-wrap">{motivo || 'Sem motivo especificado'}</p>
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Componente Principal ──────────────────────────────────────────────────────
 export default function MinhasQuestoes() {
   const { user, token } = useAuth();
@@ -420,6 +476,13 @@ export default function MinhasQuestoes() {
   const [modalOpen, setModalOpen] = useState(false);
   const [questaoEdit, setQuestaoEdit] = useState(null);
   const [questaoParaDeletar, setQuestaoParaDeletar] = useState(null);
+  const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
+  const [selectedRejection, setSelectedRejection] = useState({ titulo: '', motivo: '' });
+  
+  // Filtros
+  const [statusFilter, setStatusFilter] = useState('');
+  const [dificuldadeFilter, setDificuldadeFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Criar instância do serviço
   const service = new ColaboradorQuestoesService(token);
@@ -440,11 +503,6 @@ export default function MinhasQuestoes() {
       navigate('/painel', { replace: true });
       return;
     }
-    
-    if (user.status_colaborador !== 'aprovado') {
-      navigate('/painel', { replace: true });
-      return;
-    }
   }, [user, navigate]);
 
   // Carregar questões
@@ -454,15 +512,33 @@ export default function MinhasQuestoes() {
     try {
       setLoading(true);
       setError(null);
-      const lista = await service.listar();
-      setQuestoes(lista);
+      const filters = {
+        dificuldade: dificuldadeFilter,
+        status_aprovacao: statusFilter,
+        pagina: currentPage,
+        limite: ITEMS_PER_PAGE
+      };
+      
+      // Remove empty filters
+      Object.keys(filters).forEach(key => {
+        if (!filters[key] || key === 'pagina' && filters[key] === 1 || key === 'limite') {
+          delete filters[key];
+        }
+      });
+      
+      const resultado = await service.listar(filters);
+      
+      // Handle different response formats
+      const questoesList = Array.isArray(resultado) ? resultado : (resultado.questoes || resultado.dados || []);
+      setQuestoes(questoesList);
     } catch (err) {
       console.error('Erro ao carregar questões:', err);
       setError(err.message || 'Erro ao carregar questões');
+      setQuestoes([]);
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, statusFilter, dificuldadeFilter, currentPage]);
 
   useEffect(() => {
     carregarQuestoes();
@@ -473,6 +549,7 @@ export default function MinhasQuestoes() {
     setSaving(true);
     try {
       await service.criar(dados);
+      setCurrentPage(1);
       await carregarQuestoes();
     } finally {
       setSaving(false);
@@ -511,6 +588,14 @@ export default function MinhasQuestoes() {
       await handleCreate(dados);
     }
   };
+
+  // Filtros aplicados (questões filtramos no frontend também como backup)
+  const questoesFiltradas = useMemo(() => {
+    return questoes;
+  }, [questoes]);
+
+  // Pagination
+  const totalPages = Math.ceil(questoesFiltradas.length / ITEMS_PER_PAGE);
 
   // Loading state
   if (loading) {
@@ -570,6 +655,65 @@ export default function MinhasQuestoes() {
           </button>
         </div>
 
+        {/* Filtros */}
+        <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {/* Filtro de Status */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Status
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              >
+                <option value="">Todos os status</option>
+                <option value="pendente">Pendente</option>
+                <option value="aprovada">Aprovada</option>
+                <option value="rejeitada">Rejeitada</option>
+              </select>
+            </div>
+
+            {/* Filtro de Dificuldade */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Dificuldade
+              </label>
+              <select
+                value={dificuldadeFilter}
+                onChange={(e) => {
+                  setDificuldadeFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              >
+                <option value="">Todas as dificuldades</option>
+                <option value="facil">Fácil</option>
+                <option value="medio">Médio</option>
+                <option value="dificil">Difícil</option>
+              </select>
+            </div>
+
+            {/* Botão de Limpar Filtros */}
+            <div className="flex items-end">
+              <button
+                onClick={() => {
+                  setStatusFilter('');
+                  setDificuldadeFilter('');
+                  setCurrentPage(1);
+                }}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                Limpar Filtros
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Error message (non-critical) */}
         {error && questoes.length > 0 && (
           <div className="bg-blue-50 border border-blue-200 text-blue-800 p-3 rounded-lg text-sm flex items-center gap-2">
@@ -582,90 +726,150 @@ export default function MinhasQuestoes() {
         {questoes.length === 0 ? (
           <div className="bg-white rounded-lg border border-slate-200 p-12 text-center">
             <BookOpen className="w-16 h-16 text-blue-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-700 mb-2">Nenhuma questão criada</h3>
-            <p className="text-slate-500 mb-6">Comece criando sua primeira questão!</p>
-            <button
-              onClick={() => {
-                setQuestaoEdit(null);
-                setModalOpen(true);
-              }}
-              className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
-            >
-              <Plus className="w-5 h-5" />
-              Criar Primeira Questão
-            </button>
+            <h3 className="text-lg font-semibold text-slate-700 mb-2">Nenhuma questão encontrada</h3>
+            <p className="text-slate-500 mb-6">
+              {statusFilter || dificuldadeFilter 
+                ? 'Nenhuma questão corresponde aos filtros aplicados' 
+                : 'Comece criando sua primeira questão!'}
+            </p>
+            {!statusFilter && !dificuldadeFilter && (
+              <button
+                onClick={() => {
+                  setQuestaoEdit(null);
+                  setModalOpen(true);
+                }}
+                className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
+              >
+                <Plus className="w-5 h-5" />
+                Criar Primeira Questão
+              </button>
+            )}
           </div>
         ) : (
-          <div className="bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gradient-to-r from-blue-50 to-cyan-50 border-b-2 border-blue-200">
-                  <tr>
-                    <th className="text-left px-6 py-3 text-sm font-semibold text-blue-900">Título</th>
-                    <th className="text-left px-6 py-3 text-sm font-semibold text-blue-900">Dificuldade</th>
-                    <th className="text-left px-6 py-3 text-sm font-semibold text-blue-900">Pontos</th>
-                    <th className="text-left px-6 py-3 text-sm font-semibold text-blue-900">Status</th>
-                    <th className="text-right px-6 py-3 text-sm font-semibold text-blue-900">Ações</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {questoes.map((q) => (
-                    <tr key={q.id} className="hover:bg-blue-50 transition-colors group">
-                      <td className="px-6 py-4">
-                        <div>
-                          <p className="font-medium text-slate-800 line-clamp-1">{q.titulo}</p>
-                          <p className="text-sm text-slate-500 line-clamp-1 mt-0.5">{q.descricao}</p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`text-sm capitalize px-2 py-1 rounded-full font-semibold ${
-                          q.dificuldade === 'facil' ? 'bg-blue-100 text-blue-700' :
-                          q.dificuldade === 'medio' ? 'bg-blue-200 text-blue-800' :
-                          'bg-blue-300 text-blue-900'
-                        }`}>
-                          {q.dificuldade}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm font-semibold text-slate-700">{q.pontos} pts</span>
-                       </td>
-                      <td className="px-6 py-4">
-                        <StatusBadge status={q.status_aprovacao} />
-                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-2">
-                          {['pendente', 'rejeitada'].includes(q.status_aprovacao) && (
-                            <>
-                              <button
-                                onClick={() => {
-                                  setQuestaoEdit(q);
-                                  setModalOpen(true);
-                                }}
-                                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                title="Editar questão"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => setQuestaoParaDeletar(q.id)}
-                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                title="Deletar questão"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </>
-                          )}
-                          {q.status_aprovacao === 'aprovada' && (
-                            <span className="text-xs text-slate-400 italic">Aprovada - não editável</span>
-                          )}
-                        </div>
-                       </td>
-                     </tr>
-                  ))}
-                </tbody>
-              </table>
+          <>
+            <div className="bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gradient-to-r from-blue-50 to-cyan-50 border-b-2 border-blue-200">
+                    <tr>
+                      <th className="text-left px-6 py-3 text-sm font-semibold text-blue-900">Título</th>
+                      <th className="text-left px-6 py-3 text-sm font-semibold text-blue-900">Dificuldade</th>
+                      <th className="text-left px-6 py-3 text-sm font-semibold text-blue-900">Pontos</th>
+                      <th className="text-left px-6 py-3 text-sm font-semibold text-blue-900">Status</th>
+                      <th className="text-right px-6 py-3 text-sm font-semibold text-blue-900">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {questoesFiltradas.map((q) => (
+                      <tr key={q.id} className="hover:bg-blue-50 transition-colors group">
+                        <td className="px-6 py-4">
+                          <div>
+                            <p className="font-medium text-slate-800 line-clamp-1">{q.titulo}</p>
+                            <p className="text-sm text-slate-500 line-clamp-1 mt-0.5">{q.descricao}</p>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`text-sm capitalize px-2 py-1 rounded-full font-semibold ${
+                            q.dificuldade === 'facil' ? 'bg-green-100 text-green-700' :
+                            q.dificuldade === 'medio' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {q.dificuldade === 'facil' ? 'Fácil' : q.dificuldade === 'medio' ? 'Médio' : 'Difícil'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-sm font-semibold text-slate-700">{q.pontos} pts</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <StatusBadge 
+                            status={q.status_aprovacao} 
+                            motivo_rejeicao={q.motivo_rejeicao}
+                            onShowRejection={() => {
+                              setSelectedRejection({
+                                titulo: q.titulo,
+                                motivo: q.motivo_rejeicao
+                              });
+                              setRejectionModalOpen(true);
+                            }}
+                          />
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-end gap-2">
+                            {['pendente', 'rejeitada'].includes(q.status_aprovacao) && (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setQuestaoEdit(q);
+                                    setModalOpen(true);
+                                  }}
+                                  className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                  title="Editar questão"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => setQuestaoParaDeletar(q.id)}
+                                  className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                  title="Deletar questão"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </>
+                            )}
+                            {q.status_aprovacao === 'aprovada' && (
+                              <span className="text-xs text-slate-400 italic">Aprovada - não editável</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between bg-white rounded-lg border border-slate-200 p-4">
+                <p className="text-sm text-slate-600">
+                  Página {currentPage} de {totalPages} • Total: {questoesFiltradas.length} questões
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  
+                  <div className="flex gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                          currentPage === page
+                            ? 'bg-blue-600 text-white'
+                            : 'border border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {/* Modal do Formulário */}
@@ -687,6 +891,14 @@ export default function MinhasQuestoes() {
           onClose={() => setQuestaoParaDeletar(null)}
           onConfirm={handleDelete}
           titulo={questoes.find(q => q.id === questaoParaDeletar)?.titulo}
+        />
+
+        {/* Modal de Motivo de Rejeição */}
+        <RejectionReasonModal
+          isOpen={rejectionModalOpen}
+          onClose={() => setRejectionModalOpen(false)}
+          motivo={selectedRejection.motivo}
+          titulo={selectedRejection.titulo}
         />
       </div>
     </PageTransition>

@@ -1334,6 +1334,84 @@ export const QuestoesController = {
       console.error('❌ Erro ao rejeitar questão:', error);
       respostaErro(res, 500, 'Erro ao rejeitar questão', { detalhes: error.message });
     }
+  },
+
+  /**
+   * GET /api/questoes/colaborador/stats
+   * Obter estatísticas de questões para um colaborador
+   * 
+   * Retorna:
+   * {
+   *   questoes_totais: number,
+   *   pendentes: number,
+   *   aprovadas: number,
+   *   rejeitadas: number,
+   *   disciplina: string
+   * }
+   */
+  getColaboradorStats: async (req, res) => {
+    try {
+      const isColaborador = req.user?.isColaborador || req.user?.role === 'colaborador';
+      
+      if (!isColaborador) {
+        return respostaErro(res, 403, 'Acesso negado. Apenas colaboradores podem acessar suas estatísticas.');
+      }
+
+      const userId = req.user.id;
+      const disciplina = req.user.disciplina_colaborador;
+
+      console.log(`📊 Obtendo estatísticas para colaborador ${userId} (disciplina: ${disciplina})`);
+
+      // Contar questões por status
+      const questoes_totais = await Questao.count({
+        where: {
+          autor_id: userId,
+          disciplina: disciplina
+        }
+      });
+
+      const pendentes = await Questao.count({
+        where: {
+          autor_id: userId,
+          disciplina: disciplina,
+          status_aprovacao: 'pendente'
+        }
+      });
+
+      const aprovadas = await Questao.count({
+        where: {
+          autor_id: userId,
+          disciplina: disciplina,
+          status_aprovacao: 'aprovada'
+        }
+      });
+
+      const rejeitadas = await Questao.count({
+        where: {
+          autor_id: userId,
+          disciplina: disciplina,
+          status_aprovacao: 'rejeitada'
+        }
+      });
+
+      console.log(`📊 Estatísticas obtidas:`, { questoes_totais, pendentes, aprovadas, rejeitadas });
+
+      const responseData = {
+        success: true,
+        data: {
+          questoes_totais,
+          pendentes,
+          aprovadas,
+          rejeitadas,
+          disciplina
+        }
+      };
+
+      res.json(responseData);
+    } catch (error) {
+      console.error('❌ Erro ao obter estatísticas do colaborador:', error);
+      respostaErro(res, 500, 'Erro ao obter estatísticas', { detalhes: error.message });
+    }
   }
 };
 

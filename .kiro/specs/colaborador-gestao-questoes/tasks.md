@@ -129,35 +129,35 @@ The implementation follows a JavaScript (Node.js/Express) backend with React fro
     - Include id, nome, email, disciplina_colaborador
     - _Requirements: 12.1, 12.2_
 
-  - [ ]* 6.4 Write unit tests for DisciplinaController
+  - [x]* 6.4 Write unit tests for DisciplinaController
     - Test createDisciplina generates slug
     - Test createDisciplina validates unique nome
     - Test getAllDisciplinas ordering
     - _Requirements: 9.2, 9.3, 10.2_
 
-- [ ] 7. Implement UserController - Assign collaborator to disciplina
-  - [ ] 7.1 Implement assignColaborador method
+- [x] 7. Implement UserController - Assign collaborator to disciplina
+  - [x] 7.1 Implement assignColaborador method
     - Update user role to 'colaborador'
     - Set disciplina_colaborador to specified disciplina
     - Validate disciplina is valid
     - Validate user is not admin
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6_
 
-  - [ ]* 7.2 Write unit tests for assignColaborador
+  - [x]* 7.2 Write unit tests for assignColaborador
     - Test assigning disciplina to user sets role to colaborador
     - Test assigning to admin returns error
     - Test assigning invalid disciplina returns error
     - _Requirements: 11.3, 11.4, 11.5_
 
-- [ ] 8. Create API routes for all endpoints
-  - [ ] 8.1 Create collaborator routes
+- [x] 8. Create API routes for all endpoints
+  - [x] 8.1 Create collaborator routes
     - POST /api/questoes (create)
     - GET /api/questoes/minhas (list own)
     - PUT /api/questoes/:id (update own)
     - DELETE /api/questoes/:id (delete own)
     - _Requirements: 2.1, 3.1, 4.1, 5.1_
   
-  - [ ] 8.2 Create admin routes
+  - [x] 8.2 Create admin routes
     - GET /api/questoes/pendentes (pending)
     - PUT /api/questoes/:id/aprovar (approve)
     - PUT /api/questoes/:id/rejeitar (reject)
@@ -167,29 +167,29 @@ The implementation follows a JavaScript (Node.js/Express) backend with React fro
     - GET /api/disciplinas/:id/colaboradores (list by disciplina)
     - _Requirements: 6.1, 7.1, 8.1, 9.1, 10.1, 11.1, 12.1_
 
-  - [ ] 8.3 Register routes in Express app
+  - [x] 8.3 Register routes in Express app
     - Apply AuthMiddleware to protected routes
     - Apply RoleMiddleware for access control
     - _Requirements: 13.1, 13.2, 13.3, 13.4, 14.1, 14.2_
 
-- [ ] 9. Checkpoint - Backend implementation complete
+- [x] 9. Checkpoint - Backend implementation complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 10. Implement Frontend - Authentication context
-  - [ ] 10.1 Update AuthContext to handle collaborator role
+- [x] 10. Implement Frontend - Authentication context
+  - [x] 10.1 Update AuthContext to handle collaborator role
     - Store role in authentication state
     - Store disciplina_colaborador in auth state
     - Update user type definitions
     - _Requirements: 1.5, 1.6_
 
-- [ ] 11. Implement Frontend - Colaborador dashboard
-  - [ ] 11.1 Create ColaboradorDashboard page
+- [x] 11. Implement Frontend - Colaborador dashboard
+  - [x] 11.1 Create ColaboradorDashboard page
     - Display welcome message with user name
     - Show discipline info
     - Navigation to question management
     - _Requirements: 2.1_
 
-  - [ ] 11.2 Create MinhasQuestoes page
+  - [x] 11.2 Create MinhasQuestoes page
     - List questions created by collaborator
     - Filter by status (pendente, aprovada, rejeitada)
     - Filter by difficulty
@@ -197,15 +197,15 @@ The implementation follows a JavaScript (Node.js/Express) backend with React fro
     - Edit/Delete action buttons
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-  - [ ] 11.3 Create QuestaoForm component
+  - [x] 11.3 Create QuestaoForm component
     - Form for creating/editing questions
     - Fields: titulo, descricao, tipo, dificuldade, opcoes, resposta_correta, explicacao, pontos, linguagem
     - Validate disciplina matches user's disciplina_colaborador
     - Show "Pendente de aprovação" status after creation
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 4.4_
 
-- [ ] 12. Implement Frontend - Admin question approval
-  - [ ] 12.1 Create AprovarQuestões page (admin)
+- [x] 12. Implement Frontend - Admin question approval
+  - [x] 12.1 Create AprovarQuestões page (admin)
     - List all pending questions
     - Show author info with each question
     - Preview question details
@@ -213,32 +213,32 @@ The implementation follows a JavaScript (Node.js/Express) backend with React fro
     - Reject button with modal for motivo_rejeicao
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6_
 
-  - [ ] 12.2 Create RejectModal component
+  - [x] 12.2 Create RejectModal component
     - Textarea for motivo_rejeicao
     - Validation: motivo is required
     - Confirm/Cancel buttons
 
-- [ ] 13. Implement Frontend - Admin disciplina management
-  - [ ] 13.1 Create DisciplinasAdmin page
+- [x] 13. Implement Frontend - Admin disciplina management
+  - [x] 13.1 Create DisciplinasAdmin page
     - List all disciplines
     - Create new disciplina form (nome, descricao, cor)
     - Show collaborator count per discipline
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 10.1, 10.2, 10.3_
 
-  - [ ] 13.2 Create AtribuirColaborador form
+  - [x] 13.2 Create AtribuirColaborador form
     - Select user dropdown
     - Select disciplina dropdown
     - Assign button
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6_
 
-- [ ] 14. Implement Frontend routing and navigation
-  - [ ] 14.1 Update App.jsx routing
+- [x] 14. Implement Frontend routing and navigation
+  - [x] 14.1 Update App.jsx routing
     - Add /colaborador route (protected, colaborador role only)
     - Add /admin/disciplinas route (protected, admin only)
     - Add /admin/questoes/pendentes route (protected, admin only)
     - Add /admin/colaboradores route (protected, admin only)
   
-  - [ ] 14.2 Update navigation menu
+  - [x] 14.2 Update navigation menu
     - Show "Minhas Questões" for colaborador role
     - Show "Aprovar Questões" for admin role
     - Show "Gerenciar Disciplinas" for admin role
@@ -286,7 +286,7 @@ The implementation follows a JavaScript (Node.js/Express) backend with React fro
     - Existing admin routes work
     - _Requirements: 18.1, 18.2, 18.3, 18.4_
   
-  - [ ] 17.3 Verify public routes
+  - [x] 17.3 Verify public routes
     - GET /api/torneios accessible without auth
     - _Requirements: 17.3_
 

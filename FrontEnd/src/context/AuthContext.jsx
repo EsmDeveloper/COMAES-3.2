@@ -4,6 +4,10 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 /**
  * Devolve a rota de destino após login com base no papel do utilizador.
  * Admin → /administrador  |  colaborador → /colaborador/dashboard  |  estudante → /
+ * 
+ * Validates Requirements 1.5, 1.6:
+ * - 1.5: AuthContext SHALL store role and disciplina_colaborador from JWT
+ * - 1.6: AuthContext SHALL expose role and disciplina_colaborador to components
  */
 export const getPostLoginRoute = (user) => {
   if (!user) return '/login';
@@ -18,6 +22,17 @@ const AuthContext = createContext({});
 export const useAuth = () => useContext(AuthContext);
 
 // normalize fora do componente para poder ser usada no useEffect de forma segura
+/**
+ * Normalizes raw user data from backend to ensure consistent field naming and proper
+ * handling of collaborator role fields (role, disciplina_colaborador).
+ * 
+ * Validates Requirements 1.5, 1.6:
+ * - 1.5: Ensures role and disciplina_colaborador are stored in auth state
+ * - 1.6: Returns normalized user object with role and disciplina_colaborador fields
+ * 
+ * @param {Object} raw - Raw user data from backend
+ * @returns {Object|null} Normalized user object with all aliases and role fields, or null if raw is falsy
+ */
 const normalize = (raw) => {
   if (!raw) return null;
   const id = raw.id || raw.ID || raw.userId;
@@ -27,9 +42,17 @@ const normalize = (raw) => {
   const biography = raw.biografia || raw.bio || '';
   const avatar = raw.imagem || raw.avatar || (name ? `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=blue&color=white` : null);
   const username = raw.username || (email ? email.split('@')[0] : name);
+  
+  // Store role from backend JWT (estudante, colaborador, admin)
   const role = raw.role || (raw.isAdmin ? 'admin' : 'estudante');
+  
+  // Store disciplina_colaborador for collaborator role
+  // Only colaborators will have this field populated from backend
   const disciplina_colaborador = raw.disciplina_colaborador || null;
+  
+  // Determine collaborator status (pending approval, approved, etc.)
   const status_colaborador = raw.status_colaborador || (role === 'colaborador' ? 'pendente' : 'aprovado');
+  
   return {
     ...raw,
     id, name, fullName: name, email, phone,
@@ -39,8 +62,14 @@ const normalize = (raw) => {
 };
 
 export const AuthProvider = ({ children }) => {
+  // Stores authenticated user object with role and disciplina_colaborador fields
+  // Validates Requirements 1.5, 1.6
   const [user, setUser] = useState(null);
+  
+  // Stores JWT token from authentication response
   const [token, setToken] = useState(null);
+  
+  // Tracks loading state while restoring session from localStorage
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -79,6 +108,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // login(userObj, token?) - aceita usuário bruto do backend e token opcional
+  // Stores role and disciplina_colaborador for collaborator role support (Requirements 1.5, 1.6)
   const login = (userObj, jwtToken = null) => {
     const normalized = normalize(userObj || {});
     setUser(normalized);
