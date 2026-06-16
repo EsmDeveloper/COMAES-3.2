@@ -11,7 +11,8 @@ import {
   listarBlocosColaborador,
   obterBlocoColaborador,
   atualizarBlocoColaborador,
-  deletarBlocoColaborador
+  deletarBlocoColaborador,
+  submeterBlocoColaborador
 } from '../controllers/ColaboradorBlocosQuestoesControllerV2.js';
 
 const router = express.Router();
@@ -53,5 +54,6 @@ router.get('/blocos', listarBlocosColaborador);
 router.get('/blocos/:id', obterBlocoColaborador);
 router.put('/blocos/:id', atualizarBlocoColaborador);
 router.delete('/blocos/:id', deletarBlocoColaborador);
+router.post('/blocos/:id/submeter', submeterBlocoColaborador);
 
 export default router;

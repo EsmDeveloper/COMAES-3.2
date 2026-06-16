@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FileText, Plus, Clock, AlertCircle, CheckCircle, LogOut, Menu, X, Settings, UserCircle, Layers, Trash2, ChevronDown, ChevronUp, Edit, RefreshCw } from 'lucide-react';
+import { FileText, Plus, Clock, AlertCircle, CheckCircle, LogOut, Menu, X, Settings, UserCircle, Layers, Trash2, ChevronDown, ChevronUp, Edit, RefreshCw, Send } from 'lucide-react';
 import './ColaboradorDashboard.css';
 
 // ============================================
@@ -61,6 +61,7 @@ const MAX_QUESTOES_POR_BLOCO = 30;
 const CriarBlocosTab = ({ token, apiBase }) => {
   const [blocos, setBlocos] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [submittingBlocoId, setSubmittingBlocoId] = useState(null);
   const [expandedBlocoId, setExpandedBlocoId] = useState(null);
   const [editingBloco, setEditingBloco] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -230,6 +231,40 @@ const CriarBlocosTab = ({ token, apiBase }) => {
       showMessage('Erro ao atualizar bloco: ' + error.message, 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSubmitBloco = async (blocoId) => {
+    const bloco = blocos.find(b => b.id === blocoId);
+    if (!bloco) return;
+
+    const questoesCount = bloco.total_questoes || 0;
+    if (questoesCount < 5) {
+      showMessage(`Este bloco precisa de pelo menos 5 questões (atualmente tem ${questoesCount})`, 'error');
+      return;
+    }
+
+    if (!window.confirm('Enviar este bloco para aprovação do administrador?')) return;
+
+    setSubmittingBlocoId(blocoId);
+    try {
+      const response = await fetch(`${apiBase}/api/colaborador/blocos/${blocoId}/submeter`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao enviar bloco');
+      }
+
+      showMessage('Bloco enviado para aprovação! Um administrador irá revisar em breve.', 'success');
+      setTimeout(() => carregarBlocos(), 500);
+    } catch (error) {
+      console.error('Erro:', error);
+      showMessage('Erro ao enviar bloco: ' + error.message, 'error');
+    } finally {
+      setSubmittingBlocoId(null);
     }
   };
 
@@ -425,6 +460,18 @@ const CriarBlocosTab = ({ token, apiBase }) => {
                                 <ChevronUp className="w-4 h-4" />
                               ) : (
                                 <ChevronDown className="w-4 h-4" />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleSubmitBloco(bloco.id)}
+                              disabled={loading || submittingBlocoId === bloco.id || (bloco.total_questoes || 0) < 5}
+                              className="p-1.5 rounded-lg text-blue-400 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              title={(bloco.total_questoes || 0) < 5 ? `Mínimo 5 questões (tem ${bloco.total_questoes || 0})` : 'Enviar para aprovação'}
+                            >
+                              {submittingBlocoId === bloco.id ? (
+                                <div className="w-4 h-4 border-2 border-blue-300 border-t-blue-500 rounded-full animate-spin" />
+                              ) : (
+                                <Send className="w-4 h-4" />
                               )}
                             </button>
                             <button
