@@ -8,6 +8,7 @@ const QuestoesTestesTab = () => {
   const [blocos, setBlocos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [categoriaFiltro, setCategoriaFiltro] = useState('all');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState('blocos'); // ✅ MUDA: 'blocos' é agora a aba principal
   
@@ -256,10 +257,18 @@ const QuestoesTestesTab = () => {
     setShowCreateForm(false);
   };
 
-  const filteredQuestoes = questoesIndividuais.filter(q =>
-    q.enunciado?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    q.categoria?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredQuestoes = questoesIndividuais.filter(q => {
+    // Filtrar por categoria
+    if (categoriaFiltro !== 'all' && q.categoria !== categoriaFiltro) return false;
+    
+    // Filtrar por busca
+    if (!searchTerm) return true;
+    const buscaLower = searchTerm.toLowerCase();
+    return (
+      q.enunciado?.toLowerCase().includes(buscaLower) ||
+      q.categoria?.toLowerCase().includes(buscaLower)
+    );
+  });
 
   useEffect(() => {
     if (showCreateForm) {
@@ -306,16 +315,29 @@ const QuestoesTestesTab = () => {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="relative">
-        <Search className="absolute left-4 top-3 w-5 h-5 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Pesquisar questões ou blocos..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+      {/* Search Bar + Filtro por Categoria */}
+      <div className="flex flex-col md:flex-row gap-3">
+        <div className="flex-1 relative">
+          <Search className="absolute left-4 top-3 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Pesquisar questões ou blocos..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <select
+          className="px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={categoriaFiltro}
+          onChange={(e) => setCategoriaFiltro(e.target.value)}
+        >
+          <option value="all">Todas as categorias</option>
+          <option value="matematica">Matemática</option>
+          <option value="programacao">Programação</option>
+          <option value="ingles">Inglês</option>
+          <option value="cultura_geral">Cultura Geral</option>
+        </select>
       </div>
 
       {/* SUB-ABAS UNIFICADAS */}
