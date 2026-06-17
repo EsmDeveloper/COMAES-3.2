@@ -1,11 +1,11 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import { FaSignOutAlt, FaPlay, FaRedo, FaExpand, FaCompress } from "react-icons/fa";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
-// ImportaÃ§Ãµes para certificados e vencedores
+// ImportaçÃµes para certificados e vencedores
 import CertProgramacao from '../../../certificados/CertProgramacao';
 import useCertificado from '../../../hooks/useCertificado';
 import ModalVencedores from '../../../components/ModalVencedores';
@@ -15,7 +15,7 @@ import TournamentFinishedModal from '../../../components/TournamentFinishedModal
 import useTorneioParticipante from '../../../hooks/useTorneioParticipante';
 
 const TEMPO_QUESTAO = 90;
-const DISCIPLINA = 'ProgramaÃ§Ã£o';
+const DISCIPLINA = 'Programação';
 
 export default function ProgramacaoOriginal() {
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ export default function ProgramacaoOriginal() {
     dentroDoPeriodo,
     setDentroDoPeriodo,
     actualizarParticipante,
-  } = useTorneioParticipante({ disciplina: 'ProgramaÃ§Ã£o', disciplinaSlug: 'programacao', user, token });
+  } = useTorneioParticipante({ disciplina: 'Programação', disciplinaSlug: 'programacao', user, token });
 
   // Estados locais
   const [progresso, setProgresso] = useState(0);
@@ -73,14 +73,14 @@ export default function ProgramacaoOriginal() {
     certificadoData, 
     fecharCertificado,
     abrirCertificado 
-  } = useCertificado('ProgramaÃ§Ã£o', participante, ranking);
+  } = useCertificado('Programação', participante, ranking);
 
   // Hook para vencedores
   const { 
     mostrarVencedores, 
     vencedores, 
     fecharVencedores 
-  } = useVencedores('ProgramaÃ§Ã£o', ranking, torneio, participante);
+  } = useVencedores('Programação', ranking, torneio, participante);
 
   const calcularTempoRestante = (torneioData) => {
     if (!torneioData?.termina_em) {
@@ -104,7 +104,7 @@ export default function ProgramacaoOriginal() {
     return { dias, horas, minutos, segundos };
   };
 
-  // FunÃ§Ã£o para calcular progresso
+  // Função para calcular progresso
   const calcularProgressoTemporal = (torneioData) => {
     if (!torneioData?.inicia_em || !torneioData?.termina_em) return 100;
     
@@ -158,14 +158,14 @@ export default function ProgramacaoOriginal() {
         setQuestaoIndex(0);
         setQuestaoTime(TEMPO_QUESTAO);
         const qAtual = filtradas[0];
-        setCodigo(qAtual.opcoes?.codigoInicial || qAtual.opcoes?.template || "// Escreva seu cÃ³digo aqui...");
+        setCodigo(qAtual.opcoes?.codigoInicial || qAtual.opcoes?.template || "// Escreva seu código aqui...");
         setTotalTestes(qAtual.opcoes?.testes?.length || 0);
         setSaida("");
         setResultado("");
         setPontuacao(null);
         setTestesPassados(0);
         
-        // Scroll para o enunciado apÃ³s mudar de nÃ­vel
+        // Scroll para o enunciado após mudar de nível
         setTimeout(() => {
           if (enunciadoRef.current) {
             enunciadoRef.current.scrollIntoView({ 
@@ -178,11 +178,11 @@ export default function ProgramacaoOriginal() {
     }
   }, [nivelSelecionado, questoes]);
 
-  // Atualiza o cÃ³digo quando muda a questÃ£o
+  // Atualiza o código quando muda a questão
   useEffect(() => {
     if (questoesFiltradas[questaoIndex]) {
       const questaoAtual = questoesFiltradas[questaoIndex];
-      setCodigo(questaoAtual.opcoes?.codigoInicial || questaoAtual.opcoes?.template || "// Escreva seu cÃ³digo aqui...");
+      setCodigo(questaoAtual.opcoes?.codigoInicial || questaoAtual.opcoes?.template || "// Escreva seu código aqui...");
       setSaida("");
       setResultado("");
       setPontuacao(null);
@@ -204,7 +204,7 @@ export default function ProgramacaoOriginal() {
     }
   }, [questoes]);
 
-  // Limpar timer de auto-avanÃ§o
+  // Limpar timer de auto-avanço
   useEffect(() => {
     return () => {
       if (autoAvancarTimer) {
@@ -239,7 +239,7 @@ export default function ProgramacaoOriginal() {
 
   // VERIFICAR TORNEIO ATIVO â€” gerido pelo hook useTorneioParticipante
 
-  // Carregar questÃµes quando o torneio ficar disponÃ­vel
+  // Carregar questÃµes quando o torneio ficar disponível
   useEffect(() => {
     if (torneio?.id) {
       buscarQuestoes(torneio.id);
@@ -264,7 +264,7 @@ export default function ProgramacaoOriginal() {
         
         if (filtradas.length > 0) {
           const primeiraQuestao = filtradas[0];
-          setCodigo(primeiraQuestao.opcoes?.codigoInicial || primeiraQuestao.opcoes?.template || "// Escreva seu cÃ³digo aqui...");
+          setCodigo(primeiraQuestao.opcoes?.codigoInicial || primeiraQuestao.opcoes?.template || "// Escreva seu código aqui...");
           setTotalTestes(primeiraQuestao.opcoes?.testes?.length || 0);
         }
       } else {
@@ -278,14 +278,14 @@ export default function ProgramacaoOriginal() {
     }
   };
 
-  // Temporizador da questÃ£o
+  // Temporizador da questão
   useEffect(() => {
     if (questoesFiltradas.length === 0) return;
     
     const interval = setInterval(() => {
       setQuestaoTime((prev) => {
         if (prev <= 0) {
-          // Quando o tempo acaba, avanÃ§a automaticamente
+          // Quando o tempo acaba, avança automaticamente
           handleProximaQuestaoAutomatica();
           return TEMPO_QUESTAO;
         }
@@ -380,7 +380,7 @@ export default function ProgramacaoOriginal() {
 
       const data = await resp.json();
       if (!data.success) {
-        setResultado('Erro ao avaliar: ' + (data.error || 'Resposta invÃ¡lida'));
+        setResultado('Erro ao avaliar: ' + (data.error || 'Resposta inválida'));
         setPontuacao(0);
         setAvaliacaoDetalhes(null);
         setSaida('');
@@ -392,13 +392,13 @@ export default function ProgramacaoOriginal() {
 
         setAvaliacaoDetalhes(detalhe);
         setPontuacao(total);
-        setResultado(detalhe?.feedback || 'AvaliaÃ§Ã£o concluÃ­da');
+        setResultado(detalhe?.feedback || 'Avaliação concluída');
 
         const execOutput = detalhe?.evidencias || detalhe?.output || detalhe?.stdout || data.data?.output || data.data?.execOutput || '';
         if (execOutput) {
           setSaida(typeof execOutput === 'string' ? execOutput : JSON.stringify(execOutput, null, 2));
         } else {
-          setSaida('A API nÃ£o retornou saÃ­da explÃ­cita para este cÃ³digo.');
+          setSaida('A API não retornou saída explícita para este código.');
         }
 
         const passed = detalhe?.testes_passados || detalhe?.casos_passados || detalhe?.tests_passed || 0;
@@ -408,7 +408,7 @@ export default function ProgramacaoOriginal() {
       }
     } catch (err) {
       console.error('Erro ao chamar /api/avaliar', err);
-      setResultado('Erro de comunicaÃ§Ã£o com o servidor');
+      setResultado('Erro de comunicação com o servidor');
       setPontuacao(0);
       setAvaliacaoDetalhes(null);
     } finally {
@@ -423,7 +423,7 @@ export default function ProgramacaoOriginal() {
 
   const resetarCodigo = () => {
     const questaoAtual = questoesFiltradas[questaoIndex];
-    setCodigo(questaoAtual?.opcoes?.codigoInicial || questaoAtual?.opcoes?.template || "// Escreva seu cÃ³digo aqui...");
+    setCodigo(questaoAtual?.opcoes?.codigoInicial || questaoAtual?.opcoes?.template || "// Escreva seu código aqui...");
     setSaida("");
     setResultado("");
     setPontuacao(null);
@@ -441,7 +441,7 @@ export default function ProgramacaoOriginal() {
       <div className="flex justify-center items-center h-screen bg-gray-100">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando torneio de ProgramaÃ§Ã£o...</p>
+          <p className="mt-4 text-gray-600">Carregando torneio de Programação...</p>
         </div>
       </div>
     );
@@ -451,9 +451,9 @@ export default function ProgramacaoOriginal() {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-100">
         <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-md">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Torneio IndisponÃ­vel</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Torneio Indisponível</h2>
           <p className="text-gray-600 mb-6">
-            {error || "NÃ£o hÃ¡ torneio de ProgramaÃ§Ã£o ativo no momento."}
+            {error || "Não há torneio de Programação ativo no momento."}
           </p>
           <button 
             onClick={() => navigate("/entrar-no-torneio")}
@@ -554,10 +554,10 @@ export default function ProgramacaoOriginal() {
                         )}
                         <div className="flex flex-col min-w-0">
                           <span className={`truncate ${isMe ? 'font-bold text-purple-700' : ''}`}>
-                            {participanteRank.usuario?.nome || 'UsuÃ¡rio'}
+                            {participanteRank.usuario?.nome || 'Usuário'}
                           </span>
                           {isMe && (
-                            <span className="text-[10px] font-bold text-purple-500 leading-none">â— vocÃª</span>
+                            <span className="text-[10px] font-bold text-purple-500 leading-none">â— você</span>
                           )}
                         </div>
                       </div>
@@ -604,9 +604,9 @@ export default function ProgramacaoOriginal() {
             {/* BOTÃ•ES DE NÃVEL */}
             <div className="flex gap-2 flex-wrap align-items-center justify-center">
               {[
-                { nivel: "facil", label: "FÃ¡cil", pts: 5 },
-                { nivel: "medio", label: "MÃ©dio", pts: 10 },
-                { nivel: "dificil", label: "DifÃ­cil", pts: 20 }
+                { nivel: "facil", label: "Fácil", pts: 5 },
+                { nivel: "medio", label: "Médio", pts: 10 },
+                { nivel: "dificil", label: "Difícil", pts: 20 }
               ].map((item) => (
                 <button
                   key={item.nivel}
@@ -629,13 +629,13 @@ export default function ProgramacaoOriginal() {
           {/* MENSAGEM SE NÃƒO HÃ QUESTÃ•ES */}
           {questoesFiltradas.length === 0 ? (
             <div className="w-full max-w-6xl bg-yellow-50 border border-yellow-200 rounded-xl shadow p-6 text-center">
-              <h3 className="text-lg font-semibold text-yellow-800 mb-2">Nenhuma questÃ£o disponÃ­vel</h3>
+              <h3 className="text-lg font-semibold text-yellow-800 mb-2">Nenhuma questão disponível</h3>
               <p className="text-yellow-700">
-                NÃ£o hÃ¡ questÃµes de {nivelSelecionado === 'facil' ? 'fÃ¡cil' : nivelSelecionado === 'medio' ? 'mÃ©dio' : 'difÃ­cil'} 
-                disponÃ­veis no momento.
+                Não há questÃµes de {nivelSelecionado === 'facil' ? 'fácil' : nivelSelecionado === 'medio' ? 'médio' : 'difícil'} 
+                disponíveis no momento.
               </p>
               <p className="text-sm text-yellow-600 mt-2">
-                Selecione outro nÃ­vel de dificuldade.
+                Selecione outro nível de dificuldade.
               </p>
             </div>
           ) : (
@@ -647,7 +647,7 @@ export default function ProgramacaoOriginal() {
                   className="w-full max-w-6xl bg-gradient-to-r from-purple-50 to-pink-100 border-l-4 border-purple-600 rounded-xl shadow p-4 space-y-2"
                 >
                   <h3 className="text-lg font-bold text-purple-700">
-                    {questoesFiltradas[questaoIndex].titulo || `QuestÃ£o ${questaoIndex + 1}`}
+                    {questoesFiltradas[questaoIndex].titulo || `Questão ${questaoIndex + 1}`}
                   </h3>
                   <p className="text-sm md:text-base text-gray-800">
                     {questoesFiltradas[questaoIndex].descricao}
@@ -674,7 +674,7 @@ export default function ProgramacaoOriginal() {
                 {/* EDITOR */}
                 <div className={`bg-white rounded-xl shadow-md p-3 flex flex-col ${expandido ? "col-span-1 min-h-[80vh]" : "min-h-[350px]"}`}>
                   <div className="flex items-center justify-between mb-2 border-b pb-2">
-                    <h3 className="font-semibold text-gray-700">Editor de CÃ³digo</h3>
+                    <h3 className="font-semibold text-gray-700">Editor de Código</h3>
                     <div className="flex items-center gap-2">
                       <button 
                         onClick={resetarCodigo} 
@@ -696,7 +696,7 @@ export default function ProgramacaoOriginal() {
                     onChange={(e) => setCodigo(e.target.value)}
                     className="flex-1 w-full font-mono text-sm bg-gray-50 border border-gray-300 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
                     spellCheck="false"
-                    placeholder="// Escreva seu cÃ³digo aqui..."
+                    placeholder="// Escreva seu código aqui..."
                   />
                 </div>
 
@@ -704,14 +704,14 @@ export default function ProgramacaoOriginal() {
                 {!expandido && (
                   <div className="bg-white rounded-xl shadow-md p-3 flex flex-col min-h-[350px]">
                     <div className="flex items-center justify-between mb-2 border-b pb-2">
-                      <h3 className="font-semibold text-gray-700" translate="no">SaÃ­da do Programa</h3>
+                      <h3 className="font-semibold text-gray-700" translate="no">Saída do Programa</h3>
                       <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100">
                         {executando ? "Executando..." : "Pronto"}
                       </span>
                     </div>
                     <pre className="flex-1 bg-black rounded-lg p-3 overflow-auto text-green-400 font-mono text-sm">
                       <code className="whitespace-pre-wrap break-words">
-                        {saida || "A saÃ­da do seu cÃ³digo aparecerÃ¡ aqui..."}
+                        {saida || "A saída do seu código aparecerá aqui..."}
                       </code>
                     </pre>
                   </div>
@@ -727,23 +727,23 @@ export default function ProgramacaoOriginal() {
                       <span className="text-2xl">{avaliacaoDetalhes.score >= 0.9 ? 'âœ…' : avaliacaoDetalhes.score >= 0.6 ? 'âš ï¸' : 'âŒ'}</span>
                       <div>
                         <div className="font-semibold">{avaliacaoDetalhes.feedback || 'Nenhum feedback curto fornecido'}</div>
-                        <div className="text-xs text-gray-500">Pontos atribuÃ­dos: <span className="font-bold text-blue-600">{avaliacaoDetalhes.pontos}</span></div>
+                        <div className="text-xs text-gray-500">Pontos atribuídos: <span className="font-bold text-blue-600">{avaliacaoDetalhes.pontos}</span></div>
                       </div>
                     </div>
                     {avaliacaoDetalhes.evidencias && (
                       <div className="mt-2 p-3 bg-gray-50 rounded">{avaliacaoDetalhes.evidencias}</div>
                     )}
-                    <div className="mt-2 text-sm text-gray-600">Total nesta avaliaÃ§Ã£o: <span className="font-bold text-green-600">{pontuacao || 0}</span></div>
+                    <div className="mt-2 text-sm text-gray-600">Total nesta avaliação: <span className="font-bold text-green-600">{pontuacao || 0}</span></div>
                   </div>
                 ) : (
-                  <div className="text-sm text-gray-500">Nenhum feedback disponÃ­vel. Execute a resoluÃ§Ã£o para receber feedback IA.</div>
+                  <div className="text-sm text-gray-500">Nenhum feedback disponível. Execute a resolução para receber feedback IA.</div>
                 )}
               </div>
 
               {/* TEMPORIZADOR */}
               <div className="w-full max-w-6xl bg-white rounded-xl shadow-md p-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-semibold text-gray-700">Tempo restante para esta questÃ£o</span>
+                  <span className="font-semibold text-gray-700">Tempo restante para esta questão</span>
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold ${questaoTime < 10 ? "bg-red-100 text-red-600" : "bg-purple-100 text-purple-600"}`}>
                     {formatSeconds(questaoTime)}
                   </span>
@@ -768,7 +768,7 @@ export default function ProgramacaoOriginal() {
                   }`}
                 >
                   <FaPlay />
-                  {executando ? "Processando..." : "Executar CÃ³digo"}
+                  {executando ? "Processando..." : "Executar Código"}
                 </button>
               </div>
 
@@ -798,11 +798,11 @@ export default function ProgramacaoOriginal() {
               {/* RESULTADO / CORREÃ‡ÃƒO */}
           {resultado && (
             <div className="w-full max-w-6xl bg-white rounded-xl shadow-md p-4 border-l-4 border-purple-600">
-              <h3 className="text-gray-700 font-semibold mb-2">Resultado da ExecuÃ§Ã£o</h3>
+              <h3 className="text-gray-700 font-semibold mb-2">Resultado da Execução</h3>
               <p className="text-gray-800 mb-2">{resultado}</p>
               {pontuacao !== null && (
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-gray-700">PontuaÃ§Ã£o:</span>
+                  <span className="font-bold text-gray-700">Pontuação:</span>
                   <span className={`font-bold px-2 py-1 rounded ${
                     pontuacao >= 15 ? "bg-green-200 text-green-800" :
                     pontuacao >= 8 ? "bg-yellow-200 text-yellow-800" :
@@ -815,7 +815,7 @@ export default function ProgramacaoOriginal() {
                   </span>
                   {autoAvancarTimer && contagemRegressiva > 0 && (
                     <span className="text-xs text-purple-600 animate-pulse ml-3">
-                      (PrÃ³xima questÃ£o em {contagemRegressiva}s...)
+                      (Próxima questão em {contagemRegressiva}s...)
                     </span>
                   )}
                 </div>
@@ -840,7 +840,7 @@ export default function ProgramacaoOriginal() {
                 {participante?.usuario?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || user?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'U'}
               </div>
             )}
-            <h3 className="text-lg font-bold mt-2">{participante?.usuario?.nome || user?.nome || "UsuÃ¡rio"}</h3>
+            <h3 className="text-lg font-bold mt-2">{participante?.usuario?.nome || user?.nome || "Usuário"}</h3>
             <p className="text-sm text-gray-500">Participante do Torneio</p>
           </div>
 
@@ -861,7 +861,7 @@ export default function ProgramacaoOriginal() {
                     })}
                   />
                 </div>
-                <span className="text-xs font-semibold text-center">PontuaÃ§Ã£o</span>
+                <span className="text-xs font-semibold text-center">Pontuação</span>
               </div>
               
               {/* POSIÃ‡ÃƒO */}
@@ -879,7 +879,7 @@ export default function ProgramacaoOriginal() {
                     })}
                   />
                 </div>
-                <span className="text-xs font-semibold text-center">PosiÃ§Ã£o</span>
+                <span className="text-xs font-semibold text-center">Posição</span>
               </div>
               
               {/* CASOS RESOLVIDOS */}
@@ -900,7 +900,7 @@ export default function ProgramacaoOriginal() {
                 <span className="text-xs font-semibold text-center">Casos Resolvidos</span>
               </div>
 
-              {/* BotÃ£o de VerificaÃ§Ã£o de Certificado */}
+              {/* Botão de Verificação de Certificado */}
               <div className="mt-4 w-full">
                 <CertificateCheckButton 
                   onClick={abrirCertificado}
@@ -910,7 +910,7 @@ export default function ProgramacaoOriginal() {
             </div>
           ) : (
             <div className="text-center p-4">
-              <p className="text-gray-600 mb-3">VocÃª ainda nÃ£o estÃ¡ participando deste torneio</p>
+              <p className="text-gray-600 mb-3">Você ainda não está participando deste torneio</p>
               <button 
                 onClick={() => window.location.reload()}
                 className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
@@ -970,10 +970,10 @@ export default function ProgramacaoOriginal() {
                           )}
                           <div className="flex flex-col min-w-0">
                             <span className={`truncate ${isMe ? 'font-bold text-purple-700' : ''}`}>
-                              {participanteRank.usuario?.nome || 'UsuÃ¡rio'}
+                              {participanteRank.usuario?.nome || 'Usuário'}
                             </span>
                             {isMe && (
-                              <span className="text-[10px] font-bold text-purple-500 leading-none">â— vocÃª</span>
+                              <span className="text-[10px] font-bold text-purple-500 leading-none">â— você</span>
                             )}
                           </div>
                         </div>
@@ -1015,7 +1015,7 @@ export default function ProgramacaoOriginal() {
                   {participante?.usuario?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || user?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'U'}
                 </div>
               )}
-              <h3 className="text-lg font-bold mt-2">{participante?.usuario?.nome || user?.nome || "UsuÃ¡rio"}</h3>
+              <h3 className="text-lg font-bold mt-2">{participante?.usuario?.nome || user?.nome || "Usuário"}</h3>
             </div>
             
             {participante ? (
@@ -1035,7 +1035,7 @@ export default function ProgramacaoOriginal() {
                       })}
                     />
                   </div>
-                  <span className="text-xs font-semibold text-center">PontuaÃ§Ã£o</span>
+                  <span className="text-xs font-semibold text-center">Pontuação</span>
                 </div>
                 
                 {/* POSIÃ‡ÃƒO */}
@@ -1053,7 +1053,7 @@ export default function ProgramacaoOriginal() {
                       })}
                     />
                   </div>
-                  <span className="text-xs font-semibold text-center">PosiÃ§Ã£o</span>
+                  <span className="text-xs font-semibold text-center">Posição</span>
                 </div>
                 
                 {/* CASOS RESOLVIDOS */}
@@ -1074,7 +1074,7 @@ export default function ProgramacaoOriginal() {
                   <span className="text-xs font-semibold text-center">Casos Resolvidos</span>
                 </div>
 
-                {/* BotÃ£o de VerificaÃ§Ã£o de Certificado Mobile */}
+                {/* Botão de Verificação de Certificado Mobile */}
                 <div className="mt-4 w-full px-4 text-center">
                   <CertificateCheckButton 
                     onClick={abrirCertificado}
@@ -1084,7 +1084,7 @@ export default function ProgramacaoOriginal() {
               </div>
             ) : (
               <div className="text-center p-4">
-                <p className="text-gray-600">VocÃª ainda nÃ£o estÃ¡ participando</p>
+                <p className="text-gray-600">Você ainda não está participando</p>
               </div>
             )}
           </div>
@@ -1107,7 +1107,7 @@ export default function ProgramacaoOriginal() {
         isOpen={mostrarVencedores}
         onClose={fecharVencedores}
         vencedores={vencedores}
-        disciplina="ProgramaÃ§Ã£o"
+        disciplina="Programação"
         torneio={torneio}
       />
     </div>
