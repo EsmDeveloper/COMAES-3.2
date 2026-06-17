@@ -534,7 +534,13 @@ const QuestoesTestesTab = () => {
                   return (
                     <button
                       key={bloco.id}
-                      onClick={() => disciplinaCompativel && handleAgruparEmBloco(bloco.id)}
+                      onClick={() => {
+                        if (!disciplinaCompativel) {
+                          showFeedback('error', `❌ Bloco de "${blocoCategoria}" incompatível com questão de "${questaoCategoria}"`);
+                          return;
+                        }
+                        handleAgruparEmBloco(bloco.id);
+                      }}
                       disabled={salvando || !disciplinaCompativel}
                       className={`w-full p-3 text-left border rounded-lg transition-colors ${
                         disciplinaCompativel 
