@@ -210,7 +210,6 @@ app.get("/", async (req, res) => {
 
 // ⚠️ IMPORTANTE: Registrar rotas de Colaborador - Blocos e Questões ANTES de adminPanelRoutes
 // Porque adminPanelRoutes tem uma rota catch-all /:model que capturaria essas requisições
-app.use('/api/colaborador', colaboradorBlocosQuestoesRoutes);
 app.use('/api/admin', colaboradorBlocosQuestoesRoutes);
 
 // Registrar rotas administrativas do painel (CRUD genérico + rotas específicas)
@@ -491,7 +490,8 @@ app.post('/auth/login', validate(rules.login), async (req, res) => {
         id: user.id,
         email: user.email,
         role: user.role || (user.isAdmin ? 'admin' : 'estudante'),
-        disciplina_colaborador: user.disciplina_colaborador || null
+        disciplina_colaborador: user.disciplina_colaborador || null,
+        status_colaborador: user.status_colaborador || 'aprovado'
       },
       process.env.JWT_SECRET || 'secret',
       { expiresIn: '24h' }
@@ -665,7 +665,8 @@ app.post('/auth/registro', validate(rules.register), async (req, res) => {
           id: novoUsuario.id,
           email: novoUsuario.email,
           role: novoUsuario.role,
-          disciplina_colaborador: novoUsuario.disciplina_colaborador
+          disciplina_colaborador: novoUsuario.disciplina_colaborador || null,
+          status_colaborador: novoUsuario.status_colaborador || 'aprovado'
         },
         process.env.JWT_SECRET || 'secret',
         { expiresIn: '24h' }

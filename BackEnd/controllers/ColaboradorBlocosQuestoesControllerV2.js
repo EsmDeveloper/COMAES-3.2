@@ -237,9 +237,13 @@ export const listarBlocosColaborador = async (req, res) => {
     } = req.query;
 
     const where = {
-      criado_por: req.user.id,
-      disciplina: req.user.disciplina_colaborador // 🔴 GARANTIR DISCIPLINA
+      criado_por: req.user.id
     };
+
+    // Só filtrar por disciplina se o usuário tiver uma definida
+    if (req.user.disciplina_colaborador) {
+      where.disciplina = req.user.disciplina_colaborador;
+    }
 
     // Filtrar por status (pendente, aprovado, rejeitado)
     if (status && ['pendente', 'aprovado', 'rejeitado'].includes(status)) {

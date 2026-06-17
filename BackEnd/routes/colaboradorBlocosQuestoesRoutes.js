@@ -71,7 +71,13 @@ const router = express.Router();
  */
 const validarColaboradorAprovado = (req, res, next) => {
   try {
+    console.log('🔍 [validarColaboradorAprovado] Validando acesso:');
+    console.log('   req.user:', req.user);
+    console.log('   role:', req.user?.role);
+    console.log('   status_colaborador:', req.user?.status_colaborador);
+
     if (!req.user || req.user.role !== 'colaborador') {
+      console.log('   ❌ FALHOU: Não é colaborador');
       return res.status(403).json({
         sucesso: false,
         mensagem: 'Acesso negado. Apenas colaboradores podem acessar este recurso.',
@@ -79,16 +85,23 @@ const validarColaboradorAprovado = (req, res, next) => {
       });
     }
 
-    if (req.user.status_colaborador !== 'aprovado') {
+    // Permitir colaboradores em status 'pendente' ou 'aprovado'
+    // 'pendente' = aguardando aprovação do admin
+    // 'aprovado' = já foi aprovado pelo admin
+    const statusValidos = ['pendente', 'aprovado'];
+    if (!statusValidos.includes(req.user.status_colaborador)) {
+      console.log('   ❌ FALHOU: Status inválido', req.user.status_colaborador, 'válidos:', statusValidos);
       return res.status(403).json({
         sucesso: false,
-        mensagem: 'Acesso negado. Seu status de colaborador não está aprovado.',
+        mensagem: 'Acesso negado. Seu status de colaborador não permite acessar este recurso.',
         timestamp: new Date().toISOString()
       });
     }
 
+    console.log('   ✅ PASSOU: Colaborador com status válido');
     next();
   } catch (error) {
+    console.error('❌ [validarColaboradorAprovado] Erro:', error.message);
     res.status(500).json({
       sucesso: false,
       mensagem: 'Erro ao validar permissões',

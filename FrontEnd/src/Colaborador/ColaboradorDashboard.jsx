@@ -1,7 +1,9 @@
 ﻿import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FileText, Plus, Clock, AlertCircle, CheckCircle, LogOut, Menu, X, Settings, UserCircle, Layers, Trash2, ChevronDown, ChevronUp, Edit, RefreshCw, Send } from 'lucide-react';
+import { FileText, Plus, Clock, AlertCircle, CheckCircle, LogOut, Menu, X, Settings, UserCircle, Layers, Trash2, ChevronDown, ChevronUp, Edit, RefreshCw, Send, Bell } from 'lucide-react';
+import NotificacoesModal from '../Paginas/Secundarias/Notificacoes';
+import useNotificacoesRealtime from '../hooks/useNotificacoesRealtime';
 import './ColaboradorDashboard.css';
 
 // ============================================
@@ -92,6 +94,22 @@ const CriarBlocosTab = ({ token, apiBase }) => {
     console.log('🔄 Carregando blocos...');
     setLoading(true);
     try {
+      // Debug: Decodificar token para verificar payload
+      if (token) {
+        const parts = token.split('.');
+        if (parts.length === 3) {
+          try {
+            const decoded = JSON.parse(atob(parts[1]));
+            console.log('📋 Token payload:', decoded);
+            console.log('   - role:', decoded.role);
+            console.log('   - status_colaborador:', decoded.status_colaborador);
+            console.log('   - disciplina_colaborador:', decoded.disciplina_colaborador);
+          } catch (e) {
+            console.warn('⚠️ Não conseguiu decodificar token');
+          }
+        }
+      }
+
       const response = await fetch(`${apiBase}/api/colaborador/blocos`, {
         headers: { 
           Authorization: `Bearer ${token}`,
@@ -100,6 +118,8 @@ const CriarBlocosTab = ({ token, apiBase }) => {
       });
       
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error(`❌ Erro ${response.status}:`, errorData.mensagem || errorData.error || 'Erro desconhecido');
         throw new Error(`Erro ${response.status}`);
       }
       
@@ -959,13 +979,59 @@ const ColaboradorDashboard = () => {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loadingQuestoes, setLoadingQuestoes] = useState(true);
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
 
   useEffect(() => {
     if (token) {
       fetchQuestoes();
+      // Carregar contagem de notificações ao montar
+      fetchUnreadNotificationsCount();
+      // Polling a cada 30 segundos para atualizar contagem
+      const interval = setInterval(() => {
+        fetchUnreadNotificationsCount();
+      }, 30000);
+      return () => clearInterval(interval);
     }
   }, [token]);
+
+  // Hook para notificações em tempo real
+  useNotificacoesRealtime({
+    userId: user?.id,
+    onNovaNotificacao: (notificacao) => {
+      // Recarregar contagem correta ao invés de somar
+      console.log('🔔 Nova notificação recebida:', notificacao);
+      fetchUnreadNotificationsCount();
+    },
+    enabled: !!user?.id
+  });
+
+  const fetchUnreadNotificationsCount = async () => {
+    if (!user || !user.id) return;
+    
+    try {
+      const token_value = localStorage.getItem('comaes_token');
+      if (!token_value) return;
+
+      const response = await fetch(`${API_BASE}/api/notificacoes/usuario/${user.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token_value}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+      if (data.success && data.data) {
+        const unreadCount = data.data.filter((n) => !n.lido).length;
+        setUnreadNotificationsCount(unreadCount);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar contagem de notificações:', error);
+    }
+  };
 
   const fetchQuestoes = async () => {
     if (!token) {
@@ -1189,9 +1255,19 @@ const ColaboradorDashboard = () => {
               </div>
             </div>
 
-            <div className="md:hidden">
-              {renderAvatarButton(true)}
-            </div>
+            {/* Ícone de Notificações - Abre Modal */}
+            <button
+              onClick={() => setShowNotificationsModal(true)}
+              className="relative w-10 h-10 flex items-center justify-center rounded-lg text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
+              title="Notificações"
+            >
+              <Bell className="w-5 h-5" />
+              {unreadNotificationsCount > 0 && (
+                <span className="absolute top-0 right-0 inline-flex items-center justify-center h-5 w-5 text-xs font-bold leading-none text-white transform translate-x-1 -translate-y-1 bg-red-500 rounded-full animate-pulse">
+                  {unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount}
+                </span>
+              )}
+            </button>
           </div>
         </header>
 
@@ -1327,6 +1403,21 @@ const ColaboradorDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal de Notificações - Reutilizado */}
+      <NotificacoesModal 
+        isOpen={showNotificationsModal} 
+        onClose={() => setShowNotificationsModal(false)}
+        onNotificationRead={() => {
+          // Atualizar contagem quando notificação é lida
+          fetchUnreadNotificationsCount();
+        }}
+        onAllRead={() => {
+          // Zerar contagem quando todas são lidas
+          setUnreadNotificationsCount(0);
+        }}
+        key={showNotificationsModal ? 'open' : 'closed'}
+      />
     </div>
   );
 };

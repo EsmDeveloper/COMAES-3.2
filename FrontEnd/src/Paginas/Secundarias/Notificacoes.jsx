@@ -20,6 +20,8 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState('all'); // 'all', 'unread', 'read'
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const pollIntervalRef = useRef(null);
   const lastFetchRef = useRef(null);
 
@@ -42,11 +44,24 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
     
     try {
       setLoading(true);
+      const token = localStorage.getItem('comaes_token');
+      if (!token) {
+        console.warn('Token não encontrado');
+        return;
+      }
+
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/api/notificacoes/usuario/${user.id}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('comaes_token')}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
+      
+      if (!response.ok) {
+        console.error(`Erro ${response.status} ao carregar notificações`);
+        return;
+      }
+
       const data = await response.json();
       if (data.success) {
         // Formatar notificaÃ§Ãµes vindas do banco
@@ -123,12 +138,25 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
     if (notif && notif.read) return;
 
     try {
+      const token = localStorage.getItem('comaes_token');
+      if (!token) {
+        console.warn('Token não encontrado');
+        return;
+      }
+
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/api/notificacoes/${id}/lido`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('comaes_token')}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
+
+      if (!response.ok) {
+        console.error(`Erro ${response.status} ao marcar como lida`);
+        return;
+      }
+
       const data = await response.json();
       if (data.success) {
         setNotifications(prev => 
@@ -148,12 +176,25 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
 
   const marcarTodasComoLidas = async () => {
     try {
+      const token = localStorage.getItem('comaes_token');
+      if (!token) {
+        console.warn('Token não encontrado');
+        return;
+      }
+
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/api/notificacoes/usuario/${user.id}/lido-todas`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('comaes_token')}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
+
+      if (!response.ok) {
+        console.error(`Erro ${response.status} ao marcar todas como lidas`);
+        return;
+      }
+
       const data = await response.json();
       if (data.success) {
         setNotifications(prev => 
@@ -168,6 +209,45 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
       }
     } catch (error) {
       console.error("Erro ao marcar todas como lidas:", error);
+    }
+  };
+
+  const deletarTodasNotificacoes = async () => {
+    try {
+      const token = localStorage.getItem('comaes_token');
+      if (!token) {
+        console.warn('Token não encontrado');
+        return;
+      }
+
+      setIsDeleting(true);
+
+      // Deletar cada notificação
+      for (const notif of notifications) {
+        await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/api/notificacoes/${notif.id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+
+      // Limpar lista local
+      setNotifications([]);
+      setUnreadCount(0);
+      setShowDeleteConfirm(false);
+      
+      console.log('✅ Todas as notificações foram deletadas');
+
+      // Notificar o Layout para zerar o contador
+      if (onAllRead) {
+        onAllRead();
+      }
+    } catch (error) {
+      console.error("Erro ao deletar notificações:", error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -352,23 +432,100 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
             </div>
 
             {/* RodapÃ© */}
-            <div className="p-3 md:p-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between text-xs md:text-sm text-gray-600">
-              <span>COMAES NotificaÃ§Ãµes</span>
-              <div className="flex items-center gap-2">
-                {unreadCount > 0 && (
-                  <button
-                    onClick={marcarTodasComoLidas}
-                    className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
-                  >
-                    Marcar todas como lidas
-                  </button>
-                )}
-                <span>{filteredNotifications.length} itens</span>
+            <div className="p-3 md:p-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between text-xs md:text-sm text-gray-600 mb-3">
+                <span>COMAES NotificaÃ§Ãµes</span>
+                <div className="flex items-center gap-2">
+                  <span>{filteredNotifications.length} itens</span>
+                  {notifications.length > 0 && (
+                    <button
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                      title="Limpar todas as notificações"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
               </div>
+              
+              {/* BotÃµes de aÃ§Ã£o */}
+              {unreadCount > 0 && (
+                <button
+                  onClick={marcarTodasComoLidas}
+                  className="w-full px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                >
+                  âœ" Marcar todas como lidas
+                </button>
+              )}
             </div>
           </motion.div>
         </motion.div>
       )}
+
+      {/* Modal de Confirmação para Deletar */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={() => setShowDeleteConfirm(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Ícone */}
+              <div className="flex justify-center mb-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Texto */}
+              <h3 className="text-lg font-bold text-center text-gray-900 mb-2">
+                Limpar Todas as Notificações?
+              </h3>
+              <p className="text-sm text-gray-600 text-center mb-6">
+                Tem certeza que deseja deletar TODAS as notificações? Esta ação não pode ser desfeita.
+              </p>
+
+              {/* Botões */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 px-4 py-2.5 rounded-lg font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={deletarTodasNotificacoes}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2.5 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Deletando...
+                    </>
+                  ) : (
+                    'Deletar Tudo'
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </AnimatePresence>
   );
 }

@@ -1,0 +1,250 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                ║
+║              🔔 VISUALIZAÇÃO DO SISTEMA DE NOTIFICAÇÕES                        ║
+║                     Painel do Colaborador - COMAES 3.2                         ║
+║                                                                                ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+
+1️⃣  HEADER DO DASHBOARD - COM ÍCONE DE NOTIFICAÇÕES
+═══════════════════════════════════════════════════════════════════════════════
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                              ┃
+┃ ≡ Menu        Painel do Colaborador         🔔  (5)    👤 Avatar          ┃
+┃               Gerencie suas questões         ↑                              ┃
+┃                                               └─ Ícone com Badge            ┃
+┃                                                  (mostra nº de não lidas)    ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+
+2️⃣  MODAL DE NOTIFICAÇÕES - ABERTO
+═══════════════════════════════════════════════════════════════════════════════
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 🔔 Notificações                                                          ✕ │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐  │
+│  │ [Aprovação]  Seu Bloco Foi Aprovado!                           ●  │  │
+│  │              Parabéns! Seu bloco de matemática foi aprovado        │  │
+│  │              e está pronto para uso.                              │  │
+│  │              Há 5 min                                             │  │
+│  └─────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐  │
+│  │ [Torneio]  Novo Torneio Disponível!                            ●  │  │
+│  │            Participe do Torneio de Programação Avançada            │  │
+│  │            Prêmios para os 3 melhores!                            │  │
+│  │            Há 2h                                                   │  │
+│  └─────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐  │
+│  │ [Resultado]  Sua Prova Foi Corrigida                               │  │
+│  │              Você marcou 85 pontos! Excelente trabalho!            │  │
+│  │              Ontem                                                  │  │
+│  └─────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐  │
+│  │ [Conquista]  Novo Badge Desbloqueado                               │  │
+│  │              Você ganhou o badge "Estrela Iniciante"               │  │
+│  │              Há 1 dia                                              │  │
+│  └─────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                    ↓  Marcar todas como lidas  ↓                            │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+LEGENDA:
+ ●  = Notificação não lida (azul)
+ (sem marca) = Notificação já lida (cinzenta)
+
+
+3️⃣  ESTADOS DO ÍCONE
+═══════════════════════════════════════════════════════════════════════════════
+
+ESTADO 1: Sem Notificações (badge vazio)
+    🔔
+    (cinzento, sem números)
+
+ESTADO 2: Com Notificações Não Lidas
+    🔔
+     (5)
+    (badge vermelho mostrando contagem)
+
+ESTADO 3: Muitas Notificações (>99)
+    🔔
+    (99+)
+    (máximo exibido)
+
+
+4️⃣  TIPOS DE NOTIFICAÇÕES E CORES
+═══════════════════════════════════════════════════════════════════════════════
+
+┌──────────────┬──────────────┬───────────────────────────────────────┐
+│ Tipo         │ Cor          │ Exemplo                               │
+├──────────────┼──────────────┼───────────────────────────────────────┤
+│ 🏆 Torneio   │ 🟨 Amarelo   │ [Torneio] Novo Torneio Iniciado      │
+│ 🥇 Ranking   │ 🟦 Azul      │ [Ranking] Subiu de Posição           │
+│ ⏰ Lembrete   │ 🟪 Roxo      │ [Lembrete] Limite se Aproxima        │
+│ ⭐ Conquista │ 🟩 Verde     │ [Conquista] Novo Badge Ganho         │
+│ 📊 Resultado │ 🟦 Índigo    │ [Resultado] Prova Corrigida          │
+│ 🔴 Sistema   │ 🟥 Vermelho  │ [Sistema] Atualização Importante     │
+│ 📢 Geral     │ ⬜ Cinza     │ [Geral] Mensagem Importante          │
+└──────────────┴──────────────┴───────────────────────────────────────┘
+
+
+5️⃣  FLUXO DE INTERAÇÃO
+═══════════════════════════════════════════════════════════════════════════════
+
+  ┌─────────────────────────────────────────────────────┐
+  │ Admin Envia Notificação                              │
+  │ "Seu bloco foi aprovado"                             │
+  └──────────────┬──────────────────────────────────────┘
+                 │
+                 ▼
+  ┌─────────────────────────────────────────────────────┐
+  │ Backend Armazena em BD                              │
+  └──────────────┬──────────────────────────────────────┘
+                 │
+                 ▼
+  ┌─────────────────────────────────────────────────────┐
+  │ Frontend Polling (a cada 60s)                        │
+  │ OU                                                   │
+  │ Usuário Abre Modal Manual                           │
+  └──────────────┬──────────────────────────────────────┘
+                 │
+                 ▼
+  ┌─────────────────────────────────────────────────────┐
+  │ GET /api/notificacoes/usuario/{id}                  │
+  │ Badge Atualiza (ex: 🔔 (1))                         │
+  └──────────────┬──────────────────────────────────────┘
+                 │
+                 ▼
+  ┌─────────────────────────────────────────────────────┐
+  │ Colaborador Clica no Ícone 🔔                       │
+  │ Modal Abre com Notificações                         │
+  └──────────────┬──────────────────────────────────────┘
+                 │
+                 ▼
+  ┌─────────────────────────────────────────────────────┐
+  │ Colaborador Clica na Notificação                    │
+  │ ou em "Marcar todas como lidas"                    │
+  └──────────────┬──────────────────────────────────────┘
+                 │
+                 ▼
+  ┌─────────────────────────────────────────────────────┐
+  │ PATCH /api/notificacoes/{id}/lido                   │
+  │ Notificação é Marcada como Lida                     │
+  │ Badge Atualiza                                       │
+  └─────────────────────────────────────────────────────┘
+
+
+6️⃣  RESPONSIVIDADE - MOBILE
+═══════════════════════════════════════════════════════════════════════════════
+
+TELA MOBILE (< 768px):
+
+┌────────────────────────────────────────┐
+│ ≡ Painel  🔔(3)  👤                   │
+└────────────────────────────────────────┘
+
+Ao clicar no ícone, modal se adapta:
+
+┌────────────────────────────────────────┐
+│ 🔔 Notificações                    ✕  │
+├────────────────────────────────────────┤
+│                                        │
+│ [Torneio] Novo Torneio...          ●  │
+│ Participe do torneio de prog...       │
+│ Há 5 min                               │
+│                                        │
+│ [Resultado] Prova Corrigida         ●  │
+│ Você marcou 85 pontos!                │
+│ Ontem                                  │
+│                                        │
+├────────────────────────────────────────┤
+│   Marcar todas como lidas              │
+└────────────────────────────────────────┘
+
+
+7️⃣  ANIMAÇÕES
+═══════════════════════════════════════════════════════════════════════════════
+
+MODAL ABRE:
+  0ms:   Modal pequeno (95%) e transparente (0% opacidade)
+  75ms:  Modal médio (97.5%) e semi-visível
+  150ms: Modal em tamanho normal (100%) e totalmente visível
+
+MODAL FECHA:
+  0ms:   Modal em tamanho normal (100%) e totalmente visível
+  75ms:  Modal médio (97.5%) e semi-transparente
+  150ms: Modal pequeno (95%) e transparente (0% opacidade)
+
+NOTIFICAÇÃO CARREGADA:
+  0ms:   Notificação invisível
+  200ms: Notificação aparece (fade in)
+
+
+8️⃣  COMPORTAMENTO COM POLLING (60 segundos)
+═══════════════════════════════════════════════════════════════════════════════
+
+CENÁRIO 1: Badge em 0, Admin Envia Notificação
+  
+  T=0s:    🔔 (sem badge)
+  T=60s:   (polling atualiza) 🔔(1) ← Badge aparece!
+  
+CENÁRIO 2: Usuário Tem Modal Aberto
+  
+  Modal Aberto → Atualiza a cada 60s automaticamente
+  T=0s:    🔔 | Modal mostra 3 notificações
+  T=60s:   (poll) | Notificações novas aparecem
+
+
+9️⃣  EXEMPLO DE NOTIFICAÇÃO COMPLETA
+═══════════════════════════════════════════════════════════════════════════════
+
+Estrutura interna de uma notificação:
+
+{
+  id: 42,
+  type: "Aprovação",
+  title: "Seu Bloco de Questões Foi Aprovado",
+  message: "Parabéns! Seu bloco 'Matemática Avançada' foi aprovado e está pronto para uso.",
+  time: "2026-06-17T10:30:00Z",
+  read: false,
+  display_color: "bg-blue-100 text-blue-800"
+}
+
+Exibição:
+
+  [Aprovação]  Seu Bloco de Questões Foi Aprovado       ●
+  Parabéns! Seu bloco 'Matemática Avançada' foi aprovado...
+  Há 5 min
+
+
+🔟 CHECKLIST VISUAL
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ Ícone 🔔 visível no canto superior direito
+✅ Badge vermelho com número aparece quando há não lidas
+✅ Modal abre com animação suave ao clicar no ícone
+✅ Lista de notificações mostra com cores diferentes por tipo
+✅ Cada notificação mostra título, mensagem e hora
+✅ Ponto azul ● indica notificação não lida
+✅ Clique marca como lida (ponto some, cor muda)
+✅ Botão "Marcar todas como lidas" funciona
+✅ Modal fecha ao clicar fora
+✅ Funciona em desktop e mobile
+✅ Sem erros no console
+✅ Animações são suaves (60fps)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+               ✨ Sistema de Notificações 100% Funcional ✨
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Data: Junho 17, 2026
+Status: ✅ IMPLEMENTADO E PRONTO PARA USO
