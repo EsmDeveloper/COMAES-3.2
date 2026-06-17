@@ -33,6 +33,14 @@ const QuestoesTestesTab = () => {
     return () => window.removeEventListener('questaoAdicionadaTeste', handleQuestaoAdicionada);
   }, []);
 
+  // Refrescar blocos quando modal de agrupamento abre (para pegar blocos recém-criados)
+  useEffect(() => {
+    if (modalAgruparAberto) {
+      console.log('🔄 Modal de agrupamento aberto - recarregando blocos...');
+      fetchBlocos();
+    }
+  }, [modalAgruparAberto]);
+
   const fetchQuestoesIndividuais = async () => {
     try {
       const token = localStorage.getItem('comaes_token');
@@ -47,13 +55,10 @@ const QuestoesTestesTab = () => {
       const questoes = data.data || data.dados || [];
       
       // Log para debug das questões
-      console.log('📌 Questões carregadas:', questoes.map(q => ({
-        id: q.id,
-        enunciado: q.enunciado?.substring(0, 30),
-        autor_nome: q.autor_nome,
-        autor_id: q.autor_id,
-        criado_por: q.criado_por
-      })));
+      console.log('📌 Total de questões carregadas:', questoes.length);
+      questoes.forEach((q, idx) => {
+        console.log(`   [${idx}] ID=${q.id}, categoria="${q.categoria}", enunciado="${q.enunciado?.substring(0, 30)}..."`);
+      });
       
       setQuestoesIndividuais(questoes);
     } catch (error) {
@@ -124,7 +129,8 @@ const QuestoesTestesTab = () => {
       const token = localStorage.getItem('comaes_token');
       const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
       
-      console.log(`🔗 Enviando questão ${questaoSelecionada.id} para bloco ${blocoId}`);
+      console.log(`🔗 Enviando questão para bloco ${blocoId}`);
+      console.log(`   Questão selecionada:`, { id: questaoSelecionada.id, categoria: questaoSelecionada.categoria, enunciado: questaoSelecionada.enunciado?.substring(0, 50) });
       console.log(`📦 Payload:`, { questao_id: questaoSelecionada.id });
       
       const response = await fetch(`${apiBase}/api/blocos/${blocoId}/questoes`, {
@@ -424,6 +430,7 @@ const QuestoesTestesTab = () => {
                             <div className="flex gap-2">
                               <button 
                                 onClick={() => {
+                                  console.log(`✅ Questão selecionada:`, { id: questao.id, categoria: questao.categoria, enunciado: questao.enunciado?.substring(0, 30) });
                                   setQuestaoSelecionada(questao);
                                   setModalAgruparAberto(true);
                                 }}
@@ -521,6 +528,8 @@ const QuestoesTestesTab = () => {
                   const questaoCategoria = questaoSelecionada?.categoria || questaoSelecionada?.disciplina;
                   const blocoCategoria = bloco.disciplina;
                   const disciplinaCompativel = questaoCategoria === blocoCategoria;
+                  
+                  console.log(`🔍 Comparando: questao="${questaoCategoria}" vs bloco="${blocoCategoria}" => compativel=${disciplinaCompativel}`);
                   
                   return (
                     <button
