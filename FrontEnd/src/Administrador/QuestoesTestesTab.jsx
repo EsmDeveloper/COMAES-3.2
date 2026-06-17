@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BookOpen, Plus, Edit2, Trash2, Search, ChevronDown, Layers, X, Package, CheckCircle, AlertCircle } from 'lucide-react';
 import BlocoQuestoesManager from './BlocoQuestoesManager';
 import CreateQuestaoTesteForm from './CreateQuestaoTesteForm';
@@ -121,6 +121,17 @@ const QuestoesTestesTab = () => {
     }
   };
 
+  // ✅ Handler para agrupar questão (memoizado para evitar closure issues)
+  const handleSelecionarQuestaoAgrupamento = useCallback((questao) => {
+    console.log(`🔴 [ANTES] questaoSelecionada foi atualizada para:`, {
+      id: questao.id,
+      categoria: questao.categoria,
+      enunciado: questao.enunciado?.substring(0, 30)
+    });
+    setQuestaoSelecionada(questao);
+    setModalAgruparAberto(true);
+  }, []);
+
   // ✅ Agrupar em Bloco
   const handleAgruparEmBloco = async (blocoId) => {
     if (!questaoSelecionada || !blocoId) return;
@@ -130,9 +141,14 @@ const QuestoesTestesTab = () => {
       const token = localStorage.getItem('comaes_token');
       const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
       
-      console.log(`🔗 Enviando questão para bloco ${blocoId}`);
-      console.log(`   Questão selecionada:`, { id: questaoSelecionada.id, categoria: questaoSelecionada.categoria, enunciado: questaoSelecionada.enunciado?.substring(0, 50) });
-      console.log(`📦 Payload:`, { questao_id: questaoSelecionada.id });
+      console.log(`\n🔗 INICIANDO AGRUPAMENTO`);
+      console.log(`   Questão selecionada objeto completo:`, JSON.stringify(questaoSelecionada, null, 2));
+      console.log(`   ✅ questaoSelecionada.id = ${questaoSelecionada.id}`);
+      console.log(`   ✅ questaoSelecionada.categoria = ${questaoSelecionada.categoria}`);
+      console.log(`   📋 Bloco ID = ${blocoId}`);
+      
+      const payload = { questao_id: questaoSelecionada.id };
+      console.log(`📦 Payload FINAL a ser enviado:`, JSON.stringify(payload, null, 2));
       
       const response = await fetch(`${apiBase}/api/blocos/${blocoId}/questoes`, {
         method: 'POST',
@@ -140,9 +156,7 @@ const QuestoesTestesTab = () => {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          questao_id: questaoSelecionada.id
-        })
+        body: JSON.stringify(payload)
       });
 
       console.log(`📊 Status da resposta: ${response.status}`);
@@ -157,11 +171,13 @@ const QuestoesTestesTab = () => {
         }, 1500);
       } else {
         const errorData = await response.json();
-        console.error(`❌ Erro da API (${response.status}):`, errorData);
-        console.error(`📋 Mensagem completa:`, JSON.stringify(errorData, null, 2));
+        console.error(`\n❌ ERRO DO BACKEND (${response.status}):`);
+        console.error(`   Resposta:`, JSON.stringify(errorData, null, 2));
+        console.error(`   ⚠️ MISMATCH DETECTADO: Frontend enviou questao_id=${questaoSelecionada.id}, categoria="${questaoSelecionada.categoria}"`);
+        console.error(`   Mas o backend encontrou uma questão com categoria diferente!`);
         
         // Mostrar erro mais detalhado
-        const mensagemErro = errorData?.message || errorData?.mensagem || errorData?.msg || 'Erro ao agrupar';
+        const mensagemErro = errorData?.message || errorData?.mensagem || errorData?.error || errorData?.msg || 'Erro ao agrupar';
         const detalhes = errorData?.errors || errorData?.erros || errorData?.details || '';
         
         showFeedback('error', `❌ Erro: ${mensagemErro}${detalhes ? ` - ${detalhes}` : ''}`);
@@ -451,11 +467,7 @@ const QuestoesTestesTab = () => {
                           <td className="px-4 py-3 text-sm">
                             <div className="flex gap-2">
                               <button 
-                                onClick={() => {
-                                  console.log(`✅ Questão selecionada:`, { id: questao.id, categoria: questao.categoria, enunciado: questao.enunciado?.substring(0, 30) });
-                                  setQuestaoSelecionada(questao);
-                                  setModalAgruparAberto(true);
-                                }}
+                                onClick={() => handleSelecionarQuestaoAgrupamento(questao)}
                                 className="p-1.5 text-green-600 hover:bg-green-100 rounded transition-colors" 
                                 title="Agrupar em Bloco"
                               >

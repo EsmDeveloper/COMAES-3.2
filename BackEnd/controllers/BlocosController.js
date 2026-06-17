@@ -356,7 +356,7 @@ export const adicionarQuestao = async (req, res) => {
 
     console.log(`\n🔗 [adicionarQuestao] Iniciando...`);
     console.log(`   - blocoId: ${id}`);
-    console.log(`   - questaoId: ${questao_id}`);
+    console.log(`   - questaoId RECEBIDO DO FRONTEND: ${questao_id}`);
 
     if (!questao_id) {
       console.error(`❌ questao_id ausente`);
@@ -370,30 +370,32 @@ export const adicionarQuestao = async (req, res) => {
     }
     console.log(`✅ Bloco encontrado:`, { id: bloco.id, titulo: bloco.titulo, disciplina: bloco.disciplina });
 
-    // Tentar primeiro com Questao (novo modelo unificado)
-    let questao = await Questao.findByPk(questao_id);
+    // ✅ PRIORIZAR: Tentar PRIMEIRO com QuestaoTesteConhecimento (modelo mais novo para testes)
+    // Porque o frontend chamou /api/teste-conhecimento/questoes, então a questão é desse modelo
+    let questao = await QuestaoTesteConhecimento.findByPk(questao_id);
     
     if (questao) {
-      // ✅ Questão do novo modelo unificado
-      console.log(`✅ Questão encontrada no modelo Questao`);
-      console.log(`   - ID: ${questao.id}, Titulo: ${questao.titulo}, Disciplina: ${questao.disciplina}, BlocoID: ${questao.bloco_id}`);
+      console.log(`✅ Questão encontrada no modelo QuestaoTesteConhecimento (PRIORIDADE)`);
+      console.log(`   - ID: ${questao.id}, Categoria: ${questao.categoria}, Ativo: ${questao.ativo}`);
+      console.log(`   - Enunciado: ${questao.enunciado?.substring(0, 50)}...`);
+      console.log(`   - Bloco disciplina: ${bloco.disciplina}`);
+
+      // Validar para QuestaoTesteConhecimento
+      if (!questao.ativo) {
+        console.error(`❌ Questão inativa`);
+        return err(res, 'Questão inativa não pode ser adicionada ao bloco', 422);
+      }
       
-      // Validar disciplina
-      if (questao.disciplina !== bloco.disciplina) {
-        const msg = `Questão de disciplina "${questao.disciplina}" não pode ser adicionada a bloco de disciplina "${bloco.disciplina}"`;
+      console.log(`🔍 VALIDAÇÃO: questao.categoria="${questao.categoria}" vs bloco.disciplina="${bloco.disciplina}"`);
+      if (questao.categoria !== bloco.disciplina) {
+        const msg = `Questão de categoria "${questao.categoria}" não pode ser adicionada a bloco de disciplina "${bloco.disciplina}"`;
         console.error(`❌ ${msg}`);
         return err(res, msg, 422);
       }
 
-      // Verificar se já está no bloco
-      if (questao.bloco_id === parseInt(id)) {
-        console.error(`❌ Questão já está neste bloco`);
-        return err(res, 'Questão já está neste bloco', 409);
-      }
-
-      // Contar questões existentes
-      const count = await Questao.count({ where: { bloco_id: id } });
-      console.log(`📊 Bloco tem ${count} questões`);
+      // Verificar limite
+      const count = await BlocoQuestaoItem.count({ where: { bloco_id: id } });
+      console.log(`📊 Bloco tem ${count} questões (modelo antigo)`);
       
       if (count >= MAX_QUESTOES_POR_BLOCO) {
         const msg = `Limite de ${MAX_QUESTOES_POR_BLOCO} questões por bloco atingido`;
@@ -401,41 +403,55 @@ export const adicionarQuestao = async (req, res) => {
         return err(res, msg, 422);
       }
 
-      // Atualizar questão para apontar ao bloco
-      await questao.update({ bloco_id: id });
-      console.log(`✅ Questão ${questao_id} adicionada ao bloco ${id} (novo modelo)`);
-      
-      return ok(res, questao, 'Questão adicionada ao bloco', 201);
+      // Verificar se já está no bloco
+      const jaExiste = await BlocoQuestaoItem.findOne({
+        where: { bloco_id: id, questao_id },
+      });
+      if (jaExiste) {
+        console.error(`❌ Questão já está neste bloco`);
+        return err(res, 'Questão já está neste bloco', 409);
+      }
+
+      const item = await BlocoQuestaoItem.create({
+        bloco_id: parseInt(id),
+        questao_id: parseInt(questao_id),
+        ordem: ordem ?? count,
+      });
+
+      console.log(`✅ Questão ${questao_id} adicionada ao bloco ${id} (modelo QuestaoTesteConhecimento)`);
+      return ok(res, item, 'Questão adicionada ao bloco', 201);
     } else {
-      console.log(`⚠️ Questão não encontrada no modelo Questao, tentando QuestaoTesteConhecimento...`);
+      console.log(`⚠️ Questão não encontrada no modelo QuestaoTesteConhecimento, tentando modelo Questao (novo)...`);
     }
 
-    // ❌ Não encontrou no novo modelo, tentar modelo antigo
-    questao = await QuestaoTesteConhecimento.findByPk(questao_id);
+    // ❌ Fallback: Tentar modelo antigo Questao se não encontrou em QuestaoTesteConhecimento
+    questao = await Questao.findByPk(questao_id);
     
     if (!questao) {
       console.error(`❌ Questão ${questao_id} não encontrada em nenhum modelo`);
       return err(res, 'Questão não encontrada', 404);
     }
 
-    console.log(`✅ Questão encontrada no modelo QuestaoTesteConhecimento`);
-    console.log(`   - ID: ${questao.id}, Categoria: ${questao.categoria}, Ativo: ${questao.ativo}`);
-
-    // Validar para QuestaoTesteConhecimento
-    if (!questao.ativo) {
-      console.error(`❌ Questão inativa`);
-      return err(res, 'Questão inativa não pode ser adicionada ao bloco', 422);
-    }
+    // ✅ Questão do novo modelo unificado
+    console.log(`✅ Questão encontrada no modelo Questao`);
+    console.log(`   - ID: ${questao.id}, Titulo: ${questao.titulo}, Disciplina ENCONTRADA: ${questao.disciplina}, BlocoID: ${questao.bloco_id}`);
     
-    if (questao.categoria !== bloco.disciplina) {
-      const msg = `Questão de categoria "${questao.categoria}" não pode ser adicionada a bloco de disciplina "${bloco.disciplina}"`;
+    // Validar disciplina
+    if (questao.disciplina !== bloco.disciplina) {
+      const msg = `Questão de disciplina "${questao.disciplina}" não pode ser adicionada a bloco de disciplina "${bloco.disciplina}"`;
       console.error(`❌ ${msg}`);
       return err(res, msg, 422);
     }
 
-    // Verificar limite
-    const count = await BlocoQuestaoItem.count({ where: { bloco_id: id } });
-    console.log(`📊 Bloco tem ${count} questões (modelo antigo)`);
+    // Verificar se já está no bloco
+    if (questao.bloco_id === parseInt(id)) {
+      console.error(`❌ Questão já está neste bloco`);
+      return err(res, 'Questão já está neste bloco', 409);
+    }
+
+    // Contar questões existentes
+    const count = await Questao.count({ where: { bloco_id: id } });
+    console.log(`📊 Bloco tem ${count} questões (modelo novo)`);
     
     if (count >= MAX_QUESTOES_POR_BLOCO) {
       const msg = `Limite de ${MAX_QUESTOES_POR_BLOCO} questões por bloco atingido`;
@@ -443,23 +459,11 @@ export const adicionarQuestao = async (req, res) => {
       return err(res, msg, 422);
     }
 
-    // Verificar se já está no bloco
-    const jaExiste = await BlocoQuestaoItem.findOne({
-      where: { bloco_id: id, questao_id },
-    });
-    if (jaExiste) {
-      console.error(`❌ Questão já está neste bloco`);
-      return err(res, 'Questão já está neste bloco', 409);
-    }
-
-    const item = await BlocoQuestaoItem.create({
-      bloco_id: parseInt(id),
-      questao_id: parseInt(questao_id),
-      ordem: ordem ?? count,
-    });
-
-    console.log(`✅ Questão ${questao_id} adicionada ao bloco ${id} (modelo antigo)`);
-    return ok(res, item, 'Questão adicionada ao bloco', 201);
+    // Atualizar questão para apontar ao bloco
+    await questao.update({ bloco_id: id });
+    console.log(`✅ Questão ${questao_id} adicionada ao bloco ${id} (modelo Questao novo)`);
+    
+    return ok(res, questao, 'Questão adicionada ao bloco', 201);
   } catch (error) {
     console.error(`\n❌ ERRO em adicionarQuestao:`, error);
     console.error(`   Stack:`, error.stack);
