@@ -15,7 +15,7 @@ import {
 // ============================================
 const NovosUsuariosChart = () => {
   const { token } = useAuth();
-  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -108,7 +108,7 @@ const NovosUsuariosChart = () => {
     <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
       <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
         <UserPlus className="w-5 h-5 text-blue-600" />
-        Novos usuários (útimos 30 dias)
+        Novos usuários (últimos 30 dias)
       </h3>
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
@@ -167,7 +167,7 @@ const NovosUsuariosChart = () => {
 // ============================================
 const AtividadesRecentes = () => {
   const { token } = useAuth();
-  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
   const [atividades, setAtividades] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -346,28 +346,47 @@ const AtividadesRecentes = () => {
 // COMPONENTE PRINCIPAL: AdminStats
 // ============================================
 const AdminStats = () => {
-  const { token } = useAuth();
-  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+  const { token, login } = useAuth();
+  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retrying, setRetrying] = useState(false);
   const [debugInfo, setDebugInfo] = useState(null);
 
-  const fetchStats = async () => {
+  const refreshSession = async (currentToken) => {
+    const response = await fetch(`${API_BASE}/auth/refresh`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${currentToken}`,
+        'Accept': 'application/json'
+      }
+    });
+
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data?.success || !data?.token || !data?.data) {
+      throw new Error(data?.error || 'Sessão expirada. Faça login novamente.');
+    }
+
+    login(data.data, data.token);
+    return data.token;
+  };
+
+  const fetchStats = async (overrideToken = null, allowRefresh = true) => {
     setLoading(true);
     setError(null);
     setDebugInfo(null);
 
     try {
-      if (!token) {
+      const activeToken = overrideToken || token;
+      if (!activeToken) {
         throw new Error('Token de autenticação não encontrado. Faça login novamente.');
       }
 
       const response = await fetch(`${API_BASE}/api/admin/stats`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${activeToken}`,
           'Accept': 'application/json'
         }
       });
@@ -385,7 +404,14 @@ const AdminStats = () => {
       }
 
       if (!response.ok) {
-        throw new Error(data?.message || `Erro ${response.status}: ${data?.error || 'Falha ao carregar estatísticas'}`);
+        if (response.status === 403 && allowRefresh) {
+          const refreshedToken = await refreshSession(activeToken);
+          return fetchStats(refreshedToken, false);
+        }
+
+        const serverMessage = data?.message || `Erro ${response.status}: ${data?.error || 'Falha ao carregar estatísticas'}`;
+        const debugText = data?.debug ? ` Debug: ${JSON.stringify(data.debug)}` : '';
+        throw new Error(`${serverMessage}${debugText}`);
       }
 
       if (data.success && data.data) {
@@ -488,7 +514,7 @@ const AdminStats = () => {
 
   return (
     <div className="space-y-6">
-      {/* Cards de Estatísticas */}
+      {/* Cards de Estat?sticas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
         <StatCard
           title="Total de Usuários"
@@ -536,21 +562,21 @@ const AdminStats = () => {
         <StatCard
           title="Novos (7 dias)"
           value={usuarios.novos.dias7}
-          subtitle="Usuários novos"
+          subtitle="Usu?rios novos"
           icon={TrendingUp}
           gradient="from-cyan-600 to-cyan-700"
         />
         <StatCard
           title="Novos (30 dias)"
           value={usuarios.novos.dias30}
-          subtitle="Usuários novos"
+          subtitle="Usu?rios novos"
           icon={Calendar}
           gradient="from-blue-400 to-blue-500"
         />
         <StatCard
           title="Novos (90 dias)"
           value={usuarios.novos.dias90}
-          subtitle="Usuários novos"
+          subtitle="Usu?rios novos"
           icon={Clock}
           gradient="from-indigo-400 to-indigo-500"
         />
@@ -624,7 +650,7 @@ const AdminStats = () => {
         <div className="bg-white rounded-2xl p-6 shadow-lg">
           <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
             <FileText className="w-5 h-5 text-green-500" />
-            últimos Testes Concluídos
+            Últimos Testes Concluídos
           </h3>
           <div className="space-y-3">
             {ultimasAtividades.ultimosTestes.length > 0 ? (
@@ -665,7 +691,7 @@ const AdminStats = () => {
         <div className="bg-white rounded-2xl p-6 shadow-lg">
           <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
             <Trophy className="w-5 h-5 text-yellow-500" />
-            últimos Torneios Criados
+            Últimos Torneios Criados
           </h3>
           <div className="space-y-3">
             {ultimasAtividades.ultimosTorneios.length > 0 ? (
@@ -709,7 +735,7 @@ const AdminStats = () => {
   );
 };
 
-// Componente de Card de Estatística
+// Componente de Card de Estat?stica
 const StatCard = ({ title, value, subtitle, icon: Icon, gradient, variation, variationColor }) => (
   <div className={`bg-gradient-to-r ${gradient} rounded-2xl p-4 sm:p-5 md:p-6 text-white shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl min-h-[160px] sm:min-h-[140px] flex flex-col justify-between`}>
     <div className="flex items-start justify-between gap-3">
@@ -731,3 +757,4 @@ const StatCard = ({ title, value, subtitle, icon: Icon, gradient, variation, var
 );
 
 export default AdminStats;
+
