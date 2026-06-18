@@ -31,7 +31,7 @@ function Recuperar() {
     
     (async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/auth/recover`, {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/auth/recover`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email })

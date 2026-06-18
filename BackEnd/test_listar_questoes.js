@@ -1,6 +1,6 @@
-/**
+﻿/**
  * test_listar_questoes.js
- * Script para testar listagem de questões via API
+ * Script para testar listagem de questÃµes via API
  */
 
 import Usuario from './models/User.js';
@@ -10,12 +10,12 @@ import db from './config/db.js';
 async function test() {
   try {
     console.log('='.repeat(80));
-    console.log('🧪 TESTE: Listar Questões via API');
+    console.log('ðŸ§ª TESTE: Listar QuestÃµes via API');
     console.log('='.repeat(80));
 
     // 1. Conectar
     await db.authenticate();
-    console.log('✅ Banco conectado!');
+    console.log('âœ… Banco conectado!');
 
     // 2. Encontrar colaborador
     const colaborador = await Usuario.findOne({
@@ -23,11 +23,11 @@ async function test() {
     });
 
     if (!colaborador) {
-      console.error('❌ Nenhum colaborador encontrado!');
+      console.error('âŒ Nenhum colaborador encontrado!');
       process.exit(1);
     }
 
-    console.log(`✅ Colaborador: ${colaborador.nome} (ID=${colaborador.id})`);
+    console.log(`âœ… Colaborador: ${colaborador.nome} (ID=${colaborador.id})`);
 
     // 3. Gerar token
     const token = jwt.sign(
@@ -36,9 +36,9 @@ async function test() {
       { expiresIn: '24h' }
     );
 
-    // 4. GET questões
-    console.log('\n📡 Fazendo GET para /api/colaborador/questoes...');
-    const response = await fetch('http://localhost:3001/api/colaborador/questoes', {
+    // 4. GET questÃµes
+    console.log('\nðŸ“¡ Fazendo GET para /api/colaborador/questoes...');
+    const response = await fetch('http://localhost:3002/api/colaborador/questoes', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -51,29 +51,30 @@ async function test() {
     const data = await response.json();
     
     if (response.ok) {
-      console.log(`\n✅ SUCESSO!`);
-      console.log(`Total de questões: ${data.dados.paginacao.total}`);
-      console.log(`Questões nesta página: ${data.dados.questoes.length}`);
+      console.log(`\nâœ… SUCESSO!`);
+      console.log(`Total de questÃµes: ${data.dados.paginacao.total}`);
+      console.log(`QuestÃµes nesta pÃ¡gina: ${data.dados.questoes.length}`);
       
       if (data.dados.questoes.length > 0) {
-        console.log('\n📋 Primeira questão:');
+        console.log('\nðŸ“‹ Primeira questÃ£o:');
         const q = data.dados.questoes[0];
         console.log(`  ID: ${q.id}`);
-        console.log(`  Título: ${q.titulo}`);
+        console.log(`  TÃ­tulo: ${q.titulo}`);
         console.log(`  Status: ${q.status_aprovacao}`);
         console.log(`  Dificuldade: ${q.dificuldade}`);
-        console.log(`  Data criação: ${q.created_at}`);
+        console.log(`  Data criaÃ§Ã£o: ${q.created_at}`);
       }
     } else {
-      console.error(`❌ FALHA!`);
+      console.error(`âŒ FALHA!`);
       console.error('Erro:', data.mensagem);
     }
 
     process.exit(response.ok ? 0 : 1);
   } catch (error) {
-    console.error('❌ ERRO:', error.message);
+    console.error('âŒ ERRO:', error.message);
     process.exit(1);
   }
 }
 
 test();
+

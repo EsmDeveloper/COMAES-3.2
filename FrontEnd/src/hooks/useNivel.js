@@ -1,5 +1,5 @@
-/**
- * useNivel.js — Hook para carregar e cache do nível do utilizador autenticado
+﻿/**
+ * useNivel.js â€” Hook para carregar e cache do nÃ­vel do utilizador autenticado
  *
  * Uso:
  *   const { nivel, loading, xpTotal, progresso, refetch } = useNivel();
@@ -8,12 +8,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-const API = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+const API = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
 export default function useNivel() {
   const { user, token } = useAuth();
 
-  const [nivel, setNivel]         = useState(null);   // objeto do nível actual da API
+  const [nivel, setNivel]         = useState(null);   // objeto do nÃ­vel actual da API
   const [xpTotal, setXpTotal]     = useState(0);
   const [progresso, setProgresso] = useState(null);
   const [loading, setLoading]     = useState(false);
@@ -32,7 +32,7 @@ export default function useNivel() {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Erro ao obter nível');
+        throw new Error(data.error || 'Erro ao obter nÃ­vel');
       }
 
       setNivel(data.data.nivel_info);
@@ -40,7 +40,7 @@ export default function useNivel() {
       setProgresso(data.data.progresso);
     } catch (err) {
       setError(err.message);
-      // Fallback silencioso — usa dados do user local se disponíveis
+      // Fallback silencioso â€” usa dados do user local se disponÃ­veis
       if (user?.nivel_atual) {
         setNivel({ numero: user.nivel_atual });
         setXpTotal(user.xp_total || 0);
@@ -56,3 +56,4 @@ export default function useNivel() {
 
   return { nivel, xpTotal, progresso, loading, error, refetch: fetchNivel };
 }
+

@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { validateNome, validateEmail, validateBio, validateFileUpload } from '../../utils/validators';
 
-const API = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+const API = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
 /* ─── Toast ────────────────────────────────────────────────────── */
 function Toast({ type, msg, onClose }) {
@@ -958,3 +958,4 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
     </Layout>
   );
 }
+

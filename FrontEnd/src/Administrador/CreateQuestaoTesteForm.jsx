@@ -96,7 +96,7 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
       };
 
       // Enviar para API
-      const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+      const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
       const res = await axios.post(`${apiBase}/api/teste-conhecimento/questoes`, dados, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -309,3 +309,4 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
 };
 
 export default CreateQuestaoTesteForm;
+

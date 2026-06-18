@@ -46,7 +46,7 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
   useEffect(() => {
     const carregarTorneios = async () => {
       try {
-        const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+        const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
         const res = await axios.get(`${apiBase}/api/admin/torneio`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -137,7 +137,7 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
       };
 
       // Enviar para API
-      const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+      const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
       const res = await axios.put(`${apiBase}/api/questoes/${questao.id}`, dados, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -425,3 +425,4 @@ const EditQuestaoForm = ({ questao, onClose, onSuccess }) => {
 };
 
 export default EditQuestaoForm;
+

@@ -74,7 +74,7 @@ function fileIcon(tipo) {
   return <FileText size={16} className="text-gray-500" />;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
 /* â”€â”€â”€ Badge de status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function StatusBadge({ status }) {
@@ -883,3 +883,4 @@ export default function ColaboradoresTab() {
     </div>
   );
 }
+

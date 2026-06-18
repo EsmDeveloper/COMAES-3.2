@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { BookOpen, Plus, Edit2, Trash2, Search, ChevronDown, Layers, X, Package, CheckCircle, AlertCircle } from 'lucide-react';
 import BlocoQuestoesManager from './BlocoQuestoesManager';
 import CreateQuestaoTesteForm from './CreateQuestaoTesteForm';
@@ -10,9 +10,9 @@ const QuestoesTestesTab = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoriaFiltro, setCategoriaFiltro] = useState('all');
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [abaAtiva, setAbaAtiva] = useState('blocos'); // ✅ MUDA: 'blocos' é agora a aba principal
+  const [abaAtiva, setAbaAtiva] = useState('blocos'); // âœ… MUDA: 'blocos' Ã© agora a aba principal
   
-  // Estados para modais de ações
+  // Estados para modais de aÃ§Ãµes
   const [modalAgruparAberto, setModalAgruparAberto] = useState(false);
   const [questaoSelecionada, setQuestaoSelecionada] = useState(null);
   const [modalEditarAberto, setModalEditarAberto] = useState(false);
@@ -24,9 +24,9 @@ const QuestoesTestesTab = () => {
     fetchQuestoesIndividuais();
     fetchBlocos();
     
-    // ✅ Listener para quando questão é adicionada da aba colaboradores
+    // âœ… Listener para quando questÃ£o Ã© adicionada da aba colaboradores
     const handleQuestaoAdicionada = () => {
-      console.log('🔄 Recarregando questões individuais...');
+      console.log('ðŸ”„ Recarregando questÃµes individuais...');
       fetchQuestoesIndividuais();
     };
     
@@ -34,10 +34,10 @@ const QuestoesTestesTab = () => {
     return () => window.removeEventListener('questaoAdicionadaTeste', handleQuestaoAdicionada);
   }, []);
 
-  // Refrescar blocos quando modal de agrupamento abre (para pegar blocos recém-criados)
+  // Refrescar blocos quando modal de agrupamento abre (para pegar blocos recÃ©m-criados)
   useEffect(() => {
     if (modalAgruparAberto) {
-      console.log('🔄 Modal de agrupamento aberto - recarregando blocos...');
+      console.log('ðŸ”„ Modal de agrupamento aberto - recarregando blocos...');
       fetchBlocos();
     }
   }, [modalAgruparAberto]);
@@ -45,9 +45,9 @@ const QuestoesTestesTab = () => {
   const fetchQuestoesIndividuais = async () => {
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
       
-      // ✅ Buscar questões de teste conhecimento (todas as ativas)
+      // âœ… Buscar questÃµes de teste conhecimento (todas as ativas)
       const response = await fetch(`${apiBase}/api/teste-conhecimento/questoes?ativo=true`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -55,15 +55,15 @@ const QuestoesTestesTab = () => {
       // A resposta pode ser { success: true, data: [...] } ou { success: true, dados: [...] }
       const questoes = data.data || data.dados || [];
       
-      // Log para debug das questões
-      console.log('📌 Total de questões carregadas:', questoes.length);
+      // Log para debug das questÃµes
+      console.log('ðŸ“Œ Total de questÃµes carregadas:', questoes.length);
       questoes.forEach((q, idx) => {
         console.log(`   [${idx}] ID=${q.id}, categoria="${q.categoria}", enunciado="${q.enunciado?.substring(0, 30)}..."`);
       });
       
       setQuestoesIndividuais(questoes);
     } catch (error) {
-      console.error('Erro ao buscar questões:', error);
+      console.error('Erro ao buscar questÃµes:', error);
     } finally {
       setLoading(false);
     }
@@ -72,9 +72,9 @@ const QuestoesTestesTab = () => {
   const fetchBlocos = async () => {
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
       
-      console.log('🔍 Buscando blocos para testes...');
+      console.log('ðŸ” Buscando blocos para testes...');
       
       // Tentar endpoint SEM filtro de status primeiro
       let response = await fetch(`${apiBase}/api/blocos`, {
@@ -82,7 +82,7 @@ const QuestoesTestesTab = () => {
       });
       
       if (!response.ok) {
-        console.warn('⚠️ Endpoint /api/blocos falhou, tentando com status=publicado');
+        console.warn('âš ï¸ Endpoint /api/blocos falhou, tentando com status=publicado');
         response = await fetch(`${apiBase}/api/blocos?status=publicado`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -96,34 +96,34 @@ const QuestoesTestesTab = () => {
       // O backend retorna: { success: true, data: { blocos: Array, total: number, ... } }
       const blocosData = data.data?.blocos || data.blocos || [];
       
-      // Validar que é um array
+      // Validar que Ã© um array
       if (!Array.isArray(blocosData)) {
-        console.warn('⚠️ blocosData não é um array:', typeof blocosData, blocosData);
-        console.warn('📋 Resposta completa:', data);
+        console.warn('âš ï¸ blocosData nÃ£o Ã© um array:', typeof blocosData, blocosData);
+        console.warn('ðŸ“‹ Resposta completa:', data);
         setBlocos([]);
         return;
       }
       
-      console.log('✅ Blocos encontrados:', blocosData.length);
+      console.log('âœ… Blocos encontrados:', blocosData.length);
       if (blocosData.length > 0) {
         blocosData.forEach(b => {
-          console.log(`  - ${b.titulo} (${b.questoes?.length || 0} questões)`);
+          console.log(`  - ${b.titulo} (${b.questoes?.length || 0} questÃµes)`);
         });
       } else {
-        console.log('  Nenhum bloco disponível');
+        console.log('  Nenhum bloco disponÃ­vel');
       }
       
       setBlocos(blocosData);
     } catch (error) {
-      console.error('❌ Erro ao buscar blocos:', error);
-      console.error('📊 Detalhes do erro:', error.message);
+      console.error('âŒ Erro ao buscar blocos:', error);
+      console.error('ðŸ“Š Detalhes do erro:', error.message);
       setBlocos([]);
     }
   };
 
-  // ✅ Handler para agrupar questão (memoizado para evitar closure issues)
+  // âœ… Handler para agrupar questÃ£o (memoizado para evitar closure issues)
   const handleSelecionarQuestaoAgrupamento = useCallback((questao) => {
-    console.log(`🔴 [ANTES] questaoSelecionada foi atualizada para:`, {
+    console.log(`ðŸ”´ [ANTES] questaoSelecionada foi atualizada para:`, {
       id: questao.id,
       categoria: questao.categoria,
       enunciado: questao.enunciado?.substring(0, 30)
@@ -132,23 +132,23 @@ const QuestoesTestesTab = () => {
     setModalAgruparAberto(true);
   }, []);
 
-  // ✅ Agrupar em Bloco
+  // âœ… Agrupar em Bloco
   const handleAgruparEmBloco = async (blocoId) => {
     if (!questaoSelecionada || !blocoId) return;
     
     setSalvando(true);
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
       
-      console.log(`\n🔗 INICIANDO AGRUPAMENTO`);
-      console.log(`   Questão selecionada objeto completo:`, JSON.stringify(questaoSelecionada, null, 2));
-      console.log(`   ✅ questaoSelecionada.id = ${questaoSelecionada.id}`);
-      console.log(`   ✅ questaoSelecionada.categoria = ${questaoSelecionada.categoria}`);
-      console.log(`   📋 Bloco ID = ${blocoId}`);
+      console.log(`\nðŸ”— INICIANDO AGRUPAMENTO`);
+      console.log(`   QuestÃ£o selecionada objeto completo:`, JSON.stringify(questaoSelecionada, null, 2));
+      console.log(`   âœ… questaoSelecionada.id = ${questaoSelecionada.id}`);
+      console.log(`   âœ… questaoSelecionada.categoria = ${questaoSelecionada.categoria}`);
+      console.log(`   ðŸ“‹ Bloco ID = ${blocoId}`);
       
       const payload = { questao_id: questaoSelecionada.id };
-      console.log(`📦 Payload FINAL a ser enviado:`, JSON.stringify(payload, null, 2));
+      console.log(`ðŸ“¦ Payload FINAL a ser enviado:`, JSON.stringify(payload, null, 2));
       
       const response = await fetch(`${apiBase}/api/blocos/${blocoId}/questoes`, {
         method: 'POST',
@@ -159,10 +159,10 @@ const QuestoesTestesTab = () => {
         body: JSON.stringify(payload)
       });
 
-      console.log(`📊 Status da resposta: ${response.status}`);
+      console.log(`ðŸ“Š Status da resposta: ${response.status}`);
 
       if (response.ok) {
-        showFeedback('success', `✅ Questão adicionada ao bloco!`);
+        showFeedback('success', `âœ… QuestÃ£o adicionada ao bloco!`);
         setModalAgruparAberto(false);
         setQuestaoSelecionada(null);
         setTimeout(() => {
@@ -171,39 +171,39 @@ const QuestoesTestesTab = () => {
         }, 1500);
       } else {
         const errorData = await response.json();
-        console.error(`\n❌ ERRO DO BACKEND (${response.status}):`);
+        console.error(`\nâŒ ERRO DO BACKEND (${response.status}):`);
         console.error(`   Resposta:`, JSON.stringify(errorData, null, 2));
-        console.error(`   ⚠️ MISMATCH DETECTADO: Frontend enviou questao_id=${questaoSelecionada.id}, categoria="${questaoSelecionada.categoria}"`);
-        console.error(`   Mas o backend encontrou uma questão com categoria diferente!`);
+        console.error(`   âš ï¸ MISMATCH DETECTADO: Frontend enviou questao_id=${questaoSelecionada.id}, categoria="${questaoSelecionada.categoria}"`);
+        console.error(`   Mas o backend encontrou uma questÃ£o com categoria diferente!`);
         
         // Mostrar erro mais detalhado
         const mensagemErro = errorData?.message || errorData?.mensagem || errorData?.error || errorData?.msg || 'Erro ao agrupar';
         const detalhes = errorData?.errors || errorData?.erros || errorData?.details || '';
         
-        showFeedback('error', `❌ Erro: ${mensagemErro}${detalhes ? ` - ${detalhes}` : ''}`);
+        showFeedback('error', `âŒ Erro: ${mensagemErro}${detalhes ? ` - ${detalhes}` : ''}`);
       }
     } catch (error) {
-      console.error('❌ Erro na requisição:', error);
-      showFeedback('error', `❌ Erro: ${error.message}`);
+      console.error('âŒ Erro na requisiÃ§Ã£o:', error);
+      showFeedback('error', `âŒ Erro: ${error.message}`);
     } finally {
       setSalvando(false);
     }
   };
 
-  // ✅ Editar Questão
+  // âœ… Editar QuestÃ£o
   const handleEditarQuestao = (questao) => {
     setQuestaoSelecionada(questao);
     setModalEditarAberto(true);
   };
 
-  // ✅ Salvar Edição da Questão
+  // âœ… Salvar EdiÃ§Ã£o da QuestÃ£o
   const handleSalvarEdicaoQuestao = async (dadosEditados) => {
     if (!questaoSelecionada) return;
     
     setSalvando(true);
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
       
       const response = await fetch(`${apiBase}/api/teste-conhecimento/questoes/${questaoSelecionada.id}`, {
         method: 'PUT',
@@ -215,7 +215,7 @@ const QuestoesTestesTab = () => {
       });
 
       if (response.ok) {
-        showFeedback('success', `✅ Questão atualizada!`);
+        showFeedback('success', `âœ… QuestÃ£o atualizada!`);
         setModalEditarAberto(false);
         setQuestaoSelecionada(null);
         setTimeout(() => {
@@ -223,23 +223,23 @@ const QuestoesTestesTab = () => {
         }, 1500);
       } else {
         const errorData = await response.json();
-        showFeedback('error', `❌ Erro: ${errorData?.mensagem || 'Erro ao editar'}`);
+        showFeedback('error', `âŒ Erro: ${errorData?.mensagem || 'Erro ao editar'}`);
       }
     } catch (error) {
-      showFeedback('error', `❌ Erro: ${error.message}`);
+      showFeedback('error', `âŒ Erro: ${error.message}`);
     } finally {
       setSalvando(false);
     }
   };
 
-  // ✅ Deletar Questão
+  // âœ… Deletar QuestÃ£o
   const handleDeletarQuestao = async () => {
     if (!questaoSelecionada) return;
     
     setSalvando(true);
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
       
       const response = await fetch(`${apiBase}/api/teste-conhecimento/questoes/${questaoSelecionada.id}`, {
         method: 'DELETE',
@@ -247,17 +247,17 @@ const QuestoesTestesTab = () => {
       });
 
       if (response.ok) {
-        showFeedback('success', `✅ Questão deletada!`);
+        showFeedback('success', `âœ… QuestÃ£o deletada!`);
         setModalDeletarAberto(false);
         setQuestaoSelecionada(null);
         setTimeout(() => {
           fetchQuestoesIndividuais();
         }, 1500);
       } else {
-        showFeedback('error', '❌ Erro ao deletar questão');
+        showFeedback('error', 'âŒ Erro ao deletar questÃ£o');
       }
     } catch (error) {
-      showFeedback('error', `❌ Erro: ${error.message}`);
+      showFeedback('error', `âŒ Erro: ${error.message}`);
     } finally {
       setSalvando(false);
     }
@@ -323,10 +323,10 @@ const QuestoesTestesTab = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
             <BookOpen className="w-8 h-8 text-blue-600" />
-            Questões dos Testes
+            QuestÃµes dos Testes
           </h1>
           <p className="text-gray-600 mt-2">
-            Gerencie questões individuais e blocos para seus testes de conhecimento
+            Gerencie questÃµes individuais e blocos para seus testes de conhecimento
           </p>
         </div>
       </div>
@@ -337,7 +337,7 @@ const QuestoesTestesTab = () => {
           <Search className="absolute left-4 top-3 w-5 h-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Pesquisar questões ou blocos..."
+            placeholder="Pesquisar questÃµes ou blocos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -349,9 +349,9 @@ const QuestoesTestesTab = () => {
           onChange={(e) => setCategoriaFiltro(e.target.value)}
         >
           <option value="all">Todas as categorias</option>
-          <option value="matematica">Matemática</option>
-          <option value="programacao">Programação</option>
-          <option value="ingles">Inglês</option>
+          <option value="matematica">MatemÃ¡tica</option>
+          <option value="programacao">ProgramaÃ§Ã£o</option>
+          <option value="ingles">InglÃªs</option>
           <option value="cultura_geral">Cultura Geral</option>
         </select>
       </div>
@@ -382,7 +382,7 @@ const QuestoesTestesTab = () => {
         </button>
       </div>
 
-      {/* Conteúdo das Abas */}
+      {/* ConteÃºdo das Abas */}
       <div>
           {/* ABA 1: GERENCIAR BLOCOS (PRINCIPAL) */}
           {abaAtiva === 'blocos' && (
@@ -391,34 +391,34 @@ const QuestoesTestesTab = () => {
             </div>
           )}
 
-          {/* ABA 2: VISUALIZAR TODAS AS QUESTÕES INDIVIDUAIS */}
+          {/* ABA 2: VISUALIZAR TODAS AS QUESTÃ•ES INDIVIDUAIS */}
           {abaAtiva === 'individuais' && (
             <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border-2 border-blue-300 p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-blue-900 flex items-center gap-2">
                   <BookOpen className="w-7 h-7" />
-                  Visualizar Todas as Questões
+                  Visualizar Todas as QuestÃµes
                 </h2>
                 <button
                   onClick={() => setShowCreateForm(true)}
                   className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
                   <Plus className="w-5 h-5" />
-                  Nova Questão
+                  Nova QuestÃ£o
                 </button>
               </div>
 
               <p className="text-sm text-gray-600 mb-4">
-                Questões individuais criadas localmente + questões dos colaboradores direcionadas para esta aba. Você pode usá-las diretamente em testes ou agrupá-las em blocos.
+                QuestÃµes individuais criadas localmente + questÃµes dos colaboradores direcionadas para esta aba. VocÃª pode usÃ¡-las diretamente em testes ou agrupÃ¡-las em blocos.
               </p>
 
-              {/* Tabela de Questões Individuais */}
+              {/* Tabela de QuestÃµes Individuais */}
               <div className="overflow-x-auto bg-white rounded-lg border border-blue-200">
                 {filteredQuestoes.length === 0 ? (
                   <div className="text-center py-12">
                     <BookOpen className="w-12 h-12 text-blue-300 mx-auto mb-3" />
-                    <p className="text-gray-600 font-semibold">Nenhuma questão criada</p>
-                    <p className="text-sm text-gray-500 mt-2">Clique em "Nova Questão" ou acesse "Questões dos Colaboradores" para enviar questões</p>
+                    <p className="text-gray-600 font-semibold">Nenhuma questÃ£o criada</p>
+                    <p className="text-sm text-gray-500 mt-2">Clique em "Nova QuestÃ£o" ou acesse "QuestÃµes dos Colaboradores" para enviar questÃµes</p>
                   </div>
                 ) : (
                   <table className="w-full">
@@ -428,7 +428,7 @@ const QuestoesTestesTab = () => {
                         <th className="px-4 py-3 text-left text-xs font-bold text-blue-900">Categoria</th>
                         <th className="px-4 py-3 text-left text-xs font-bold text-blue-900">Dificuldade</th>
                         <th className="px-4 py-3 text-left text-xs font-bold text-blue-900">Origem</th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-blue-900">Ações</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-blue-900">AÃ§Ãµes</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-blue-100">
@@ -452,15 +452,15 @@ const QuestoesTestesTab = () => {
                           <td className="px-4 py-3 text-sm">
                             {questao.autor_nome ? (
                               <span className="px-2 py-1 text-xs font-semibold rounded bg-purple-100 text-purple-700">
-                                👤 {questao.autor_nome}
+                                ðŸ‘¤ {questao.autor_nome}
                               </span>
                             ) : questao.criado_por ? (
                               <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-700">
-                                ✍️ {questao.criado_por}
+                                âœï¸ {questao.criado_por}
                               </span>
                             ) : (
                               <span className="px-2 py-1 text-xs font-semibold rounded bg-gray-100 text-gray-700">
-                                ⚙️ Sistema
+                                âš™ï¸ Sistema
                               </span>
                             )}
                           </td>
@@ -540,37 +540,37 @@ const QuestoesTestesTab = () => {
 
             <div className="bg-blue-50 p-4 rounded-lg mb-6 border border-blue-200">
               <p className="text-sm text-gray-700">
-                <strong>Questão:</strong> {questaoSelecionada.enunciado}
+                <strong>QuestÃ£o:</strong> {questaoSelecionada.enunciado}
               </p>
             </div>
 
             <p className="text-sm text-gray-600 mb-4">
-              Selecione um bloco para agrupar esta questão:
+              Selecione um bloco para agrupar esta questÃ£o:
             </p>
 
             {blocos.length === 0 ? (
               <div className="text-center py-8">
                 <AlertCircle className="w-8 h-8 text-orange-500 mx-auto mb-2" />
-                <p className="text-sm text-gray-600 font-semibold">Nenhum bloco disponível</p>
+                <p className="text-sm text-gray-600 font-semibold">Nenhum bloco disponÃ­vel</p>
                 <p className="text-xs text-gray-500 mt-1">Crie um bloco primeiro na aba "Gerenciar Blocos"</p>
               </div>
             ) : (
               <div className="space-y-2 mb-6 max-h-48 overflow-y-auto">
                 {blocos.map(bloco => {
                   // Verificar compatibilidade de disciplina/categoria
-                  // Questões de teste têm 'categoria', blocos têm 'disciplina'
+                  // QuestÃµes de teste tÃªm 'categoria', blocos tÃªm 'disciplina'
                   const questaoCategoria = questaoSelecionada?.categoria || questaoSelecionada?.disciplina;
                   const blocoCategoria = bloco.disciplina;
                   const disciplinaCompativel = questaoCategoria === blocoCategoria;
                   
-                  console.log(`🔍 Comparando: questao="${questaoCategoria}" vs bloco="${blocoCategoria}" => compativel=${disciplinaCompativel}`);
+                  console.log(`ðŸ” Comparando: questao="${questaoCategoria}" vs bloco="${blocoCategoria}" => compativel=${disciplinaCompativel}`);
                   
                   return (
                     <button
                       key={bloco.id}
                       onClick={() => {
                         if (!disciplinaCompativel) {
-                          showFeedback('error', `❌ Bloco de "${blocoCategoria}" incompatível com questão de "${questaoCategoria}"`);
+                          showFeedback('error', `âŒ Bloco de "${blocoCategoria}" incompatÃ­vel com questÃ£o de "${questaoCategoria}"`);
                           return;
                         }
                         handleAgruparEmBloco(bloco.id);
@@ -584,11 +584,11 @@ const QuestoesTestesTab = () => {
                     >
                       <p className="font-semibold text-gray-900">{bloco.titulo}</p>
                       <p className="text-xs text-gray-500">
-                        {bloco.questoes?.length || 0} questões · {bloco.disciplina?.toUpperCase() || 'Sem disciplina'}
+                        {bloco.questoes?.length || 0} questÃµes Â· {bloco.disciplina?.toUpperCase() || 'Sem disciplina'}
                       </p>
                       {!disciplinaCompativel && (
                         <p className="text-xs text-red-600 mt-1 font-semibold">
-                          ⚠️ Disciplina incompatível ({questaoCategoria || 'nenhuma'})
+                          âš ï¸ Disciplina incompatÃ­vel ({questaoCategoria || 'nenhuma'})
                         </p>
                       )}
                     </button>
@@ -610,14 +610,14 @@ const QuestoesTestesTab = () => {
         </div>
       )}
 
-      {/* MODAL: Editar Questão */}
+      {/* MODAL: Editar QuestÃ£o */}
       {modalEditarAberto && questaoSelecionada && (
         <div className="fixed inset-0 top-0 left-0 w-full h-screen bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full my-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <Edit2 className="w-5 h-5 text-blue-600" />
-                Editar Questão
+                Editar QuestÃ£o
               </h2>
               <button
                 onClick={() => {
@@ -673,13 +673,13 @@ const QuestoesTestesTab = () => {
                   }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="facil">Fácil</option>
-                  <option value="medio">Médio</option>
-                  <option value="dificil">Difícil</option>
+                  <option value="facil">FÃ¡cil</option>
+                  <option value="medio">MÃ©dio</option>
+                  <option value="dificil">DifÃ­cil</option>
                 </select>
               </div>
 
-              {/* Botões */}
+              {/* BotÃµes */}
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={() => {
@@ -709,17 +709,17 @@ const QuestoesTestesTab = () => {
         </div>
       )}
 
-      {/* MODAL: Deletar Questão */}
+      {/* MODAL: Deletar QuestÃ£o */}
       {modalDeletarAberto && questaoSelecionada && (
         <div className="fixed inset-0 top-0 left-0 w-full h-screen bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-red-600" />
-              Confirmar Deleção
+              Confirmar DeleÃ§Ã£o
             </h2>
 
             <p className="text-gray-600 mb-6">
-              Tem certeza que deseja deletar a questão <strong>"{questaoSelecionada.enunciado.substring(0, 50)}..."</strong>? Esta ação não pode ser desfeita.
+              Tem certeza que deseja deletar a questÃ£o <strong>"{questaoSelecionada.enunciado.substring(0, 50)}..."</strong>? Esta aÃ§Ã£o nÃ£o pode ser desfeita.
             </p>
 
             <div className="flex gap-3">
@@ -744,13 +744,13 @@ const QuestoesTestesTab = () => {
         </div>
       )}
 
-      {/* MODAL: Criar Questão de Teste */}
+      {/* MODAL: Criar QuestÃ£o de Teste */}
       {showCreateForm && (
         <div className="fixed inset-0 top-0 left-0 w-full h-screen bg-black bg-opacity-50 z-50 overflow-y-auto">
           <div className="min-h-screen flex items-center justify-center p-4">
             <div className="bg-white rounded-lg max-w-2xl w-full shadow-xl">
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">Criar Questão de Teste</h2>
+                <h2 className="text-2xl font-bold text-gray-900">Criar QuestÃ£o de Teste</h2>
                 <button
                   onClick={() => setShowCreateForm(false)}
                   className="p-1 hover:bg-gray-100 rounded-lg"
@@ -771,3 +771,4 @@ const QuestoesTestesTab = () => {
 };
 
 export default QuestoesTestesTab;
+

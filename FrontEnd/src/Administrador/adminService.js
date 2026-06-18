@@ -1,6 +1,6 @@
-import axios from 'axios';
+﻿import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}`;
+const API_BASE = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}`;
 // Trailing slash required so relative paths (e.g. 'users') resolve to /api/admin/users
 const API_URL = `${API_BASE}/api/admin/`;
 
@@ -21,16 +21,16 @@ const SPECIAL_ENDPOINTS = {
 
 const createCrudClient = (modelName, token) => {
     const apiClient = createApiClient(token);
-    // No leading slash – must be relative to baseURL to avoid resolving to origin root
+    // No leading slash â€“ must be relative to baseURL to avoid resolving to origin root
     const url = SPECIAL_ENDPOINTS[modelName] || modelName;
 
     return {
         getAll: () => apiClient.get(url).then(res => {
-            // Se a resposta vier com { success: true, data: [...] } (padrão de alguns controllers)
+            // Se a resposta vier com { success: true, data: [...] } (padrÃ£o de alguns controllers)
             if (res.data && res.data.success && Array.isArray(res.data.data)) {
                 return res.data.data;
             }
-            // Se a resposta vier diretamente como array (padrão do UserController/GenericController)
+            // Se a resposta vier diretamente como array (padrÃ£o do UserController/GenericController)
             return res.data;
         }),
         getById: (id) => apiClient.get(`${url}/${id}`).then(res => res.data),
@@ -53,7 +53,7 @@ const adminService = (token) => {
         return serviceCache[key];
     };
 
-    // Métodos específicos para gestão de colaboradores
+    // MÃ©todos especÃ­ficos para gestÃ£o de colaboradores
     const colaboradorService = {
         // Listar colaboradores pendentes
         listarColaboradoresPendentes: () => 
@@ -63,7 +63,7 @@ const adminService = (token) => {
         listarColaboradores: () =>
             apiClient.get('colaboradores').then(res => res.data),
         
-        // Obter questões de um colaborador (admin view)
+        // Obter questÃµes de um colaborador (admin view)
         getQuestoes: (colaboradorId, { status = '', tipo = '', dificuldade = '', pagina = 1, limite = 20 } = {}) => {
             const params = new URLSearchParams();
             if (status) params.append('status', status);
@@ -111,7 +111,7 @@ const adminService = (token) => {
         getService,
         // Adicionar service de colaboradores
         colaboradores: colaboradorService,
-        // Métodos diretos (para compatibilidade)
+        // MÃ©todos diretos (para compatibilidade)
         listarColaboradoresPendentes: colaboradorService.listarColaboradoresPendentes,
         listarColaboradores: colaboradorService.listarColaboradores,
         getQuestoesColaborador: colaboradorService.getQuestoes,

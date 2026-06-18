@@ -1,30 +1,30 @@
-/**
- * Serviço de Tentativas
- * Centraliza toda a comunicação com o backend para tentativas
- * O backend é responsável por:
+﻿/**
+ * ServiÃ§o de Tentativas
+ * Centraliza toda a comunicaÃ§Ã£o com o backend para tentativas
+ * O backend Ã© responsÃ¡vel por:
  * - Validar resposta correta
  * - Calcular pontos
- * - Decidir se está correta
+ * - Decidir se estÃ¡ correta
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
 /**
  * Enviar uma tentativa de resposta para o backend
  * @param {Object} tentativa - Dados da tentativa
  * @param {number} tentativa.torneio_id - ID do torneio
- * @param {string} tentativa.disciplina_competida - Disciplina (Matemática|Inglês|Programação)
- * @param {number} tentativa.questao_id - ID da questão
- * @param {string} tentativa.resposta_selecionada - Resposta selecionada pelo usuário
+ * @param {string} tentativa.disciplina_competida - Disciplina (MatemÃ¡tica|InglÃªs|ProgramaÃ§Ã£o)
+ * @param {number} tentativa.questao_id - ID da questÃ£o
+ * @param {string} tentativa.resposta_selecionada - Resposta selecionada pelo usuÃ¡rio
  * @param {number} tentativa.tempo_gasto - Tempo gasto em segundos
- * @returns {Promise<Object>} Resposta do backend com validação e pontos
+ * @returns {Promise<Object>} Resposta do backend com validaÃ§Ã£o e pontos
  */
 export const enviarTentativa = async (tentativa) => {
   try {
     const token = localStorage.getItem('token');
     
     if (!token) {
-      throw new Error('Token não encontrado. Usuário não autenticado.');
+      throw new Error('Token nÃ£o encontrado. UsuÃ¡rio nÃ£o autenticado.');
     }
 
     const response = await fetch(`${API_BASE_URL}/api/tentativas`, {
@@ -50,17 +50,17 @@ export const enviarTentativa = async (tentativa) => {
 };
 
 /**
- * Obter histórico de tentativas do usuário
+ * Obter histÃ³rico de tentativas do usuÃ¡rio
  * @param {number} torneio_id - ID do torneio
- * @param {string} disciplina - Disciplina (Matemática|Inglês|Programação)
- * @returns {Promise<Object>} Histórico de tentativas
+ * @param {string} disciplina - Disciplina (MatemÃ¡tica|InglÃªs|ProgramaÃ§Ã£o)
+ * @returns {Promise<Object>} HistÃ³rico de tentativas
  */
 export const obterHistorico = async (torneio_id, disciplina) => {
   try {
     const token = localStorage.getItem('token');
     
     if (!token) {
-      throw new Error('Token não encontrado. Usuário não autenticado.');
+      throw new Error('Token nÃ£o encontrado. UsuÃ¡rio nÃ£o autenticado.');
     }
 
     const response = await fetch(
@@ -75,27 +75,27 @@ export const obterHistorico = async (torneio_id, disciplina) => {
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(result.erro || 'Erro ao obter histórico');
+      throw new Error(result.erro || 'Erro ao obter histÃ³rico');
     }
 
     return result;
   } catch (error) {
-    console.error('Erro ao obter histórico:', error);
+    console.error('Erro ao obter histÃ³rico:', error);
     throw error;
   }
 };
 
 /**
- * Obter estatísticas de tentativas para um torneio
+ * Obter estatÃ­sticas de tentativas para um torneio
  * @param {number} torneio_id - ID do torneio
- * @returns {Promise<Object>} Estatísticas de tentativas
+ * @returns {Promise<Object>} EstatÃ­sticas de tentativas
  */
 export const obterEstatisticas = async (torneio_id) => {
   try {
     const token = localStorage.getItem('token');
     
     if (!token) {
-      throw new Error('Token não encontrado. Usuário não autenticado.');
+      throw new Error('Token nÃ£o encontrado. UsuÃ¡rio nÃ£o autenticado.');
     }
 
     const response = await fetch(
@@ -110,12 +110,13 @@ export const obterEstatisticas = async (torneio_id) => {
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(result.erro || 'Erro ao obter estatísticas');
+      throw new Error(result.erro || 'Erro ao obter estatÃ­sticas');
     }
 
     return result;
   } catch (error) {
-    console.error('Erro ao obter estatísticas:', error);
+    console.error('Erro ao obter estatÃ­sticas:', error);
     throw error;
   }
 };
+

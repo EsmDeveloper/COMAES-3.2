@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Users, BookOpen, CheckCircle, AlertCircle, Loader, ChevronDown } from 'lucide-react';
 
@@ -26,7 +26,7 @@ import { Users, BookOpen, CheckCircle, AlertCircle, Loader, ChevronDown } from '
 
 const AtribuirColaborador = () => {
   const { token } = useAuth();
-  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
   // Form state
   const [selectedUser, setSelectedUser] = useState(null);
@@ -46,9 +46,9 @@ const AtribuirColaborador = () => {
 
   // Valid disciplines
   const disciplinas = [
-    { id: 'matematica', nome: 'Matemática' },
-    { id: 'ingles', nome: 'Inglês' },
-    { id: 'programacao', nome: 'Programação' }
+    { id: 'matematica', nome: 'MatemÃ¡tica' },
+    { id: 'ingles', nome: 'InglÃªs' },
+    { id: 'programacao', nome: 'ProgramaÃ§Ã£o' }
   ];
 
   // Fetch users on component mount
@@ -90,7 +90,7 @@ const AtribuirColaborador = () => {
       setUsers(nonAdminUsers);
     } catch (err) {
       console.error('Error fetching users:', err);
-      setError(`Erro ao carregar usuários: ${err.message}`);
+      setError(`Erro ao carregar usuÃ¡rios: ${err.message}`);
     } finally {
       setLoadingUsers(false);
     }
@@ -132,7 +132,7 @@ const AtribuirColaborador = () => {
     
     // Validation
     if (!selectedUser) {
-      setError('Selecione um usuário');
+      setError('Selecione um usuÃ¡rio');
       return;
     }
 
@@ -174,7 +174,7 @@ const AtribuirColaborador = () => {
       // Success
       setSuccess(true);
       setSuccessMessage(
-        `${selectedUser.nome} foi atribuído como colaborador de ${
+        `${selectedUser.nome} foi atribuÃ­do como colaborador de ${
           disciplinas.find(d => d.id === selectedDisciplina)?.nome || selectedDisciplina
         } com sucesso!`
       );
@@ -188,11 +188,11 @@ const AtribuirColaborador = () => {
       
       // Handle specific error messages
       if (err.message.includes('admin')) {
-        setError('Não é possível atribuir um administrador como colaborador');
+        setError('NÃ£o Ã© possÃ­vel atribuir um administrador como colaborador');
       } else if (err.message.includes('Disciplina')) {
-        setError('Disciplina inválida');
-      } else if (err.message.includes('não encontrado')) {
-        setError('Usuário não encontrado');
+        setError('Disciplina invÃ¡lida');
+      } else if (err.message.includes('nÃ£o encontrado')) {
+        setError('UsuÃ¡rio nÃ£o encontrado');
       } else {
         setError(`Erro ao atribuir colaborador: ${err.message}`);
       }
@@ -209,7 +209,7 @@ const AtribuirColaborador = () => {
           <Users className="w-6 h-6" />
           <h2 className="text-2xl font-bold">Atribuir Colaborador</h2>
         </div>
-        <p className="text-blue-100">Selecione um usuário e atribua uma disciplina</p>
+        <p className="text-blue-100">Selecione um usuÃ¡rio e atribua uma disciplina</p>
       </div>
 
       {/* Success Message */}
@@ -291,14 +291,14 @@ const AtribuirColaborador = () => {
                         <p className="text-sm text-gray-500">{user.email}</p>
                         {user.role === 'colaborador' && (
                           <p className="text-xs text-blue-600 mt-1">
-                            Já é colaborador de: {user.disciplina_colaborador}
+                            JÃ¡ Ã© colaborador de: {user.disciplina_colaborador}
                           </p>
                         )}
                       </button>
                     ))
                   ) : (
                     <div className="p-4 text-center text-gray-500">
-                      Nenhum usuário encontrado
+                      Nenhum usuÃ¡rio encontrado
                     </div>
                   )}
                 </div>
@@ -307,7 +307,7 @@ const AtribuirColaborador = () => {
           </div>
 
           {loadingUsers && (
-            <p className="text-xs text-gray-500 mt-2">Carregando usuários...</p>
+            <p className="text-xs text-gray-500 mt-2">Carregando usuÃ¡rios...</p>
           )}
         </div>
 
@@ -377,3 +377,4 @@ const AtribuirColaborador = () => {
 };
 
 export default AtribuirColaborador;
+

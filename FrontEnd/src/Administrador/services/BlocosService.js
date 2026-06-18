@@ -1,10 +1,10 @@
-/**
+﻿/**
  * BlocosService.js
- * Serviço frontend para gestão de Blocos de Questões via API.
- * Substitui a persistência em localStorage do BlocoQuestoesManager anterior.
+ * ServiÃ§o frontend para gestÃ£o de Blocos de QuestÃµes via API.
+ * Substitui a persistÃªncia em localStorage do BlocoQuestoesManager anterior.
  */
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
 const headers = (token) => ({
   'Content-Type': 'application/json',
@@ -18,7 +18,7 @@ const handleResponse = async (res) => {
 };
 
 export const BlocosService = {
-  // ── Blocos ──────────────────────────────────────────────────────────────────
+  // â”€â”€ Blocos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   /** Lista todos os blocos com filtros opcionais */
   async listar(token, params = {}) {
@@ -41,7 +41,7 @@ export const BlocosService = {
     return handleResponse(res);
   },
 
-  /** Obtém detalhe de um bloco com suas questões */
+  /** ObtÃ©m detalhe de um bloco com suas questÃµes */
   async obter(token, id) {
     const res = await fetch(`${API_BASE}/api/blocos/${id}`, {
       headers: headers(token),
@@ -68,7 +68,7 @@ export const BlocosService = {
     return handleResponse(res);
   },
 
-  /** Adiciona uma questão a um bloco */
+  /** Adiciona uma questÃ£o a um bloco */
   async adicionarQuestao(token, blocoId, questaoId, ordem) {
     const res = await fetch(`${API_BASE}/api/blocos/${blocoId}/questoes`, {
       method: 'POST',
@@ -78,7 +78,7 @@ export const BlocosService = {
     return handleResponse(res);
   },
 
-  /** Remove uma questão de um bloco (não deleta a questão) */
+  /** Remove uma questÃ£o de um bloco (nÃ£o deleta a questÃ£o) */
   async removerQuestao(token, blocoId, questaoId) {
     const res = await fetch(`${API_BASE}/api/blocos/${blocoId}/questoes/${questaoId}`, {
       method: 'DELETE',
@@ -87,7 +87,7 @@ export const BlocosService = {
     return handleResponse(res);
   },
 
-  // ── Torneio ↔ Bloco ─────────────────────────────────────────────────────────
+  // â”€â”€ Torneio â†” Bloco â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   /** Lista blocos associados a um torneio */
   async listarBlocosDoTorneio(token, torneioId) {
@@ -118,3 +118,4 @@ export const BlocosService = {
 };
 
 export default BlocosService;
+

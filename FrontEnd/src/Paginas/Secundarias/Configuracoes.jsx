@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { validatePassword } from '../../utils/validators';
 
-const API = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+const API = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
 /* â”€â”€â”€ SecÃ§Ãµes da sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const SECTIONS = [
@@ -511,3 +511,4 @@ export default function Configuracoes() {
     </Layout>
   );
 }
+

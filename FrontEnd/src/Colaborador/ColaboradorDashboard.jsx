@@ -981,7 +981,7 @@ const ColaboradorDashboard = () => {
   const [loadingQuestoes, setLoadingQuestoes] = useState(true);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
-  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
   useEffect(() => {
     if (token) {
@@ -1423,3 +1423,4 @@ const ColaboradorDashboard = () => {
 };
 
 export default ColaboradorDashboard;
+

@@ -1,7 +1,7 @@
-/**
+﻿/**
  * QuestoesPendentesTab.jsx (REFATORADO)
- * Aba para admin revisar questões pendentes de colaboradores
- * Separado em: Blocos Pendentes + Questões Solo Pendentes
+ * Aba para admin revisar questÃµes pendentes de colaboradores
+ * Separado em: Blocos Pendentes + QuestÃµes Solo Pendentes
  */
 import { useState, useEffect, useCallback, useReducer } from 'react';
 import questoesService from '../services/questoesService';
@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import {
   DificuldadeBadge,
-  StatusAprovaçãoBadge,
+  StatusAprovacaoBadge,
   DisciplinaBadge,
   ConfirmarComMotivoModal,
   QuestaoDetailModal,
@@ -20,9 +20,9 @@ import {
   mostrarToast
 } from './shared/QuestaoCardsComponents';
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
-// ─── REDUCER PARA ESTADO ───
+// â”€â”€â”€ REDUCER PARA ESTADO â”€â”€â”€
 
 const initialState = {
   blocosPendentes: [],
@@ -62,7 +62,7 @@ function reducer(state, action) {
   }
 }
 
-// ─── COMPONENTE PRINCIPAL ───
+// â”€â”€â”€ COMPONENTE PRINCIPAL â”€â”€â”€
 
 export default function QuestoesPendentesTab() {
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -95,7 +95,7 @@ export default function QuestoesPendentesTab() {
     }
   }, [state.filtros.disciplina, token]);
 
-  // Carregar questões solo pendentes
+  // Carregar questÃµes solo pendentes
   const carregarQuestoesSoloPendentes = useCallback(async () => {
     dispatch({ type: 'SET_LOADING_QUESTOES', payload: true });
     try {
@@ -106,8 +106,8 @@ export default function QuestoesPendentesTab() {
       const questoes = response?.dados?.questoes || response?.questoes || [];
       dispatch({ type: 'SET_QUESTOES_SOLO_PENDENTES', payload: questoes });
     } catch (err) {
-      console.error('Erro ao carregar questões:', err);
-      dispatch({ type: 'SET_ERROR', payload: 'Erro ao carregar questões' });
+      console.error('Erro ao carregar questÃµes:', err);
+      dispatch({ type: 'SET_ERROR', payload: 'Erro ao carregar questÃµes' });
     } finally {
       dispatch({ type: 'SET_LOADING_QUESTOES', payload: false });
     }
@@ -151,12 +151,12 @@ export default function QuestoesPendentesTab() {
     }
   };
 
-  // Aprovar questão solo
+  // Aprovar questÃ£o solo
   const handleAprovarQuestao = async (id) => {
     setActionLoading(id);
     try {
       await questoesService.aprovar(id);
-      mostrarToast('Questão aprovada!', 'success');
+      mostrarToast('QuestÃ£o aprovada!', 'success');
       dispatch({ type: 'REMOVE_QUESTAO', payload: id });
     } catch (err) {
       mostrarToast(err.message, 'error');
@@ -165,7 +165,7 @@ export default function QuestoesPendentesTab() {
     }
   };
 
-  // Rejeitar questão solo
+  // Rejeitar questÃ£o solo
   const handleRejeitarQuestao = async (motivo) => {
     if (!questaoSelecionada) return;
     setActionLoading(questaoSelecionada.id);
@@ -173,7 +173,7 @@ export default function QuestoesPendentesTab() {
       await questoesService.rejeitar(questaoSelecionada.id, motivo);
       setRejectModalOpen(false);
       dispatch({ type: 'REMOVE_QUESTAO', payload: questaoSelecionada.id });
-      mostrarToast('Questão rejeitada.', 'success');
+      mostrarToast('QuestÃ£o rejeitada.', 'success');
     } catch (err) {
       mostrarToast(err.message, 'error');
     } finally {
@@ -192,7 +192,7 @@ export default function QuestoesPendentesTab() {
     setDetailModalOpen(true);
   };
 
-  // Filtrar questões solo
+  // Filtrar questÃµes solo
   const questoesFiltradas = state.questoesSoloPendentes.filter(q => {
     if (!state.filtros.busca) return true;
     const buscaLower = state.filtros.busca.toLowerCase();
@@ -218,10 +218,10 @@ export default function QuestoesPendentesTab() {
       <div>
         <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2 mb-2">
           <BookOpen className="w-6 h-6 text-blue-600" />
-          Revisão de Questões Colaboradores
+          RevisÃ£o de QuestÃµes Colaboradores
         </h2>
         <p className="text-slate-600">
-          Revise e aprove blocos e questões criadas pelos colaboradores
+          Revise e aprove blocos e questÃµes criadas pelos colaboradores
         </p>
       </div>
 
@@ -232,7 +232,7 @@ export default function QuestoesPendentesTab() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Buscar por título ou descrição..."
+              placeholder="Buscar por tÃ­tulo ou descriÃ§Ã£o..."
               value={state.filtros.busca}
               onChange={(e) => dispatch({ type: 'UPDATE_FILTRO', key: 'busca', value: e.target.value })}
               className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -247,9 +247,9 @@ export default function QuestoesPendentesTab() {
               className="pl-10 pr-8 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
             >
               <option value="">Todas as disciplinas</option>
-              <option value="matematica">Matemática</option>
-              <option value="ingles">Inglês</option>
-              <option value="programacao">Programação</option>
+              <option value="matematica">MatemÃ¡tica</option>
+              <option value="ingles">InglÃªs</option>
+              <option value="programacao">ProgramaÃ§Ã£o</option>
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
           </div>
@@ -267,9 +267,9 @@ export default function QuestoesPendentesTab() {
         </div>
       </div>
 
-      {/* DUAS COLUNAS: BLOCOS E QUESTÕES LADO A LADO */}
+      {/* DUAS COLUNAS: BLOCOS E QUESTÃ•ES LADO A LADO */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* SEÇÃO 1: BLOCOS PENDENTES */}
+        {/* SEÃ‡ÃƒO 1: BLOCOS PENDENTES */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 sticky top-0 z-10 bg-white pb-2">
             <Layers className="w-5 h-5 text-blue-600" />
@@ -302,7 +302,7 @@ export default function QuestoesPendentesTab() {
                     <div className="flex items-center gap-2 mb-1">
                       <DisciplinaBadge disciplina={bloco.disciplina} />
                       <DificuldadeBadge dificuldade={bloco.dificuldade || 'medio'} />
-                      <span className="text-xs text-slate-500">({bloco.total_questoes || 0} questões)</span>
+                      <span className="text-xs text-slate-500">({bloco.total_questoes || 0} questÃµes)</span>
                     </div>
                     <h4 className="font-semibold text-slate-800">{bloco.titulo}</h4>
                     {bloco.descricao && <p className="text-xs text-slate-600 mt-1">{bloco.descricao}</p>}
@@ -334,11 +334,11 @@ export default function QuestoesPendentesTab() {
         )}
         </div>
 
-        {/* SEÇÃO 2: QUESTÕES SOLO PENDENTES */}
+        {/* SEÃ‡ÃƒO 2: QUESTÃ•ES SOLO PENDENTES */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 sticky top-0 z-10 bg-white pb-2">
             <FileText className="w-5 h-5 text-indigo-600" />
-            <h3 className="text-lg font-bold text-slate-800">Questões Solo Pendentes</h3>
+            <h3 className="text-lg font-bold text-slate-800">QuestÃµes Solo Pendentes</h3>
             <span className="ml-auto text-sm font-semibold text-slate-600 bg-indigo-50 px-3 py-1 rounded-lg">
               {questoesFiltradas.length}
             </span>
@@ -347,14 +347,14 @@ export default function QuestoesPendentesTab() {
         {state.loadingQuestoes && state.questoesSoloPendentes.length === 0 && (
           <div className="bg-white rounded-xl p-8 text-center">
             <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-slate-600">Carregando questões...</p>
+            <p className="text-slate-600">Carregando questÃµes...</p>
           </div>
         )}
 
         {!state.loadingQuestoes && questoesFiltradas.length === 0 && (
           <div className="bg-white rounded-xl p-8 text-center border border-slate-200">
             <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-600">Nenhuma questão solo pendente</p>
+            <p className="text-slate-600">Nenhuma questÃ£o solo pendente</p>
           </div>
         )}
 
@@ -391,7 +391,7 @@ export default function QuestoesPendentesTab() {
                           }`}
                         >
                           {String.fromCharCode(65 + idx)}. {opcao}
-                          {opcao === questao.resposta_correta && ' ✓'}
+                          {opcao === questao.resposta_correta && ' âœ“'}
                         </div>
                       ))}
                     </div>
@@ -430,7 +430,7 @@ export default function QuestoesPendentesTab() {
         </div>
       </div>
 
-      {/* Modal de rejeição */}
+      {/* Modal de rejeiÃ§Ã£o */}
       <ConfirmarComMotivoModal
         isOpen={rejectModalOpen}
         onClose={() => {
@@ -444,7 +444,7 @@ export default function QuestoesPendentesTab() {
             handleRejeitarQuestao(motivo);
           }
         }}
-        titulo={questaoSelecionada?.tipo === 'bloco' ? 'Rejeitar Bloco' : 'Rejeitar Questão'}
+        titulo={questaoSelecionada?.tipo === 'bloco' ? 'Rejeitar Bloco' : 'Rejeitar QuestÃ£o'}
         itemNome={questaoSelecionada?.titulo}
         buttonText="Rejeitar"
         buttonVariant="red"

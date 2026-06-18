@@ -62,7 +62,7 @@ export default function CertificadosTab() {
   // Estado de processamento
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
-  const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+  const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
   // ============================================
   // CARREGAR CERTIFICADOS
@@ -404,3 +404,4 @@ export default function CertificadosTab() {
     </div>
   );
 }
+

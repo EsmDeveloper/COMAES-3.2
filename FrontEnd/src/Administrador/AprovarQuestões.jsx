@@ -1,8 +1,8 @@
-/**
- * AprovarQuestões.jsx
+﻿/**
+ * AprovarQuestÃµes.jsx
  * Admin page for reviewing and approving/rejecting pending questions
  * 
- * Task 12.1: Create AprovarQuestões page (admin)
+ * Task 12.1: Create AprovarQuestÃµes page (admin)
  * Requirements: 6.1, 6.2, 6.3, 6.4, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6
  */
 
@@ -22,9 +22,9 @@ import {
 } from './shared/QuestaoCardsComponents';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 
-  `http://${window.location.hostname}:3001`;
+  `http://${window.location.hostname}:3002`;
 
-// ─── SKELETON LOADER ───
+// â”€â”€â”€ SKELETON LOADER â”€â”€â”€
 const SkeletonLoader = () => (
   <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 animate-pulse">
     <div className="space-y-3">
@@ -38,7 +38,7 @@ const SkeletonLoader = () => (
   </div>
 );
 
-// ─── DETAIL MODAL ───
+// â”€â”€â”€ DETAIL MODAL â”€â”€â”€
 const QuestionDetailModal = ({ isOpen, questao, onClose }) => {
   if (!isOpen || !questao) return null;
 
@@ -48,7 +48,7 @@ const QuestionDetailModal = ({ isOpen, questao, onClose }) => {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 border-b border-slate-200 px-6 py-4 flex items-center justify-between bg-white">
-          <h2 className="text-xl font-bold text-slate-800">Detalhes da Questão</h2>
+          <h2 className="text-xl font-bold text-slate-800">Detalhes da QuestÃ£o</h2>
           <button
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600 transition p-1"
@@ -58,7 +58,7 @@ const QuestionDetailModal = ({ isOpen, questao, onClose }) => {
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Título */}
+          {/* TÃ­tulo */}
           <div>
             <h3 className="text-2xl font-bold text-slate-800">{questao.titulo}</h3>
           </div>
@@ -86,9 +86,9 @@ const QuestionDetailModal = ({ isOpen, questao, onClose }) => {
             </div>
           </div>
 
-          {/* Descrição */}
+          {/* DescriÃ§Ã£o */}
           <div>
-            <h4 className="font-semibold text-slate-700 mb-2">Descrição</h4>
+            <h4 className="font-semibold text-slate-700 mb-2">DescriÃ§Ã£o</h4>
             <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">
               {questao.descricao}
             </p>
@@ -117,7 +117,7 @@ const QuestionDetailModal = ({ isOpen, questao, onClose }) => {
                       </span>
                       {opcao === questao.resposta_correta && (
                         <span className="ml-auto text-green-700 font-semibold text-sm">
-                          ✓ Correta
+                          âœ“ Correta
                         </span>
                       )}
                     </div>
@@ -127,10 +127,10 @@ const QuestionDetailModal = ({ isOpen, questao, onClose }) => {
             </div>
           )}
 
-          {/* Explicação */}
+          {/* ExplicaÃ§Ã£o */}
           {questao.explicacao && (
             <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
-              <h4 className="font-semibold text-amber-900 mb-2">Explicação</h4>
+              <h4 className="font-semibold text-amber-900 mb-2">ExplicaÃ§Ã£o</h4>
               <p className="text-amber-800 text-sm leading-relaxed whitespace-pre-wrap">
                 {questao.explicacao}
               </p>
@@ -142,9 +142,9 @@ const QuestionDetailModal = ({ isOpen, questao, onClose }) => {
             <div>
               <p className="text-sm text-slate-600 mb-1">Tipo</p>
               <p className="font-semibold text-slate-800">
-                {questao.tipo === 'multipla_escolha' ? 'Múltipla Escolha' : 
+                {questao.tipo === 'multipla_escolha' ? 'MÃºltipla Escolha' : 
                  questao.tipo === 'texto' ? 'Texto' :
-                 questao.tipo === 'codigo' ? 'Código' : questao.tipo}
+                 questao.tipo === 'codigo' ? 'CÃ³digo' : questao.tipo}
               </p>
             </div>
             {questao.linguagem && (
@@ -155,9 +155,9 @@ const QuestionDetailModal = ({ isOpen, questao, onClose }) => {
             )}
           </div>
 
-          {/* Data de Criação */}
+          {/* Data de CriaÃ§Ã£o */}
           <div className="text-xs text-slate-500 pt-4 border-t border-slate-200">
-            Criada em {new Date(questao.created_at).toLocaleDateString('pt-BR')} às {new Date(questao.created_at).toLocaleTimeString('pt-BR')}
+            Criada em {new Date(questao.created_at).toLocaleDateString('pt-BR')} Ã s {new Date(questao.created_at).toLocaleTimeString('pt-BR')}
           </div>
         </div>
       </div>
@@ -165,7 +165,7 @@ const QuestionDetailModal = ({ isOpen, questao, onClose }) => {
   );
 };
 
-// ─── QUESTÃO CARD ───
+// â”€â”€â”€ QUESTÃƒO CARD â”€â”€â”€
 const QuestionCard = ({ questao, onApprove, onReject, onViewDetails, loading }) => {
   const opcoes = extrairOpcoes(questao);
   const primeiraOpcao = opcoes[0] || '';
@@ -198,9 +198,9 @@ const QuestionCard = ({ questao, onApprove, onReject, onViewDetails, loading }) 
         </div>
       </div>
 
-      {/* Conteúdo */}
+      {/* ConteÃºdo */}
       <div className="p-6 space-y-4">
-        {/* Título */}
+        {/* TÃ­tulo */}
         <h3 className="text-lg font-semibold text-slate-800 line-clamp-2">
           {questao.titulo}
         </h3>
@@ -214,7 +214,7 @@ const QuestionCard = ({ questao, onApprove, onReject, onViewDetails, loading }) 
           </span>
         </div>
 
-        {/* Descrição */}
+        {/* DescriÃ§Ã£o */}
         <p className="text-sm text-slate-600 line-clamp-2">
           {questao.descricao}
         </p>
@@ -230,7 +230,7 @@ const QuestionCard = ({ questao, onApprove, onReject, onViewDetails, loading }) 
         )}
       </div>
 
-      {/* Footer com ações */}
+      {/* Footer com aÃ§Ãµes */}
       <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
         <button
           onClick={onViewDetails}
@@ -272,8 +272,8 @@ const QuestionCard = ({ questao, onApprove, onReject, onViewDetails, loading }) 
   );
 };
 
-// ─── COMPONENTE PRINCIPAL ───
-export default function AprovarQuestões() {
+// â”€â”€â”€ COMPONENTE PRINCIPAL â”€â”€â”€
+export default function AprovarQuestÃµes() {
   const { token } = useAuth();
 
   // Estado
@@ -293,7 +293,7 @@ export default function AprovarQuestões() {
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [questaoParaRejeitar, setQuestaoParaRejeitar] = useState(null);
 
-  // Carregar questões pendentes
+  // Carregar questÃµes pendentes
   const carregarQuestoes = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -315,22 +315,22 @@ export default function AprovarQuestões() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error('Sessão expirada. Faça login novamente.');
+          throw new Error('SessÃ£o expirada. FaÃ§a login novamente.');
         }
         throw new Error(`Erro ${response.status}: ${response.statusText}`);
       }
 
       const result = await response.json();
-      console.log('Questões pendentes:', result);
+      console.log('QuestÃµes pendentes:', result);
 
       if (result.sucesso || result.success) {
         const questoesList = result.dados?.questoes || result.dados || result.questoes || [];
         setQuestoes(Array.isArray(questoesList) ? questoesList : []);
       } else {
-        throw new Error(result.mensagem || result.error || 'Erro ao carregar questões');
+        throw new Error(result.mensagem || result.error || 'Erro ao carregar questÃµes');
       }
     } catch (err) {
-      console.error('Erro ao carregar questões:', err);
+      console.error('Erro ao carregar questÃµes:', err);
       setError(err.message || 'Erro desconhecido');
       setQuestoes([]);
     } finally {
@@ -343,7 +343,7 @@ export default function AprovarQuestões() {
     carregarQuestoes();
   }, [carregarQuestoes]);
 
-  // Aprovar questão
+  // Aprovar questÃ£o
   const handleApprove = async (questaoId) => {
     setActionLoading(questaoId);
 
@@ -366,20 +366,20 @@ export default function AprovarQuestões() {
       const result = await response.json();
 
       if (result.sucesso || result.success) {
-        mostrarToast('Questão aprovada com sucesso!', 'success');
+        mostrarToast('QuestÃ£o aprovada com sucesso!', 'success');
         setQuestoes(questoes.filter(q => q.id !== questaoId));
       } else {
-        throw new Error(result.mensagem || 'Erro ao aprovar questão');
+        throw new Error(result.mensagem || 'Erro ao aprovar questÃ£o');
       }
     } catch (err) {
       console.error('Erro ao aprovar:', err);
-      mostrarToast(err.message || 'Erro ao aprovar questão', 'error');
+      mostrarToast(err.message || 'Erro ao aprovar questÃ£o', 'error');
     } finally {
       setActionLoading(null);
     }
   };
 
-  // Rejeitar questão
+  // Rejeitar questÃ£o
   const handleReject = async (motivo) => {
     if (!questaoParaRejeitar) return;
 
@@ -405,22 +405,22 @@ export default function AprovarQuestões() {
       const result = await response.json();
 
       if (result.sucesso || result.success) {
-        mostrarToast('Questão rejeitada com sucesso!', 'success');
+        mostrarToast('QuestÃ£o rejeitada com sucesso!', 'success');
         setQuestoes(questoes.filter(q => q.id !== questaoParaRejeitar.id));
         setRejectModalOpen(false);
         setQuestaoParaRejeitar(null);
       } else {
-        throw new Error(result.mensagem || 'Erro ao rejeitar questão');
+        throw new Error(result.mensagem || 'Erro ao rejeitar questÃ£o');
       }
     } catch (err) {
       console.error('Erro ao rejeitar:', err);
-      mostrarToast(err.message || 'Erro ao rejeitar questão', 'error');
+      mostrarToast(err.message || 'Erro ao rejeitar questÃ£o', 'error');
     } finally {
       setActionLoading(null);
     }
   };
 
-  // Filtrar questões
+  // Filtrar questÃµes
   const questoesFiltradas = questoes.filter(q => {
     const searchLower = searchTerm.toLowerCase();
     const matchSearch =
@@ -441,10 +441,10 @@ export default function AprovarQuestões() {
             <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
               <BookOpen className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-slate-900">Aprovar Questões</h1>
+            <h1 className="text-3xl font-bold text-slate-900">Aprovar QuestÃµes</h1>
           </div>
           <p className="text-slate-600">
-            Revise e aprove questões pendentes de colaboradores
+            Revise e aprove questÃµes pendentes de colaboradores
           </p>
         </div>
 
@@ -456,7 +456,7 @@ export default function AprovarQuestões() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Buscar por título, descrição ou autor..."
+                placeholder="Buscar por tÃ­tulo, descriÃ§Ã£o ou autor..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
@@ -472,9 +472,9 @@ export default function AprovarQuestões() {
                 className="w-full pl-12 pr-8 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition appearance-none bg-white"
               >
                 <option value="">Todas as disciplinas</option>
-                <option value="matematica">Matemática</option>
-                <option value="ingles">Inglês</option>
-                <option value="programacao">Programação</option>
+                <option value="matematica">MatemÃ¡tica</option>
+                <option value="ingles">InglÃªs</option>
+                <option value="programacao">ProgramaÃ§Ã£o</option>
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
             </div>
@@ -488,14 +488,14 @@ export default function AprovarQuestões() {
                 className="w-full pl-12 pr-8 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition appearance-none bg-white"
               >
                 <option value="">Todas as dificuldades</option>
-                <option value="facil">Fácil</option>
-                <option value="medio">Médio</option>
-                <option value="dificil">Difícil</option>
+                <option value="facil">FÃ¡cil</option>
+                <option value="medio">MÃ©dio</option>
+                <option value="dificil">DifÃ­cil</option>
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
             </div>
 
-            {/* Botão Atualizar */}
+            {/* BotÃ£o Atualizar */}
             <button
               onClick={carregarQuestoes}
               disabled={loading}
@@ -511,12 +511,12 @@ export default function AprovarQuestões() {
           </div>
         </div>
 
-        {/* Contador de questões */}
+        {/* Contador de questÃµes */}
         {!loading && (
           <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-sm font-medium mb-1">Questões Pendentes</p>
+                <p className="text-blue-100 text-sm font-medium mb-1">QuestÃµes Pendentes</p>
                 <p className="text-4xl font-bold">{questoesFiltradas.length}</p>
               </div>
               <Clock className="w-16 h-16 text-blue-300 opacity-50" />
@@ -541,7 +541,7 @@ export default function AprovarQuestões() {
                 <AlertCircle className="w-6 h-6 text-red-600" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-red-900 mb-1">Erro ao carregar questões</h3>
+                <h3 className="font-semibold text-red-900 mb-1">Erro ao carregar questÃµes</h3>
                 <p className="text-red-800 text-sm">{error}</p>
               </div>
               <button
@@ -560,9 +560,9 @@ export default function AprovarQuestões() {
             <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
               <Check className="w-8 h-8 text-blue-600" />
             </div>
-            <h3 className="text-xl font-bold text-slate-800 mb-2">Nenhuma questão pendente</h3>
+            <h3 className="text-xl font-bold text-slate-800 mb-2">Nenhuma questÃ£o pendente</h3>
             <p className="text-slate-600">
-              Todas as questões foram revisadas. Ótimo trabalho! 🎉
+              Todas as questÃµes foram revisadas. Ã“timo trabalho! ðŸŽ‰
             </p>
           </div>
         )}
@@ -580,7 +580,7 @@ export default function AprovarQuestões() {
           </div>
         )}
 
-        {/* Lista de Questões */}
+        {/* Lista de QuestÃµes */}
         {!loading && questoesFiltradas.length > 0 && (
           <div className="space-y-4">
             {questoesFiltradas.map((questao) => (
@@ -613,7 +613,7 @@ export default function AprovarQuestões() {
         }}
       />
 
-      {/* Modal de Rejeição */}
+      {/* Modal de RejeiÃ§Ã£o */}
       <ConfirmarComMotivoModal
         isOpen={rejectModalOpen}
         onClose={() => {
@@ -621,8 +621,8 @@ export default function AprovarQuestões() {
           setQuestaoParaRejeitar(null);
         }}
         onConfirm={handleReject}
-        titulo="Rejeitar Questão"
-        subtitulo="Explique o motivo da rejeição:"
+        titulo="Rejeitar QuestÃ£o"
+        subtitulo="Explique o motivo da rejeiÃ§Ã£o:"
         itemNome={questaoParaRejeitar?.titulo}
         loading={actionLoading === questaoParaRejeitar?.id}
         buttonText="Rejeitar"
@@ -631,3 +631,4 @@ export default function AprovarQuestões() {
     </div>
   );
 }
+

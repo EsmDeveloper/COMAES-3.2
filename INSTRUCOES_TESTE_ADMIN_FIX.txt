@@ -1,0 +1,164 @@
+═══════════════════════════════════════════════════════════════════════════════
+   TESTE: Correção do Erro 403 - Admin não conseguia acessar /api/admin/stats
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ CORREÇÕES APLICADAS:
+───────────────────────────────────────────────────────────────────────────────
+1. JWT agora inclui campo "isAdmin"
+   - Arquivo: BackEnd/index.js (2 locais)
+   - Benefício: Middleware consegue verificar rápido (fast-path)
+
+2. Logging detalhado adicionado
+   - Arquivo: BackEnd/middlewares/isAdmin.js
+   - Benefício: Fácil diagnóstico de problemas
+
+3. Endpoint de debug criado
+   - Rota: GET /debug/jwt-config
+   - Benefício: Verificar se JWT_SECRET está configurado corretamente
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📋 PASSO A PASSO PARA TESTAR:
+───────────────────────────────────────────────────────────────────────────────
+
+PASSO 1: REINICIAR O BACKEND
+────────────────────────────────────────────────────────────────────────────
+cd C:\Users\HP PROBOOK 440 G5\Desktop\COMAES-3.2\BackEnd
+npm run dev
+
+Aguarde até ver:
+  ✓ Banco de dados conectado
+  ✓ Servidor rodando na porta 3001
+  ✓ Sem erros de inicialização
+
+
+PASSO 2: VERIFICAR CONFIGURAÇÃO JWT
+────────────────────────────────────────────────────────────────────────────
+Abra no navegador:
+  http://192.168.0.150:3001/debug/jwt-config
+
+Deverá mostrar:
+  {
+    "JWT_SECRET_LOADED": "✅ YES",
+    "JWT_SECRET_VALUE": "***(redacted)***",
+    ...
+  }
+
+Se mostrar "JWT_SECRET_LOADED": "❌ NO" → Problema no carregamento do .env
+
+
+PASSO 3: FAZER LOGIN COMO ADMIN
+────────────────────────────────────────────────────────────────────────────
+No Frontend, faça login com:
+  Email: admin@comaes.com
+  Senha: Senha123!
+
+OU via curl:
+  curl -X POST http://192.168.0.150:3001/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"usuario":"admin@comaes.com","senha":"Senha123!"}'
+
+Verifique no console do backend:
+  ✅ Login bem-sucedido para: admin@comaes.com
+
+E copie o TOKEN retornado.
+
+
+PASSO 4: VERIFICAR CONTEÚDO DO JWT
+────────────────────────────────────────────────────────────────────────────
+Visite https://jwt.io e cole o TOKEN no campo esquerdo.
+
+Verifique no "Decoded" -> "Payload" que tem:
+  {
+    "id": <número>,
+    "email": "admin@comaes.com",
+    "role": "admin",
+    "isAdmin": true,        ← CRUCIAL! Deve estar aqui agora
+    "status_colaborador": "aprovado",
+    ...
+  }
+
+Se "isAdmin" estiver faltando ou for "false" → Não fez novo login!
+
+
+PASSO 5: TESTAR ACESSO A /api/admin/stats
+────────────────────────────────────────────────────────────────────────────
+Via Frontend:
+  Acesse: http://localhost:5175/administrador
+  Deve carregar sem erro 403
+
+Via curl (substitua TOKEN pelo seu):
+  curl -X GET http://192.168.0.150:3001/admin/stats \
+    -H "Authorization: Bearer TOKEN_AQUI"
+
+Esperado: Retorna 200 OK com dados de estatísticas
+
+
+PASSO 6: VERIFICAR LOGS DO BACKEND
+────────────────────────────────────────────────────────────────────────────
+No console do backend, busque por logs como:
+
+  ✅ [isAdmin] Token verificado com sucesso. decoded.isAdmin = true
+  ✅ [isAdmin] Fast path - decoded.isAdmin = true, acesso concedido
+
+Se ver isso → SUCESSO! ✅
+
+
+═══════════════════════════════════════════════════════════════════════════════
+⚠️  TROUBLESHOOTING: Se ainda receber 403
+═══════════════════════════════════════════════════════════════════════════════
+
+SINTOMA 1: Logs mostram "decoded.isAdmin = false" ou "undefined"
+──────────────────────────────────────────────────────────────────
+Causa: JWT foi criado ANTES da mudança de código
+Solução: 
+  1. Reinicie o backend
+  2. Faça LOGIN NOVAMENTE para obter novo JWT
+  3. Use novo token no teste
+
+
+SINTOMA 2: Logs mostram "❌ [isAdmin] Token inválido: ..."
+──────────────────────────────────────────────────────────────────
+Causa: JWT_SECRET diferente entre login e middleware
+Solução:
+  1. Verificar /debug/jwt-config
+  2. Confirmar que JWT_SECRET está no .env
+  3. Reiniciar backend
+  4. Fazer novo login
+
+
+SINTOMA 3: Logs mostram "Usuário NÃO encontrado no BD"
+──────────────────────────────────────────────────────────────────
+Causa: Usuário admin não existe no banco
+Solução:
+  1. Executar seed: node seed_dados_teste.js
+  2. Fazer novo login com admin@comaes.com
+
+
+SINTOMA 4: "Slow path - usuário encontrado ... isAdmin=false, role=estudante"
+──────────────────────────────────────────────────────────────────
+Causa: Usuário no banco não está marcado como admin
+Solução:
+  1. Execute script para marcar como admin:
+     UPDATE usuarios SET isAdmin=true, role='admin' WHERE email='admin@comaes.com';
+  2. Fazer novo login
+
+
+═══════════════════════════════════════════════════════════════════════════════
+✨ RESUMO DAS MUDANÇAS
+═══════════════════════════════════════════════════════════════════════════════
+
+1. BackEnd/index.js
+   - Adicionado "isAdmin" ao JWT payload (2 locais)
+   - Endpoint /debug/jwt-config para diagnosticar
+   - Logging melhorado no login
+
+2. BackEnd/middlewares/isAdmin.js
+   - Logging detalhado em cada etapa
+   - Mostra se está em fast-path ou slow-path
+   - Exibe valores de isAdmin, role, etc.
+
+Resultado: Admin consegue acessar /api/admin/stats sem erro 403 ✅
+
+
+═══════════════════════════════════════════════════════════════════════════════

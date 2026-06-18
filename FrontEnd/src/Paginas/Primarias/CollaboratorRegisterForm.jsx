@@ -41,7 +41,7 @@ const MAX_FILE_SIZE_MB   = 10;
 const MAX_FILES          = 5;
 
 const API_BASE = () =>
-  (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`);
+  (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`);
 
 /* â”€â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function validarBio(bio) {
@@ -575,3 +575,4 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
     </form>
   );
 }
+

@@ -1,10 +1,10 @@
-/**
- * MinhasQuestoes.jsx - Aba para Colaborador gerenciar suas questões
+﻿/**
+ * MinhasQuestoes.jsx - Aba para Colaborador gerenciar suas questÃµes
  * Task 11.2: Create MinhasQuestoes page
  * Funcionalidades:
  * 1. List questions created by collaborator
  * 2. Filter by status (pendente, aprovada, rejeitada)
- * 3. Filter by difficulty (fácil, médio, difícil)
+ * 3. Filter by difficulty (fÃ¡cil, mÃ©dio, difÃ­cil)
  * 4. Show status badges
  * 5. Edit/Delete buttons
  * 6. Pagination support
@@ -17,11 +17,11 @@ import { useAuth } from '../../context/AuthContext';
 import { Plus, Edit2, Trash2, AlertCircle, BookOpen, CheckCircle, XCircle, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import PageTransition from '../../components/PageTransition';
 
-// ── Constantes ────────────────────────────────────────────────────────────────
-const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+// â”€â”€ Constantes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
 const ITEMS_PER_PAGE = 10;
 
-// ── Serviço de Questões do Colaborador ────────────────────────────────────────
+// â”€â”€ ServiÃ§o de QuestÃµes do Colaborador â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class ColaboradorQuestoesService {
   constructor(token) {
     this.token = token;
@@ -84,7 +84,7 @@ class ColaboradorQuestoesService {
   }
 }
 
-// ── Badge de Status ──────────────────────────────────────────────────────────
+// â”€â”€ Badge de Status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function StatusBadge({ status, motivo_rejeicao, onShowRejection }) {
   const config = {
     pendente: { 
@@ -120,7 +120,7 @@ function StatusBadge({ status, motivo_rejeicao, onShowRejection }) {
         <button
           onClick={onShowRejection}
           className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-red-50 ${c.text} hover:bg-red-100 transition-colors`}
-          title="Ver motivo da rejeição"
+          title="Ver motivo da rejeiÃ§Ã£o"
         >
           <Info className="w-3 h-3" />
           Motivo
@@ -130,7 +130,7 @@ function StatusBadge({ status, motivo_rejeicao, onShowRejection }) {
   );
 }
 
-// ── Modal de Formulário da Questão ───────────────────────────────────────────
+// â”€â”€ Modal de FormulÃ¡rio da QuestÃ£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function QuestaoForm({ questao, isOpen, onClose, onSave, disciplina, saving: externalSaving }) {
   const [formData, setFormData] = useState({
     titulo: '',
@@ -178,36 +178,36 @@ function QuestaoForm({ questao, isOpen, onClose, onSave, disciplina, saving: ext
     novasOpcoes[index] = value;
     setFormData(prev => ({ ...prev, opcoes: novasOpcoes }));
     
-    // Se a resposta correta for a opção que mudou, atualizar também
+    // Se a resposta correta for a opÃ§Ã£o que mudou, atualizar tambÃ©m
     if (formData.resposta_correta === formData.opcoes[index]) {
       setFormData(prev => ({ ...prev, resposta_correta: value }));
     }
   };
 
   const validateForm = () => {
-    // Validar título
+    // Validar tÃ­tulo
     if (!formData.titulo.trim()) {
-      setError('Título é obrigatório');
+      setError('TÃ­tulo Ã© obrigatÃ³rio');
       return false;
     }
 
     // Validar enunciado
     if (!formData.enunciado.trim()) {
-      setError('Enunciado é obrigatório');
+      setError('Enunciado Ã© obrigatÃ³rio');
       return false;
     }
 
-    // Validar opções
+    // Validar opÃ§Ãµes
     const opcoesValidas = formData.opcoes.filter(o => o.trim());
     if (opcoesValidas.length < 2) {
       setError('Preencha pelo menos 2 alternativas');
       return false;
     }
 
-    // Validar opções duplicadas
+    // Validar opÃ§Ãµes duplicadas
     const uniqueOpcoes = new Set(opcoesValidas.map(o => o.trim().toLowerCase()));
     if (uniqueOpcoes.size !== opcoesValidas.length) {
-      setError('Alternativas duplicadas não são permitidas');
+      setError('Alternativas duplicadas nÃ£o sÃ£o permitidas');
       return false;
     }
 
@@ -254,7 +254,7 @@ function QuestaoForm({ questao, isOpen, onClose, onSave, disciplina, saving: ext
       await onSave(dadosParaSalvar);
       onClose();
     } catch (err) {
-      setError(err.message || 'Erro ao salvar questão');
+      setError(err.message || 'Erro ao salvar questÃ£o');
     } finally {
       setSaving(false);
     }
@@ -266,7 +266,7 @@ function QuestaoForm({ questao, isOpen, onClose, onSave, disciplina, saving: ext
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b border-slate-200 sticky top-0 bg-white">
-          <h2 className="text-xl font-bold">{questao ? 'Editar' : 'Nova'} Questão</h2>
+          <h2 className="text-xl font-bold">{questao ? 'Editar' : 'Nova'} QuestÃ£o</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -283,22 +283,22 @@ function QuestaoForm({ questao, isOpen, onClose, onSave, disciplina, saving: ext
             <span className="font-semibold text-slate-800 capitalize">{disciplina}</span>
           </div>
 
-          {/* Título */}
+          {/* TÃ­tulo */}
           <div>
             <label className="block text-sm font-semibold mb-1">
-              Título <span className="text-red-500">*</span>
+              TÃ­tulo <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={formData.titulo}
               onChange={(e) => handleFieldChange('titulo', e.target.value)}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Ex: Qual é a capital de Portugal?"
+              placeholder="Ex: Qual Ã© a capital de Portugal?"
               maxLength={200}
             />
           </div>
 
-          {/* Descrição */}
+          {/* DescriÃ§Ã£o */}
           <div>
             <label className="block text-sm font-semibold mb-1">
               Enunciado <span className="text-red-500">*</span>
@@ -308,7 +308,7 @@ function QuestaoForm({ questao, isOpen, onClose, onSave, disciplina, saving: ext
               onChange={(e) => handleFieldChange('enunciado', e.target.value)}
               rows={3}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Digite o enunciado completo da questão..."
+              placeholder="Digite o enunciado completo da questÃ£o..."
               maxLength={1000}
             />
           </div>
@@ -322,9 +322,9 @@ function QuestaoForm({ questao, isOpen, onClose, onSave, disciplina, saving: ext
                 onChange={(e) => handleFieldChange('dificuldade', e.target.value)}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="facil">Fácil</option>
-                <option value="medio">Médio</option>
-                <option value="dificil">Difícil</option>
+                <option value="facil">FÃ¡cil</option>
+                <option value="medio">MÃ©dio</option>
+                <option value="dificil">DifÃ­cil</option>
               </select>
             </div>
             <div>
@@ -370,11 +370,11 @@ function QuestaoForm({ questao, isOpen, onClose, onSave, disciplina, saving: ext
               ))}
             </div>
             <p className="text-xs text-slate-400 mt-2">
-              Selecione o botão de rádio ao lado da alternativa correta.
+              Selecione o botÃ£o de rÃ¡dio ao lado da alternativa correta.
             </p>
           </div>
 
-          {/* Botões */}
+          {/* BotÃµes */}
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 sticky bottom-0 bg-white">
             <button
               type="button"
@@ -401,18 +401,18 @@ function QuestaoForm({ questao, isOpen, onClose, onSave, disciplina, saving: ext
   );
 }
 
-// ── Modal de Confirmação de Deleção ──────────────────────────────────────────
+// â”€â”€ Modal de ConfirmaÃ§Ã£o de DeleÃ§Ã£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function DeleteConfirmModal({ isOpen, onClose, onConfirm, titulo }) {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
       <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
-        <h3 className="text-lg font-semibold mb-2">Confirmar exclusão?</h3>
+        <h3 className="text-lg font-semibold mb-2">Confirmar exclusÃ£o?</h3>
         <p className="text-slate-600 mb-2">
-          Tem certeza que deseja excluir a questão "{titulo?.substring(0, 50)}..."?
+          Tem certeza que deseja excluir a questÃ£o "{titulo?.substring(0, 50)}..."?
         </p>
-        <p className="text-red-600 text-sm mb-6">Esta ação não pode ser desfeita.</p>
+        <p className="text-red-600 text-sm mb-6">Esta aÃ§Ã£o nÃ£o pode ser desfeita.</p>
         <div className="flex justify-end gap-3">
           <button
             onClick={onClose}
@@ -432,7 +432,7 @@ function DeleteConfirmModal({ isOpen, onClose, onConfirm, titulo }) {
   );
 }
 
-// ── Modal de Motivo de Rejeição ─────────────────────────────────────────────
+// â”€â”€ Modal de Motivo de RejeiÃ§Ã£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function RejectionReasonModal({ isOpen, onClose, motivo, titulo }) {
   if (!isOpen) return null;
 
@@ -441,11 +441,11 @@ function RejectionReasonModal({ isOpen, onClose, motivo, titulo }) {
       <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
         <div className="flex items-center gap-2 mb-4">
           <XCircle className="w-5 h-5 text-red-600" />
-          <h3 className="text-lg font-semibold text-red-800">Motivo da Rejeição</h3>
+          <h3 className="text-lg font-semibold text-red-800">Motivo da RejeiÃ§Ã£o</h3>
         </div>
         
         <div className="mb-4">
-          <p className="text-sm text-slate-600 mb-2">Questão: <span className="font-semibold">{titulo}</span></p>
+          <p className="text-sm text-slate-600 mb-2">QuestÃ£o: <span className="font-semibold">{titulo}</span></p>
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <p className="text-slate-700 whitespace-pre-wrap">{motivo || 'Sem motivo especificado'}</p>
           </div>
@@ -464,7 +464,7 @@ function RejectionReasonModal({ isOpen, onClose, motivo, titulo }) {
   );
 }
 
-// ── Componente Principal ──────────────────────────────────────────────────────
+// â”€â”€ Componente Principal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function MinhasQuestoes() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
@@ -484,7 +484,7 @@ export default function MinhasQuestoes() {
   const [dificuldadeFilter, setDificuldadeFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Criar instância do serviço
+  // Criar instÃ¢ncia do serviÃ§o
   const service = new ColaboradorQuestoesService(token);
 
   // Proteger rota
@@ -505,7 +505,7 @@ export default function MinhasQuestoes() {
     }
   }, [user, navigate]);
 
-  // Carregar questões
+  // Carregar questÃµes
   const carregarQuestoes = useCallback(async () => {
     if (!token) return;
     
@@ -532,8 +532,8 @@ export default function MinhasQuestoes() {
       const questoesList = Array.isArray(resultado) ? resultado : (resultado.questoes || resultado.dados || []);
       setQuestoes(questoesList);
     } catch (err) {
-      console.error('Erro ao carregar questões:', err);
-      setError(err.message || 'Erro ao carregar questões');
+      console.error('Erro ao carregar questÃµes:', err);
+      setError(err.message || 'Erro ao carregar questÃµes');
       setQuestoes([]);
     } finally {
       setLoading(false);
@@ -544,7 +544,7 @@ export default function MinhasQuestoes() {
     carregarQuestoes();
   }, [carregarQuestoes]);
 
-  // Criar questão
+  // Criar questÃ£o
   const handleCreate = async (dados) => {
     setSaving(true);
     try {
@@ -556,7 +556,7 @@ export default function MinhasQuestoes() {
     }
   };
 
-  // Editar questão
+  // Editar questÃ£o
   const handleEdit = async (id, dados) => {
     setSaving(true);
     try {
@@ -567,7 +567,7 @@ export default function MinhasQuestoes() {
     }
   };
 
-  // Deletar questão
+  // Deletar questÃ£o
   const handleDelete = async () => {
     if (!questaoParaDeletar) return;
     
@@ -589,7 +589,7 @@ export default function MinhasQuestoes() {
     }
   };
 
-  // Filtros aplicados (questões filtramos no frontend também como backup)
+  // Filtros aplicados (questÃµes filtramos no frontend tambÃ©m como backup)
   const questoesFiltradas = useMemo(() => {
     return questoes;
   }, [questoes]);
@@ -604,7 +604,7 @@ export default function MinhasQuestoes() {
         <div className="flex items-center justify-center p-12">
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-slate-600">Carregando questões...</p>
+            <p className="text-slate-600">Carregando questÃµes...</p>
           </div>
         </div>
       </PageTransition>
@@ -619,7 +619,7 @@ export default function MinhasQuestoes() {
           <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg max-w-2xl">
             <div className="flex items-center gap-2 font-semibold mb-3">
               <AlertCircle className="w-5 h-5" />
-              Erro ao carregar questões
+              Erro ao carregar questÃµes
             </div>
             <p className="text-sm mb-4">{error}</p>
             <button
@@ -640,8 +640,8 @@ export default function MinhasQuestoes() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800">Minhas Questões</h1>
-            <p className="text-slate-600 mt-1">Gerencie suas questões para revisão</p>
+            <h1 className="text-3xl font-bold text-slate-800">Minhas QuestÃµes</h1>
+            <p className="text-slate-600 mt-1">Gerencie suas questÃµes para revisÃ£o</p>
           </div>
           <button
             onClick={() => {
@@ -651,7 +651,7 @@ export default function MinhasQuestoes() {
             className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all flex items-center gap-2 shadow-sm hover:shadow-md"
           >
             <Plus className="w-5 h-5" />
-            Nova Questão
+            Nova QuestÃ£o
           </button>
         </div>
 
@@ -692,13 +692,13 @@ export default function MinhasQuestoes() {
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
               >
                 <option value="">Todas as dificuldades</option>
-                <option value="facil">Fácil</option>
-                <option value="medio">Médio</option>
-                <option value="dificil">Difícil</option>
+                <option value="facil">FÃ¡cil</option>
+                <option value="medio">MÃ©dio</option>
+                <option value="dificil">DifÃ­cil</option>
               </select>
             </div>
 
-            {/* Botão de Limpar Filtros */}
+            {/* BotÃ£o de Limpar Filtros */}
             <div className="flex items-end">
               <button
                 onClick={() => {
@@ -726,11 +726,11 @@ export default function MinhasQuestoes() {
         {questoes.length === 0 ? (
           <div className="bg-white rounded-lg border border-slate-200 p-12 text-center">
             <BookOpen className="w-16 h-16 text-blue-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-700 mb-2">Nenhuma questão encontrada</h3>
+            <h3 className="text-lg font-semibold text-slate-700 mb-2">Nenhuma questÃ£o encontrada</h3>
             <p className="text-slate-500 mb-6">
               {statusFilter || dificuldadeFilter 
-                ? 'Nenhuma questão corresponde aos filtros aplicados' 
-                : 'Comece criando sua primeira questão!'}
+                ? 'Nenhuma questÃ£o corresponde aos filtros aplicados' 
+                : 'Comece criando sua primeira questÃ£o!'}
             </p>
             {!statusFilter && !dificuldadeFilter && (
               <button
@@ -741,7 +741,7 @@ export default function MinhasQuestoes() {
                 className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
               >
                 <Plus className="w-5 h-5" />
-                Criar Primeira Questão
+                Criar Primeira QuestÃ£o
               </button>
             )}
           </div>
@@ -752,11 +752,11 @@ export default function MinhasQuestoes() {
                 <table className="w-full">
                   <thead className="bg-gradient-to-r from-blue-50 to-cyan-50 border-b-2 border-blue-200">
                     <tr>
-                      <th className="text-left px-6 py-3 text-sm font-semibold text-blue-900">Título</th>
+                      <th className="text-left px-6 py-3 text-sm font-semibold text-blue-900">TÃ­tulo</th>
                       <th className="text-left px-6 py-3 text-sm font-semibold text-blue-900">Dificuldade</th>
                       <th className="text-left px-6 py-3 text-sm font-semibold text-blue-900">Pontos</th>
                       <th className="text-left px-6 py-3 text-sm font-semibold text-blue-900">Status</th>
-                      <th className="text-right px-6 py-3 text-sm font-semibold text-blue-900">Ações</th>
+                      <th className="text-right px-6 py-3 text-sm font-semibold text-blue-900">AÃ§Ãµes</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -774,7 +774,7 @@ export default function MinhasQuestoes() {
                             q.dificuldade === 'medio' ? 'bg-yellow-100 text-yellow-800' :
                             'bg-red-100 text-red-700'
                           }`}>
-                            {q.dificuldade === 'facil' ? 'Fácil' : q.dificuldade === 'medio' ? 'Médio' : 'Difícil'}
+                            {q.dificuldade === 'facil' ? 'FÃ¡cil' : q.dificuldade === 'medio' ? 'MÃ©dio' : 'DifÃ­cil'}
                           </span>
                         </td>
                         <td className="px-6 py-4">
@@ -803,21 +803,21 @@ export default function MinhasQuestoes() {
                                     setModalOpen(true);
                                   }}
                                   className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                  title="Editar questão"
+                                  title="Editar questÃ£o"
                                 >
                                   <Edit2 className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => setQuestaoParaDeletar(q.id)}
                                   className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                  title="Deletar questão"
+                                  title="Deletar questÃ£o"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
                               </>
                             )}
                             {q.status_aprovacao === 'aprovada' && (
-                              <span className="text-xs text-slate-400 italic">Aprovada - não editável</span>
+                              <span className="text-xs text-slate-400 italic">Aprovada - nÃ£o editÃ¡vel</span>
                             )}
                           </div>
                         </td>
@@ -832,7 +832,7 @@ export default function MinhasQuestoes() {
             {totalPages > 1 && (
               <div className="flex items-center justify-between bg-white rounded-lg border border-slate-200 p-4">
                 <p className="text-sm text-slate-600">
-                  Página {currentPage} de {totalPages} • Total: {questoesFiltradas.length} questões
+                  PÃ¡gina {currentPage} de {totalPages} â€¢ Total: {questoesFiltradas.length} questÃµes
                 </p>
                 <div className="flex items-center gap-2">
                   <button
@@ -872,7 +872,7 @@ export default function MinhasQuestoes() {
           </>
         )}
 
-        {/* Modal do Formulário */}
+        {/* Modal do FormulÃ¡rio */}
         <QuestaoForm
           questao={questaoEdit}
           isOpen={modalOpen}
@@ -885,7 +885,7 @@ export default function MinhasQuestoes() {
           saving={saving}
         />
 
-        {/* Modal de Confirmação de Deleção */}
+        {/* Modal de ConfirmaÃ§Ã£o de DeleÃ§Ã£o */}
         <DeleteConfirmModal
           isOpen={!!questaoParaDeletar}
           onClose={() => setQuestaoParaDeletar(null)}
@@ -893,7 +893,7 @@ export default function MinhasQuestoes() {
           titulo={questoes.find(q => q.id === questaoParaDeletar)?.titulo}
         />
 
-        {/* Modal de Motivo de Rejeição */}
+        {/* Modal de Motivo de RejeiÃ§Ã£o */}
         <RejectionReasonModal
           isOpen={rejectionModalOpen}
           onClose={() => setRejectionModalOpen(false)}

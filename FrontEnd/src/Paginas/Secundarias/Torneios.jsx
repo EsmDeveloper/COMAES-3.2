@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import socket from '../../socket';
 import ComaesModal, { ModalBtnPrimary } from '../../components/ComaesModal';
 
-const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
 const Torneios = () => {
   const navigate = useNavigate();

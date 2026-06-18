@@ -1,4 +1,4 @@
-// src/hooks/useCertificado.js
+﻿// src/hooks/useCertificado.js
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
@@ -9,14 +9,14 @@ export default function useCertificado(disciplina, participante, ranking) {
   const [jaExibido, setJaExibido] = useState(false);
   const [torneioAtivo, setTorneioAtivo] = useState(null);
 
-  // Verificar se o torneio terminou e o usuário está no pódio
+  // Verificar se o torneio terminou e o usuÃ¡rio estÃ¡ no pÃ³dio
   useEffect(() => {
     const verificarCertificado = async () => {
       if (!participante || !user || jaExibido) return;
 
       try {
         // Buscar status do torneio
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/api/torneios/ativo`);
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/torneios/ativo`);
         const data = await response.json();
 
         if (data.ativo && data.torneio) {
@@ -26,16 +26,16 @@ export default function useCertificado(disciplina, participante, ranking) {
 
           // Se o torneio terminou
           if (agora > fim) {
-            // Verificar posição do usuário no ranking
+            // Verificar posiÃ§Ã£o do usuÃ¡rio no ranking
             const posicaoUsuario = ranking.findIndex(r => r.usuario_id === user.id) + 1;
 
-            // Se está entre os 3 primeiros E tem pontuação real
+            // Se estÃ¡ entre os 3 primeiros E tem pontuaÃ§Ã£o real
             if (posicaoUsuario >= 1 && posicaoUsuario <= 3 && !jaExibido) {
-              // Verificar se o usuário realmente pontuou
+              // Verificar se o usuÃ¡rio realmente pontuou
               const meuDado = ranking.find(r => r.usuario_id === user.id);
               const pontuacaoReal = parseFloat(meuDado?.pontuacao || 0) > 0;
-              if (!pontuacaoReal) return; // sem pontuação — não gerar certificado automático
-              // Verificar se já recebeu certificado (pode ser armazenado no localStorage)
+              if (!pontuacaoReal) return; // sem pontuaÃ§Ã£o â€” nÃ£o gerar certificado automÃ¡tico
+              // Verificar se jÃ¡ recebeu certificado (pode ser armazenado no localStorage)
               const certificadoKey = `certificado_${disciplina}_${user.id}_${data.torneio.id}`;
               const certificadoRecebido = localStorage.getItem(certificadoKey);
 
@@ -54,7 +54,7 @@ export default function useCertificado(disciplina, participante, ranking) {
                 setMostrarCertificado(true);
                 setJaExibido(true);
                 
-                // Marcar como já exibido
+                // Marcar como jÃ¡ exibido
                 localStorage.setItem(certificadoKey, 'true');
               }
             }
@@ -74,10 +74,10 @@ export default function useCertificado(disciplina, participante, ranking) {
 
   const [mensagemStatus, setMensagemStatus] = useState('');
 
-  // Função para verificar disponibilidade explicitamente
+  // FunÃ§Ã£o para verificar disponibilidade explicitamente
   const verificarDisponibilidade = () => {
     if (!torneioAtivo) {
-      setMensagemStatus('Informações do torneio não carregadas.');
+      setMensagemStatus('InformaÃ§Ãµes do torneio nÃ£o carregadas.');
       return false;
     }
 
@@ -85,25 +85,25 @@ export default function useCertificado(disciplina, participante, ranking) {
     const fim = new Date(torneioAtivo.termina_em);
 
     if (agora < fim) {
-      setMensagemStatus('O torneio ainda não terminou. Aguarde o encerramento para obter seu certificado.');
+      setMensagemStatus('O torneio ainda nÃ£o terminou. Aguarde o encerramento para obter seu certificado.');
       return false;
     }
 
     const posicaoUsuario = ranking.findIndex(r => r.usuario_id === user?.id) + 1;
     if (posicaoUsuario === 0) {
-      setMensagemStatus('Você não participou deste torneio ou ainda não possui pontuação.');
+      setMensagemStatus('VocÃª nÃ£o participou deste torneio ou ainda nÃ£o possui pontuaÃ§Ã£o.');
       return false;
     }
 
-    // Verificar se o usuário tem pontuação real
+    // Verificar se o usuÃ¡rio tem pontuaÃ§Ã£o real
     const meuDado = ranking.find(r => r.usuario_id === user?.id);
     const pontuacaoReal = parseFloat(meuDado?.pontuacao || 0) > 0;
     if (!pontuacaoReal) {
-      setMensagemStatus('Certificado disponível apenas para participantes com pontuação válida.');
+      setMensagemStatus('Certificado disponÃ­vel apenas para participantes com pontuaÃ§Ã£o vÃ¡lida.');
       return false;
     }
 
-    setMensagemStatus('Certificado disponível! Preparando download...');
+    setMensagemStatus('Certificado disponÃ­vel! Preparando download...');
     return true;
   };
 
@@ -123,7 +123,7 @@ export default function useCertificado(disciplina, participante, ranking) {
       });
       setMostrarCertificado(true);
     } else {
-      // Se não estiver disponível, a mensagem já foi setada
+      // Se nÃ£o estiver disponÃ­vel, a mensagem jÃ¡ foi setada
       alert(mensagemStatus);
     }
   };
@@ -137,3 +137,4 @@ export default function useCertificado(disciplina, participante, ranking) {
     verificarDisponibilidade
   };
 }
+

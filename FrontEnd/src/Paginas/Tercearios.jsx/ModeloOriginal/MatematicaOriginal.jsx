@@ -222,7 +222,7 @@ export default function MatematicaOriginal() {
   const buscarQuestoes = async (torneioId) => {
     try {
       console.log(`ðŸ“š Buscando questÃµes de matemÃ¡tica para torneio ${torneioId}...`);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/torneios/${torneioId}/questoes/matematica`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/torneios/${torneioId}/questoes/matematica`);
       const data = await response.json();
       
       console.log('ðŸ“Š Dados recebidos das questÃµes:', data);
@@ -354,7 +354,7 @@ export default function MatematicaOriginal() {
     };
 
     try {
-      const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/api/avaliar`, {
+      const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/avaliar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
         body: JSON.stringify(payload)
@@ -1034,3 +1034,4 @@ export default function MatematicaOriginal() {
     </div>
   );
 }
+

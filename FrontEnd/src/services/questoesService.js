@@ -1,13 +1,13 @@
-/**
+﻿/**
  * questoesService.js
- * Serviço para gerenciar questões via API
+ * ServiÃ§o para gerenciar questÃµes via API
  * 
  * IMPORTANTE: 
- * - Colaboradores usam /api/colaborador/questoes (com aprovação workflow)
- * - Admins/Públicos usam /api/questoes (genérico)
+ * - Colaboradores usam /api/colaborador/questoes (com aprovaÃ§Ã£o workflow)
+ * - Admins/PÃºblicos usam /api/questoes (genÃ©rico)
  */
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('comaes_token');
@@ -18,9 +18,9 @@ const getAuthHeaders = () => {
 };
 
 /**
- * Determinar a rota baseado no tipo de usuário
+ * Determinar a rota baseado no tipo de usuÃ¡rio
  * Se for colaborador, usa /api/colaborador/questoes
- * Senão usa /api/questoes
+ * SenÃ£o usa /api/questoes
  */
 const getApiRoute = async () => {
   try {
@@ -44,14 +44,14 @@ const getApiRoute = async () => {
 
 export const questoesService = {
   /**
-   * Listar questões do colaborador - endpoint específico para colaboradores
+   * Listar questÃµes do colaborador - endpoint especÃ­fico para colaboradores
    */
   async listarColaborador(params = {}) {
     const queryParams = new URLSearchParams(params).toString();
     const endpoint = `${apiBaseUrl}/api/colaborador/questoes?${queryParams}`;
     
     try {
-      console.log('📡 Iniciando requisição:', { endpoint, apiBaseUrl });
+      console.log('ðŸ“¡ Iniciando requisiÃ§Ã£o:', { endpoint, apiBaseUrl });
       
       const res = await fetch(endpoint, {
         headers: { ...getAuthHeaders(), 'Accept': 'application/json' },
@@ -59,7 +59,7 @@ export const questoesService = {
       
       const data = await res.json();
       
-      console.log('📡 Resposta do servidor:', {
+      console.log('ðŸ“¡ Resposta do servidor:', {
         status: res.status,
         statusText: res.statusText,
         ok: res.ok,
@@ -67,7 +67,7 @@ export const questoesService = {
       });
       
       if (!res.ok) {
-        console.error('❌ Erro HTTP na resposta:', {
+        console.error('âŒ Erro HTTP na resposta:', {
           status: res.status,
           statusText: res.statusText,
           dados_resposta: data,
@@ -75,15 +75,15 @@ export const questoesService = {
           token_presente: !!localStorage.getItem('comaes_token')
         });
         
-        // Tratamento específico para diferentes status HTTP
+        // Tratamento especÃ­fico para diferentes status HTTP
         let mensagem = '';
         
         if (res.status === 401) {
-          mensagem = 'Sessão expirada. Faça login novamente.';
+          mensagem = 'SessÃ£o expirada. FaÃ§a login novamente.';
         } else if (res.status === 403) {
-          mensagem = data?.mensagem || 'Acesso negado. Você não é um colaborador aprovado.';
+          mensagem = data?.mensagem || 'Acesso negado. VocÃª nÃ£o Ã© um colaborador aprovado.';
         } else if (res.status === 404) {
-          mensagem = 'Endpoint não encontrado. Verifique a configuração da API.';
+          mensagem = 'Endpoint nÃ£o encontrado. Verifique a configuraÃ§Ã£o da API.';
         } else if (res.status === 500) {
           mensagem = `Erro no servidor: ${data?.mensagem || 'Erro desconhecido'}`;
         } else {
@@ -100,43 +100,43 @@ export const questoesService = {
         throw erro;
       }
       
-      console.log('✅ Questões carregadas com sucesso:', {
+      console.log('âœ… QuestÃµes carregadas com sucesso:', {
         total_questoes: data?.dados?.questoes?.length || 0,
         endpoint: endpoint
       });
       return data;
     } catch (error) {
-      // Se for erro de rede/conexão
+      // Se for erro de rede/conexÃ£o
       if (error instanceof TypeError) {
         if (error.message === 'Failed to fetch') {
-          console.error('❌ Erro de conexão (Failed to fetch):', {
+          console.error('âŒ Erro de conexÃ£o (Failed to fetch):', {
             endpoint: endpoint,
             apiBaseUrl: apiBaseUrl,
             erro: error.message,
-            dica: 'O servidor pode estar desligado ou o endereço está incorreto'
+            dica: 'O servidor pode estar desligado ou o endereÃ§o estÃ¡ incorreto'
           });
           
           const erro = new Error(
-            `Servidor não está respondendo em ${apiBaseUrl}. ` +
-            `Verifique se o servidor backend está rodando na porta 3000.`
+            `Servidor nÃ£o estÃ¡ respondendo em ${apiBaseUrl}. ` +
+            `Verifique se o servidor backend estÃ¡ rodando na porta 3000.`
           );
           erro.isNetworkError = true;
           throw erro;
         }
         
-        console.error('❌ Erro de tipo na requisição:', {
+        console.error('âŒ Erro de tipo na requisiÃ§Ã£o:', {
           mensagem: error.message,
           stack: error.stack
         });
         throw new Error(`Erro ao processar resposta: ${error.message}`);
       }
       
-      // Re-throw erros que já foram processados
+      // Re-throw erros que jÃ¡ foram processados
       if (error.statusCode || error.isNetworkError) {
         throw error;
       }
       
-      console.error('❌ Erro inesperado:', {
+      console.error('âŒ Erro inesperado:', {
         mensagem: error?.message,
         tipo: error?.name,
         stack: error?.stack
@@ -147,25 +147,25 @@ export const questoesService = {
   },
 
   /**
-   * Listar todas as questões (já filtras por disciplina do colaborador no backend)
+   * Listar todas as questÃµes (jÃ¡ filtras por disciplina do colaborador no backend)
    */
   async listar(params = {}) {
     const queryParams = new URLSearchParams(params).toString();
     const route = await getApiRoute();
-    console.log('Usando rota:', route, 'com parâmetros:', params);
+    console.log('Usando rota:', route, 'com parÃ¢metros:', params);
     const res = await fetch(`${apiBaseUrl}${route}?${queryParams}`, {
       headers: { ...getAuthHeaders(), 'Accept': 'application/json' },
     });
     const data = await res.json();
     if (!res.ok) {
-      console.error('Erro ao listar questões com rota:', route, data);
-      throw new Error(data.mensagem || data.message || 'Erro ao obter questões');
+      console.error('Erro ao listar questÃµes com rota:', route, data);
+      throw new Error(data.mensagem || data.message || 'Erro ao obter questÃµes');
     }
     return data;
   },
 
   /**
-   * Obter uma questão pelo ID
+   * Obter uma questÃ£o pelo ID
    */
   async obter(id) {
     const route = await getApiRoute();
@@ -173,16 +173,16 @@ export const questoesService = {
       headers: { ...getAuthHeaders(), 'Accept': 'application/json' },
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.mensagem || data.message || 'Erro ao obter questão');
+    if (!res.ok) throw new Error(data.mensagem || data.message || 'Erro ao obter questÃ£o');
     return data;
   },
 
   /**
-   * Criar uma nova questão
+   * Criar uma nova questÃ£o
    */
   async criar(dados) {
     const route = await getApiRoute();
-    console.log('Criando questão via rota:', route);
+    console.log('Criando questÃ£o via rota:', route);
     const res = await fetch(`${apiBaseUrl}${route}`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -190,18 +190,18 @@ export const questoesService = {
     });
     const data = await res.json();
     if (!res.ok) {
-      console.error('Erro ao criar questão:', data);
-      throw new Error(data.mensagem || data.message || 'Erro ao criar questão');
+      console.error('Erro ao criar questÃ£o:', data);
+      throw new Error(data.mensagem || data.message || 'Erro ao criar questÃ£o');
     }
     return data;
   },
 
   /**
-   * Atualizar uma questão existente
+   * Atualizar uma questÃ£o existente
    */
   async atualizar(id, dados) {
     const route = await getApiRoute();
-    console.log('Atualizando questão via rota:', route);
+    console.log('Atualizando questÃ£o via rota:', route);
     const res = await fetch(`${apiBaseUrl}${route}/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
@@ -209,14 +209,14 @@ export const questoesService = {
     });
     const data = await res.json();
     if (!res.ok) {
-      console.error('Erro ao atualizar questão:', data);
-      throw new Error(data.mensagem || data.message || 'Erro ao atualizar questão');
+      console.error('Erro ao atualizar questÃ£o:', data);
+      throw new Error(data.mensagem || data.message || 'Erro ao atualizar questÃ£o');
     }
     return data;
   },
 
   /**
-   * Deletar uma questão
+   * Deletar uma questÃ£o
    */
   async deletar(id) {
     const route = await getApiRoute();
@@ -225,19 +225,19 @@ export const questoesService = {
       headers: getAuthHeaders(),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.mensagem || data.message || 'Erro ao deletar questão');
+    if (!res.ok) throw new Error(data.mensagem || data.message || 'Erro ao deletar questÃ£o');
     return data;
   },
 
   /**
- * Listar questões por disciplina (para uso no filtro)
+ * Listar questÃµes por disciplina (para uso no filtro)
  */
   async listarPorDisciplina(disciplina) {
     return this.listar({ disciplina });
   },
 
   /**
-   * Listar questões pendentes de aprovação (para admins)
+   * Listar questÃµes pendentes de aprovaÃ§Ã£o (para admins)
    * Endpoint dedicated: /api/admin/questoes-colaborador-pendentes
    */
   async listarPendentes(params = {}) {
@@ -246,12 +246,12 @@ export const questoesService = {
       headers: { ...getAuthHeaders(), 'Accept': 'application/json' },
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.mensagem || data.message || 'Erro ao listar questões pendentes');
+    if (!res.ok) throw new Error(data.mensagem || data.message || 'Erro ao listar questÃµes pendentes');
     return data;
   },
 
   /**
-   * Revisar questão (aprovar ou rejeitar)
+   * Revisar questÃ£o (aprovar ou rejeitar)
    */
   async revisar(id, status_aprovacao, motivo_rejeicao = null) {
     const res = await fetch(`${apiBaseUrl}/api/questoes/${id}/aprovacao`, {
@@ -260,26 +260,26 @@ export const questoesService = {
       body: JSON.stringify({ status_aprovacao, motivo_rejeicao }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.mensagem || data.message || 'Erro ao revisar questão');
+    if (!res.ok) throw new Error(data.mensagem || data.message || 'Erro ao revisar questÃ£o');
     return data;
   },
 
   /**
-   * Aprovar questão
+   * Aprovar questÃ£o
    */
   async aprovar(id) {
     return this.revisar(id, 'aprovada', null);
   },
 
   /**
-   * Rejeitar questão
+   * Rejeitar questÃ£o
    */
   async rejeitar(id, motivo_rejeicao) {
     return this.revisar(id, 'rejeitada', motivo_rejeicao);
   },
 
   /**
-   * Submeter questão para aprovação (apenas para colaboradores)
+   * Submeter questÃ£o para aprovaÃ§Ã£o (apenas para colaboradores)
    * POST /api/colaborador/questoes/:id/submeter
    */
   async submeter(id) {
@@ -289,12 +289,12 @@ export const questoesService = {
       headers: getAuthHeaders(),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.mensagem || data.message || 'Erro ao submeter questão');
+    if (!res.ok) throw new Error(data.mensagem || data.message || 'Erro ao submeter questÃ£o');
     return data;
   },
 
   /**
-   * Adicionar questão a um bloco (apenas para colaboradores)
+   * Adicionar questÃ£o a um bloco (apenas para colaboradores)
    * POST /api/colaborador/blocos/:blocoId/questoes
    */
   async adicionarAoBloco(blocoId, questaoId) {
@@ -304,12 +304,12 @@ export const questoesService = {
       body: JSON.stringify({ questao_id: questaoId }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.mensagem || data.message || 'Erro ao adicionar questão ao bloco');
+    if (!res.ok) throw new Error(data.mensagem || data.message || 'Erro ao adicionar questÃ£o ao bloco');
     return data;
   },
 
   /**
-   * Remover questão de um bloco (apenas para colaboradores)
+   * Remover questÃ£o de um bloco (apenas para colaboradores)
    * DELETE /api/colaborador/blocos/:blocoId/questoes/:questaoId
    */
   async removerDoBloco(blocoId, questaoId) {
@@ -318,7 +318,7 @@ export const questoesService = {
       headers: getAuthHeaders(),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.mensagem || data.message || 'Erro ao remover questão do bloco');
+    if (!res.ok) throw new Error(data.mensagem || data.message || 'Erro ao remover questÃ£o do bloco');
     return data;
   },
 };

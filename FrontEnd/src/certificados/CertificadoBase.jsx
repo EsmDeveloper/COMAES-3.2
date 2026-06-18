@@ -57,7 +57,7 @@ export default function CertificadoBase({
       setError(null);
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/api/certificates/generate`,
+          `${import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/certificates/generate`,
           {
             method: 'POST',
             headers: {
@@ -97,7 +97,7 @@ export default function CertificadoBase({
   }, [isOpen, participante, torneio, disciplina, posicao, pontuacao, token, user]);
 
   const handleDownloadPDF = async () => {
-    const baseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+    const baseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
     const pdfPath = certData?.certificateURL;
     if (!pdfPath) {
       alert('Arquivo PDF do certificado ainda nao esta disponivel.');
@@ -310,3 +310,4 @@ export default function CertificadoBase({
     </AnimatePresence>
   );
 }
+

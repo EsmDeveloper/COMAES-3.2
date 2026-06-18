@@ -45,7 +45,7 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
   useEffect(() => {
     const carregarTorneios = async () => {
       try {
-        const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+        const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
         const res = await axios.get(`${apiBase}/api/admin/torneio`, {
           headers: { 'Authorization': `Bearer ${token}` },
           timeout: 5000
@@ -216,7 +216,7 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
       console.log('ðŸ“¤ Enviando questÃ£o:', dadosParaEnviar);
 
       // Enviar para API
-      const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+      const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
       const res = await axios.post(`${apiBase}/api/questoes`, dadosParaEnviar, {
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -571,3 +571,4 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
 };
 
 export default CreateQuestaoForm;
+

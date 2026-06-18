@@ -97,7 +97,7 @@ export default function Ranking() {
   const [lastUpdated, setLastUpdated]             = useState(null);
   const [isLive, setIsLive]                       = useState(false);
 
-  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
   // Refs para evitar closures stale no socket listener
   const selectedTournamentRef = useRef(selectedTournament);
@@ -424,3 +424,4 @@ export default function Ranking() {
     </Layout>
   );
 }
+

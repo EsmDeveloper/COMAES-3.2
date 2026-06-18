@@ -14,7 +14,7 @@ import io from 'socket.io-client';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || 
                    import.meta.env.VITE_API_BASE_URL || 
-                   `http://${window.location.hostname}:3001`;
+                   `http://${window.location.hostname}:3002`;
 
 let socket = null;
 
@@ -99,3 +99,4 @@ export const useSocketColaboradorStatus = ({
 };
 
 export default useSocketColaboradorStatus;
+

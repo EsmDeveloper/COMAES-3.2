@@ -173,7 +173,7 @@ export default function RankingCompleto() {
   useEffect(() => { idRef.current = effectiveId; },       [effectiveId]);
   useEffect(() => { discRef.current = disciplinaFilter; }, [disciplinaFilter]);
 
-  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
   /* â”€â”€ Load ranking â”€â”€ */
   const load = useCallback(async (silent = false) => {
@@ -587,3 +587,4 @@ export default function RankingCompleto() {
     </Layout>
   );
 }
+

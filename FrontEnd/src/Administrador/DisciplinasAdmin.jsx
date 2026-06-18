@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   BookOpen, Plus, Trash2, AlertCircle, CheckCircle,
@@ -22,7 +22,7 @@ import {
  */
 const DisciplinasAdmin = () => {
   const { token } = useAuth();
-  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
   // State
   const [disciplinas, setDisciplinas] = useState([]);
@@ -99,7 +99,7 @@ const DisciplinasAdmin = () => {
 
     // Requirement 9.1: Require nome
     if (!formData.nome || !formData.nome.trim()) {
-      errors.nome = 'Nome da disciplina é obrigatório';
+      errors.nome = 'Nome da disciplina Ã© obrigatÃ³rio';
     } else if (formData.nome.trim().length < 2) {
       errors.nome = 'Nome deve ter pelo menos 2 caracteres';
     }
@@ -110,7 +110,7 @@ const DisciplinasAdmin = () => {
         d => d.nome.toLowerCase() === formData.nome.toLowerCase()
       );
       if (exists) {
-        errors.nome = 'Já existe uma disciplina com este nome';
+        errors.nome = 'JÃ¡ existe uma disciplina com este nome';
       }
     }
 
@@ -118,7 +118,7 @@ const DisciplinasAdmin = () => {
     if (formData.cor && formData.cor.trim()) {
       const hexRegex = /^#[0-9A-F]{6}$/i;
       if (!hexRegex.test(formData.cor)) {
-        errors.cor = 'Cor deve estar em formato hexadecimal válido (ex: #3B82F6)';
+        errors.cor = 'Cor deve estar em formato hexadecimal vÃ¡lido (ex: #3B82F6)';
       }
     }
 
@@ -266,7 +266,7 @@ const DisciplinasAdmin = () => {
             </label>
             <input
               type="text"
-              placeholder="Ex: Matemática, Português, Biologia"
+              placeholder="Ex: MatemÃ¡tica, PortuguÃªs, Biologia"
               value={formData.nome}
               onChange={(e) => {
                 setFormData({ ...formData, nome: e.target.value });
@@ -290,10 +290,10 @@ const DisciplinasAdmin = () => {
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
               <FileText className="w-4 h-4 text-indigo-600" />
-              Descrição (opcional)
+              DescriÃ§Ã£o (opcional)
             </label>
             <textarea
-              placeholder="Descrição detalhada da disciplina..."
+              placeholder="DescriÃ§Ã£o detalhada da disciplina..."
               value={formData.descricao}
               onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
               rows="4"
@@ -390,7 +390,7 @@ const DisciplinasAdmin = () => {
           <div className="p-12 text-center">
             <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <p className="text-slate-500 font-medium">Nenhuma disciplina criada ainda</p>
-            <p className="text-slate-400 text-sm mt-1">Crie uma nova disciplina usando o formulário acima</p>
+            <p className="text-slate-400 text-sm mt-1">Crie uma nova disciplina usando o formulÃ¡rio acima</p>
           </div>
         )}
 
@@ -402,14 +402,14 @@ const DisciplinasAdmin = () => {
                 <tr>
                   <th className="px-6 py-4 text-left font-semibold text-slate-700 whitespace-nowrap">Nome</th>
                   <th className="px-6 py-4 text-left font-semibold text-slate-700 whitespace-nowrap">Slug</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700 whitespace-nowrap">Descrição</th>
+                  <th className="px-6 py-4 text-left font-semibold text-slate-700 whitespace-nowrap">DescriÃ§Ã£o</th>
                   <th className="px-6 py-4 text-center font-semibold text-slate-700 whitespace-nowrap">
                     <Users className="w-4 h-4 inline mr-1" />
                     Colaboradores
                   </th>
                   <th className="px-6 py-4 text-center font-semibold text-slate-700 whitespace-nowrap">Status</th>
                   <th className="px-6 py-4 text-center font-semibold text-slate-700 whitespace-nowrap">Cor</th>
-                  <th className="px-6 py-4 text-right font-semibold text-slate-700 whitespace-nowrap">Ações</th>
+                  <th className="px-6 py-4 text-right font-semibold text-slate-700 whitespace-nowrap">AÃ§Ãµes</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-100">
@@ -438,7 +438,7 @@ const DisciplinasAdmin = () => {
                           ? 'bg-green-50 text-green-700'
                           : 'bg-gray-50 text-gray-700'
                       }`}>
-                        {disciplina.ativo ? '✓ Ativa' : '○ Inativa'}
+                        {disciplina.ativo ? 'âœ“ Ativa' : 'â—‹ Inativa'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-center">
@@ -472,3 +472,4 @@ const DisciplinasAdmin = () => {
 };
 
 export default DisciplinasAdmin;
+

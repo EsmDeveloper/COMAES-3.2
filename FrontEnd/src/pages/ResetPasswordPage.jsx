@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -18,7 +18,7 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     if (!token) {
       setStatus("invalid");
-      setMessage("Token inválido ou inexistente.");
+      setMessage("Token invÃ¡lido ou inexistente.");
       return;
     }
 
@@ -27,14 +27,14 @@ export default function ResetPasswordPage() {
         const response = await axios.get(`${API_BASE_URL}/auth/verify-reset-token/${token}`);
         if (response.data?.success && response.data?.valid) {
           setStatus("ready");
-          setMessage("Token válido. Defina sua nova senha abaixo.");
+          setMessage("Token vÃ¡lido. Defina sua nova senha abaixo.");
         } else {
           setStatus("invalid");
-          setMessage(response.data?.error || "Token inválido ou expirado.");
+          setMessage(response.data?.error || "Token invÃ¡lido ou expirado.");
         }
       } catch (error) {
         setStatus("invalid");
-        setMessage(error?.response?.data?.error || "Token inválido ou expirado.");
+        setMessage(error?.response?.data?.error || "Token invÃ¡lido ou expirado.");
       }
     };
 
@@ -51,7 +51,7 @@ export default function ResetPasswordPage() {
     }
 
     if (password !== confirmPassword) {
-      setMessage("As senhas não coincidem.");
+      setMessage("As senhas nÃ£o coincidem.");
       return;
     }
 
@@ -171,3 +171,4 @@ export default function ResetPasswordPage() {
     </div>
   );
 }
+

@@ -43,7 +43,7 @@ export default function NotificacoesPage() {
       setLoading(true);
       setError(null);
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/usuarios/${user.id}/notificacoes`,
+        `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/usuarios/${user.id}/notificacoes`,
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('comaes_token')}`
@@ -107,7 +107,7 @@ export default function NotificacoesPage() {
   const markAsRead = async (id, currentStatus) => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/notificacoes/${id}/lido`,
+        `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/notificacoes/${id}/lido`,
         {
           method: 'PATCH',
           headers: {
@@ -129,7 +129,7 @@ export default function NotificacoesPage() {
   const deleteNotification = async (id) => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/api/admin/notificacao/${id}`,
+        `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/admin/notificacao/${id}`,
         {
           method: 'DELETE',
           headers: {
@@ -149,7 +149,7 @@ export default function NotificacoesPage() {
   const markAllAsRead = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/usuarios/${user.id}/notificacoes/lido-todas`,
+        `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/usuarios/${user.id}/notificacoes/lido-todas`,
         {
           method: 'PATCH',
           headers: {
@@ -425,3 +425,4 @@ export default function NotificacoesPage() {
     </div>
   );
 }
+

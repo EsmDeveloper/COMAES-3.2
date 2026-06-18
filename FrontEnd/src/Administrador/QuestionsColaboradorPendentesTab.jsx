@@ -11,7 +11,7 @@ import {
   Loader, AlertTriangle, CheckCircle, XCircle, Code
 } from 'lucide-react';
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
 // Badge de status
 function StatusBadge({ status }) {
@@ -768,3 +768,4 @@ export default function QuestionsColaboradorPendentesTab() {
     </div>
   );
 }
+

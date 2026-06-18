@@ -8,7 +8,7 @@ import { Calculator, Code2, Languages, Trophy, Clock, Zap, Target, RotateCcw, Ch
 
 // â”€â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 const TIME_PER_QUESTION = 30;
 
 const AREAS = {

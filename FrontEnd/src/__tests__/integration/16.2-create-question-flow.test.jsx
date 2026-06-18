@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Task 16.2: Test create question flow
  * 
  * Integration test for the complete collaborator question creation flow.
@@ -14,10 +14,10 @@
  * 
  * Success Criteria:
  * - Question created with status='pendente'
- * - Points auto-calculated correctly (Médio=10)
+ * - Points auto-calculated correctly (MÃ©dio=10)
  * - Disciplina field is read-only
  * - Question appears in MinhasQuestoes
- * - Status badge shows "Pendente de aprovação"
+ * - Status badge shows "Pendente de aprovaÃ§Ã£o"
  */
 
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
@@ -26,7 +26,7 @@ import axios from 'axios';
 // Mock data
 const MOCK_COLLABORATOR_USER = {
   id: 1,
-  nome: 'Prof. João Silva',
+  nome: 'Prof. JoÃ£o Silva',
   email: 'joao.silva@escola.com',
   role: 'colaborador',
   disciplina_colaborador: 'matematica'
@@ -57,7 +57,7 @@ const MOCK_CREATED_QUESTION = {
   createdAt: new Date().toISOString()
 };
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
 
 describe('Task 16.2: Create Question Flow Integration Test', () => {
   let mockAuthToken;
@@ -104,7 +104,7 @@ describe('Task 16.2: Create Question Flow Integration Test', () => {
       console.error('Login failed:', error.response?.data || error.message);
       // Skip test if backend not running
       if (error.code === 'ECONNREFUSED') {
-        console.log('⚠️  Backend not running - skipping login test');
+        console.log('âš ï¸  Backend not running - skipping login test');
       } else {
         throw error;
       }
@@ -146,35 +146,35 @@ describe('Task 16.2: Create Question Flow Integration Test', () => {
 
       // Validate title
       if (!formData.titulo?.trim()) {
-        errors.titulo = 'Título é obrigatório';
+        errors.titulo = 'TÃ­tulo Ã© obrigatÃ³rio';
       }
 
       // Validate description
       if (!formData.descricao?.trim()) {
-        errors.descricao = 'Descrição é obrigatória';
+        errors.descricao = 'DescriÃ§Ã£o Ã© obrigatÃ³ria';
       }
 
       // Validate type
       if (!formData.tipo) {
-        errors.tipo = 'Tipo é obrigatório';
+        errors.tipo = 'Tipo Ã© obrigatÃ³rio';
       }
 
       // Validate difficulty
       if (!formData.dificuldade) {
-        errors.dificuldade = 'Dificuldade é obrigatória';
+        errors.dificuldade = 'Dificuldade Ã© obrigatÃ³ria';
       }
 
       // Validate options for multiple choice
       if (formData.tipo === 'multipla_escolha') {
         const validOptions = formData.opcoes?.filter(o => o?.trim());
         if (!validOptions || validOptions.length < 2) {
-          errors.opcoes = 'Mínimo 2 opções preenchidas';
+          errors.opcoes = 'MÃ­nimo 2 opÃ§Ãµes preenchidas';
         }
       }
 
       // Validate correct answer
       if (!formData.resposta_correta?.trim()) {
-        errors.resposta_correta = 'Resposta correta é obrigatória';
+        errors.resposta_correta = 'Resposta correta Ã© obrigatÃ³ria';
       }
 
       return {
@@ -242,13 +242,13 @@ describe('Task 16.2: Create Question Flow Integration Test', () => {
       expect(createdQuestion.descricao).toBe(MOCK_QUESTION_DATA.descricao);
       expect(createdQuestion.tipo).toBe(MOCK_QUESTION_DATA.tipo);
       expect(createdQuestion.dificuldade).toBe(MOCK_QUESTION_DATA.dificuldade);
-      expect(createdQuestion.pontos).toBe(10); // Médio = 10
+      expect(createdQuestion.pontos).toBe(10); // MÃ©dio = 10
       expect(createdQuestion.disciplina).toBe(MOCK_COLLABORATOR_USER.disciplina_colaborador);
     } catch (error) {
       if (error.code === 'ECONNREFUSED' || error.response?.status === 404) {
-        console.log('⚠️  Backend endpoint not available - skipping submission test');
+        console.log('âš ï¸  Backend endpoint not available - skipping submission test');
       } else if (error.response?.status === 401) {
-        console.log('⚠️  Authentication failed - likely no backend');
+        console.log('âš ï¸  Authentication failed - likely no backend');
       } else {
         throw error;
       }
@@ -283,7 +283,7 @@ describe('Task 16.2: Create Question Flow Integration Test', () => {
       expect(question.motivo_rejeicao).toBeNull();
     } catch (error) {
       if (error.code === 'ECONNREFUSED') {
-        console.log('⚠️  Backend not running - status test skipped');
+        console.log('âš ï¸  Backend not running - status test skipped');
       }
     }
   });
@@ -315,7 +315,7 @@ describe('Task 16.2: Create Question Flow Integration Test', () => {
       }
     } catch (error) {
       if (error.code === 'ECONNREFUSED') {
-        console.log('⚠️  Backend not running - MinhasQuestoes test skipped');
+        console.log('âš ï¸  Backend not running - MinhasQuestoes test skipped');
       }
     }
   });
@@ -324,12 +324,12 @@ describe('Task 16.2: Create Question Flow Integration Test', () => {
    * Test 8: Verify status badge text
    * Verify the frontend displays correct status text
    */
-  it('should display "Pendente de aprovação" status badge for pending questions', () => {
+  it('should display "Pendente de aprovaÃ§Ã£o" status badge for pending questions', () => {
     // Mock status badge configuration
     const statusConfig = {
       pendente: {
         label: 'Pendente',
-        displayText: 'Pendente de aprovação',
+        displayText: 'Pendente de aprovaÃ§Ã£o',
         bgColor: 'bg-yellow-100',
         textColor: 'text-yellow-800'
       },
@@ -348,7 +348,7 @@ describe('Task 16.2: Create Question Flow Integration Test', () => {
     };
 
     const badgeConfig = statusConfig['pendente'];
-    expect(badgeConfig.displayText).toBe('Pendente de aprovação');
+    expect(badgeConfig.displayText).toBe('Pendente de aprovaÃ§Ã£o');
     expect(badgeConfig.bgColor).toBe('bg-yellow-100');
   });
 
@@ -367,7 +367,7 @@ describe('Task 16.2: Create Question Flow Integration Test', () => {
       if (formData.disciplina !== userDisciplina) {
         return {
           valid: false,
-          error: 'Você só pode criar questões para sua disciplina'
+          error: 'VocÃª sÃ³ pode criar questÃµes para sua disciplina'
         };
       }
       return { valid: true };
@@ -418,13 +418,13 @@ describe('Task 16.2: Create Question Flow Integration Test', () => {
     }
 
     // Summary report
-    console.log('\n📋 Task 16.2: Create Question Flow - Test Results:');
-    console.log('─────────────────────────────────────────────────');
-    console.log(`✓ Question created: ${testResults.questionCreated ? '✅ PASS' : '⚠️  SKIPPED (no backend)'}`);
-    console.log(`✓ Status is pendente: ${testResults.statusIsPendente ? '✅ PASS' : '⚠️  SKIPPED'}`);
-    console.log(`✓ Points auto-calculated (Médio=10): ${testResults.pointsAutoCalculated ? '✅ PASS' : '⚠️  SKIPPED'}`);
-    console.log(`✓ Disciplina is read-only: ${testResults.disciplinaReadOnly ? '✅ PASS' : '⚠️  SKIPPED'}`);
-    console.log('─────────────────────────────────────────────────');
+    console.log('\nðŸ“‹ Task 16.2: Create Question Flow - Test Results:');
+    console.log('â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€');
+    console.log(`âœ“ Question created: ${testResults.questionCreated ? 'âœ… PASS' : 'âš ï¸  SKIPPED (no backend)'}`);
+    console.log(`âœ“ Status is pendente: ${testResults.statusIsPendente ? 'âœ… PASS' : 'âš ï¸  SKIPPED'}`);
+    console.log(`âœ“ Points auto-calculated (MÃ©dio=10): ${testResults.pointsAutoCalculated ? 'âœ… PASS' : 'âš ï¸  SKIPPED'}`);
+    console.log(`âœ“ Disciplina is read-only: ${testResults.disciplinaReadOnly ? 'âœ… PASS' : 'âš ï¸  SKIPPED'}`);
+    console.log('â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€');
 
     // At least some tests should pass if backend is running
     const totalTests = Object.values(testResults).filter(v => v === true).length;
@@ -493,39 +493,40 @@ describe('Task 16.2: Create Question Flow Integration Test', () => {
  * Run this when automated tests are insufficient:
  * 
  * Prerequisites:
- * □ Backend running on http://localhost:3001
- * □ Frontend running on http://localhost:5175
- * □ Database seeded with test collaborator user
- * □ Test collaborator: joao.silva@escola.com / SenhaForte123!
+ * â–¡ Backend running on http://localhost:3002
+ * â–¡ Frontend running on http://localhost:5175
+ * â–¡ Database seeded with test collaborator user
+ * â–¡ Test collaborator: joao.silva@escola.com / SenhaForte123!
  * 
  * Manual Steps:
  * 1. [ ] Navigate to http://localhost:5175/login
  * 2. [ ] Login with collaborator credentials
  * 3. [ ] Verify redirected to /colaborador/dashboard
- * 4. [ ] Click "Nova Questão" or navigate to /colaborador/questoes
+ * 4. [ ] Click "Nova QuestÃ£o" or navigate to /colaborador/questoes
  * 5. [ ] Fill form:
- *    - Título: "Test Question"
- *    - Descrição: "This is a test question"
- *    - Tipo: "Múltipla Escolha"
- *    - Dificuldade: "Médio"
- *    - Opção 1: "Option A"
- *    - Opção 2: "Option B" (mark as correct)
- *    - Opção 3: "Option C"
- * 6. [ ] Verify Disciplina is READ-ONLY and shows "Matemática"
- * 7. [ ] Verify Pontos shows "10" (auto-calculated for Médio)
- * 8. [ ] Click "Criar Questão"
- * 9. [ ] Verify success message: "Questão criada com sucesso! Status: Pendente de aprovação"
- * 10. [ ] Navigate to MinhasQuestões
+ *    - TÃ­tulo: "Test Question"
+ *    - DescriÃ§Ã£o: "This is a test question"
+ *    - Tipo: "MÃºltipla Escolha"
+ *    - Dificuldade: "MÃ©dio"
+ *    - OpÃ§Ã£o 1: "Option A"
+ *    - OpÃ§Ã£o 2: "Option B" (mark as correct)
+ *    - OpÃ§Ã£o 3: "Option C"
+ * 6. [ ] Verify Disciplina is READ-ONLY and shows "MatemÃ¡tica"
+ * 7. [ ] Verify Pontos shows "10" (auto-calculated for MÃ©dio)
+ * 8. [ ] Click "Criar QuestÃ£o"
+ * 9. [ ] Verify success message: "QuestÃ£o criada com sucesso! Status: Pendente de aprovaÃ§Ã£o"
+ * 10. [ ] Navigate to MinhasQuestÃµes
  * 11. [ ] Verify question appears in list
- * 12. [ ] Verify status badge shows "Pendente de aprovação" in yellow
+ * 12. [ ] Verify status badge shows "Pendente de aprovaÃ§Ã£o" in yellow
  * 13. [ ] Verify question can be edited or deleted
  * 
  * Validation Criteria:
- * ✓ Question created with status='pendente'
- * ✓ Points auto-calculated correctly (Médio=10)
- * ✓ Disciplina field is read-only
- * ✓ Question appears in MinhasQuestões
- * ✓ Status badge shows "Pendente de aprovação"
- * ✓ Question can be edited (if not approved)
- * ✓ Question can be deleted
+ * âœ“ Question created with status='pendente'
+ * âœ“ Points auto-calculated correctly (MÃ©dio=10)
+ * âœ“ Disciplina field is read-only
+ * âœ“ Question appears in MinhasQuestÃµes
+ * âœ“ Status badge shows "Pendente de aprovaÃ§Ã£o"
+ * âœ“ Question can be edited (if not approved)
+ * âœ“ Question can be deleted
  */
+

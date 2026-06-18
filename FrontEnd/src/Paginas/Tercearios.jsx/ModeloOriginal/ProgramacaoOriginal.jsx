@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import { FaSignOutAlt, FaPlay, FaRedo, FaExpand, FaCompress } from "react-icons/fa";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
-// ImportaçÃµes para certificados e vencedores
+// ImportaÃ§ÃƒÂµes para certificados e vencedores
 import CertProgramacao from '../../../certificados/CertProgramacao';
 import useCertificado from '../../../hooks/useCertificado';
 import ModalVencedores from '../../../components/ModalVencedores';
@@ -15,7 +15,7 @@ import TournamentFinishedModal from '../../../components/TournamentFinishedModal
 import useTorneioParticipante from '../../../hooks/useTorneioParticipante';
 
 const TEMPO_QUESTAO = 90;
-const DISCIPLINA = 'Programação';
+const DISCIPLINA = 'ProgramaÃ§Ã£o';
 
 export default function ProgramacaoOriginal() {
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ export default function ProgramacaoOriginal() {
   const socketRef = useRef(null);
   const enunciadoRef = useRef(null);
 
-  // â”€â”€ Hook centralizado de torneio â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Hook centralizado de torneio Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   const {
     torneio,
     participante,
@@ -39,7 +39,7 @@ export default function ProgramacaoOriginal() {
     dentroDoPeriodo,
     setDentroDoPeriodo,
     actualizarParticipante,
-  } = useTorneioParticipante({ disciplina: 'Programação', disciplinaSlug: 'programacao', user, token });
+  } = useTorneioParticipante({ disciplina: 'ProgramaÃ§Ã£o', disciplinaSlug: 'programacao', user, token });
 
   // Estados locais
   const [progresso, setProgresso] = useState(0);
@@ -73,14 +73,14 @@ export default function ProgramacaoOriginal() {
     certificadoData, 
     fecharCertificado,
     abrirCertificado 
-  } = useCertificado('Programação', participante, ranking);
+  } = useCertificado('ProgramaÃ§Ã£o', participante, ranking);
 
   // Hook para vencedores
   const { 
     mostrarVencedores, 
     vencedores, 
     fecharVencedores 
-  } = useVencedores('Programação', ranking, torneio, participante);
+  } = useVencedores('ProgramaÃ§Ã£o', ranking, torneio, participante);
 
   const calcularTempoRestante = (torneioData) => {
     if (!torneioData?.termina_em) {
@@ -104,7 +104,7 @@ export default function ProgramacaoOriginal() {
     return { dias, horas, minutos, segundos };
   };
 
-  // Função para calcular progresso
+  // FunÃ§Ã£o para calcular progresso
   const calcularProgressoTemporal = (torneioData) => {
     if (!torneioData?.inicia_em || !torneioData?.termina_em) return 100;
     
@@ -149,7 +149,7 @@ export default function ProgramacaoOriginal() {
     return () => clearInterval(intervalId);
   }, [torneio]);
 
-  // Filtrar questÃµes por dificuldade
+  // Filtrar questÃƒÂµes por dificuldade
   useEffect(() => {
     if (questoes.length > 0) {
       const filtradas = questoes.filter(q => q.dificuldade === nivelSelecionado);
@@ -158,14 +158,14 @@ export default function ProgramacaoOriginal() {
         setQuestaoIndex(0);
         setQuestaoTime(TEMPO_QUESTAO);
         const qAtual = filtradas[0];
-        setCodigo(qAtual.opcoes?.codigoInicial || qAtual.opcoes?.template || "// Escreva seu código aqui...");
+        setCodigo(qAtual.opcoes?.codigoInicial || qAtual.opcoes?.template || "// Escreva seu cÃ³digo aqui...");
         setTotalTestes(qAtual.opcoes?.testes?.length || 0);
         setSaida("");
         setResultado("");
         setPontuacao(null);
         setTestesPassados(0);
         
-        // Scroll para o enunciado após mudar de nível
+        // Scroll para o enunciado apÃ³s mudar de nÃ­vel
         setTimeout(() => {
           if (enunciadoRef.current) {
             enunciadoRef.current.scrollIntoView({ 
@@ -178,11 +178,11 @@ export default function ProgramacaoOriginal() {
     }
   }, [nivelSelecionado, questoes]);
 
-  // Atualiza o código quando muda a questão
+  // Atualiza o cÃ³digo quando muda a questÃ£o
   useEffect(() => {
     if (questoesFiltradas[questaoIndex]) {
       const questaoAtual = questoesFiltradas[questaoIndex];
-      setCodigo(questaoAtual.opcoes?.codigoInicial || questaoAtual.opcoes?.template || "// Escreva seu código aqui...");
+      setCodigo(questaoAtual.opcoes?.codigoInicial || questaoAtual.opcoes?.template || "// Escreva seu cÃ³digo aqui...");
       setSaida("");
       setResultado("");
       setPontuacao(null);
@@ -197,14 +197,14 @@ export default function ProgramacaoOriginal() {
     }
   }, [questaoIndex, questoesFiltradas]);
 
-  // Atualizar total de questÃµes
+  // Atualizar total de questÃƒÂµes
   useEffect(() => {
     if (questoes.length > 0) {
       setQuestoesTotais(questoes.length);
     }
   }, [questoes]);
 
-  // Limpar timer de auto-avanço
+  // Limpar timer de auto-avanÃ§o
   useEffect(() => {
     return () => {
       if (autoAvancarTimer) {
@@ -213,7 +213,7 @@ export default function ProgramacaoOriginal() {
     };
   }, [autoAvancarTimer]);
 
-  // SCROLL AUTOMÃTICO QUANDO A QUESTÃƒO MUDA
+  // SCROLL AUTOMÃƒÂTICO QUANDO A QUESTÃƒÆ’O MUDA
   useEffect(() => {
     if (questoesFiltradas.length > 0 && enunciadoRef.current) {
       setTimeout(() => {
@@ -225,7 +225,7 @@ export default function ProgramacaoOriginal() {
     }
   }, [questaoIndex]);
 
-  // SCROLL AUTOMÃTICO NO CARREGAMENTO INICIAL
+  // SCROLL AUTOMÃƒÂTICO NO CARREGAMENTO INICIAL
   useEffect(() => {
     if (questoesFiltradas.length > 0 && enunciadoRef.current) {
       setTimeout(() => {
@@ -237,21 +237,21 @@ export default function ProgramacaoOriginal() {
     }
   }, [questoesFiltradas]);
 
-  // VERIFICAR TORNEIO ATIVO â€” gerido pelo hook useTorneioParticipante
+  // VERIFICAR TORNEIO ATIVO Ã¢â‚¬â€ gerido pelo hook useTorneioParticipante
 
-  // Carregar questÃµes quando o torneio ficar disponível
+  // Carregar questÃƒÂµes quando o torneio ficar disponÃ­vel
   useEffect(() => {
     if (torneio?.id) {
       buscarQuestoes(torneio.id);
     }
   }, [torneio?.id]);
 
-  // Conectar Socket.IO â€” gerido pelo hook useTorneioParticipante
+  // Conectar Socket.IO Ã¢â‚¬â€ gerido pelo hook useTorneioParticipante
 
-  // Buscar questÃµes do banco de dados
+  // Buscar questÃƒÂµes do banco de dados
   const buscarQuestoes = async (torneioId) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/torneios/${torneioId}/questoes/programacao`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/torneios/${torneioId}/questoes/programacao`);
       const data = await response.json();
       
       if (data.success && data.data.length > 0) {
@@ -264,7 +264,7 @@ export default function ProgramacaoOriginal() {
         
         if (filtradas.length > 0) {
           const primeiraQuestao = filtradas[0];
-          setCodigo(primeiraQuestao.opcoes?.codigoInicial || primeiraQuestao.opcoes?.template || "// Escreva seu código aqui...");
+          setCodigo(primeiraQuestao.opcoes?.codigoInicial || primeiraQuestao.opcoes?.template || "// Escreva seu cÃ³digo aqui...");
           setTotalTestes(primeiraQuestao.opcoes?.testes?.length || 0);
         }
       } else {
@@ -272,20 +272,20 @@ export default function ProgramacaoOriginal() {
         setQuestoesFiltradas([]);
       }
     } catch (err) {
-      console.error('Erro ao carregar questÃµes:', err);
+      console.error('Erro ao carregar questÃƒÂµes:', err);
       setQuestoes([]);
       setQuestoesFiltradas([]);
     }
   };
 
-  // Temporizador da questão
+  // Temporizador da questÃ£o
   useEffect(() => {
     if (questoesFiltradas.length === 0) return;
     
     const interval = setInterval(() => {
       setQuestaoTime((prev) => {
         if (prev <= 0) {
-          // Quando o tempo acaba, avança automaticamente
+          // Quando o tempo acaba, avanÃ§a automaticamente
           handleProximaQuestaoAutomatica();
           return TEMPO_QUESTAO;
         }
@@ -372,7 +372,7 @@ export default function ProgramacaoOriginal() {
     };
 
     try {
-      const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/api/avaliar`, {
+      const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/avaliar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
         body: JSON.stringify(payload)
@@ -380,7 +380,7 @@ export default function ProgramacaoOriginal() {
 
       const data = await resp.json();
       if (!data.success) {
-        setResultado('Erro ao avaliar: ' + (data.error || 'Resposta inválida'));
+        setResultado('Erro ao avaliar: ' + (data.error || 'Resposta invÃ¡lida'));
         setPontuacao(0);
         setAvaliacaoDetalhes(null);
         setSaida('');
@@ -392,13 +392,13 @@ export default function ProgramacaoOriginal() {
 
         setAvaliacaoDetalhes(detalhe);
         setPontuacao(total);
-        setResultado(detalhe?.feedback || 'Avaliação concluída');
+        setResultado(detalhe?.feedback || 'AvaliaÃ§Ã£o concluÃ­da');
 
         const execOutput = detalhe?.evidencias || detalhe?.output || detalhe?.stdout || data.data?.output || data.data?.execOutput || '';
         if (execOutput) {
           setSaida(typeof execOutput === 'string' ? execOutput : JSON.stringify(execOutput, null, 2));
         } else {
-          setSaida('A API não retornou saída explícita para este código.');
+          setSaida('A API nÃ£o retornou saÃ­da explÃ­cita para este cÃ³digo.');
         }
 
         const passed = detalhe?.testes_passados || detalhe?.casos_passados || detalhe?.tests_passed || 0;
@@ -408,7 +408,7 @@ export default function ProgramacaoOriginal() {
       }
     } catch (err) {
       console.error('Erro ao chamar /api/avaliar', err);
-      setResultado('Erro de comunicação com o servidor');
+      setResultado('Erro de comunicaÃ§Ã£o com o servidor');
       setPontuacao(0);
       setAvaliacaoDetalhes(null);
     } finally {
@@ -423,7 +423,7 @@ export default function ProgramacaoOriginal() {
 
   const resetarCodigo = () => {
     const questaoAtual = questoesFiltradas[questaoIndex];
-    setCodigo(questaoAtual?.opcoes?.codigoInicial || questaoAtual?.opcoes?.template || "// Escreva seu código aqui...");
+    setCodigo(questaoAtual?.opcoes?.codigoInicial || questaoAtual?.opcoes?.template || "// Escreva seu cÃ³digo aqui...");
     setSaida("");
     setResultado("");
     setPontuacao(null);
@@ -441,7 +441,7 @@ export default function ProgramacaoOriginal() {
       <div className="flex justify-center items-center h-screen bg-gray-100">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando torneio de Programação...</p>
+          <p className="mt-4 text-gray-600">Carregando torneio de ProgramaÃ§Ã£o...</p>
         </div>
       </div>
     );
@@ -451,9 +451,9 @@ export default function ProgramacaoOriginal() {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-100">
         <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-md">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Torneio Indisponível</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Torneio IndisponÃ­vel</h2>
           <p className="text-gray-600 mb-6">
-            {error || "Não há torneio de Programação ativo no momento."}
+            {error || "NÃ£o hÃ¡ torneio de ProgramaÃ§Ã£o ativo no momento."}
           </p>
           <button 
             onClick={() => navigate("/entrar-no-torneio")}
@@ -493,7 +493,7 @@ export default function ProgramacaoOriginal() {
               className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-full shadow-lg transition-all text-[10px] sm:text-xs md:text-sm"
               title="Check Certificate"
             >
-              ðŸ† <span className="hidden sm:inline">Certificate</span>
+              Ã°Å¸Ââ€  <span className="hidden sm:inline">Certificate</span>
             </button>
             <div className="bg-white text-purple-600 font-bold px-2 py-1 text-[10px] sm:px-3 sm:py-1.5 sm:text-xs md:px-4 md:py-2 md:text-sm rounded-full flex items-center gap-1 shadow-md">
               Programming Tournament
@@ -534,9 +534,9 @@ export default function ProgramacaoOriginal() {
                     }`}
                   >
                     <td className="px-2 py-2 font-semibold">
-                      {participanteRank.posicao === 1 ? 'ðŸ¥‡' : 
-                       participanteRank.posicao === 2 ? 'ðŸ¥ˆ' : 
-                       participanteRank.posicao === 3 ? 'ðŸ¥‰' : 
+                      {participanteRank.posicao === 1 ? 'Ã°Å¸Â¥â€¡' : 
+                       participanteRank.posicao === 2 ? 'Ã°Å¸Â¥Ë†' : 
+                       participanteRank.posicao === 3 ? 'Ã°Å¸Â¥â€°' : 
                        participanteRank.posicao ?? '-'}
                     </td>
                     <td className="px-2 py-2">
@@ -554,10 +554,10 @@ export default function ProgramacaoOriginal() {
                         )}
                         <div className="flex flex-col min-w-0">
                           <span className={`truncate ${isMe ? 'font-bold text-purple-700' : ''}`}>
-                            {participanteRank.usuario?.nome || 'Usuário'}
+                            {participanteRank.usuario?.nome || 'UsuÃ¡rio'}
                           </span>
                           {isMe && (
-                            <span className="text-[10px] font-bold text-purple-500 leading-none">â— você</span>
+                            <span className="text-[10px] font-bold text-purple-500 leading-none">Ã¢â€”Â vocÃª</span>
                           )}
                         </div>
                       </div>
@@ -579,7 +579,7 @@ export default function ProgramacaoOriginal() {
           </table>
         </div>
 
-        {/* ÃREA DE EXERCÃCIO - COMPILADOR */}
+        {/* ÃƒÂREA DE EXERCÃƒÂCIO - COMPILADOR */}
         <div 
           ref={containerRef}
           className="flex-1 flex flex-col items-center p-4 overflow-auto space-y-4"
@@ -601,12 +601,12 @@ export default function ProgramacaoOriginal() {
                   {torneio?.titulo || 'Programming Tournament'}
                 </h1>
             
-            {/* BOTÃ•ES DE NÃVEL */}
+            {/* BOTÃƒâ€¢ES DE NÃƒÂVEL */}
             <div className="flex gap-2 flex-wrap align-items-center justify-center">
               {[
-                { nivel: "facil", label: "Fácil", pts: 5 },
-                { nivel: "medio", label: "Médio", pts: 10 },
-                { nivel: "dificil", label: "Difícil", pts: 20 }
+                { nivel: "facil", label: "FÃ¡cil", pts: 5 },
+                { nivel: "medio", label: "MÃ©dio", pts: 10 },
+                { nivel: "dificil", label: "DifÃ­cil", pts: 20 }
               ].map((item) => (
                 <button
                   key={item.nivel}
@@ -617,7 +617,7 @@ export default function ProgramacaoOriginal() {
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  {item.label} â€¢ {item.pts} pts
+                  {item.label} Ã¢â‚¬Â¢ {item.pts} pts
                   <span className="ml-1 text-xs">
                     ({questoes.filter(q => q.dificuldade === item.nivel).length})
                   </span>
@@ -626,16 +626,16 @@ export default function ProgramacaoOriginal() {
             </div>
           </div>
 
-          {/* MENSAGEM SE NÃƒO HÃ QUESTÃ•ES */}
+          {/* MENSAGEM SE NÃƒÆ’O HÃƒÂ QUESTÃƒâ€¢ES */}
           {questoesFiltradas.length === 0 ? (
             <div className="w-full max-w-6xl bg-yellow-50 border border-yellow-200 rounded-xl shadow p-6 text-center">
-              <h3 className="text-lg font-semibold text-yellow-800 mb-2">Nenhuma questão disponível</h3>
+              <h3 className="text-lg font-semibold text-yellow-800 mb-2">Nenhuma questÃ£o disponÃ­vel</h3>
               <p className="text-yellow-700">
-                Não há questÃµes de {nivelSelecionado === 'facil' ? 'fácil' : nivelSelecionado === 'medio' ? 'médio' : 'difícil'} 
-                disponíveis no momento.
+                NÃ£o hÃ¡ questÃƒÂµes de {nivelSelecionado === 'facil' ? 'fÃ¡cil' : nivelSelecionado === 'medio' ? 'mÃ©dio' : 'difÃ­cil'} 
+                disponÃ­veis no momento.
               </p>
               <p className="text-sm text-yellow-600 mt-2">
-                Selecione outro nível de dificuldade.
+                Selecione outro nÃ­vel de dificuldade.
               </p>
             </div>
           ) : (
@@ -647,7 +647,7 @@ export default function ProgramacaoOriginal() {
                   className="w-full max-w-6xl bg-gradient-to-r from-purple-50 to-pink-100 border-l-4 border-purple-600 rounded-xl shadow p-4 space-y-2"
                 >
                   <h3 className="text-lg font-bold text-purple-700">
-                    {questoesFiltradas[questaoIndex].titulo || `Questão ${questaoIndex + 1}`}
+                    {questoesFiltradas[questaoIndex].titulo || `QuestÃ£o ${questaoIndex + 1}`}
                   </h3>
                   <p className="text-sm md:text-base text-gray-800">
                     {questoesFiltradas[questaoIndex].descricao}
@@ -669,12 +669,12 @@ export default function ProgramacaoOriginal() {
                 </div>
               )}
 
-              {/* EDITOR + SAÃDA */}
+              {/* EDITOR + SAÃƒÂDA */}
               <div className={`w-full max-w-6xl grid ${expandido ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"} gap-4`}>
                 {/* EDITOR */}
                 <div className={`bg-white rounded-xl shadow-md p-3 flex flex-col ${expandido ? "col-span-1 min-h-[80vh]" : "min-h-[350px]"}`}>
                   <div className="flex items-center justify-between mb-2 border-b pb-2">
-                    <h3 className="font-semibold text-gray-700">Editor de Código</h3>
+                    <h3 className="font-semibold text-gray-700">Editor de CÃ³digo</h3>
                     <div className="flex items-center gap-2">
                       <button 
                         onClick={resetarCodigo} 
@@ -696,54 +696,54 @@ export default function ProgramacaoOriginal() {
                     onChange={(e) => setCodigo(e.target.value)}
                     className="flex-1 w-full font-mono text-sm bg-gray-50 border border-gray-300 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
                     spellCheck="false"
-                    placeholder="// Escreva seu código aqui..."
+                    placeholder="// Escreva seu cÃ³digo aqui..."
                   />
                 </div>
 
-                {/* SAÃDA */}
+                {/* SAÃƒÂDA */}
                 {!expandido && (
                   <div className="bg-white rounded-xl shadow-md p-3 flex flex-col min-h-[350px]">
                     <div className="flex items-center justify-between mb-2 border-b pb-2">
-                      <h3 className="font-semibold text-gray-700" translate="no">Saída do Programa</h3>
+                      <h3 className="font-semibold text-gray-700" translate="no">SaÃ­da do Programa</h3>
                       <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100">
                         {executando ? "Executando..." : "Pronto"}
                       </span>
                     </div>
                     <pre className="flex-1 bg-black rounded-lg p-3 overflow-auto text-green-400 font-mono text-sm">
                       <code className="whitespace-pre-wrap break-words">
-                        {saida || "A saída do seu código aparecerá aqui..."}
+                        {saida || "A saÃ­da do seu cÃ³digo aparecerÃ¡ aqui..."}
                       </code>
                     </pre>
                   </div>
                 )}
               </div>
 
-              {/* AVALIAÃ‡ÃƒO / FEEDBACK */}
+              {/* AVALIAÃƒâ€¡ÃƒÆ’O / FEEDBACK */}
               <div ref={avaliacaoRef} className="w-full max-w-4xl bg-white rounded-xl shadow-md p-4 mt-4">
                 <h4 className="font-semibold text-gray-800 mb-2">Feedback da IA</h4>
                 {avaliacaoDetalhes ? (
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{avaliacaoDetalhes.score >= 0.9 ? 'âœ…' : avaliacaoDetalhes.score >= 0.6 ? 'âš ï¸' : 'âŒ'}</span>
+                      <span className="text-2xl">{avaliacaoDetalhes.score >= 0.9 ? 'Ã¢Å“â€¦' : avaliacaoDetalhes.score >= 0.6 ? 'Ã¢Å¡Â Ã¯Â¸Â' : 'Ã¢ÂÅ’'}</span>
                       <div>
                         <div className="font-semibold">{avaliacaoDetalhes.feedback || 'Nenhum feedback curto fornecido'}</div>
-                        <div className="text-xs text-gray-500">Pontos atribuídos: <span className="font-bold text-blue-600">{avaliacaoDetalhes.pontos}</span></div>
+                        <div className="text-xs text-gray-500">Pontos atribuÃ­dos: <span className="font-bold text-blue-600">{avaliacaoDetalhes.pontos}</span></div>
                       </div>
                     </div>
                     {avaliacaoDetalhes.evidencias && (
                       <div className="mt-2 p-3 bg-gray-50 rounded">{avaliacaoDetalhes.evidencias}</div>
                     )}
-                    <div className="mt-2 text-sm text-gray-600">Total nesta avaliação: <span className="font-bold text-green-600">{pontuacao || 0}</span></div>
+                    <div className="mt-2 text-sm text-gray-600">Total nesta avaliaÃ§Ã£o: <span className="font-bold text-green-600">{pontuacao || 0}</span></div>
                   </div>
                 ) : (
-                  <div className="text-sm text-gray-500">Nenhum feedback disponível. Execute a resolução para receber feedback IA.</div>
+                  <div className="text-sm text-gray-500">Nenhum feedback disponÃ­vel. Execute a resoluÃ§Ã£o para receber feedback IA.</div>
                 )}
               </div>
 
               {/* TEMPORIZADOR */}
               <div className="w-full max-w-6xl bg-white rounded-xl shadow-md p-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-semibold text-gray-700">Tempo restante para esta questão</span>
+                  <span className="font-semibold text-gray-700">Tempo restante para esta questÃ£o</span>
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold ${questaoTime < 10 ? "bg-red-100 text-red-600" : "bg-purple-100 text-purple-600"}`}>
                     {formatSeconds(questaoTime)}
                   </span>
@@ -756,7 +756,7 @@ export default function ProgramacaoOriginal() {
                 </div>
               </div>
 
-              {/* BOTÃ•ES DE CONTROLE - APENAS EXECUTAR CÃ“DIGO */}
+              {/* BOTÃƒâ€¢ES DE CONTROLE - APENAS EXECUTAR CÃƒâ€œDIGO */}
               <div className="flex gap-3 w-full max-w-6xl">
                 <button
                   onClick={executarCodigo}
@@ -768,11 +768,11 @@ export default function ProgramacaoOriginal() {
                   }`}
                 >
                   <FaPlay />
-                  {executando ? "Processando..." : "Executar Código"}
+                  {executando ? "Processando..." : "Executar CÃ³digo"}
                 </button>
               </div>
 
-              {/* BOTÃ•ES MOBILE */}
+              {/* BOTÃƒâ€¢ES MOBILE */}
               <div className="flex flex-col sm:flex-row w-full max-w-5xl justify-between gap-3 mt-4 lg:hidden">
                 <button 
                   onClick={() => setMostrarRanking(true)} 
@@ -795,14 +795,14 @@ export default function ProgramacaoOriginal() {
               </div>
             </>
           )}
-              {/* RESULTADO / CORREÃ‡ÃƒO */}
+              {/* RESULTADO / CORREÃƒâ€¡ÃƒÆ’O */}
           {resultado && (
             <div className="w-full max-w-6xl bg-white rounded-xl shadow-md p-4 border-l-4 border-purple-600">
-              <h3 className="text-gray-700 font-semibold mb-2">Resultado da Execução</h3>
+              <h3 className="text-gray-700 font-semibold mb-2">Resultado da ExecuÃ§Ã£o</h3>
               <p className="text-gray-800 mb-2">{resultado}</p>
               {pontuacao !== null && (
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-gray-700">Pontuação:</span>
+                  <span className="font-bold text-gray-700">PontuaÃ§Ã£o:</span>
                   <span className={`font-bold px-2 py-1 rounded ${
                     pontuacao >= 15 ? "bg-green-200 text-green-800" :
                     pontuacao >= 8 ? "bg-yellow-200 text-yellow-800" :
@@ -815,7 +815,7 @@ export default function ProgramacaoOriginal() {
                   </span>
                   {autoAvancarTimer && contagemRegressiva > 0 && (
                     <span className="text-xs text-purple-600 animate-pulse ml-3">
-                      (Próxima questão em {contagemRegressiva}s...)
+                      (PrÃ³xima questÃ£o em {contagemRegressiva}s...)
                     </span>
                   )}
                 </div>
@@ -826,7 +826,7 @@ export default function ProgramacaoOriginal() {
       )}
     </div>
 
-        {/* SIDEBAR DIREITA - INFO USUÃRIO */}
+        {/* SIDEBAR DIREITA - INFO USUÃƒÂRIO */}
         <div className="hidden lg:flex w-64 bg-white text-gray-800 shadow-lg p-4 overflow-y-auto flex-col items-center space-y-3">
           <div className="flex flex-col items-center mb-3">
             {participante?.usuario?.imagem ? (
@@ -840,13 +840,13 @@ export default function ProgramacaoOriginal() {
                 {participante?.usuario?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || user?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'U'}
               </div>
             )}
-            <h3 className="text-lg font-bold mt-2">{participante?.usuario?.nome || user?.nome || "Usuário"}</h3>
+            <h3 className="text-lg font-bold mt-2">{participante?.usuario?.nome || user?.nome || "UsuÃ¡rio"}</h3>
             <p className="text-sm text-gray-500">Participante do Torneio</p>
           </div>
 
           {participante ? (
             <div className="w-full flex flex-col gap-2 items-center">
-              {/* PONTUAÃ‡ÃƒO */}
+              {/* PONTUAÃƒâ€¡ÃƒÆ’O */}
               <div className="bg-white rounded-3xl border border-purple-200 p-2 flex flex-col items-center gap-1 w-40">
                 <div className="w-14 h-14">
                   <CircularProgressbar 
@@ -861,10 +861,10 @@ export default function ProgramacaoOriginal() {
                     })}
                   />
                 </div>
-                <span className="text-xs font-semibold text-center">Pontuação</span>
+                <span className="text-xs font-semibold text-center">PontuaÃ§Ã£o</span>
               </div>
               
-              {/* POSIÃ‡ÃƒO */}
+              {/* POSIÃƒâ€¡ÃƒÆ’O */}
               <div className="bg-white rounded-3xl border border-purple-200 p-2 flex flex-col items-center gap-1 w-40">
                 <div className="w-14 h-14">
                   <CircularProgressbar 
@@ -879,7 +879,7 @@ export default function ProgramacaoOriginal() {
                     })}
                   />
                 </div>
-                <span className="text-xs font-semibold text-center">Posição</span>
+                <span className="text-xs font-semibold text-center">PosiÃ§Ã£o</span>
               </div>
               
               {/* CASOS RESOLVIDOS */}
@@ -900,7 +900,7 @@ export default function ProgramacaoOriginal() {
                 <span className="text-xs font-semibold text-center">Casos Resolvidos</span>
               </div>
 
-              {/* Botão de Verificação de Certificado */}
+              {/* BotÃ£o de VerificaÃ§Ã£o de Certificado */}
               <div className="mt-4 w-full">
                 <CertificateCheckButton 
                   onClick={abrirCertificado}
@@ -910,7 +910,7 @@ export default function ProgramacaoOriginal() {
             </div>
           ) : (
             <div className="text-center p-4">
-              <p className="text-gray-600 mb-3">Você ainda não está participando deste torneio</p>
+              <p className="text-gray-600 mb-3">VocÃª ainda nÃ£o estÃ¡ participando deste torneio</p>
               <button 
                 onClick={() => window.location.reload()}
                 className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
@@ -927,7 +927,7 @@ export default function ProgramacaoOriginal() {
         <div className="fixed inset-0 z-50 flex lg:hidden">
           <div className="absolute inset-0 bg-black/60 transition-opacity duration-300" onClick={() => setMostrarRanking(false)} />
           <div className="relative w-80 bg-white text-gray-800 p-4 overflow-y-auto transform transition-transform duration-300 ease-out translate-x-0">
-            <button onClick={() => setMostrarRanking(false)} className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl transition-colors">âœ•</button>
+            <button onClick={() => setMostrarRanking(false)} className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl transition-colors">Ã¢Å“â€¢</button>
             <h2 className="text-xl font-bold mb-4 text-center border-b border-gray-300 pb-1">Programming Ranking</h2>
             <table className="w-full table-auto text-sm">
               <thead className="bg-gray-100">
@@ -950,9 +950,9 @@ export default function ProgramacaoOriginal() {
                       }`}
                     >
                       <td className="px-2 py-2 font-semibold">
-                        {participanteRank.posicao === 1 ? 'ðŸ¥‡' : 
-                         participanteRank.posicao === 2 ? 'ðŸ¥ˆ' : 
-                         participanteRank.posicao === 3 ? 'ðŸ¥‰' : 
+                        {participanteRank.posicao === 1 ? 'Ã°Å¸Â¥â€¡' : 
+                         participanteRank.posicao === 2 ? 'Ã°Å¸Â¥Ë†' : 
+                         participanteRank.posicao === 3 ? 'Ã°Å¸Â¥â€°' : 
                          participanteRank.posicao ?? '-'}
                       </td>
                       <td className="px-2 py-2">
@@ -970,10 +970,10 @@ export default function ProgramacaoOriginal() {
                           )}
                           <div className="flex flex-col min-w-0">
                             <span className={`truncate ${isMe ? 'font-bold text-purple-700' : ''}`}>
-                              {participanteRank.usuario?.nome || 'Usuário'}
+                              {participanteRank.usuario?.nome || 'UsuÃ¡rio'}
                             </span>
                             {isMe && (
-                              <span className="text-[10px] font-bold text-purple-500 leading-none">â— você</span>
+                              <span className="text-[10px] font-bold text-purple-500 leading-none">Ã¢â€”Â vocÃª</span>
                             )}
                           </div>
                         </div>
@@ -997,12 +997,12 @@ export default function ProgramacaoOriginal() {
         </div>
       )}
 
-      {/* OVERLAY SIDEBAR DIREITA (DADOS USUÃRIO MOBILE) */}
+      {/* OVERLAY SIDEBAR DIREITA (DADOS USUÃƒÂRIO MOBILE) */}
       {mostrarDados && (
         <div className="fixed inset-0 z-50 flex justify-end lg:hidden">
           <div className="absolute inset-0 bg-black/60 transition-opacity duration-300" onClick={() => setMostrarDados(false)} />
           <div className="relative w-72 bg-white text-gray-800 p-4 overflow-y-auto transform transition-transform duration-300 ease-out translate-x-0">
-            <button onClick={() => setMostrarDados(false)} className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl transition-colors">âœ•</button>
+            <button onClick={() => setMostrarDados(false)} className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl transition-colors">Ã¢Å“â€¢</button>
             <div className="flex flex-col items-center mb-3">
               {participante?.usuario?.imagem ? (
                 <img 
@@ -1015,12 +1015,12 @@ export default function ProgramacaoOriginal() {
                   {participante?.usuario?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || user?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'U'}
                 </div>
               )}
-              <h3 className="text-lg font-bold mt-2">{participante?.usuario?.nome || user?.nome || "Usuário"}</h3>
+              <h3 className="text-lg font-bold mt-2">{participante?.usuario?.nome || user?.nome || "UsuÃ¡rio"}</h3>
             </div>
             
             {participante ? (
               <div className="w-full flex flex-col mt-4 gap-4 items-center">
-                {/* PONTUAÃ‡ÃƒO */}
+                {/* PONTUAÃƒâ€¡ÃƒÆ’O */}
                 <div className="bg-white rounded-3xl border border-purple-200 p-2 flex flex-col items-center gap-1 w-40">
                   <div className="w-14 h-14">
                     <CircularProgressbar 
@@ -1035,10 +1035,10 @@ export default function ProgramacaoOriginal() {
                       })}
                     />
                   </div>
-                  <span className="text-xs font-semibold text-center">Pontuação</span>
+                  <span className="text-xs font-semibold text-center">PontuaÃ§Ã£o</span>
                 </div>
                 
-                {/* POSIÃ‡ÃƒO */}
+                {/* POSIÃƒâ€¡ÃƒÆ’O */}
                 <div className="bg-white rounded-3xl border border-purple-200 p-2 flex flex-col items-center gap-1 w-40">
                   <div className="w-14 h-14">
                     <CircularProgressbar 
@@ -1053,7 +1053,7 @@ export default function ProgramacaoOriginal() {
                       })}
                     />
                   </div>
-                  <span className="text-xs font-semibold text-center">Posição</span>
+                  <span className="text-xs font-semibold text-center">PosiÃ§Ã£o</span>
                 </div>
                 
                 {/* CASOS RESOLVIDOS */}
@@ -1074,7 +1074,7 @@ export default function ProgramacaoOriginal() {
                   <span className="text-xs font-semibold text-center">Casos Resolvidos</span>
                 </div>
 
-                {/* Botão de Verificação de Certificado Mobile */}
+                {/* BotÃ£o de VerificaÃ§Ã£o de Certificado Mobile */}
                 <div className="mt-4 w-full px-4 text-center">
                   <CertificateCheckButton 
                     onClick={abrirCertificado}
@@ -1084,7 +1084,7 @@ export default function ProgramacaoOriginal() {
               </div>
             ) : (
               <div className="text-center p-4">
-                <p className="text-gray-600">Você ainda não está participando</p>
+                <p className="text-gray-600">VocÃª ainda nÃ£o estÃ¡ participando</p>
               </div>
             )}
           </div>
@@ -1107,9 +1107,10 @@ export default function ProgramacaoOriginal() {
         isOpen={mostrarVencedores}
         onClose={fecharVencedores}
         vencedores={vencedores}
-        disciplina="Programação"
+        disciplina="ProgramaÃ§Ã£o"
         torneio={torneio}
       />
     </div>
   );
 }
+

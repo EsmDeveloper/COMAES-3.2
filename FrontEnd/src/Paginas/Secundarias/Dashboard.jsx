@@ -284,7 +284,7 @@ function Dashboard() {
       setLoading(true);
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/usuarios/${user.id}/participacoes`
+          `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/usuarios/${user.id}/participacoes`
         );
         const result = await response.json();
 
@@ -758,3 +758,4 @@ function Dashboard() {
 }
 
 export default Dashboard;
+

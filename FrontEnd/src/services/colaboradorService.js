@@ -1,17 +1,17 @@
-/**
+﻿/**
  * colaboradorService.js
- * Serviço para acessar endpoints específicos de colaboradores
+ * ServiÃ§o para acessar endpoints especÃ­ficos de colaboradores
  * 
- * Decisão de reutilização:
- * - CRUD de questões (criar/editar/deletar/listar) → questoesService (/api/questoes)
- *   O endpoint /api/questoes já filtra automaticamente por colaborador via aplicarEscopoColaborador()
- * - Estatísticas detalhadas → /api/colaborador/estatisticas (dados específicos: porTipo, mediaPontos, etc.)
- * - Perfil → /api/colaborador/perfil
+ * DecisÃ£o de reutilizaÃ§Ã£o:
+ * - CRUD de questÃµes (criar/editar/deletar/listar) â†’ questoesService (/api/questoes)
+ *   O endpoint /api/questoes jÃ¡ filtra automaticamente por colaborador via aplicarEscopoColaborador()
+ * - EstatÃ­sticas detalhadas â†’ /api/colaborador/estatisticas (dados especÃ­ficos: porTipo, mediaPontos, etc.)
+ * - Perfil â†’ /api/colaborador/perfil
  */
 
 import questoesService from './questoesService.js';
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('comaes_token');
@@ -23,7 +23,7 @@ const getAuthHeaders = () => {
 
 export const colaboradorService = {
   /**
-   * Obter estatísticas do colaborador
+   * Obter estatÃ­sticas do colaborador
    * Usa /api/colaborador/estatisticas que retorna dados detalhados:
    * porTipo, mediaPontos, taxaRejeicao, ultimasQuestoes, perfil
    */
@@ -32,17 +32,17 @@ export const colaboradorService = {
       headers: { ...getAuthHeaders(), 'Accept': 'application/json' },
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.mensagem || data.message || 'Erro ao obter estatísticas');
+    if (!res.ok) throw new Error(data.mensagem || data.message || 'Erro ao obter estatÃ­sticas');
     return data;
   },
 
   /**
-   * Obter questões do colaborador com filtros
-   * REUTILIZA questoesService.listar() — /api/questoes já filtra por colaborador automaticamente
+   * Obter questÃµes do colaborador com filtros
+   * REUTILIZA questoesService.listar() â€” /api/questoes jÃ¡ filtra por colaborador automaticamente
    * via aplicarEscopoColaborador() no backend
    */
   async obterMinhasQuestoes(params = {}) {
-    // Reutiliza o endpoint genérico que já aplica o escopo do colaborador
+    // Reutiliza o endpoint genÃ©rico que jÃ¡ aplica o escopo do colaborador
     return questoesService.listar(params);
   },
 
@@ -59,7 +59,7 @@ export const colaboradorService = {
   },
 
   /**
-   * Obter estatísticas resumidas (método auxiliar)
+   * Obter estatÃ­sticas resumidas (mÃ©todo auxiliar)
    */
   async obterEstatisticasResumidas() {
     try {
@@ -75,7 +75,7 @@ export const colaboradorService = {
         perfil: stats.dados?.perfil || {}
       };
     } catch (error) {
-      console.error('Erro ao obter estatísticas resumidas:', error);
+      console.error('Erro ao obter estatÃ­sticas resumidas:', error);
       return {
         total: 0,
         aprovadas: 0,
@@ -90,7 +90,7 @@ export const colaboradorService = {
   },
 
   /**
-   * Obter questões filtradas por status
+   * Obter questÃµes filtradas por status
    * REUTILIZA questoesService.listar() com filtro de status
    */
   async obterQuestoesPorStatus(status) {
@@ -98,7 +98,7 @@ export const colaboradorService = {
     if (status && status !== 'todas') {
       params.status_aprovacao = status;
     }
-    // Reutiliza o endpoint genérico
+    // Reutiliza o endpoint genÃ©rico
     return questoesService.listar(params);
   }
 };

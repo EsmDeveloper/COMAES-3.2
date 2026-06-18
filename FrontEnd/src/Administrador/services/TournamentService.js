@@ -1,10 +1,10 @@
-/**
+﻿/**
  * TournamentService.js
- * Serviço centralizado para operações de torneios
- * Responsabilidade única: Comunicação com API
+ * ServiÃ§o centralizado para operaÃ§Ãµes de torneios
+ * Responsabilidade Ãºnica: ComunicaÃ§Ã£o com API
  */
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
 export const TournamentService = {
   /**
@@ -46,7 +46,7 @@ export const TournamentService = {
   },
 
   /**
-   * Buscar um torneio específico
+   * Buscar um torneio especÃ­fico
    */
   async fetchById(id, token) {
     const res = await fetch(`${apiBaseUrl}/api/admin/torneos/${id}`, {
@@ -83,12 +83,12 @@ export const TournamentService = {
     console.log('[TournamentService] Create response:', data);
     
     if (!res.ok) {
-      // ✅ Preservar tipo de erro (ex: TOURNAMENT_CONFLICT) na mensagem
+      // âœ… Preservar tipo de erro (ex: TOURNAMENT_CONFLICT) na mensagem
       const errorMsg = data.error ? `${data.message} (${data.error})` : (data.message || 'Erro ao criar torneio');
       throw new Error(errorMsg);
     }
     
-    // Controller returns { message, torneio } — extract the torneio object
+    // Controller returns { message, torneio } â€” extract the torneio object
     return data.torneio || data;
   },
 
@@ -111,7 +111,7 @@ export const TournamentService = {
     const data = await res.json();
     
     if (!res.ok) {
-      // ✅ Preservar tipo de erro na mensagem
+      // âœ… Preservar tipo de erro na mensagem
       const errorMsg = data.error ? `${data.message} (${data.error})` : (data.message || 'Erro ao atualizar torneio');
       throw new Error(errorMsg);
     }
@@ -138,7 +138,7 @@ export const TournamentService = {
     if (res.status < 200 || res.status >= 300) {
       if (res.status === 409) {
         const errorData = await res.json();
-        throw new Error(errorData.message || 'Não é possível deletar este torneio');
+        throw new Error(errorData.message || 'NÃ£o Ã© possÃ­vel deletar este torneio');
       }
       
       const errorData = await res.json().catch(() => ({}));

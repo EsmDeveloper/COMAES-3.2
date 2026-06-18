@@ -1,8 +1,8 @@
-/**
- * gamificacaoService.js - Serviço para endpoints de gamificação
+﻿/**
+ * gamificacaoService.js - ServiÃ§o para endpoints de gamificaÃ§Ã£o
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
 const getAuthHeaders = () => ({
   'Authorization': `Bearer ${localStorage.getItem('comaes_token')}`,
@@ -10,8 +10,8 @@ const getAuthHeaders = () => ({
 });
 
 /**
- * Busca os dados agregados de gamificação para o usuário autenticado
- * @returns {Promise} Promise com os dados de gamificação
+ * Busca os dados agregados de gamificaÃ§Ã£o para o usuÃ¡rio autenticado
+ * @returns {Promise} Promise com os dados de gamificaÃ§Ã£o
  */
 export const fetchDashboardGamificacao = async () => {
   try {
@@ -29,19 +29,19 @@ export const fetchDashboardGamificacao = async () => {
     const data = await response.json();
     
     if (!data.success) {
-      throw new Error(data.message || 'Erro ao carregar dados de gamificação');
+      throw new Error(data.message || 'Erro ao carregar dados de gamificaÃ§Ã£o');
     }
 
     return data.data;
   } catch (error) {
-    console.error('Erro no serviço de gamificação:', error);
+    console.error('Erro no serviÃ§o de gamificaÃ§Ã£o:', error);
     throw error;
   }
 };
 
 /**
- * Busca o nível atual do usuário
- * @returns {Promise} Promise com dados do nível
+ * Busca o nÃ­vel atual do usuÃ¡rio
+ * @returns {Promise} Promise com dados do nÃ­vel
  */
 export const fetchNivelAtual = async () => {
   try {
@@ -59,13 +59,13 @@ export const fetchNivelAtual = async () => {
     const data = await response.json();
     return data.success ? data.data : null;
   } catch (error) {
-    console.error('Erro ao buscar nível:', error);
+    console.error('Erro ao buscar nÃ­vel:', error);
     return null;
   }
 };
 
 /**
- * Busca a sequência de aprendizagem (streak) do usuário
+ * Busca a sequÃªncia de aprendizagem (streak) do usuÃ¡rio
  * @returns {Promise} Promise com dados do streak
  */
 export const fetchStreak = async () => {
@@ -90,8 +90,8 @@ export const fetchStreak = async () => {
 };
 
 /**
- * Busca as conquistas recentes do usuário
- * @param {number} limit - Limite de conquistas (padrão: 5)
+ * Busca as conquistas recentes do usuÃ¡rio
+ * @param {number} limit - Limite de conquistas (padrÃ£o: 5)
  * @returns {Promise} Promise com lista de conquistas
  */
 export const fetchConquistasRecentes = async (limit = 5) => {
@@ -116,7 +116,7 @@ export const fetchConquistasRecentes = async (limit = 5) => {
 };
 
 /**
- * Busca as posições do usuário nos rankings
+ * Busca as posiÃ§Ãµes do usuÃ¡rio nos rankings
  * @returns {Promise} Promise com dados de ranking
  */
 export const fetchRankings = async () => {
@@ -141,9 +141,9 @@ export const fetchRankings = async () => {
 };
 
 /**
- * Busca as missões ativas do usuário
- * @param {number} limit - Limite de missões (padrão: 3)
- * @returns {Promise} Promise com lista de missões
+ * Busca as missÃµes ativas do usuÃ¡rio
+ * @param {number} limit - Limite de missÃµes (padrÃ£o: 3)
+ * @returns {Promise} Promise com lista de missÃµes
  */
 export const fetchMissoesAtivas = async (limit = 3) => {
   try {
@@ -161,14 +161,14 @@ export const fetchMissoesAtivas = async (limit = 3) => {
     const data = await response.json();
     return data.success ? data.data : [];
   } catch (error) {
-    console.error('Erro ao buscar missões:', error);
+    console.error('Erro ao buscar missÃµes:', error);
     return [];
   }
 };
 
 /**
- * Busca a evolução de XP do usuário (últimos 30 dias)
- * @returns {Promise} Promise com dados de evolução de XP
+ * Busca a evoluÃ§Ã£o de XP do usuÃ¡rio (Ãºltimos 30 dias)
+ * @returns {Promise} Promise com dados de evoluÃ§Ã£o de XP
  */
 export const fetchEvolucaoXP = async () => {
   try {
@@ -186,13 +186,13 @@ export const fetchEvolucaoXP = async () => {
     const data = await response.json();
     return data.success ? data.data : [];
   } catch (error) {
-    console.error('Erro ao buscar evolução de XP:', error);
+    console.error('Erro ao buscar evoluÃ§Ã£o de XP:', error);
     return [];
   }
 };
 
 /**
- * Atualiza todas as funções para usar o novo endpoint agregado
+ * Atualiza todas as funÃ§Ãµes para usar o novo endpoint agregado
  */
 export default {
   fetchDashboardGamificacao,

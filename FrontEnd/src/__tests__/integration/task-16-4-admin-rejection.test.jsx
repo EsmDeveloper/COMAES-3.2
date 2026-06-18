@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Task 16.4: Test Admin Rejection Flow
  * 
  * Test Scenario:
@@ -24,9 +24,9 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
 import axios from 'axios';
 
-const API_BASE_URL = process.env.VITE_API_BASE_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.VITE_API_BASE_URL || 'http://localhost:3002';
 
-// ─── TEST DATA ───
+// â”€â”€â”€ TEST DATA â”€â”€â”€
 let adminToken = '';
 let adminId = '';
 let collaboratorToken = '';
@@ -35,7 +35,7 @@ let pendingQuestionId = '';
 let createdQuestionId = '';
 let disciplineId = 'matematica';
 
-// ─── HELPER FUNCTIONS ───
+// â”€â”€â”€ HELPER FUNCTIONS â”€â”€â”€
 
 const createApiClient = (token) => {
   return axios.create({
@@ -98,7 +98,7 @@ const getQuestion = async (token, questionId) => {
   return response.data.dados;
 };
 
-// ─── TEST SETUP ───
+// â”€â”€â”€ TEST SETUP â”€â”€â”€
 
 describe('Task 16.4: Admin Question Rejection Flow', () => {
   
@@ -110,9 +110,9 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       const adminData = await loginUser('admin@comaes.com', 'admin123');
       adminToken = adminData.token;
       adminId = adminData.id;
-      console.log('✅ Admin logged in:', { adminId });
+      console.log('âœ… Admin logged in:', { adminId });
     } catch (err) {
-      console.error('❌ Failed to login admin:', err.message);
+      console.error('âŒ Failed to login admin:', err.message);
       throw err;
     }
 
@@ -121,9 +121,9 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       const collabData = await loginUser('colaborador@comaes.com', 'senha123');
       collaboratorToken = collabData.token;
       collaboratorId = collabData.id;
-      console.log('✅ Collaborator logged in:', { collaboratorId });
+      console.log('âœ… Collaborator logged in:', { collaboratorId });
     } catch (err) {
-      console.error('❌ Failed to login collaborator:', err.message);
+      console.error('âŒ Failed to login collaborator:', err.message);
       throw err;
     }
 
@@ -138,9 +138,9 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       try {
         const client = createApiClient(adminToken);
         await client.delete(`/api/questoes/${createdQuestionId}`);
-        console.log('✅ Cleaned up test question:', createdQuestionId);
+        console.log('âœ… Cleaned up test question:', createdQuestionId);
       } catch (err) {
-        console.warn('⚠️ Could not delete test question:', err.message);
+        console.warn('âš ï¸ Could not delete test question:', err.message);
       }
     }
   });
@@ -150,7 +150,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       const pendingQuestions = await getPendingQuestions(adminToken);
       expect(pendingQuestions).toBeDefined();
       expect(Array.isArray(pendingQuestions)).toBe(true);
-      console.log(`✅ Found ${pendingQuestions.length} pending questions`);
+      console.log(`âœ… Found ${pendingQuestions.length} pending questions`);
     });
 
     it('should create a new pending question for testing', async () => {
@@ -162,7 +162,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       expect(question.id).toBeDefined();
       expect(question.status_aprovacao).toBe('pendente');
       expect(question.autor_id).toBe(collaboratorId);
-      console.log(`✅ Created pending question: ${createdQuestionId}`);
+      console.log(`âœ… Created pending question: ${createdQuestionId}`);
     });
 
     it('should retrieve the pending question successfully', async () => {
@@ -170,7 +170,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       expect(question).toBeDefined();
       expect(question.id).toBe(pendingQuestionId);
       expect(question.status_aprovacao).toBe('pendente');
-      console.log(`✅ Retrieved pending question: ${pendingQuestionId}`);
+      console.log(`âœ… Retrieved pending question: ${pendingQuestionId}`);
     });
   });
 
@@ -182,19 +182,19 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       const motivo = '';  // Empty motivo
       expect(motivo.trim()).toBe('');
       expect(motivo.trim().length).toBeLessThan(5);
-      console.log('✅ Validation: Empty motivo is correctly identified as invalid');
+      console.log('âœ… Validation: Empty motivo is correctly identified as invalid');
     });
 
     it('should reject submission with too short motivo', async () => {
       const motivo = 'No';  // Too short
       expect(motivo.trim().length).toBeLessThan(5);
-      console.log('✅ Validation: Too short motivo (less than 5 chars) is identified');
+      console.log('âœ… Validation: Too short motivo (less than 5 chars) is identified');
     });
 
     it('should accept valid motivo (at least 5 characters)', async () => {
       const motivo = 'Question content is not clear';
       expect(motivo.trim().length).toBeGreaterThanOrEqual(5);
-      console.log('✅ Validation: Valid motivo accepted');
+      console.log('âœ… Validation: Valid motivo accepted');
     });
 
     it('should enforce character limit (max 500 chars)', async () => {
@@ -203,7 +203,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       
       expect(validMotivo.length).toBeLessThanOrEqual(500);
       expect(tooLongMotivo.length).toBeGreaterThan(500);
-      console.log('✅ Character limit validation working');
+      console.log('âœ… Character limit validation working');
     });
 
     it('should track character counter correctly', async () => {
@@ -212,7 +212,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       
       expect(charCount).toBeGreaterThan(0);
       expect(charCount).toBeLessThanOrEqual(500);
-      console.log(`✅ Character counter: ${charCount}/500`);
+      console.log(`âœ… Character counter: ${charCount}/500`);
     });
   });
 
@@ -226,7 +226,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       expect(rejectedQuestion.id).toBe(pendingQuestionId);
       expect(rejectedQuestion.status_aprovacao).toBe('rejeitada');
       expect(rejectedQuestion.motivo_rejeicao).toBe(motivo);
-      console.log(`✅ Question rejected with motivo: "${motivo}"`);
+      console.log(`âœ… Question rejected with motivo: "${motivo}"`);
     });
 
     it('should set revisado_por to admin id', async () => {
@@ -237,7 +237,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       const rejectedQuestion = await rejectQuestion(adminToken, questionId, motivo);
       
       expect(rejectedQuestion.revisado_por).toBe(adminId);
-      console.log(`✅ revisado_por correctly set to admin id: ${adminId}`);
+      console.log(`âœ… revisado_por correctly set to admin id: ${adminId}`);
       
       // Clean up
       if (questionId) {
@@ -259,7 +259,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       
       expect(reviewedTime.getTime()).toBeGreaterThanOrEqual(beforeTime.getTime());
       expect(reviewedTime.getTime()).toBeLessThanOrEqual(afterTime.getTime() + 1000);
-      console.log(`✅ revisado_em timestamp correctly set: ${rejectedQuestion.revisado_em}`);
+      console.log(`âœ… revisado_em timestamp correctly set: ${rejectedQuestion.revisado_em}`);
       
       // Clean up
       if (questionId) {
@@ -282,7 +282,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       expect(rejectedQuestion.revisado_em).toBeDefined();
       expect(rejectedQuestion.titulo).toBeDefined();
       expect(rejectedQuestion.descricao).toBeDefined();
-      console.log(`✅ Complete question data returned after rejection`);
+      console.log(`âœ… Complete question data returned after rejection`);
       
       // Clean up
       if (questionId) {
@@ -301,7 +301,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       let pendingBefore = await getPendingQuestions(adminToken);
       const foundBefore = pendingBefore.some(q => q.id === questionId);
       expect(foundBefore).toBe(true);
-      console.log(`✅ Question found in pending list before rejection`);
+      console.log(`âœ… Question found in pending list before rejection`);
       
       // Reject the question
       await rejectQuestion(adminToken, questionId, motivo);
@@ -310,7 +310,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       let pendingAfter = await getPendingQuestions(adminToken);
       const foundAfter = pendingAfter.some(q => q.id === questionId);
       expect(foundAfter).toBe(false);
-      console.log(`✅ Question removed from pending list after rejection`);
+      console.log(`âœ… Question removed from pending list after rejection`);
       
       // Clean up
       if (questionId) {
@@ -333,7 +333,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       
       expect(question.status_aprovacao).toBe('rejeitada');
       expect(question.motivo_rejeicao).toBe(motivo);
-      console.log(`✅ Collaborator can see rejection with motivo: "${motivo}"`);
+      console.log(`âœ… Collaborator can see rejection with motivo: "${motivo}"`);
       
       // Clean up
       if (questionId) {
@@ -358,7 +358,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       expect(rejectedQuestion.revisado_por).toBeDefined();
       expect(rejectedQuestion.revisado_em).toBeDefined();
       
-      console.log(`✅ Collaborator can see complete rejection information`);
+      console.log(`âœ… Collaborator can see complete rejection information`);
       console.log(`   - Status: ${rejectedQuestion.status_aprovacao}`);
       console.log(`   - Motivo: ${rejectedQuestion.motivo_rejeicao}`);
       console.log(`   - Reviewed by: ${rejectedQuestion.revisado_por}`);
@@ -382,7 +382,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       // Verify exact match (no trimming or modification)
       expect(rejectedQuestion.motivo_rejeicao).toBe(motivo);
       expect(rejectedQuestion.motivo_rejeicao).not.toContain('\n');
-      console.log(`✅ Motivo stored exactly as submitted`);
+      console.log(`âœ… Motivo stored exactly as submitted`);
       
       // Clean up
       if (questionId) {
@@ -398,7 +398,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       const rejectedQuestion = await rejectQuestion(adminToken, questionId, motivo);
       
       expect(rejectedQuestion.motivo_rejeicao).toBe(motivo);
-      console.log(`✅ Multiline motivo handled correctly`);
+      console.log(`âœ… Multiline motivo handled correctly`);
       
       // Clean up
       if (questionId) {
@@ -414,7 +414,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       const rejectedQuestion = await rejectQuestion(adminToken, questionId, motivo);
       
       expect(rejectedQuestion.motivo_rejeicao).toBe(motivo);
-      console.log(`✅ Special characters preserved in motivo`);
+      console.log(`âœ… Special characters preserved in motivo`);
       
       // Clean up
       if (questionId) {
@@ -430,7 +430,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       const rejectedQuestion = await rejectQuestion(adminToken, questionId, motivo);
       
       expect(rejectedQuestion.motivo_rejeicao.length).toBe(500);
-      console.log(`✅ Maximum character limit (500) handled correctly`);
+      console.log(`âœ… Maximum character limit (500) handled correctly`);
       
       // Clean up
       if (questionId) {
@@ -457,36 +457,36 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
 
       // 1. Rejection requires motivo - can only reject with valid motivo
       testCriteria.rejectionRequiresMotivo = true;
-      console.log('✅ Rejection requires motivo_rejeicao');
+      console.log('âœ… Rejection requires motivo_rejeicao');
 
       // 2. Validation prevents empty submission
       testCriteria.validationPreventsEmpty = true;
-      console.log('✅ Validation prevents empty submission');
+      console.log('âœ… Validation prevents empty submission');
 
       // 3. Reject and verify status changes
       const rejectedQuestion = await rejectQuestion(adminToken, questionId, motivo);
       testCriteria.statusChangeToRejeitada = rejectedQuestion.status_aprovacao === 'rejeitada';
-      console.log('✅ Status changes to rejeitada');
+      console.log('âœ… Status changes to rejeitada');
 
       // 4. Motivo is stored correctly
       testCriteria.motivoStoredCorrectly = rejectedQuestion.motivo_rejeicao === motivo;
-      console.log('✅ Motivo is stored correctly');
+      console.log('âœ… Motivo is stored correctly');
 
       // 5. Question disappears from pending list
       const pending = await getPendingQuestions(adminToken);
       testCriteria.questionDisappearsFromPending = !pending.some(q => q.id === questionId);
-      console.log('✅ Question disappears from pending list');
+      console.log('âœ… Question disappears from pending list');
 
       // 6. Character limit enforced
       testCriteria.characterLimitEnforced = true;
-      console.log('✅ Character limit enforced (max 500)');
+      console.log('âœ… Character limit enforced (max 500)');
 
       // 7. Collaborator sees rejection
       const collabView = await getQuestion(collaboratorToken, questionId);
       testCriteria.collaboratorSeesRejection = 
         collabView.status_aprovacao === 'rejeitada' && 
         collabView.motivo_rejeicao === motivo;
-      console.log('✅ Collaborator sees rejection with motivo');
+      console.log('âœ… Collaborator sees rejection with motivo');
 
       // Verify all criteria met
       const allMet = Object.values(testCriteria).every(v => v === true);
@@ -501,3 +501,4 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
     });
   });
 });
+

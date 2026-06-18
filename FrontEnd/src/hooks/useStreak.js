@@ -1,15 +1,15 @@
-/**
- * useStreak.js — Hook para carregar e atualizar a sequência de aprendizagem
+﻿/**
+ * useStreak.js â€” Hook para carregar e atualizar a sequÃªncia de aprendizagem
  *
  * Uso:
  *   const { streak, maximo, ativa, loading, registar } = useStreak();
- *   // Chamar registar() após qualquer atividade educativa para atualizar o streak
+ *   // Chamar registar() apÃ³s qualquer atividade educativa para atualizar o streak
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-const API = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+const API = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
 export default function useStreak() {
   const { user, token } = useAuth();
@@ -21,7 +21,7 @@ export default function useStreak() {
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(null);
 
-  /* ── Buscar streak atual ── */
+  /* â”€â”€ Buscar streak atual â”€â”€ */
   const fetchStreak = useCallback(async () => {
     if (!user?.id || !token) return;
 
@@ -45,7 +45,7 @@ export default function useStreak() {
     }
   }, [user?.id, token]);
 
-  /* ── Registar atividade e obter streak actualizado ── */
+  /* â”€â”€ Registar atividade e obter streak actualizado â”€â”€ */
   const registar = useCallback(async () => {
     if (!user?.id || !token) return null;
 
@@ -78,3 +78,4 @@ export default function useStreak() {
 
   return { streak, maximo, ativa, mensagem, loading, error, fetchStreak, registar };
 }
+

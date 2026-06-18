@@ -291,7 +291,7 @@ export default function News() {
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const itemsPerPage = 5;
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
   useEffect(() => {
     const loadNews = async () => {
@@ -800,3 +800,4 @@ export default function News() {
     </Layout>
   );
 }
+

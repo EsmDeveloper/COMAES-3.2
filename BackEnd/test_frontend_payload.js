@@ -1,4 +1,4 @@
-/**
+﻿/**
  * test_frontend_payload.js
  * Testa com EXATAMENTE o payload que o frontend envia
  */
@@ -10,7 +10,7 @@ import db from './config/db.js';
 async function test() {
   try {
     console.log('='.repeat(80));
-    console.log('🧪 TESTE: Payload do Frontend');
+    console.log('ðŸ§ª TESTE: Payload do Frontend');
     console.log('='.repeat(80));
 
     await db.authenticate();
@@ -20,11 +20,11 @@ async function test() {
     });
 
     if (!colaborador) {
-      console.error('❌ Nenhum colaborador');
+      console.error('âŒ Nenhum colaborador');
       process.exit(1);
     }
 
-    console.log(`✅ Colaborador: ${colaborador.nome}`);
+    console.log(`âœ… Colaborador: ${colaborador.nome}`);
 
     const token = jwt.sign(
       { id: colaborador.id, role: 'colaborador', status_colaborador: 'aprovado', disciplina_colaborador: colaborador.disciplina_colaborador },
@@ -32,10 +32,10 @@ async function test() {
       { expiresIn: '24h' }
     );
 
-    // PAYLOAD EXATO DO FRONTEND (após correção)
+    // PAYLOAD EXATO DO FRONTEND (apÃ³s correÃ§Ã£o)
     const frontendPayload = {
       titulo: "Teste do Frontend",
-      enunciado: "Qual é a capital da França?",
+      enunciado: "Qual Ã© a capital da FranÃ§a?",
       disciplina: colaborador.disciplina_colaborador,
       dificuldade: "medio",
       tipo: "multipla_escolha",
@@ -44,11 +44,11 @@ async function test() {
       pontos: 15
     };
 
-    console.log('\n📋 Payload do Frontend:');
+    console.log('\nðŸ“‹ Payload do Frontend:');
     console.log(JSON.stringify(frontendPayload, null, 2));
 
-    console.log('\n📡 POST /api/colaborador/questoes...');
-    const response = await fetch('http://localhost:3001/api/colaborador/questoes', {
+    console.log('\nðŸ“¡ POST /api/colaborador/questoes...');
+    const response = await fetch('http://localhost:3002/api/colaborador/questoes', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -62,18 +62,19 @@ async function test() {
     const data = await response.json();
     
     if (response.ok) {
-      console.log('\n✅ SUCESSO!');
-      console.log(`Questão criada com ID: ${data.dados.id}`);
+      console.log('\nâœ… SUCESSO!');
+      console.log(`QuestÃ£o criada com ID: ${data.dados.id}`);
     } else {
-      console.error(`\n❌ FALHA!`);
+      console.error(`\nâŒ FALHA!`);
       console.error('Erro:', JSON.stringify(data, null, 2));
     }
 
     process.exit(response.ok ? 0 : 1);
   } catch (error) {
-    console.error('❌ ERRO:', error.message);
+    console.error('âŒ ERRO:', error.message);
     process.exit(1);
   }
 }
 
 test();
+

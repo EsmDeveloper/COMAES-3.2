@@ -12,7 +12,7 @@ import {
 const API_BASE = () =>
   import.meta.env.VITE_API_URL ||
   import.meta.env.VITE_API_BASE_URL ||
-  `http://${window.location.hostname}:3001`;
+  `http://${window.location.hostname}:3002`;
 
 const authHeaders = () => {
   const token = localStorage.getItem('token') || localStorage.getItem('comaes_token');
@@ -549,3 +549,4 @@ export default function RankingGlobal() {
     </Layout>
   );
 }
+

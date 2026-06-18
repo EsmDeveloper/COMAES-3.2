@@ -50,7 +50,7 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
         return;
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/api/notificacoes/usuario/${user.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/notificacoes/usuario/${user.id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -144,7 +144,7 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
         return;
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/api/notificacoes/${id}/lido`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/notificacoes/${id}/lido`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -182,7 +182,7 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
         return;
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/api/notificacoes/usuario/${user.id}/lido-todas`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/notificacoes/usuario/${user.id}/lido-todas`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -224,7 +224,7 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
 
       // Deletar cada notificação
       for (const notif of notifications) {
-        await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/api/notificacoes/${notif.id}`, {
+        await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/notificacoes/${notif.id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -529,4 +529,5 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
     </AnimatePresence>
   );
 }
+
 

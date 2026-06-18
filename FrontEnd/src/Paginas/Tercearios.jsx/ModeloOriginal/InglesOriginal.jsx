@@ -228,7 +228,7 @@ export default function InglesOriginal() {
   // Buscar questÃµes do banco de dados
   const buscarQuestoes = async (torneioId) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/torneios/${torneioId}/questoes/ingles`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/torneios/${torneioId}/questoes/ingles`);
       const data = await response.json();
       
       if (data.success && data.data.length > 0) {
@@ -348,7 +348,7 @@ export default function InglesOriginal() {
     };
 
     try {
-      const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`}/api/avaliar`, {
+      const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/avaliar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
         body: JSON.stringify(payload)
@@ -1020,3 +1020,4 @@ export default function InglesOriginal() {
     </div>
   );
 }
+

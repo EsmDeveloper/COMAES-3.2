@@ -354,7 +354,7 @@ const TableManager = ({ table }) => {
             } else if (modalMode === 'reset-password' && isUserTable) {
                 const idValue = selectedItem ? selectedItem[pkField] : null;
                 if (!idValue) { setError('Identificador invÃ¡lido para operaÃ§Ã£o'); return; }
-                const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+                const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
                 const res = await fetch(`${apiBase}/api/admin/users/${idValue}/reset-password`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -369,7 +369,7 @@ const TableManager = ({ table }) => {
             } else if (modalMode === 'toggle-admin' && isUserTable) {
                 const idValue = selectedItem ? selectedItem[pkField] : null;
                 if (!idValue) { setError('Identificador invÃ¡lido para operaÃ§Ã£o'); return; }
-                const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3001`;
+                const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
                 const res = await fetch(`${apiBase}/api/admin/users/${idValue}/toggle-admin`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -625,3 +625,4 @@ const TableManager = ({ table }) => {
 };
 
 export default TableManager;
+
