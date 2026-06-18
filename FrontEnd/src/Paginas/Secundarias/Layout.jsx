@@ -287,10 +287,7 @@ export default function Layout({ children }) {
       />
 
       {/* HEADER - sticky top-0 */}
-      <motion.header
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+      <header
         className={`sticky top-0 z-50 w-full transition-all duration-300 bg-blue-600 text-white ${scrolled ? 'shadow-lg' : ''}`}
       >
         <div className="flex items-center justify-between px-3 py-2 sm:px-6 max-w-7xl mx-auto">
@@ -425,16 +422,13 @@ export default function Layout({ children }) {
             )}
           </div>
         </div>
-      </motion.header>
+      </header>
 
-      <motion.main
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+      <main
         className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full pb-12"
       >
         {children}
-      </motion.main>
+      </main>
 
       {/* Support AI assistant */}
       <SupportChat />
