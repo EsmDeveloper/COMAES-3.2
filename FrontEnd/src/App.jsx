@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
 import PageTransition from "./components/PageTransition";
 
 import AuthContainer from "./Paginas/Primarias/AuthContainer";
@@ -66,8 +65,7 @@ function AnimatedRoutes() {
   const location = useLocation();
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
+    <Routes location={location} key={location.pathname}>
 
         {/* ── ROTAS PÚBLICAS ─────────────────────────────────────────── */}
         <Route path="/login"          element={<PageTransition><AuthContainer /></PageTransition>} />
@@ -195,7 +193,6 @@ function AnimatedRoutes() {
         <Route path="*"               element={<PageTransition><NotFoundPage /></PageTransition>} />
 
       </Routes>
-    </AnimatePresence>
   );
 }
 
