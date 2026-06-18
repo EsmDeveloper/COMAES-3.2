@@ -435,17 +435,15 @@ export default function Teste() {
       // Mapear dados da API para formato esperado pelo frontend
       const questoesMapeadas = json.data.map(q => ({
         id: q.id,
-        enunciado: q.texto_pergunta || q.enunciado || '',  // Mapear texto_pergunta para enunciado
-        opcao_a: q.opcao_a,
-        opcao_b: q.opcao_b,
-        opcao_c: q.opcao_c,
-        opcao_d: q.opcao_d,
+        enunciado: q.enunciado || q.texto_pergunta || '',
         resposta_correta: q.resposta_correta || q.respostaCorreta || '',
         pontos: q.pontos || 10,
         dificuldade: q.dificuldade || 'medio',
-        tipo: q.tipo,
-        // Criar array opcoes para compatibilidade
-        opcoes: [q.opcao_a, q.opcao_b, q.opcao_c, q.opcao_d].filter(Boolean)
+        tipo: q.tipo || 'multiple',
+        dica: q.dica || '',
+        explicacao: q.explicacao || '',
+        // Usar opcoes como array se existir, senão tentar construir a partir de opcao_a, opcao_b, etc
+        opcoes: Array.isArray(q.opcoes) ? q.opcoes : [q.opcao_a, q.opcao_b, q.opcao_c, q.opcao_d].filter(Boolean)
       }));
       
       setQuestions(questoesMapeadas);
