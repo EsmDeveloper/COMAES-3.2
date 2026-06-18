@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import {
   DificuldadeBadge,
-  StatusAprovacaoBadge,
+  StatusAprovaçãoBadge,
   DisciplinaBadge,
   ConfirmarComMotivoModal,
   QuestaoDetailModal,
