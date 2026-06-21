@@ -23,7 +23,7 @@ const formatTorneioForFrontend = (torneio) => {
 
 export const TorneoController = {
 
-  // ── GET ALL ──────────────────────────────────────────────
+  // ── GET ALL 
   getAllTorneos: async (req, res) => {
     try {
       const torneos = await Torneio.findAll({
@@ -40,7 +40,7 @@ export const TorneoController = {
     }
   },
 
-  // ── CREATE ───────────────────────────────────────────────
+  // ── CREATE 
   createTorneo: async (req, res) => {
     try {
       console.log('[TorneioController] Criando torneio com dados:', req.body);
@@ -151,7 +151,7 @@ export const TorneoController = {
     }
   },
 
-  // ── UPDATE ───────────────────────────────────────────────
+  // ── UPDATE 
   updateTorneo: async (req, res) => {
     try {
       const { id } = req.params;
@@ -337,7 +337,7 @@ export const TorneoController = {
     }
   },
 
-  // ── DELETE ───────────────────────────────────────────────
+  // ── DELETE 
   deleteTorneo: async (req, res) => {
     try {
       const { id } = req.params;
@@ -359,7 +359,7 @@ export const TorneoController = {
     }
   },
 
-  // ── INSCREVER PARTICIPANTE ────────────────────────────────
+  // ── INSCREVER PARTICIPANTE 
   inscreverParticipante: async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
@@ -467,7 +467,7 @@ export const TorneoController = {
     }
   },
 
-  // ── GET PARTICIPANTES ─────────────────────────────────────
+  // ── GET PARTICIPANTES 
   getParticipantes: async (req, res) => {
     try {
       const { id } = req.params;
@@ -489,7 +489,7 @@ export const TorneoController = {
     }
   },
 
-  // ── MINHA PARTICIPACAO ────────────────────────────────────
+  // ── MINHA PARTICIPACAO 
   getMinhaParticipacao: async (req, res) => {
     try {
       const { id } = req.params;
@@ -506,7 +506,7 @@ export const TorneoController = {
     }
   },
 
-  // ── ATUALIZAR PONTOS ──────────────────────────────────────
+  // ── ATUALIZAR PONTOS 
   atualizarPontos: async (req, res) => {
     try {
       const { id } = req.params;
@@ -522,7 +522,7 @@ export const TorneoController = {
     }
   },
 
-  // ── VERIFICAR PARTICIPAÇÃO ATIVA ──────────────────────────
+  // ── VERIFICAR PARTICIPAÇÃO ATIVA 
   verificarParticipacaoAtiva: async (req, res) => {
     try {
       const { usuario_id } = req.params;

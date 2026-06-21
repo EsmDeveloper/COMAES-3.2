@@ -14,7 +14,7 @@ import {
   NIVEIS,
 } from '../services/xpService.js';
 
-// ── GET /api/usuarios/me/nivel ────────────────────────────────────────────────
+// ── GET /api/usuarios/me/nivel 
 export const getMeuNivel = async (req, res) => {
   try {
     const usuarioId = req.user?.id;
@@ -64,7 +64,7 @@ export const getMeuNivel = async (req, res) => {
   }
 };
 
-// ── PUT /api/usuarios/xp ──────────────────────────────────────────────────────
+// ── PUT /api/usuarios/xp 
 // Uso administrativo ou por outros serviços internos para conceder XP
 export const adicionarXP = async (req, res) => {
   try {

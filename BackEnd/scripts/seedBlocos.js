@@ -4,7 +4,7 @@ import Questao from '../models/Questao.js';
 import Torneio from '../models/Torneio.js';
 import Usuario from '../models/User.js';
 
-// ── TESTE DE CONHECIMENTO: MATEMÁTICA (30 questões) ───────────────────────────
+// ── TESTE DE CONHECIMENTO: MATEMÁTICA (30 questões) 
 const TESTE_MAT = [
   { enunciado:'Quanto é 15 + 27?', opcoes:['40','42','44','46'], resposta_correta:'42', dificuldade:'facil', pontos:5 },
   { enunciado:'Quanto é 85 − 38?', opcoes:['45','47','43','49'], resposta_correta:'47', dificuldade:'facil', pontos:5 },
@@ -38,7 +38,7 @@ const TESTE_MAT = [
   { enunciado:'Soma dos ângulos internos de um pentágono?', opcoes:['360°','450°','540°','720°'], resposta_correta:'540°', dificuldade:'dificil', pontos:15 },
 ];
 
-// ── TESTE DE CONHECIMENTO: PROGRAMAÇÃO (30 questões) ─────────────────────────
+// ── TESTE DE CONHECIMENTO: PROGRAMAÇÃO (30 questões) 
 const TESTE_PROG = [
   { enunciado:'O que significa HTML?', opcoes:['HyperText Markup Language','High Text Machine Language','HyperText Machine Link','High Transfer Markup Language'], resposta_correta:'HyperText Markup Language', dificuldade:'facil', pontos:5 },
   { enunciado:'Símbolo de comentário de linha em JavaScript?', opcoes:['#','//','/*','--'], resposta_correta:'//', dificuldade:'facil', pontos:5 },
@@ -72,7 +72,7 @@ const TESTE_PROG = [
   { enunciado:'O que é prototype chain em JavaScript?', opcoes:['Lista de funções','Mecanismo de herança baseado em protótipos','Tipo de array','Estrutura de dados'], resposta_correta:'Mecanismo de herança baseado em protótipos', dificuldade:'dificil', pontos:15 },
 ];
 
-// ── TESTE DE CONHECIMENTO: INGLÊS (30 questões) ───────────────────────────────
+// ── TESTE DE CONHECIMENTO: INGLÊS (30 questões) 
 const TESTE_ING = [
   { enunciado:'What does "Hello" mean in Portuguese?', opcoes:['Tchau','Olá','Obrigado','Por favor'], resposta_correta:'Olá', dificuldade:'facil', pontos:5 },
   { enunciado:'What is the color of the sky?', opcoes:['Red','Green','Blue','Yellow'], resposta_correta:'Blue', dificuldade:'facil', pontos:5 },
@@ -106,7 +106,7 @@ const TESTE_ING = [
   { enunciado:'Identify the correct use of "whom": ___', opcoes:['Who did you call?','Whom did you call?','Who called you?','Whom called you?'], resposta_correta:'Whom did you call?', dificuldade:'dificil', pontos:15 },
 ];
 
-// ── QUESTÕES DE TORNEIO: MATEMÁTICA (30 questões) ────────────────────────────
+// ── QUESTÕES DE TORNEIO: MATEMÁTICA (30 questões) 
 const TORNEIO_MAT = [
   { titulo:'Adição básica', descricao:'Quanto é 48 + 35?', dificuldade:'facil', tipo:'multipla_escolha', opcoes:['81','83','85','87'], resposta_correta:'83', pontos:10 },
   { titulo:'Subtração', descricao:'Quanto é 120 − 47?', dificuldade:'facil', tipo:'multipla_escolha', opcoes:['63','73','83','93'], resposta_correta:'73', pontos:10 },
@@ -136,11 +136,11 @@ const TORNEIO_MAT = [
   { titulo:'Limite', descricao:'lim(x→2) de (x²−4)/(x−2) = ?', dificuldade:'dificil', tipo:'multipla_escolha', opcoes:['0','2','4','indefinido'], resposta_correta:'4', pontos:20 },
   { titulo:'Matriz determinante', descricao:'Det de [[2,1],[3,4]] = ?', dificuldade:'dificil', tipo:'multipla_escolha', opcoes:['5','6','7','8'], resposta_correta:'5', pontos:20 },
   { titulo:'Combinação', descricao:'C(6,2) = ?', dificuldade:'dificil', tipo:'multipla_escolha', opcoes:['12','15','18','30'], resposta_correta:'15', pontos:20 },
-  { titulo:'Integral definida', descricao:'∫₀² 2x dx = ?', dificuldade:'dificil', tipo:'multipla_escolha', opcoes:['2','4','6','8'], resposta_correta:'4', pontos:20 },
+  { titulo:'Integral definida', descricao:' 2x dx = ?', dificuldade:'dificil', tipo:'multipla_escolha', opcoes:['2','4','6','8'], resposta_correta:'4', pontos:20 },
   { titulo:'Números complexos', descricao:'Módulo de 3 + 4i = ?', dificuldade:'dificil', tipo:'multipla_escolha', opcoes:['3','4','5','7'], resposta_correta:'5', pontos:20 },
 ];
 
-// ── QUESTÕES DE TORNEIO: PROGRAMAÇÃO (30 questões) ───────────────────────────
+// ── QUESTÕES DE TORNEIO: PROGRAMAÇÃO (30 questões) 
 const TORNEIO_PROG = [
   { titulo:'Variável JS', descricao:'Qual palavra-chave declara variável de bloco em JS?', dificuldade:'facil', tipo:'multipla_escolha', opcoes:['var','let','const','def'], resposta_correta:'let', pontos:10 },
   { titulo:'Tipo de dado', descricao:'Qual é o tipo de "true" em JavaScript?', dificuldade:'facil', tipo:'multipla_escolha', opcoes:['string','number','boolean','object'], resposta_correta:'boolean', pontos:10 },
@@ -174,7 +174,7 @@ const TORNEIO_PROG = [
   { titulo:'Race condition', descricao:'O que é uma race condition?', dificuldade:'dificil', tipo:'multipla_escolha', opcoes:['Competição de velocidade entre servidores','Comportamento imprevisível quando múltiplas threads acessam recurso compartilhado','Tipo de algoritmo de ordenação','Padrão de design'], resposta_correta:'Comportamento imprevisível quando múltiplas threads acessam recurso compartilhado', pontos:20 },
 ];
 
-// ── QUESTÕES DE TORNEIO: INGLÊS (30 questões) ────────────────────────────────
+// ── QUESTÕES DE TORNEIO: INGLÊS (30 questões) 
 const TORNEIO_ING = [
   { titulo:'Vocabulary - Animals', descricao:'What is "Leão" in English?', dificuldade:'facil', tipo:'multipla_escolha', opcoes:['Tiger','Lion','Bear','Wolf'], resposta_correta:'Lion', pontos:10 },
   { titulo:'Simple Present', descricao:'Complete: "She ___ to school every day."', dificuldade:'facil', tipo:'multipla_escolha', opcoes:['go','goes','going','gone'], resposta_correta:'goes', pontos:10 },
@@ -208,14 +208,14 @@ const TORNEIO_ING = [
   { titulo:'Register', descricao:'Which sentence uses formal register?', dificuldade:'dificil', tipo:'multipla_escolha', opcoes:['Gonna do it later','I will attend the meeting','Wanna come?','Its gonna be fine'], resposta_correta:'I will attend the meeting', pontos:20 },
 ];
 
-// ── FUNÇÃO PRINCIPAL ──────────────────────────────────────────────────────────
+// ── FUNÇÃO PRINCIPAL 
 
 async function seed() {
   try {
     await sequelize.authenticate();
     console.log('✅ Banco conectado');
 
-    // ── 1. Questões do Teste de Conhecimento ──────────────────────────────────
+    // ── 1. Questões do Teste de Conhecimento 
     console.log('\n📚 Inserindo questões do Teste de Conhecimento...');
 
     const testeData = [
@@ -236,7 +236,7 @@ async function seed() {
     }
     console.log(`   ✅ ${testeInseridas} questões inseridas (${testeData.length - testeInseridas} já existiam)`);
 
-    // ── 2. Questões de Torneio ────────────────────────────────────────────────
+    // ── 2. Questões de Torneio 
     console.log('\n🏆 Inserindo questões de Torneio...');
 
     // Buscar torneio ativo ou o primeiro disponível
@@ -287,7 +287,7 @@ async function seed() {
     }
     console.log(`   ✅ ${torneioInseridas} questões inseridas (${torneioData.length - torneioInseridas} já existiam)`);
 
-    // ── 3. Resumo ─────────────────────────────────────────────────────────────
+    // ── 3. Resumo 
     const totalTeste = await QuestaoTesteConhecimento.count();
     const totalTorneio = await Questao.count({ where: { torneio_id: torneio.id } });
 

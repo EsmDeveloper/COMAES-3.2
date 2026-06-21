@@ -11,9 +11,9 @@ import Usuario from '../models/User.js';
 import { Op } from 'sequelize';
 import { sequelize } from '../config/db.js';
 
-// ────────────────────────────────────────────────────────────────────────────
+// 
 // HELPER FUNCTIONS
-// ────────────────────────────────────────────────────────────────────────────
+// 
 
 /**
  * Resposta padrão de sucesso
@@ -161,9 +161,9 @@ const validarDadosBloco = (dados, isEdicao = false) => {
   return erros;
 };
 
-// ────────────────────────────────────────────────────────────────────────────
+// 
 // BLOCOS - COLABORADOR
-// ────────────────────────────────────────────────────────────────────────────
+// 
 
 /**
  * POST /api/colaborador/blocos
@@ -381,9 +381,9 @@ export const deletarBlocoColaborador = async (req, res) => {
   }
 };
 
-// ────────────────────────────────────────────────────────────────────────────
+// 
 // QUESTÕES - COLABORADOR
-// ────────────────────────────────────────────────────────────────────────────
+// 
 
 /**
  * POST /api/colaborador/questoes
@@ -661,9 +661,9 @@ export const deletarQuestaoColaborador = async (req, res) => {
   }
 };
 
-// ────────────────────────────────────────────────────────────────────────────
+// 
 // ADMIN - APROVAÇÃO (STUBS FOR NOW - To be implemented in next iteration)
-// ────────────────────────────────────────────────────────────────────────────
+// 
 
 export const listarBlocosPendentes = async (req, res) => {
   try {

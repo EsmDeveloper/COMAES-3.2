@@ -42,7 +42,7 @@ async function addSlugColumn() {
         'ALTER TABLE torneios MODIFY COLUMN slug VARCHAR(255) NOT NULL UNIQUE'
       );
 
-      console.log('✅ Slug column added successfully!');
+      console.log('[SUCCESS] Slug column added successfully!');
     } else {
       console.log('Slug column already exists');
     }

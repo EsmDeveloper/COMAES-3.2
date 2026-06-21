@@ -14,7 +14,7 @@ const questoesData = [
   // MATEMÁTICA - FÁCIL (5 questões)
   // ============================================================
   {
-    titulo: 'Adição com números maiores',
+    titulo: 'Adição com nmeros maiores',
     descricao: 'Quanto é 45 + 37?',
     disciplina: 'matematica',
     tipo: 'multipla_escolha',
@@ -96,13 +96,13 @@ const questoesData = [
   },
   {
     titulo: 'Perímetro do círculo',
-    descricao: 'Qual é a circunferência de um círculo com raio 7? (π ≈ 3,14)',
+    descricao: 'Qual é a circunferência de um círculo com raio 7? (  3,14)',
     disciplina: 'matematica',
     tipo: 'multipla_escolha',
     dificuldade: 'medio',
     opcoes: ['43,96', '44,96', '45,96', '46,96'],
     resposta_correta: '43,96',
-    explicacao: 'C = 2πr = 2 × 3,14 × 7 = 43,96',
+    explicacao: 'C = 2r = 2 × 3,14 × 7 = 43,96',
     pontos: 15,
   },
   {
@@ -117,14 +117,14 @@ const questoesData = [
     pontos: 15,
   },
   {
-    titulo: 'Ângulos complementares',
+    titulo: 'ngulos complementares',
     descricao: 'Se um ângulo mede 35°, qual é seu complementar?',
     disciplina: 'matematica',
     tipo: 'multipla_escolha',
     dificuldade: 'medio',
     opcoes: ['45°', '55°', '65°', '75°'],
     resposta_correta: '55°',
-    explicacao: 'Ângulos complementares somam 90°. 90° - 35° = 55°',
+    explicacao: 'ngulos complementares somam 90°. 90° - 35° = 55°',
     pontos: 15,
   },
 
@@ -148,9 +148,9 @@ const questoesData = [
     disciplina: 'matematica',
     tipo: 'multipla_escolha',
     dificuldade: 'dificil',
-    opcoes: ['1/2', '√2/2', '√3/2', '1'],
-    resposta_correta: '√2/2',
-    explicacao: 'sen(45°) = √2/2 ≈ 0,707',
+    opcoes: ['1/2', '2/2', '3/2', '1'],
+    resposta_correta: '2/2',
+    explicacao: 'sen(45°) = 2/2  0,707',
     pontos: 20,
   },
   {
@@ -172,18 +172,18 @@ const questoesData = [
     dificuldade: 'dificil',
     opcoes: ['81', '100', '120', '150'],
     resposta_correta: '81',
-    explicacao: 'a₅ = 1 × 3⁴ = 81',
+    explicacao: 'a = 1 × 3 = 81',
     pontos: 20,
   },
   {
     titulo: 'Logaritmo complexo',
-    descricao: 'Qual é o valor de log₅(125)?',
+    descricao: 'Qual é o valor de log(125)?',
     disciplina: 'matematica',
     tipo: 'multipla_escolha',
     dificuldade: 'dificil',
     opcoes: ['2', '3', '4', '5'],
     resposta_correta: '3',
-    explicacao: 'log₅(125) = 3 porque 5³ = 125',
+    explicacao: 'log(125) = 3 porque 5³ = 125',
     pontos: 20,
   },
 
@@ -224,7 +224,7 @@ const questoesData = [
     pontos: 10,
   },
   {
-    titulo: 'Número em inglês',
+    titulo: 'Nmero em inglês',
     descricao: 'How do you say "vinte e cinco" in English?',
     disciplina: 'ingles',
     tipo: 'multipla_escolha',
@@ -467,7 +467,7 @@ const questoesData = [
     dificuldade: 'medio',
     opcoes: ['Last In First Out', 'List In First Out', 'Long Integer First Out', 'Load In Fill Out'],
     resposta_correta: 'Last In First Out',
-    explicacao: 'LIFO: último a entrar é primeiro a sair',
+    explicacao: 'LIFO: ltimo a entrar é primeiro a sair',
     pontos: 15,
   },
   {
@@ -544,10 +544,10 @@ const questoesData = [
 
 async function insertQuestoes() {
   try {
-    console.log('🚀 Iniciando inserção de 45 questões\n');
+    console.log(' Iniciando inserção de 45 questões\n');
 
     await sequelize.authenticate();
-    console.log('✅ Conectado ao banco de dados\n');
+    console.log(' Conectado ao banco de dados\n');
 
     // Encontrar torneio ativo
     let torneio = await Torneio.findOne({
@@ -556,18 +556,18 @@ async function insertQuestoes() {
     });
 
     if (!torneio) {
-      console.log('⚠️  Nenhum torneio ativo encontrado, usando o mais recente...');
+      console.log('  Nenhum torneio ativo encontrado, usando o mais recente...');
       torneio = await Torneio.findOne({
         order: [['id', 'DESC']],
       });
     }
 
     if (!torneio) {
-      console.error('❌ Erro: Nenhum torneio encontrado no banco');
+      console.error(' Erro: Nenhum torneio encontrado no banco');
       process.exit(1);
     }
 
-    console.log(`📌 Torneio selecionado: "${torneio.titulo}" (ID: ${torneio.id})`);
+    console.log(` Torneio selecionado: "${torneio.titulo}" (ID: ${torneio.id})`);
     console.log(`   Status: ${torneio.status}\n`);
 
     // Inserir questões
@@ -581,11 +581,11 @@ async function insertQuestoes() {
         });
         inserted++;
       } catch (err) {
-        console.error(`❌ Erro ao inserir: ${questao.titulo}`, err.message);
+        console.error(` Erro ao inserir: ${questao.titulo}`, err.message);
       }
     }
 
-    console.log(`\n✅ Total de questões inseridas: ${inserted}/${questoesData.length}\n`);
+    console.log(`\n Total de questões inseridas: ${inserted}/${questoesData.length}\n`);
 
     // Verificação
     const grupos = await Questao.findAll({
@@ -599,7 +599,7 @@ async function insertQuestoes() {
       raw: true,
     });
 
-    console.log('📊 Verificação por disciplina e dificuldade:');
+    console.log(' Verificação por disciplina e dificuldade:');
     console.table(grupos);
 
     const totaisPorDisciplina = await Questao.findAll({
@@ -612,24 +612,24 @@ async function insertQuestoes() {
       raw: true,
     });
 
-    console.log('\n📚 Total por disciplina:');
+    console.log('\n Total por disciplina:');
     console.table(totaisPorDisciplina);
 
     const totalGeral = await Questao.count({
       where: { torneio_id: torneio.id },
     });
 
-    console.log(`\n✅ Total de questões no torneio: ${totalGeral}`);
+    console.log(`\n Total de questões no torneio: ${totalGeral}`);
 
     if (inserted === 45) {
-      console.log('\n🎉 SUCESSO! Todas as 45 questões foram inseridas!');
+      console.log('\n SUCESSO! Todas as 45 questões foram inseridas!');
     }
 
     await sequelize.close();
     process.exit(0);
 
   } catch (error) {
-    console.error('❌ Erro:', error.message);
+    console.error(' Erro:', error.message);
     await sequelize.close();
     process.exit(1);
   }

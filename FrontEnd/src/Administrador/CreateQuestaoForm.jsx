@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { X, Save, AlertCircle, CheckCircle, Plus, Trash2 } from 'lucide-react';
@@ -6,15 +6,16 @@ import axios from 'axios';
 
 /**
  * CreateQuestaoForm
- * FormulÃ¡rio Ãºnico para criar questÃµes usando modelo Questao.js
+ * Formulário único para criar questões usando modelo Questao.js
  * 
  * FIXES IMPLEMENTADOS:
- * - âœ… Normalizar opÃ§Ãµes: converter de array de objetos para array de strings antes de enviar
- * - âœ… resposta_correta agora sincroniza com a opÃ§Ã£o marcada como correta
- * - âœ… ValidaÃ§Ã£o frontend alinhada com backend
- * - âœ… Disciplina agora Ã© campo obrigatÃ³rio
- * - âœ… Timeout de 10 segundos em axios
- * - âœ… Tratamento de erro melhorado
+ * - ✅ Normalizar opções: converter de array de objetos para array de strings antes de enviar
+ * - ✅ resposta_correta agora sincroniza com a opção marcada como correta
+ * - ✅ Validação frontend alinhada com backend
+ * - ✅ Disciplina agora é campo obrigatório
+ * - ✅ Timeout de 10 segundos em axios
+ * - ✅ Tratamento de erro melhorado
+ * - ✅ Pontos automáticos baseados na dificuldade (Fácil=5, Médio=10, Difícil=20)
  */
 
 const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) => {
@@ -24,6 +25,13 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
   const [success, setSuccess] = useState('');
   const [torneios, setTorneios] = useState([]);
 
+  // Mapeamento de pontos por dificuldade
+  const PONTOS_POR_DIFICULDADE = {
+    'facil': 5,
+    'medio': 10,
+    'dificil': 20
+  };
+
   const [formData, setFormData] = useState({
     torneio_id: torneioId || '',
     titulo: '',
@@ -31,11 +39,11 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
     disciplina: disciplinaFixa || 'matematica',
     tipo: 'multipla_escolha',
     dificuldade: 'facil',
-    resposta_correta: '', // Para mÃºltipla escolha serÃ¡ o texto da opÃ§Ã£o marcada como correta
-    pontos: 10,
+    resposta_correta: '',
+    pontos: 5, // Começa com 5 (Fácil)
     opcoes: [
-      { texto: 'OpÃ§Ã£o A', correta: true, explicacao: '' },
-      { texto: 'OpÃ§Ã£o B', correta: false, explicacao: '' }
+      { texto: 'Opção A', correta: true, explicacao: '' },
+      { texto: 'Opção B', correta: false, explicacao: '' }
     ],
     explicacao: '',
     linguagem: 'javascript'
@@ -52,14 +60,14 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
         });
         setTorneios(res.data || []);
       } catch (err) {
-        console.error('âŒ Erro ao carregar torneios:', err);
+        console.error('Erro ao carregar torneios:', err);
         setError('Erro ao carregar lista de torneios');
       }
     };
     carregarTorneios();
   }, [token]);
 
-  // Inicializar resposta_correta com primeira opÃ§Ã£o correta
+  // Inicializar resposta_correta com primeira opção correta
   useEffect(() => {
     if (formData.tipo === 'multipla_escolha') {
       const opcaoCorreta = formData.opcoes.find(o => o.correta);
@@ -74,15 +82,11 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
     
     // Se mudou dificuldade, atualizar pontos automaticamente
     if (name === 'dificuldade') {
-      const pontosMap = {
-        'facil': 5,
-        'medio': 10,
-        'dificil': 20
-      };
+      const pontos = PONTOS_POR_DIFICULDADE[value] || 5;
       setFormData(prev => ({
         ...prev,
         [name]: value,
-        pontos: pontosMap[value] || 10
+        pontos: pontos // Atualiza os pontos automaticamente
       }));
     } else {
       setFormData(prev => ({
@@ -106,7 +110,7 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
     
     setFormData(prev => ({ ...prev, opcoes: newOpcoes }));
     
-    // Atualizar resposta_correta com o texto da opÃ§Ã£o correta
+    // Atualizar resposta_correta com o texto da opção correta
     const opcaoCorreta = newOpcoes.find(o => o.correta);
     if (opcaoCorreta && opcaoCorreta.texto) {
       setFormData(prev => ({ ...prev, resposta_correta: opcaoCorreta.texto }));
@@ -126,9 +130,9 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
     if (formData.opcoes.length > 2) {
       const novasOpcoes = formData.opcoes.filter((_, i) => i !== index);
       
-      // Se removeu a opÃ§Ã£o correta, marcar a primeira como correta
-      const tinhaCoretoRemovida = formData.opcoes[index]?.correta;
-      if (tinhaCoretoRemovida && novasOpcoes.length > 0 && !novasOpcoes.some(o => o.correta)) {
+      // Se removeu a opção correta, marcar a primeira como correta
+      const tinhaCorretaRemovida = formData.opcoes[index]?.correta;
+      if (tinhaCorretaRemovida && novasOpcoes.length > 0 && !novasOpcoes.some(o => o.correta)) {
         novasOpcoes[0].correta = true;
         setFormData(prev => ({ 
           ...prev, 
@@ -145,40 +149,36 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
     const erros = [];
 
     if (!formData.titulo.trim()) {
-      erros.push('TÃ­tulo Ã© obrigatÃ³rio');
+      erros.push('Título é obrigatório');
     }
 
     if (!formData.descricao.trim()) {
-      erros.push('DescriÃ§Ã£o Ã© obrigatÃ³ria');
+      erros.push('Descrição é obrigatória');
     }
 
     if (!formData.disciplina) {
-      erros.push('Disciplina Ã© obrigatÃ³ria');
+      erros.push('Disciplina é obrigatória');
     }
 
     if (!formData.tipo) {
-      erros.push('Tipo Ã© obrigatÃ³rio');
+      erros.push('Tipo é obrigatório');
     }
 
     if (!formData.dificuldade) {
-      erros.push('Dificuldade Ã© obrigatÃ³ria');
+      erros.push('Dificuldade é obrigatória');
     }
 
     if (!formData.resposta_correta || !formData.resposta_correta.trim()) {
-      erros.push('Resposta correta Ã© obrigatÃ³ria');
-    }
-
-    if (typeof formData.pontos !== 'number' || formData.pontos < 1 || formData.pontos > 100) {
-      erros.push('Pontos deve estar entre 1 e 100');
+      erros.push('Resposta correta é obrigatória');
     }
 
     if (formData.tipo === 'multipla_escolha') {
       const opcoesComTexto = formData.opcoes.filter(o => o.texto.trim());
       if (opcoesComTexto.length < 2) {
-        erros.push('MÃ­nimo 2 opÃ§Ãµes preenchidas para mÃºltipla escolha');
+        erros.push('Mínimo 2 opções preenchidas para múltipla escolha');
       }
       if (!formData.opcoes.some(o => o.correta)) {
-        erros.push('Marque uma opÃ§Ã£o como correta');
+        erros.push('Marque uma opção como correta');
       }
     }
 
@@ -195,7 +195,6 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
     setLoading(true);
     try {
       // Preparar dados para enviar ao backend
-      // âœ… CORREÃ‡ÃƒO: Converter opcoes de objetos para array de strings
       const dadosParaEnviar = {
         torneio_id: formData.torneio_id ? parseInt(formData.torneio_id) : null,
         titulo: formData.titulo.trim(),
@@ -204,16 +203,16 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
         tipo: formData.tipo,
         dificuldade: formData.dificuldade,
         resposta_correta: formData.resposta_correta.trim(),
-        pontos: parseInt(formData.pontos) || 10,
+        pontos: formData.pontos, // Usa os pontos automáticos
         explicacao: formData.explicacao.trim() || null,
-        // âœ… Para mÃºltipla escolha, enviar apenas os textos das opÃ§Ãµes (array de strings)
+        // Para múltipla escolha, enviar apenas os textos das opções (array de strings)
         opcoes: formData.tipo === 'multipla_escolha' 
           ? formData.opcoes.filter(o => o.texto.trim()).map(o => o.texto)
           : null,
         linguagem: formData.tipo === 'codigo' ? formData.linguagem : null
       };
 
-      console.log('ðŸ“¤ Enviando questÃ£o:', dadosParaEnviar);
+      console.log('Enviando questão:', dadosParaEnviar);
 
       // Enviar para API
       const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
@@ -222,25 +221,25 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        timeout: 10000 // âœ… 10 segundos timeout
+        timeout: 10000 // 10 segundos timeout
       });
 
-      console.log('âœ… Resposta da API:', res.data);
+      console.log('Resposta da API:', res.data);
 
-      setSuccess('QuestÃ£o criada com sucesso!');
+      setSuccess('Questão criada com sucesso!');
       
-      // Chamar callback apÃ³s 1.5s
+      // Chamar callback após 1.5s
       if (onSuccess) {
         setTimeout(() => onSuccess(res.data?.dados || res.data), 1500);
       } else {
-        // Fechar modal apÃ³s sucesso
+        // Fechar modal após sucesso
         setTimeout(() => onClose?.(), 2000);
       }
     } catch (err) {
-      console.error('âŒ Erro ao criar questÃ£o:', err);
+      console.error('Erro ao criar questão:', err);
       
       // Tratamento melhorado de erros
-      let mensagem = 'Erro ao criar questÃ£o';
+      let mensagem = 'Erro ao criar questão';
       
       if (err.response?.data?.mensagem) {
         mensagem = err.response.data.mensagem;
@@ -249,7 +248,7 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
       } else if (err.response?.data?.erros && Array.isArray(err.response.data.erros)) {
         mensagem = err.response.data.erros.join(' | ');
       } else if (err.message === 'timeout of 10000ms exceeded') {
-        mensagem = 'Timeout: servidor nÃ£o respondeu em tempo';
+        mensagem = 'Timeout: servidor não respondeu em tempo';
       } else if (err.message) {
         mensagem = err.message;
       }
@@ -260,12 +259,22 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
     }
   };
 
+  // Função para obter a cor do badge de pontos
+  const getPontosBadgeColor = (dificuldade) => {
+    const colors = {
+      'facil': 'bg-green-100 text-green-800',
+      'medio': 'bg-yellow-100 text-yellow-800',
+      'dificil': 'bg-red-100 text-red-800'
+    };
+    return colors[dificuldade] || 'bg-gray-100 text-gray-800';
+  };
+
   return createPortal(
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between border-b border-blue-700 z-10">
-          <h2 className="text-2xl font-bold text-white">Criar Nova QuestÃ£o</h2>
+          <h2 className="text-2xl font-bold text-white">Criar Nova Questão</h2>
           <button
             onClick={onClose}
             disabled={loading}
@@ -282,7 +291,7 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
             <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-start gap-3">
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold">Erro na validaÃ§Ã£o:</p>
+                <p className="font-semibold">Erro na validação:</p>
                 <p className="text-sm mt-1">{error}</p>
               </div>
             </div>
@@ -327,9 +336,9 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
                 disabled={!!disciplinaFixa || loading}
                 className={`w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${disciplinaFixa ? 'bg-slate-100 cursor-not-allowed' : ''}`}
               >
-                <option value="matematica">MatemÃ¡tica</option>
-                <option value="ingles">InglÃªs</option>
-                <option value="programacao">ProgramaÃ§Ã£o</option>
+                <option value="matematica">Matemática</option>
+                <option value="ingles">Inglês</option>
+                <option value="programacao">Programação</option>
               </select>
             </div>
 
@@ -344,17 +353,17 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
                 disabled={loading}
                 className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-100 transition"
               >
-                <option value="multipla_escolha">MÃºltipla Escolha</option>
+                <option value="multipla_escolha">Múltipla Escolha</option>
                 <option value="texto">Texto/Aberta</option>
-                <option value="codigo">CÃ³digo</option>
+                <option value="codigo">Código</option>
               </select>
             </div>
           </div>
 
-          {/* TÃ­tulo */}
+          {/* Título */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">
-              TÃ­tulo *
+              Título *
             </label>
             <input
               type="text"
@@ -362,71 +371,94 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
               value={formData.titulo}
               onChange={handleInputChange}
               disabled={loading}
-              placeholder="Ex: Resolva a equaÃ§Ã£o quadrÃ¡tica"
+              placeholder="Ex: Resolva a equação quadrática"
               maxLength={255}
               className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-100 transition"
             />
             <p className="text-xs text-slate-500 mt-1">{formData.titulo.length}/255</p>
           </div>
 
-          {/* DescriÃ§Ã£o */}
+          {/* Descrição */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">
-              DescriÃ§Ã£o/Enunciado *
+              Descrição/Enunciado *
             </label>
             <textarea
               name="descricao"
               value={formData.descricao}
               onChange={handleInputChange}
               disabled={loading}
-              placeholder="Descreva a questÃ£o em detalhes"
+              placeholder="Descreva a questão em detalhes"
               rows={4}
               className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-100 transition resize-none"
             />
           </div>
 
-          {/* Dificuldade e Pontos */}
+          {/* Dificuldade e Pontos (agora é um badge informativo) */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Dificuldade *
+                Nível de Dificuldade *
               </label>
-              <select
-                name="dificuldade"
-                value={formData.dificuldade}
-                onChange={handleInputChange}
-                disabled={loading}
-                className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-100 transition"
-              >
-                <option value="facil">â­ FÃ¡cil</option>
-                <option value="medio">â­â­ MÃ©dio</option>
-                <option value="dificil">â­â­â­ DifÃ­cil</option>
-              </select>
+              <div className="flex gap-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="dificuldade"
+                    value="facil"
+                    checked={formData.dificuldade === 'facil'}
+                    onChange={handleInputChange}
+                    disabled={loading}
+                    className="w-4 h-4 text-green-600 focus:ring-green-500"
+                  />
+                  <span className="text-sm font-medium text-green-700">Fácil</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="dificuldade"
+                    value="medio"
+                    checked={formData.dificuldade === 'medio'}
+                    onChange={handleInputChange}
+                    disabled={loading}
+                    className="w-4 h-4 text-yellow-600 focus:ring-yellow-500"
+                  />
+                  <span className="text-sm font-medium text-yellow-700">Médio</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="dificuldade"
+                    value="dificil"
+                    checked={formData.dificuldade === 'dificil'}
+                    onChange={handleInputChange}
+                    disabled={loading}
+                    className="w-4 h-4 text-red-600 focus:ring-red-500"
+                  />
+                  <span className="text-sm font-medium text-red-700">Difícil</span>
+                </label>
+              </div>
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Pontos *
+                Pontos (Automático)
               </label>
-              <input
-                type="number"
-                name="pontos"
-                value={formData.pontos}
-                onChange={handleInputChange}
-                disabled={loading}
-                min="1"
-                max="100"
-                className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-100 transition"
-              />
-              <p className="text-xs text-slate-500 mt-1">1-100</p>
+              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-lg ${getPontosBadgeColor(formData.dificuldade)}`}>
+                <span>{formData.pontos}</span>
+                <span className="text-xs font-normal opacity-75">pontos</span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Definido automaticamente baseado no nível: Fácil=5, Médio=10, Difícil=20
+              </p>
             </div>
           </div>
 
-          {/* Linguagem (para cÃ³digo) */}
+          {/* Linguagem (para código) */}
           {formData.tipo === 'codigo' && (
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Linguagem de ProgramaÃ§Ã£o
+                Linguagem de Programação
               </label>
               <select
                 name="linguagem"
@@ -443,11 +475,11 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
             </div>
           )}
 
-          {/* OpÃ§Ãµes (para mÃºltipla escolha) */}
+          {/* Opções (para múltipla escolha) */}
           {formData.tipo === 'multipla_escolha' && (
             <div className="border-2 border-slate-200 rounded-lg p-4">
               <label className="block text-sm font-semibold text-slate-700 mb-4">
-                OpÃ§Ãµes * ({formData.opcoes.filter(o => o.texto.trim()).length}/10 preenchidas)
+                Opções * ({formData.opcoes.filter(o => o.texto.trim()).length}/10 preenchidas)
               </label>
               <div className="space-y-3">
                 {formData.opcoes.map((opcao, index) => (
@@ -470,7 +502,7 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
                           onClick={() => handleRemoveOpcao(index)}
                           disabled={loading}
                           className="ml-auto text-red-600 hover:text-red-700 disabled:opacity-50 transition"
-                          title="Remover opÃ§Ã£o"
+                          title="Remover opção"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -481,7 +513,7 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
                       value={opcao.texto}
                       onChange={(e) => handleOpcaoChange(index, 'texto', e.target.value)}
                       disabled={loading}
-                      placeholder={`OpÃ§Ã£o ${index + 1}`}
+                      placeholder={`Opção ${index + 1}`}
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-100 transition text-sm mb-2"
                     />
                   </div>
@@ -495,7 +527,7 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
                   className="mt-3 w-full py-2 border-2 border-dashed border-blue-400 text-blue-700 rounded-lg font-semibold hover:bg-blue-50 transition disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Adicionar OpÃ§Ã£o
+                  Adicionar Opção
                 </button>
               )}
             </div>
@@ -512,25 +544,25 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
               value={formData.resposta_correta}
               onChange={handleInputChange}
               disabled={loading || formData.tipo === 'multipla_escolha'}
-              placeholder={formData.tipo === 'multipla_escolha' ? 'Auto-preenchida ao marcar opÃ§Ã£o' : 'Digite a resposta correta'}
+              placeholder={formData.tipo === 'multipla_escolha' ? 'Auto-preenchida ao marcar opção' : 'Digite a resposta correta'}
               className={`w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${loading || formData.tipo === 'multipla_escolha' ? 'bg-slate-100 cursor-not-allowed' : ''}`}
             />
             {formData.tipo === 'multipla_escolha' && (
-              <p className="text-xs text-slate-500 mt-1">ðŸ“Œ Preenchida automaticamente quando vocÃª marca uma opÃ§Ã£o como correta</p>
+              <p className="text-xs text-slate-500 mt-1">Preenchida automaticamente quando você marca uma opção como correta</p>
             )}
           </div>
 
-          {/* ExplicaÃ§Ã£o */}
+          {/* Explicação */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">
-              ExplicaÃ§Ã£o (Opcional)
+              Explicação (Opcional)
             </label>
             <textarea
               name="explicacao"
               value={formData.explicacao}
               onChange={handleInputChange}
               disabled={loading}
-              placeholder="Explique por que essa Ã© a resposta correta"
+              placeholder="Explique por que essa é a resposta correta"
               rows={3}
               className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-100 transition resize-none"
             />
@@ -539,7 +571,7 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
           {/* Help Text */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
-              <strong>â„¹ï¸ InformaÃ§Ã£o:</strong> A questÃ£o serÃ¡ criada como <strong>"Pendente"</strong> se vocÃª for colaborador, 
+              <strong>Informação:</strong> A questão será criada como <strong>"Pendente"</strong> se você for colaborador, 
               ou <strong>"Aprovada"</strong> se for administrador. Colaboradores precisam que um administrador revise antes de usar em torneios.
             </p>
           </div>
@@ -561,7 +593,7 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Save className="w-5 h-5" />
-              {loading ? 'Salvando...' : 'Criar QuestÃ£o'}
+              {loading ? 'Salvando...' : 'Criar Questão'}
             </button>
           </div>
         </div>
@@ -571,4 +603,3 @@ const CreateQuestaoForm = ({ torneioId, disciplinaFixa, onClose, onSuccess }) =>
 };
 
 export default CreateQuestaoForm;
-

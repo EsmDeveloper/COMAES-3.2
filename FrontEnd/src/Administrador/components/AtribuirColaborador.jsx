@@ -46,9 +46,9 @@ const AtribuirColaborador = () => {
 
   // Valid disciplines
   const disciplinas = [
-    { id: 'matematica', nome: 'MatemÃ¡tica' },
+    { id: 'matematica', nome: 'Matemática' },
     { id: 'ingles', nome: 'InglÃªs' },
-    { id: 'programacao', nome: 'ProgramaÃ§Ã£o' }
+    { id: 'programacao', nome: 'Programação' }
   ];
 
   // Fetch users on component mount
@@ -90,7 +90,7 @@ const AtribuirColaborador = () => {
       setUsers(nonAdminUsers);
     } catch (err) {
       console.error('Error fetching users:', err);
-      setError(`Erro ao carregar usuÃ¡rios: ${err.message}`);
+      setError(`Erro ao carregar usuários: ${err.message}`);
     } finally {
       setLoadingUsers(false);
     }
@@ -132,7 +132,7 @@ const AtribuirColaborador = () => {
     
     // Validation
     if (!selectedUser) {
-      setError('Selecione um usuÃ¡rio');
+      setError('Selecione um usuário');
       return;
     }
 
@@ -174,7 +174,7 @@ const AtribuirColaborador = () => {
       // Success
       setSuccess(true);
       setSuccessMessage(
-        `${selectedUser.nome} foi atribuÃ­do como colaborador de ${
+        `${selectedUser.nome} foi atribuído como colaborador de ${
           disciplinas.find(d => d.id === selectedDisciplina)?.nome || selectedDisciplina
         } com sucesso!`
       );
@@ -188,11 +188,11 @@ const AtribuirColaborador = () => {
       
       // Handle specific error messages
       if (err.message.includes('admin')) {
-        setError('NÃ£o Ã© possÃ­vel atribuir um administrador como colaborador');
+        setError('Não é possível atribuir um administrador como colaborador');
       } else if (err.message.includes('Disciplina')) {
-        setError('Disciplina invÃ¡lida');
-      } else if (err.message.includes('nÃ£o encontrado')) {
-        setError('UsuÃ¡rio nÃ£o encontrado');
+        setError('Disciplina inválida');
+      } else if (err.message.includes('não encontrado')) {
+        setError('Usuário não encontrado');
       } else {
         setError(`Erro ao atribuir colaborador: ${err.message}`);
       }
@@ -209,7 +209,7 @@ const AtribuirColaborador = () => {
           <Users className="w-6 h-6" />
           <h2 className="text-2xl font-bold">Atribuir Colaborador</h2>
         </div>
-        <p className="text-blue-100">Selecione um usuÃ¡rio e atribua uma disciplina</p>
+        <p className="text-blue-100">Selecione um usuário e atribua uma disciplina</p>
       </div>
 
       {/* Success Message */}
@@ -291,14 +291,14 @@ const AtribuirColaborador = () => {
                         <p className="text-sm text-gray-500">{user.email}</p>
                         {user.role === 'colaborador' && (
                           <p className="text-xs text-blue-600 mt-1">
-                            JÃ¡ Ã© colaborador de: {user.disciplina_colaborador}
+                            Já é colaborador de: {user.disciplina_colaborador}
                           </p>
                         )}
                       </button>
                     ))
                   ) : (
                     <div className="p-4 text-center text-gray-500">
-                      Nenhum usuÃ¡rio encontrado
+                      Nenhum usuário encontrado
                     </div>
                   )}
                 </div>
@@ -307,7 +307,7 @@ const AtribuirColaborador = () => {
           </div>
 
           {loadingUsers && (
-            <p className="text-xs text-gray-500 mt-2">Carregando usuÃ¡rios...</p>
+            <p className="text-xs text-gray-500 mt-2">Carregando usuários...</p>
           )}
         </div>
 

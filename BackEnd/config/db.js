@@ -3,8 +3,8 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-console.log('🔧 Iniciando configuração do banco de dados...');
-console.log('📋 Configuração carregada do .env:');
+console.log('[TOOL] Iniciando configuração do banco de dados...');
+console.log('[LIST] Configuração carregada do .env:');
 console.log(`   Database: ${process.env.DB_NAME || 'comaes_db'}`);
 console.log(`   Usuário: ${process.env.DB_USER || 'root'}`);
 console.log(`   Host: ${process.env.DB_HOST || 'localhost'}`);
@@ -46,12 +46,12 @@ const sequelize = new Sequelize(
 
 async function testConnection({ createIfMissing = true } = {}) {
   try {
-    console.log('\n🔄 Tentando conectar ao banco de dados...');
+    console.log('\n[REFRESH] Tentando conectar ao banco de dados...');
     console.log(`📍 Endpoint: ${sequelize.config.host}:${sequelize.config.port}`);
     console.log(`👤 Com usuário: ${sequelize.config.username}`);
 
     await sequelize.authenticate();
-    console.log('✅ Conexão estabelecida com sucesso!');
+    console.log('[SUCCESS] Conexão estabelecida com sucesso!');
 
     if (createIfMissing) {
       const [results] = await sequelize.query(
@@ -61,16 +61,16 @@ async function testConnection({ createIfMissing = true } = {}) {
       if (results.length > 0) {
         console.log(`📁 Banco "${sequelize.config.database}" encontrado`);
       } else {
-        console.log(`⚠️ Banco "${sequelize.config.database}" não existe`);
+        console.log(`[WARNING] Banco "${sequelize.config.database}" não existe`);
         console.log('🔨 Criando banco de dados...');
         await sequelize.query(`CREATE DATABASE IF NOT EXISTS ${sequelize.config.database}`);
-        console.log(`✅ Banco "${sequelize.config.database}" criado`);
+        console.log(`[SUCCESS] Banco "${sequelize.config.database}" criado`);
       }
     }
 
     return true;
   } catch (error) {
-    console.error('❌ ERRO ao conectar ao banco de dados:');
+    console.error('[ERROR] ERRO ao conectar ao banco de dados:');
     console.error(`   Mensagem: ${error.message}`);
 
     if (error.original) {
@@ -78,7 +78,7 @@ async function testConnection({ createIfMissing = true } = {}) {
       console.error(`   Erro SQL: ${error.original.sqlMessage}`);
     }
 
-    console.log('\n🔧 SOLUÇÕES RECOMENDADAS:');
+    console.log('\n[TOOL] SOLUÇÕES RECOMENDADAS:');
     console.log('1. Verifique se o MySQL/XAMPP está rodando');
     console.log('2. Confirme as credenciais no arquivo .env:');
     console.log('   DB_USER=root');

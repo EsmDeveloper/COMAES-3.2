@@ -10,7 +10,7 @@
 import React from 'react';
 import { Flame } from 'lucide-react';
 
-/* ── Cores dinâmicas com base no streak ─────────────────────────── */
+/* ── Cores dinâmicas com base no streak  */
 function getCores(streak, ativa) {
   if (!ativa || streak === 0) {
     return { fundo: '#F3F4F6', texto: '#9CA3AF', borda: '#E5E7EB', chama: '#D1D5DB' };
@@ -22,7 +22,7 @@ function getCores(streak, ativa) {
   return { fundo: '#FFF7ED', texto: '#C2410C', borda: '#FED7AA', chama: '#FB923C' };
 }
 
-/* ── Texto motivador com base no streak ─────────────────────────── */
+/* ── Texto motivador com base no streak  */
 function getMensagem(streak, ativa) {
   if (!ativa || streak === 0) return 'Realiza uma atividade hoje para iniciar a tua sequência!';
   if (streak === 1) return 'Sequência iniciada! Volta amanhã para continuar. 🔥';
@@ -32,7 +32,7 @@ function getMensagem(streak, ativa) {
   return `${streak} dias consecutivos! És uma inspiração! 🏆`;
 }
 
-/* ── Componente principal ─────────────────────────────────────────── */
+/* ── Componente principal  */
 export default function StreakBadge({
   streak = 0,
   maximo = 0,

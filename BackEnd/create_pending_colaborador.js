@@ -41,40 +41,40 @@ const createPendingColaborador = async () => {
     
     console.log('✅ Colaborador PENDENTE criado com sucesso!\n');
     console.log('📋 DETALHES:');
-    console.log('───────────────────────────────────────────────');
+    console.log('');
     console.log(`Nome: ${user.nome}`);
     console.log(`Email: ${user.email}`);
     console.log(`Telefone: ${user.telefone}`);
     console.log(`Disciplina: ${user.disciplina_colaborador}`);
     console.log(`Nível Acadêmico: ${user.nivel_academico}`);
     console.log(`Status: 🔴 PENDENTE DE APROVAÇÃO`);
-    console.log('───────────────────────────────────────────────\n');
+    console.log('\n');
 
     console.log('🔑 CREDENCIAIS DE LOGIN:');
-    console.log('───────────────────────────────────────────────');
+    console.log('');
     console.log(`Email: ${user.email}`);
     console.log(`Senha: ${senha}`);
-    console.log('───────────────────────────────────────────────\n');
+    console.log('\n');
 
     console.log('📋 O que acontece agora:');
-    console.log('───────────────────────────────────────────────');
+    console.log('');
     console.log('1. Colaborador faz login com as credenciais acima');
     console.log('2. Sistema detecta status = "pendente"');
     console.log('3. Mostra tela de espera (WaitingScreen)');
     console.log('4. Admin aprova no painel administrativo');
     console.log('5. Colaborador é redirecionado automaticamente');
     console.log('6. Acessa ColaboradorDashboard');
-    console.log('───────────────────────────────────────────────\n');
+    console.log('\n');
 
     console.log('🎯 TESTE SUGERIDO:');
-    console.log('───────────────────────────────────────────────');
+    console.log('');
     console.log(`1. Ir para: http://localhost:5177`);
     console.log(`2. Login com: ${user.email}`);
     console.log(`3. Senha: ${senha}`);
     console.log(`4. Deverá ver: Tela de Espera ⏳`);
     console.log(`5. Admin aprova em: Menu → Usuários & Comunidade → Pedidos`);
     console.log(`6. Redirecionamento automático para painel`);
-    console.log('───────────────────────────────────────────────\n');
+    console.log('\n');
 
     process.exit(0);
   } catch (e) {

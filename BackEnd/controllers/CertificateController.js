@@ -77,7 +77,7 @@ export const CertificateController = {
                 codigo: cert.codigo_verificacao
               });
             } catch (e) {
-              console.error(`⚠️ Erro ao gerar certificado para ${participante.usuario_id}:`, e.message);
+              console.error(`[WARNING] Erro ao gerar certificado para ${participante.usuario_id}:`, e.message);
             }
           }
 
@@ -87,7 +87,7 @@ export const CertificateController = {
             certificados: certificadosGerados
           });
         } catch (e) {
-          console.log(`ℹ️  Nenhum participante em ${disciplina}`);
+          console.log(`[INFO]  Nenhum participante em ${disciplina}`);
         }
       }
 

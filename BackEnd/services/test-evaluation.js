@@ -259,10 +259,10 @@ async function executarTeste(teste) {
 
 async function rodarTodosTestes() {
   console.log('\n\n');
-  console.log('╔════════════════════════════════════════════════════════════╗');
+  console.log('');
   console.log('║   TESTES DO SISTEMA DE AVALIAÇÃO COM IA (v2.0)           ║');
   console.log('║   Critérios Rigorosos por Disciplina                     ║');
-  console.log('╚════════════════════════════════════════════════════════════╝');
+  console.log('');
 
   console.log('\n\n🧮 TESTES DE MATEMÁTICA');
   console.log('━'.repeat(60));
@@ -283,10 +283,10 @@ async function rodarTodosTestes() {
   }
 
   console.log('\n\n');
-  console.log('╔════════════════════════════════════════════════════════════╗');
+  console.log('');
   console.log('║   TESTES CONCLUÍDOS                                       ║');
   console.log('║   Verifique os resultados acima                           ║');
-  console.log('╚════════════════════════════════════════════════════════════╝');
+  console.log('');
   console.log('\n');
 }
 

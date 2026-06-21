@@ -1,12 +1,12 @@
-﻿/**
+/**
  * ColaboradoresTab.jsx
  *
- * Painel completo de gestÃ£o de colaboradores/professores no AdminDashboard.
- * - VisualizaÃ§Ã£o persistente de todos os colaboradores (pendentes, aprovados, rejeitados, suspensos)
+ * Painel completo de gestão de colaboradores/professores no AdminDashboard.
+ * - Visualização persistente de todos os colaboradores (pendentes, aprovados, rejeitados, suspensos)
  * - Aprovar / rejeitar / suspender
  * - Visualizar documentos enviados com preview e download
  * - Criar colaborador manualmente
- * - AtualizaÃ§Ã£o em tempo real via Socket.IO (sem polling)
+ * - Atualização em tempo real via Socket.IO (sem polling)
  */
 
 import { useState, useEffect } from 'react';
@@ -41,8 +41,8 @@ const DISCIPLINA_ICONS = {
 };
 
 const NIVEIS_LABEL = {
-  estudante_universitario: 'Estudante universitÃ¡rio',
-  tecnico:    'TÃ©cnico',
+  estudante_universitario: 'Estudante universitário',
+  tecnico:    'Técnico',
   licenciado: 'Licenciado',
   mestre:     'Mestre',
   doutor:     'Doutor',
@@ -52,9 +52,9 @@ const NIVEIS_LABEL = {
 };
 
 const DISCIPLINAS = [
-  { value: 'matematica',  label: 'MatemÃ¡tica' },
-  { value: 'programacao', label: 'ProgramaÃ§Ã£o' },
-  { value: 'ingles',      label: 'InglÃªs' },
+  { value: 'matematica',  label: 'Matemática' },
+  { value: 'programacao', label: 'Programação' },
+  { value: 'ingles',      label: 'Inglês' },
 ];
 
 function formatDate(d) {
@@ -98,14 +98,14 @@ function ModalDetalhes({ colaborador, onClose, onAprovar, onRejeitar, onSuspende
     try {
       const res = await svc.colaboradores.getDocumentos(colaborador.id);
       // Backend retorna { success: true, data: [...] }
-      // axios jÃ¡ desembrulha em .data, entÃ£o res Ã© { success: true, data: [...] }
-      console.log('ðŸ“„ [ModalDetalhes] carregarDocs - Resposta API:', res);
+      // axios já desembrulha em .data, então res é { success: true, data: [...] }
+      console.log(' [ModalDetalhes] carregarDocs - Resposta API:', res);
       
       let docs = res.data || [];
       
-      // Garantir que docs Ã© sempre um array
+      // Garantir que docs é sempre um array
       if (typeof docs === 'string') {
-        console.warn('âš ï¸ Documentos vÃªm como string, fazendo parse...');
+        console.warn('âš  Documentos vêm como string, fazendo parse...');
         try {
           docs = JSON.parse(docs);
         } catch {
@@ -113,20 +113,20 @@ function ModalDetalhes({ colaborador, onClose, onAprovar, onRejeitar, onSuspende
         }
       }
       
-      // Se nÃ£o for array, retornar vazio
+      // Se não for array, retornar vazio
       if (!Array.isArray(docs)) {
-        console.warn('âš ï¸ Documentos nÃ£o Ã© array:', typeof docs, docs);
+        console.warn('âš  Documentos não é array:', typeof docs, docs);
         docs = [];
       }
       
-      console.log('âœ… Documentos apÃ³s tratamento:', docs);
+      console.log('âœ… Documentos após tratamento:', docs);
       setDocs(docs);
       
     } catch (err) { 
-      console.error('âŒ [ModalDetalhes] Erro ao carregar documentos:', err);
-      console.error('âŒ [ModalDetalhes] Status:', err.response?.status);
-      console.error('âŒ [ModalDetalhes] Mensagem:', err.response?.data?.message);
-      console.error('âŒ [ModalDetalhes] Detalhes completos:', err.response?.data);
+      console.error('âŒ [ModalDetalhes] Erro ao carregar documentos:', err);
+      console.error('âŒ [ModalDetalhes] Status:', err.response?.status);
+      console.error('âŒ [ModalDetalhes] Mensagem:', err.response?.data?.message);
+      console.error('âŒ [ModalDetalhes] Detalhes completos:', err.response?.data);
       setDocs([]); 
     }
     finally { setLoadingDocs(false); setShowDocs(true); }
@@ -139,7 +139,7 @@ function ModalDetalhes({ colaborador, onClose, onAprovar, onRejeitar, onSuspende
       const res = await svc.colaboradores.getQuestoes(colaborador.id, { limite: 100 });
       setQuestoes(res.dados?.questoes || []);
     } catch (err) { 
-      console.error('Erro ao carregar questÃµes:', err);
+      console.error('Erro ao carregar questÃães:', err);
       setQuestoes([]); 
     }
     finally { setLoadingQuestoes(false); setShowQuestoes(true); }
@@ -176,7 +176,7 @@ function ModalDetalhes({ colaborador, onClose, onAprovar, onRejeitar, onSuspende
             {[
               ['E-mail',      c.email],
               ['Telefone',    c.telefone || 'â€”'],
-              ['GÃ©nero',      c.sexo || 'â€”'],
+              ['Género',      c.sexo || 'â€”'],
               ['Nascimento',  formatDate(c.nascimento)],
             ].map(([label, val]) => (
               <div key={label}>
@@ -186,12 +186,12 @@ function ModalDetalhes({ colaborador, onClose, onAprovar, onRejeitar, onSuspende
             ))}
           </div>
 
-          {/* Dados acadÃ©micos */}
+          {/* Dados académicos */}
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 md:p-4 space-y-2 text-xs md:text-sm">
-            <p className="font-semibold text-blue-800 text-xs uppercase tracking-wide mb-1">Dados AcadÃ©micos</p>
+            <p className="font-semibold text-blue-800 text-xs uppercase tracking-wide mb-1">Dados Académicos</p>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <p className="text-gray-400 text-xs">Ãrea de atuaÃ§Ã£o</p>
+                <p className="text-gray-400 text-xs">Ãrea de atuação</p>
                 <div className="flex items-center gap-1 font-medium capitalize text-gray-800 text-xs md:text-sm">
                   {DISCIPLINA_ICONS[c.disciplina_colaborador] && (
                     DISCIPLINA_ICONS[c.disciplina_colaborador]
@@ -200,7 +200,7 @@ function ModalDetalhes({ colaborador, onClose, onAprovar, onRejeitar, onSuspende
                 </div>
               </div>
               <div>
-                <p className="text-gray-400 text-xs">NÃ­vel acadÃ©mico</p>
+                <p className="text-gray-400 text-xs">Nível académico</p>
                 <p className="font-medium text-gray-800">{NIVEIS_LABEL[c.nivel_academico] || c.nivel_academico || 'â€”'}</p>
               </div>
             </div>
@@ -230,7 +230,7 @@ function ModalDetalhes({ colaborador, onClose, onAprovar, onRejeitar, onSuspende
             {showDocs && (
               !Array.isArray(docs) || docs.length === 0
                 ? <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
-                    ðŸ“„ Nenhum documento foi enviado por este colaborador.
+                     Nenhum documento foi enviado por este colaborador.
                   </div>
                 : (
                   <ul className="mt-2 space-y-2">
@@ -256,20 +256,20 @@ function ModalDetalhes({ colaborador, onClose, onAprovar, onRejeitar, onSuspende
             )}
           </div>
 
-          {/* QuestÃµes Criadas */}
+          {/* QuestÃães Criadas */}
           <div>
             <button onClick={carregarQuestoes}
               className="flex items-center gap-2 text-sm text-blue-600 font-semibold hover:underline">
               {loadingQuestoes
-                ? <><RefreshCw size={14} className="animate-spin" /> Carregando questÃµes...</>
+                ? <><RefreshCw size={14} className="animate-spin" /> Carregando questÃães...</>
                 : showQuestoes
-                ? <><EyeOff size={14} /> Ocultar questÃµes</>
-                : <><Eye size={14} /> Ver questÃµes criadas</>}
+                ? <><EyeOff size={14} /> Ocultar questÃães</>
+                : <><Eye size={14} /> Ver questÃães criadas</>}
             </button>
 
             {showQuestoes && (
               questoes.length === 0
-                ? <p className="text-xs text-gray-400 mt-2">Nenhuma questÃ£o criada.</p>
+                ? <p className="text-xs text-gray-400 mt-2">Nenhuma questão criada.</p>
                 : (
                   <div className="mt-2 space-y-2 max-h-64 overflow-y-auto">
                     {questoes.map((q, i) => (
@@ -286,9 +286,9 @@ function ModalDetalhes({ colaborador, onClose, onAprovar, onRejeitar, onSuspende
                           </span>
                         </div>
                         <div className="flex gap-3 text-gray-500">
-                          {q.tipo && <span>ðŸ“ {q.tipo}</span>}
-                          {q.dificuldade && <span>ðŸ“Š {q.dificuldade}</span>}
-                          {q.bloco?.titulo && <span>ðŸ“¦ {q.bloco.titulo}</span>}
+                          {q.tipo && <span> {q.tipo}</span>}
+                          {q.dificuldade && <span> {q.dificuldade}</span>}
+                          {q.bloco?.titulo && <span> {q.bloco.titulo}</span>}
                         </div>
                       </div>
                     ))}
@@ -303,7 +303,7 @@ function ModalDetalhes({ colaborador, onClose, onAprovar, onRejeitar, onSuspende
             <div><span className="font-medium">Ãšltima actividade:</span> {formatDate(c.updatedAt)}</div>
           </div>
 
-          {/* AÃ§Ãµes */}
+          {/* AçÃães */}
           {(c.status_colaborador === 'pendente' || c.status_colaborador === 'aprovado') && (
             <div className="flex gap-2 pt-2 border-t border-gray-100">
               {c.status_colaborador === 'pendente' && (
@@ -335,10 +335,10 @@ function ModalDetalhes({ colaborador, onClose, onAprovar, onRejeitar, onSuspende
   );
 }
 
-/* â”€â”€â”€ Modal de aprovaÃ§Ã£o (confirmaÃ§Ã£o simples) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* â”€â”€â”€ Modal de aprovação (confirmação simples) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function ModalAprovar({ colaborador, onConfirm, onCancel, loading }) {
   // DEBUG: Log exatamente o que estamos recebendo
-  console.log('ðŸ” [ModalAprovar] Colaborador recebido:');
+  console.log(' [ModalAprovar] Colaborador recebido:');
   console.log('   ID:', colaborador?.id);
   console.log('   Nome:', colaborador?.nome);
   console.log('   Raw disciplina_colaborador:', JSON.stringify(colaborador?.disciplina_colaborador));
@@ -360,7 +360,7 @@ function ModalAprovar({ colaborador, onConfirm, onCancel, loading }) {
     }
   }
   
-  console.log('   Disciplina apÃ³s processamento:', disciplina);
+  console.log('   Disciplina após processamento:', disciplina);
   console.log('   tem Disciplina?', disciplina.length > 0);
   
   const temDisciplina = disciplina.length > 0;
@@ -368,7 +368,7 @@ function ModalAprovar({ colaborador, onConfirm, onCancel, loading }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4">
       <div className="bg-white rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto p-4 md:p-6">
-        <h3 className="font-bold text-gray-800 text-base md:text-lg mb-1">Confirmar AprovaÃ§Ã£o</h3>
+        <h3 className="font-bold text-gray-800 text-base md:text-lg mb-1">Confirmar Aprovação</h3>
         <p className="text-gray-500 text-xs md:text-sm mb-4">
           Tem a certeza que pretende aprovar <strong>{colaborador.nome}</strong>?
         </p>
@@ -384,7 +384,7 @@ function ModalAprovar({ colaborador, onConfirm, onCancel, loading }) {
             <span className="capitalize">
               {temDisciplina 
                 ? disciplina.replace('_', ' ') 
-                : 'âš ï¸ NÃ£o preenchida no cadastro'}
+                : 'âš  Não preenchida no cadastro'}
             </span>
           </p>
           {!temDisciplina && (
@@ -408,7 +408,7 @@ function ModalAprovar({ colaborador, onConfirm, onCancel, loading }) {
         
         {!temDisciplina && (
           <p className="text-xs text-red-600 mt-3 text-center">
-            ðŸ’¡ Rejeite ou contacte o colaborador para preencher o cadastro.
+             Rejeite ou contacte o colaborador para preencher o cadastro.
           </p>
         )}
       </div>
@@ -416,7 +416,7 @@ function ModalAprovar({ colaborador, onConfirm, onCancel, loading }) {
   );
 }
 
-/* â”€â”€â”€ Modal de rejeiÃ§Ã£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* â”€â”€â”€ Modal de rejeição â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function ModalRejeitar({ colaborador, onConfirm, onCancel, loading }) {
   const [motivo, setMotivo] = useState('');
   return (
@@ -428,7 +428,7 @@ function ModalRejeitar({ colaborador, onConfirm, onCancel, loading }) {
         </p>
         <textarea
           value={motivo} onChange={e => setMotivo(e.target.value)} rows={3}
-          placeholder="Motivo da rejeiÃ§Ã£o (opcional)"
+          placeholder="Motivo da rejeição (opcional)"
           className="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-xs md:text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none mb-4"
         />
         <div className="flex flex-col md:flex-row gap-2">
@@ -447,7 +447,7 @@ function ModalRejeitar({ colaborador, onConfirm, onCancel, loading }) {
   );
 }
 
-/* â”€â”€â”€ Modal de suspensÃ£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* â”€â”€â”€ Modal de suspensão â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function ModalSuspender({ colaborador, onConfirm, onCancel, loading }) {
   const [motivo, setMotivo] = useState('');
   return (
@@ -455,19 +455,19 @@ function ModalSuspender({ colaborador, onConfirm, onCancel, loading }) {
       <div className="bg-white rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto p-4 md:p-6" onClick={e => e.stopPropagation()}>
         <h3 className="font-bold text-gray-800 text-base md:text-lg mb-1">Suspender Colaborador</h3>
         <p className="text-gray-500 text-xs md:text-sm mb-3">
-          Tem a certeza que pretende suspender <strong>{colaborador.nome}</strong>? Esta aÃ§Ã£o notificarÃ¡ o colaborador.
+          Tem a certeza que pretende suspender <strong>{colaborador.nome}</strong>? Esta ação notificará o colaborador.
         </p>
         
         {/* Warning Box */}
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 text-xs md:text-sm">
           <p className="text-amber-800">
-            <span className="font-semibold">âš ï¸ AtenÃ§Ã£o:</span> O colaborador serÃ¡ notificado imediatamente desta suspensÃ£o e nÃ£o poderÃ¡ mais criar questÃµes ou participar em torneios.
+            <span className="font-semibold">âš  Atenção:</span> O colaborador será notificado imediatamente desta suspensão e não poderá mais criar questÃães ou participar em torneios.
           </p>
         </div>
         
         <textarea
           value={motivo} onChange={e => setMotivo(e.target.value)} rows={3}
-          placeholder="Motivo da suspensÃ£o (opcional)"
+          placeholder="Motivo da suspensão (opcional)"
           className="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-xs md:text-sm outline-none focus:ring-2 focus:ring-amber-500 resize-none mb-4"
         />
         <div className="flex flex-col md:flex-row gap-2">
@@ -502,11 +502,11 @@ export default function ColaboradoresTab() {
   const [modalRejeitar, setModalRejeitar]   = useState(null);
   const [modalSuspender, setModalSuspender] = useState(null);
 
-  // âœ… Socket.IO para atualizaÃ§Ãµes em tempo real
+  // âœ… Socket.IO para atualizaçÃães em tempo real
   useSocketColaboradores({
     onNovoColaborador: (data) => {
       console.log('âœ… Novo colaborador recebido via Socket:', data);
-      toast('success', `ðŸ“¢ Novo colaborador: ${data.nome}`);
+      toast('success', ` Novo colaborador: ${data.nome}`);
       // Recarregar lista automaticamente
       carregar();
     },
@@ -516,17 +516,17 @@ export default function ColaboradoresTab() {
       carregar();
     },
     onRejeitado: (data) => {
-      console.log('âŒ Colaborador rejeitado via Socket:', data);
-      toast('info', `âŒ ${data.nome} foi rejeitado`);
+      console.log('âŒ Colaborador rejeitado via Socket:', data);
+      toast('info', `âŒ ${data.nome} foi rejeitado`);
       carregar();
     },
     onSuspenso: (data) => {
-      console.log('ðŸš« Colaborador suspenso via Socket:', data);
-      toast('info', `ðŸš« ${data.nome} foi suspenso`);
+      console.log(' Colaborador suspenso via Socket:', data);
+      toast('info', ` ${data.nome} foi suspenso`);
       carregar();
     },
     onAtualizacao: (data) => {
-      console.log('ðŸ”„ AtualizaÃ§Ã£o de colaboradores via Socket');
+      console.log(' Atualização de colaboradores via Socket');
       carregar();
     },
     enabled: true
@@ -578,8 +578,8 @@ export default function ColaboradoresTab() {
   const handleAprovar = async () => {
     const c = modalAprovar;
     
-    // DEBUG: Log exatamente o que estÃ¡ no objeto
-    console.log('ðŸ” [handleAprovar] Iniciado:');
+    // DEBUG: Log exatamente o que está no objeto
+    console.log(' [handleAprovar] Iniciado:');
     console.log('   Colaborador ID:', c?.id);
     console.log('   Nome:', c?.nome);
     console.log('   disciplina_colaborador raw:', JSON.stringify(c?.disciplina_colaborador));
@@ -594,12 +594,12 @@ export default function ColaboradoresTab() {
       }
     }
     
-    console.log('   Disciplina apÃ³s trim:', disciplina);
+    console.log('   Disciplina após trim:', disciplina);
     console.log('   Comprimento:', disciplina.length);
     console.log('   isEmpty?', !disciplina || disciplina === '');
     
     if (!disciplina) {
-      toast('error', 'O colaborador nÃ£o preencheu a disciplina no cadastro. Contacte-o ou rejeite a solicitaÃ§Ã£o.');
+      toast('error', 'O colaborador não preencheu a disciplina no cadastro. Contacte-o ou rejeite a solicitação.');
       return;
     }
     
@@ -612,14 +612,14 @@ export default function ColaboradoresTab() {
       setDetalhes(null);
       await carregar();
     } catch (err) {
-      console.error('âŒ Erro ao aprovar:', err);
+      console.error('âŒ Erro ao aprovar:', err);
       const mensagemErro = err.response?.data?.message || err.response?.data?.fieldErrors?.disciplina_colaborador || 'Erro ao aprovar colaborador.';
       toast('error', mensagemErro);
     } finally {
       setLoadingId(null);
       // Resetar o filtro para 'aprovado' SEMPRE, mesmo em caso de erro
       setTimeout(() => {
-        console.log('ðŸ”„ [finally setTimeout] Resetando filtro para aprovado');
+        console.log(' [finally setTimeout] Resetando filtro para aprovado');
         setFiltroStatus('aprovado');
       }, 100);
     }
@@ -640,7 +640,7 @@ export default function ColaboradoresTab() {
       setLoadingId(null);
       // Resetar o filtro para 'rejeitado' SEMPRE, mesmo em caso de erro
       setTimeout(() => {
-        console.log('ðŸ”„ [finally setTimeout] Resetando filtro para rejeitado');
+        console.log(' [finally setTimeout] Resetando filtro para rejeitado');
         setFiltroStatus('rejeitado');
       }, 100);
     }
@@ -656,7 +656,7 @@ export default function ColaboradoresTab() {
       setDetalhes(null);
       await carregar();
     } catch (err) {
-      console.error('âŒ Erro ao suspender:', err);
+      console.error('âŒ Erro ao suspender:', err);
       toast('error', 'Erro ao suspender colaborador.');
     } finally {
       setLoadingId(null);
@@ -690,10 +690,10 @@ export default function ColaboradoresTab() {
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
             <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
-              <Users size={18} className="md:w-5 md:h-5" /> GestÃ£o de Colaboradores
+              <Users size={18} className="md:w-5 md:h-5" /> Gestão de Colaboradores
             </h2>
             <p className="text-slate-500 text-xs md:text-sm mt-0.5">
-              SupervisÃ£o pedagÃ³gica permanente â€” {stats.total} colaborador{stats.total !== 1 ? 'es' : ''} registado{stats.total !== 1 ? 's' : ''}
+              Supervisão pedagógica permanente â€” {stats.total} colaborador{stats.total !== 1 ? 'es' : ''} registado{stats.total !== 1 ? 's' : ''}
             </p>
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
@@ -744,7 +744,7 @@ export default function ColaboradoresTab() {
             <Users size={36} className="text-gray-200 mx-auto mb-3" />
             <p className="text-gray-500 font-medium">Nenhum colaborador encontrado</p>
             <p className="text-gray-400 text-sm mt-1">
-              {busca ? 'Tente outra pesquisa.' : 'Ainda nÃ£o hÃ¡ colaboradores nesta categoria.'}
+              {busca ? 'Tente outra pesquisa.' : 'Ainda não há colaboradores nesta categoria.'}
             </p>
           </div>
         ) : (
@@ -753,11 +753,11 @@ export default function ColaboradoresTab() {
               <thead>
                 <tr className="border-b border-gray-100">
                   <th className="text-left py-2 md:py-3 px-3 text-xs font-semibold text-gray-400 uppercase">Colaborador</th>
-                  <th className="text-left py-2 md:py-3 px-3 text-xs font-semibold text-gray-400 uppercase hidden md:table-cell">Ãrea</th>
-                  <th className="text-left py-2 md:py-3 px-3 text-xs font-semibold text-gray-400 uppercase hidden lg:table-cell">NÃ­vel</th>
+                  <th className="text-left py-2 md:py-3 px-3 text-xs font-semibold text-gray-400 uppercase hidden md:table-cell">Ãrea</th>
+                  <th className="text-left py-2 md:py-3 px-3 text-xs font-semibold text-gray-400 uppercase hidden lg:table-cell">Nível</th>
                   <th className="text-left py-2 md:py-3 px-3 text-xs font-semibold text-gray-400 uppercase">Status</th>
                   <th className="text-left py-2 md:py-3 px-3 text-xs font-semibold text-gray-400 uppercase hidden md:table-cell">Registo</th>
-                  <th className="text-right py-2 md:py-3 px-3 text-xs font-semibold text-gray-400 uppercase">AÃ§Ãµes</th>
+                  <th className="text-right py-2 md:py-3 px-3 text-xs font-semibold text-gray-400 uppercase">AçÃães</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -781,7 +781,7 @@ export default function ColaboradoresTab() {
                           </div>
                         </div>
                       </td>
-                      {/* Ãrea */}
+                      {/* Ãrea */}
                       <td className="py-2 md:py-3 px-3 hidden md:table-cell">
                         <div className="flex items-center gap-1 capitalize text-gray-700 text-xs md:text-sm">
                           {DISCIPLINA_ICONS[c.disciplina_colaborador] && (
@@ -790,7 +790,7 @@ export default function ColaboradoresTab() {
                           <span>{(c.disciplina_colaborador || 'â€”').replace('_', ' ')}</span>
                         </div>
                       </td>
-                      {/* NÃ­vel */}
+                      {/* Nível */}
                       <td className="py-2 md:py-3 px-3 hidden lg:table-cell text-gray-600 text-xs">
                         {NIVEIS_LABEL[c.nivel_academico] || 'â€”'}
                       </td>
@@ -802,7 +802,7 @@ export default function ColaboradoresTab() {
                       <td className="py-2 md:py-3 px-3 hidden md:table-cell text-gray-500 text-xs">
                         {formatDate(c.createdAt)}
                       </td>
-                      {/* AÃ§Ãµes */}
+                      {/* AçÃães */}
                       <td className="py-2 md:py-3 px-3">
                         <div className="flex items-center justify-end gap-1">
                           <button onClick={() => setDetalhes(c)} title="Ver detalhes"

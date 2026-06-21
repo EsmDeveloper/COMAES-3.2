@@ -17,7 +17,7 @@
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, X, ChevronDown, Copy, Trash2 } from 'lucide-react';
 
-// ── Tipos de Questão ──────────────────────────────────────────────────────────
+// ── Tipos de Questão 
 const TIPOS_QUESTAO = [
   { value: 'multipla_escolha', label: 'Múltipla Escolha' },
   { value: 'texto', label: 'Texto Livre' },
@@ -41,7 +41,7 @@ const LINGUAGENS = [
   { value: 'go', label: 'Go' },
 ];
 
-// ── Validação ─────────────────────────────────────────────────────────────────
+// ── Validação 
 const validarCamposComuns = (formData) => {
   const erros = [];
 
@@ -134,7 +134,7 @@ const validarCodigo = (formData) => {
   return erros;
 };
 
-// ── Componente Principal ──────────────────────────────────────────────────────
+// ── Componente Principal 
 export default function QuestaoForm({
   questao = null, // null para criar, objeto para editar
   disciplina = 'matematica', // disciplina do usuário (bloqueada)
@@ -143,7 +143,7 @@ export default function QuestaoForm({
   loading = false, // Estado de carregamento
   showStatusMessage = true, // Mostrar mensagem de status após criação
 }) {
-  // ── Constantes para cálculo de pontos ────────────────────────────────────
+  // ── Constantes para cálculo de pontos 
   const calcularPontosParaDificuldade = (dificuldade) => {
     const pontosPorDificuldade = {
       'facil': 5,
@@ -153,7 +153,7 @@ export default function QuestaoForm({
     return pontosPorDificuldade[dificuldade] || 10;
   };
 
-  // ── Estados ───────────────────────────────────────────────────────────────
+  // ── Estados 
   const [formData, setFormData] = useState({
     titulo: '',
     descricao: '',
@@ -170,7 +170,7 @@ export default function QuestaoForm({
   const [saving, setSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
 
-  // ── Effects ───────────────────────────────────────────────────────────────
+  // ── Effects 
   // Carregar dados da questão ao editar
   useEffect(() => {
     if (questao) {
@@ -208,7 +208,7 @@ export default function QuestaoForm({
     setErros([]);
   }, [questao]);
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // ── Handlers 
   const handleFieldChange = (field, value) => {
     // Se mudar dificuldade, auto-atualizar pontos
     if (field === 'dificuldade' && !questao) {
@@ -372,7 +372,7 @@ export default function QuestaoForm({
     }
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Render 
   return (
     <div className="w-full max-w-4xl mx-auto">
       {/* Header */}

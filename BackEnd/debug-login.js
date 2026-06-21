@@ -24,7 +24,7 @@ async function debugLogin() {
     // 1. Query SQL direta (como no login)
     console.log('1️⃣ Buscando com query SQL direta:');
     const [sqlResults] = await sequelize.query(
-      `SELECT id, nome, telefone, email, nascimento, sexo, password, escola, imagem, biografia, isAdmin, role, disciplina_colaborador, status_colaborador, createdAt, updatedAt, funcao_id 
+      `SELECT id, nome, telefone, email, nascimento, sexo, password, escola, imagem, biografia, isAdmin, role, disciplina_colaborador, status_colaborador, createdAt, updatedAt
        FROM usuarios 
        WHERE email = :email OR telefone = :telefone 
        LIMIT 1`,

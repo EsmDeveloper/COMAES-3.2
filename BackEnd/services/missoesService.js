@@ -20,7 +20,7 @@ import Missao from '../models/Missao.js';
 import MissaoUsuario from '../models/MissaoUsuario.js';
 import { incrementarXP } from './xpService.js';
 
-// ── Constantes de controlo de farm ────────────────────────────────
+// ── Constantes de controlo de farm 
 // Máximo de contribuições por tipo de evento por dia (por utilizador)
 const LIMITE_DIARIO = {
   questoes_corretas:  20,  // máx. 20 questões certas contam por dia
@@ -30,7 +30,7 @@ const LIMITE_DIARIO = {
   acerto_percentual:  3,   // max 3 testes com bom % por dia
 };
 
-// ── Utilitários de datas UTC ───────────────────────────────────────
+// ── Utilitários de datas UTC 
 export function hojeUTC() {
   return new Date().toISOString().split('T')[0];
 }
@@ -48,7 +48,7 @@ function cicloInicio(ciclo) {
   return ciclo === 'weekly' ? segundaFeirasUTC() : hojeUTC();
 }
 
-// ── Garantir que o progresso do ciclo existe (upsert) ─────────────
+// ── Garantir que o progresso do ciclo existe (upsert) 
 async function garantirProgresso(usuarioId, missao) {
   const inicio = cicloInicio(missao.ciclo);
   const [mu] = await MissaoUsuario.findOrCreate({
@@ -58,7 +58,7 @@ async function garantirProgresso(usuarioId, missao) {
   return mu;
 }
 
-// ── Verificar limite anti-farm num dia ────────────────────────────
+// ── Verificar limite anti-farm num dia 
 async function contribuicoesHoje(usuarioId, tipoObjetivo) {
   const limite = LIMITE_DIARIO[tipoObjetivo];
   if (!limite) return 0;
@@ -79,7 +79,7 @@ async function contribuicoesHoje(usuarioId, tipoObjetivo) {
   return parseInt(rows[0]?.total || 0);
 }
 
-// ── Obter missões ativas do ciclo para um utilizador ──────────────
+// ── Obter missões ativas do ciclo para um utilizador 
 export async function getMissoesAtivas(usuarioId) {
   const hoje = hojeUTC();
   const semana = segundaFeirasUTC();
@@ -114,7 +114,7 @@ export async function getMissoesAtivas(usuarioId) {
   return resultado;
 }
 
-// ── Incrementar progresso de missões por evento ───────────────────
+// ── Incrementar progresso de missões por evento 
 /**
  * @param {number} usuarioId
  * @param {object} evento
@@ -183,7 +183,7 @@ export async function processarEvento(usuarioId, evento) {
   return concluidas;
 }
 
-// ── Verificar se o evento afeta a missão ─────────────────────────
+// ── Verificar se o evento afeta a missão 
 function eventoAfetaMissao(evento, missao) {
   switch (missao.tipo_objetivo) {
     case 'questoes_corretas':
@@ -211,7 +211,7 @@ function eventoAfetaMissao(evento, missao) {
   }
 }
 
-// ── Calcular incremento para um evento ───────────────────────────
+// ── Calcular incremento para um evento 
 function calcularIncremento(evento, missao) {
   switch (missao.tipo_objetivo) {
     case 'questoes_corretas':
@@ -234,7 +234,7 @@ function calcularIncremento(evento, missao) {
   }
 }
 
-// ── Incrementar progresso manualmente via endpoint ────────────────
+// ── Incrementar progresso manualmente via endpoint 
 export async function incrementarProgresso(usuarioId, missaoId, incremento = 1) {
   const missao = await Missao.findByPk(missaoId);
   if (!missao || !missao.ativo) return null;

@@ -21,7 +21,8 @@ import {
   Brain,
   TrendingDown,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  ArrowRight
 } from 'lucide-react';
 import { 
   AreaChart, Area,
@@ -30,7 +31,7 @@ import {
   CartesianGrid, XAxis, YAxis, Tooltip
 } from 'recharts';
 
-/* â”€â”€â”€ Design Tokens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --------------------------------------------------------------------- */
 const tokens = {
   primary: '#4F6EF7',
   primarySoft: '#EEF1FE',
@@ -50,7 +51,7 @@ const tokens = {
   subtle: '#9CA3AF',
 };
 
-/* â”€â”€â”€ Shared Styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --------------------------------------------------------------------- */
 const cardStyle = {
   background: tokens.surface,
   borderRadius: '16px',
@@ -60,7 +61,7 @@ const cardStyle = {
   transition: 'all 0.2s ease',
 };
 
-/* â”€â”€â”€ Tooltip customizado â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --------------------------------------------------------------------- */
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload?.length) {
     return (
@@ -81,7 +82,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-/* â”€â”€â”€ Stat Card Compacto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --------------------------------------------------------------------- */
 function StatCard({ title, value, icon, accent, accentSoft, subtext }) {
   return (
     <div
@@ -124,7 +125,7 @@ function StatCard({ title, value, icon, accent, accentSoft, subtext }) {
   );
 }
 
-/* â”€â”€â”€ Section Title â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --------------------------------------------------------------------- */
 function SectionTitle({ title, subtitle }) {
   return (
     <div style={{ marginBottom: 18 }}>
@@ -138,20 +139,20 @@ function SectionTitle({ title, subtitle }) {
   );
 }
 
-/* â”€â”€â”€ Tournament Item â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --------------------------------------------------------------------- */
 function TournamentItem({ tournament, onClick }) {
   const getPositionStyle = (pos) => {
-    if (pos === 1) return { bg: '#FEF9C3', text: '#92400E', label: '1Âº' };
-    if (pos === 2) return { bg: '#F1F5F9', text: '#475569', label: '2Âº' };
-    if (pos === 3) return { bg: '#FFF7ED', text: '#9A3412', label: '3Âº' };
+    if (pos === 1) return { bg: '#FEF9C3', text: '#92400E', label: '1º' };
+    if (pos === 2) return { bg: '#F1F5F9', text: '#475569', label: '2º' };
+    if (pos === 3) return { bg: '#FFF7ED', text: '#9A3412', label: '3º' };
     return { bg: tokens.primarySoft, text: tokens.primary, label: 'Finalizou' };
   };
 
   const getCategoryColor = (cat) => {
     const colors = {
-      'MatemÃ¡tica': { bg: tokens.primarySoft, text: tokens.primary },
-      'ProgramaÃ§Ã£o': { bg: tokens.successSoft, text: '#059669' },
-      'InglÃªs': { bg: tokens.purpleSoft, text: tokens.purple },
+      'Matemática': { bg: tokens.primarySoft, text: tokens.primary },
+      'Programação': { bg: tokens.successSoft, text: '#059669' },
+      'Inglês': { bg: tokens.purpleSoft, text: tokens.purple },
     };
     return colors[cat] || { bg: tokens.amberSoft, text: '#92400E' };
   };
@@ -220,7 +221,7 @@ function TournamentItem({ tournament, onClick }) {
   );
 }
 
-/* â”€â”€â”€ Goal Progress Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --------------------------------------------------------------------- */
 function GoalCard({ title, current, target, accent, accentSoft }) {
   const pct = Math.min(Math.max((current / target) * 100, 0), 100);
 
@@ -252,7 +253,7 @@ function GoalCard({ title, current, target, accent, accentSoft }) {
   );
 }
 
-/* â”€â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â€“ */
+/* --------------------------------------------------------------------- */
 function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -260,7 +261,7 @@ function Dashboard() {
   const { streak, ativa } = useStreak();
 
   const [userData, setUserData] = useState({
-    username: user?.fullName || user?.nome || user?.username || 'UsuÃ¡rio COMAES',
+    username: user?.fullName || user?.nome || user?.username || 'Usuário COMAES',
     joinDate: user?.createdAt || user?.registrationDate || new Date().toISOString(),
     totalPoints: 0,
     currentRank: 0,
@@ -276,7 +277,6 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch dashboard data
   useEffect(() => {
     const fetchData = async () => {
       if (!user?.id) return;
@@ -291,7 +291,6 @@ function Dashboard() {
         if (result.success) {
           const participacoes = result.data;
 
-          // Calcular mÃ©tricas
           const totalPoints = participacoes.reduce((acc, p) => acc + Number(p.pontuacao || 0), 0);
           const tournamentsPlayed = participacoes.length;
           const tournamentsWon = participacoes.filter(p => p.posicao === 1).length;
@@ -330,7 +329,6 @@ function Dashboard() {
             bestDiscipline: bestDiscipline || 'Geral'
           }));
 
-          // HistÃ³rico de torneios (Ãºltimos 5)
           const history = participacoes
             .map(p => ({
               id: p.id,
@@ -345,7 +343,6 @@ function Dashboard() {
 
           setTournamentHistory(history);
 
-          // Progresso mensal (Ãºltimos 4 meses)
           const monthly = {};
           participacoes.forEach(p => {
             const date = new Date(p.entrou_em || p.criado_em);
@@ -371,7 +368,7 @@ function Dashboard() {
         }
       } catch (err) {
         console.error('Erro ao carregar dashboard:', err);
-        setError('NÃ£o foi possÃ­vel carregar os dados');
+        setError('Não foi possível carregar os dados');
       } finally {
         setLoading(false);
       }
@@ -380,7 +377,6 @@ function Dashboard() {
     fetchData();
   }, [user?.id]);
 
-  // Loading
   if (loading && user) {
     return (
       <Layout>
@@ -391,14 +387,13 @@ function Dashboard() {
             borderTopColor: tokens.primary,
             animation: 'spin 0.8s linear infinite',
           }} />
-          <span style={{ color: tokens.muted, fontSize: 14 }}>Carregando dashboardâ€¦</span>
+          <span style={{ color: tokens.muted, fontSize: 14 }}>Carregando dashboard…</span>
         </div>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </Layout>
     );
   }
 
-  // Not authenticated
   if (!user) {
     return (
       <Layout>
@@ -411,7 +406,7 @@ function Dashboard() {
           }}>
             <LayoutDashboard size={48} color={tokens.primary} style={{ margin: '0 auto 20px' }} />
             <h2 style={{ fontSize: 20, fontWeight: 700, color: tokens.text, marginBottom: 10 }}>
-              FaÃ§a login para acessar seu dashboard
+              Faça login para acessar seu dashboard
             </h2>
             <p style={{ fontSize: 14, color: tokens.muted, marginBottom: 28 }}>
               Conecte-se para acompanhar seu progresso e desempenho.
@@ -437,7 +432,6 @@ function Dashboard() {
     );
   }
 
-  // Error
   if (error && !loading) {
     return (
       <Layout>
@@ -469,7 +463,6 @@ function Dashboard() {
     );
   }
 
-  // Main dashboard
   return (
     <Layout>
       <style>{`
@@ -488,7 +481,7 @@ function Dashboard() {
       `}</style>
 
       <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-        {/* â”€â”€ Hero Section â”€â”€ */}
+        {/* Hero Section */}
         <div className="dash-fade" style={{ marginBottom: 32 }}>
           <div style={{
             background: `linear-gradient(135deg, ${tokens.primary} 0%, #6B8BF5 100%)`,
@@ -523,7 +516,7 @@ function Dashboard() {
                 <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                     <Zap size={16} />
-                    NÃ­vel {nivel?.numero || 1}
+                    Nível {nivel?.numero || 1}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                     <Brain size={16} />
@@ -532,7 +525,7 @@ function Dashboard() {
                   {streak > 0 && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                       <Activity size={16} />
-                      SequÃªncia: {streak} dias
+                      Sequência: {streak} dias
                     </div>
                   )}
                 </div>
@@ -550,7 +543,7 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* â”€â”€ Key Metrics Grid â”€â”€ */}
+        {/* Key Metrics Grid */}
         <div className="dash-fade" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px 16px', marginBottom: 32 }}>
           <StatCard
             title="Torneios"
@@ -558,10 +551,10 @@ function Dashboard() {
             icon={<Trophy size={20} />}
             accent="#2563EB"
             accentSoft="#DBEAFE"
-            subtext="Total de participaÃ§Ãµes"
+            subtext="Total de participações"
           />
           <StatCard
-            title="VitÃ³rias"
+            title="Vitórias"
             value={userData.tournamentsWon}
             icon={<CheckCircle2 size={20} />}
             accent="#4F46E5"
@@ -577,23 +570,23 @@ function Dashboard() {
             subtext="Pontos acumulados"
           />
           <StatCard
-            title="PrecisÃ£o"
+            title="Precisão"
             value={`${userData.averageAccuracy}%`}
             icon={<Target size={20} />}
             accent="#1E40AF"
             accentSoft="#EFF6FF"
-            subtext="MÃ©dia geral"
+            subtext="Média geral"
           />
         </div>
 
-        {/* â”€â”€ Main Content Grid â”€â”€ */}
+        {/* Main Content Grid */}
         <div className="dash-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '16px 24px', marginBottom: 32 }}>
           {/* Left Column - Charts and Recent Tournaments */}
           <div className="dash-fade">
             {/* Progress Chart */}
             {monthlyProgress.length > 0 && (
               <div style={{ ...cardStyle, marginBottom: 24 }}>
-                <SectionTitle title="Progresso Mensal" subtitle="Pontos conquistados por mÃªs" />
+                <SectionTitle title="Progresso Mensal" subtitle="Pontos conquistados por mês" />
                 <div style={{ height: 240 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={monthlyProgress}>
@@ -623,7 +616,7 @@ function Dashboard() {
 
             {/* Recent Tournaments */}
             <div style={cardStyle}>
-              <SectionTitle title="Torneios Recentes" subtitle="Seus Ãºltimos 5 torneios" />
+              <SectionTitle title="Torneios Recentes" subtitle="Seus últimos 5 torneios" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {tournamentHistory.length > 0 ? (
                   tournamentHistory.slice(0, 5).map(t => (
@@ -648,9 +641,12 @@ function Dashboard() {
                         fontWeight: 600,
                         cursor: 'pointer',
                         textDecoration: 'underline',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
                       }}
                     >
-                      Explorar torneios â†’
+                      Explorar torneios <ArrowRight size={12} />
                     </button>
                   </div>
                 )}
@@ -673,7 +669,7 @@ function Dashboard() {
               />
 
               <GoalCard
-                title="10 VitÃ³rias"
+                title="10 Vitórias"
                 current={userData.tournamentsWon}
                 target={10}
                 accent={tokens.success}
@@ -698,7 +694,7 @@ function Dashboard() {
 
             {/* Quick Actions */}
             <div style={{ ...cardStyle, marginTop: 16 }}>
-              <SectionTitle title="AÃ§Ãµes" />
+              <SectionTitle title="Ações" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <button
                   onClick={() => navigate('/torneios')}
@@ -758,4 +754,3 @@ function Dashboard() {
 }
 
 export default Dashboard;
-

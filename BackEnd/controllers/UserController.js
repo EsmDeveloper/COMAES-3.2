@@ -9,7 +9,7 @@ import { Op } from 'sequelize';
 import Usuario from '../models/User.js';
 import Disciplina from '../models/Disciplina.js';
 
-// ── Validation helpers (mirrors BackEnd/middlewares/validate.js) ──────────
+// ── Validation helpers (mirrors BackEnd/middlewares/validate.js) 
 const RE = {
   name:      /^[A-Za-zÀ-ÖØ-öø-ÿ'\s]{2,100}$/,
   email:     /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
@@ -105,7 +105,7 @@ function validateAdminUserPayload(data, isCreate = true) {
     errors.role = 'Perfil inválido.';
   }
 
-  const role = data.role || (data.isAdmin ? 'admin' : 'estudante');
+  const role = data.role || 'estudante';
   if (data.disciplina_colaborador !== undefined && data.disciplina_colaborador !== null && data.disciplina_colaborador !== '') {
     if (!disciplinasValidas.includes(data.disciplina_colaborador)) {
       errors.disciplina_colaborador = 'Disciplina inválida.';
@@ -118,7 +118,7 @@ function validateAdminUserPayload(data, isCreate = true) {
   return errors;
 }
 
-// ── GET /api/admin/users ──────────────────────────────────────────────────
+// ── GET /api/admin/users 
 const getAllUsers = async (req, res) => {
   try {
     const users = await Usuario.unscoped().findAll({
@@ -132,11 +132,11 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-// ── POST /api/admin/users ─────────────────────────────────────────────────
+// ── POST /api/admin/users 
 const createUser = async (req, res) => {
   try {
     const body = req.body;
-    const requestingUser = req.user; // set by isAdmin middleware
+    const requestingUser = req.user; // set by authenticate + requireAdmin middleware
 
     // Validate all fields
     const fieldErrors = validateAdminUserPayload(body, true);
@@ -144,12 +144,14 @@ const createUser = async (req, res) => {
       return res.status(422).json({ message: 'Dados inválidos.', fieldErrors });
     }
 
-    // Only super-admin (first admin / isAdmin from DB) can create other admins
-    const requestedRole = body.isAdmin ? 'admin' : (body.role || 'estudante');
-    if ((body.isAdmin || requestedRole === 'admin') && !requestingUser?.isAdmin) {
+    // Only super-admin (id=1) can create other admins
+    const requestedRole = body.role || 'estudante';
+    const isMasterAdmin = String(requestingUser?.id) === '1';
+    
+    if (requestedRole === 'admin' && !isMasterAdmin) {
       return res.status(403).json({
         message: 'Apenas o Administrador Supremo pode criar outros administradores.',
-        fieldErrors: { isAdmin: 'Sem permissão para criar administradores.' },
+        fieldErrors: { role: 'Sem permissão para criar administradores.' },
       });
     }
 
@@ -176,8 +178,7 @@ const createUser = async (req, res) => {
       escola:     body.escola?.trim() || null,
       biografia:  body.biografia?.trim() || '',
       password:   hashedPassword,
-      isAdmin:    requestingUser?.isAdmin ? requestedRole === 'admin' : false,
-      role:       requestingUser?.isAdmin ? requestedRole : 'estudante',
+      role:       requestedRole,
       disciplina_colaborador: requestedRole === 'colaborador' ? body.disciplina_colaborador : null,
       // Admin cria colaboradores diretamente aprovados
       status_colaborador: requestedRole === 'colaborador' ? 'aprovado' : 'aprovado',
@@ -201,7 +202,7 @@ const createUser = async (req, res) => {
   }
 };
 
-// ── POST /api/admin/users/create-admin ────────────────────────────────────
+// ── POST /api/admin/users/create-admin 
 // Cria um sub-administrador com apenas email + senha.
 // Apenas o Administrador Supremo pode usar este endpoint.
 const createAdminUser = async (req, res) => {
@@ -209,8 +210,9 @@ const createAdminUser = async (req, res) => {
     const body = req.body;
     const requestingUser = req.user;
 
-    // Apenas super-admin pode criar outros admins
-    if (!requestingUser?.isAdmin) {
+    // Apenas super-admin (id=1) pode criar outros admins
+    const isMasterAdmin = String(requestingUser?.id) === '1';
+    if (!isMasterAdmin) {
       return res.status(403).json({
         message: 'Apenas o Administrador Supremo pode criar outros administradores.',
       });
@@ -258,7 +260,6 @@ const createAdminUser = async (req, res) => {
       escola:     null,
       biografia:  '',
       password:   hashedPassword,
-      isAdmin:    true,
       role:       'admin',
       disciplina_colaborador: null,
     });
@@ -276,25 +277,26 @@ const createAdminUser = async (req, res) => {
   }
 };
 
-// ── PUT /api/admin/users/:id ──────────────────────────────────────────────
+// ── PUT /api/admin/users/:id 
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const body = req.body;
     const requestingUser = req.user;
+    const isMasterAdmin = String(requestingUser?.id) === '1';
 
     // Cannot edit yourself via admin panel (use profile page)
-    if (String(requestingUser?.id) === String(id) && body.isAdmin !== undefined) {
+    if (String(requestingUser?.id) === String(id) && body.role !== undefined) {
       return res.status(403).json({
-        message: 'Não é possível alterar os próprios privilégios administrativos.',
+        message: 'Não é possível alterar o próprio perfil administrativo.',
       });
     }
 
-    // Only super-admin can change isAdmin flag
-    if ((body.isAdmin !== undefined || body.role !== undefined || body.disciplina_colaborador !== undefined) && !requestingUser?.isAdmin) {
+    // Only super-admin (id=1) can change roles
+    if ((body.role !== undefined || body.disciplina_colaborador !== undefined) && !isMasterAdmin) {
       return res.status(403).json({
         message: 'Apenas o Administrador Supremo pode alterar privilégios administrativos.',
-        fieldErrors: { isAdmin: 'Sem permissão para alterar privilégios.' },
+        fieldErrors: { role: 'Sem permissão para alterar privilégios.' },
       });
     }
 
@@ -335,15 +337,14 @@ const updateUser = async (req, res) => {
     if (body.biografia !== undefined) updateData.biografia = body.biografia?.trim() || '';
     if (body.username  !== undefined) updateData.username  = body.username?.trim() || null;
     if (body.nivel_academico !== undefined) updateData.nivel_academico = body.nivel_academico || null;
-    if (requestingUser?.isAdmin) {
-      if (body.role !== undefined || body.isAdmin !== undefined) {
-        const nextRole = body.isAdmin ? 'admin' : (body.role || (user.isAdmin ? 'admin' : user.role || 'estudante'));
-        updateData.role = nextRole;
-        updateData.isAdmin = nextRole === 'admin';
-        updateData.disciplina_colaborador = nextRole === 'colaborador' ? (body.disciplina_colaborador || user.disciplina_colaborador) : null;
-      } else if (body.disciplina_colaborador !== undefined) {
-        updateData.disciplina_colaborador = (user.role === 'colaborador') ? body.disciplina_colaborador : null;
-      }
+    
+    // Role changes only by master admin
+    if (isMasterAdmin && body.role !== undefined) {
+      const nextRole = body.role;
+      updateData.role = nextRole;
+      updateData.disciplina_colaborador = nextRole === 'colaborador' ? (body.disciplina_colaborador || user.disciplina_colaborador) : null;
+    } else if (isMasterAdmin && body.disciplina_colaborador !== undefined) {
+      updateData.disciplina_colaborador = (user.role === 'colaborador') ? body.disciplina_colaborador : null;
     }
 
     // Hash new password if provided
@@ -371,7 +372,7 @@ const updateUser = async (req, res) => {
   }
 };
 
-// ── DELETE /api/admin/users/:id ───────────────────────────────────────────
+// ── DELETE /api/admin/users/:id 
 const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -390,8 +391,9 @@ const deleteUser = async (req, res) => {
     const user = await Usuario.unscoped().findByPk(id);
     if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
 
-    // Only super-admin can delete other admins
-    if (user.isAdmin && !requestingUser?.isAdmin) {
+    // Only super-admin (id=1) can delete other admins
+    const isMasterAdmin = String(requestingUser?.id) === '1';
+    if (user.role === 'admin' && !isMasterAdmin) {
       return res.status(403).json({ message: 'Apenas o Administrador Supremo pode excluir outros administradores.' });
     }
 
@@ -403,14 +405,15 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// ── PATCH /api/admin/users/:id/toggle-admin ───────────────────────────────
+// ── PATCH /api/admin/users/:id/toggle-admin 
 const toggleAdmin = async (req, res) => {
   try {
     const { id } = req.params;
     const requestingUser = req.user;
+    const isMasterAdmin = String(requestingUser?.id) === '1';
 
-    // Only super-admin can promote/demote
-    if (!requestingUser?.isAdmin) {
+    // Only super-admin (id=1) can promote/demote
+    if (!isMasterAdmin) {
       return res.status(403).json({ message: 'Apenas o Administrador Supremo pode alterar privilégios administrativos.' });
     }
 
@@ -422,12 +425,12 @@ const toggleAdmin = async (req, res) => {
     const user = await Usuario.unscoped().findByPk(id);
     if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
 
-    const nextIsAdmin = !user.isAdmin;
-    await user.update({ isAdmin: nextIsAdmin, role: nextIsAdmin ? 'admin' : 'estudante', disciplina_colaborador: null });
+    const nextRole = user.role === 'admin' ? 'estudante' : 'admin';
+    await user.update({ role: nextRole, disciplina_colaborador: null });
 
     const { password: _, ...userSafe } = user.get({ plain: true });
     res.status(200).json({
-      message: `Privilégios ${userSafe.isAdmin ? 'concedidos' : 'removidos'} com sucesso.`,
+      message: `Privilégios ${userSafe.role === 'admin' ? 'concedidos' : 'removidos'} com sucesso.`,
       data: userSafe,
     });
   } catch (error) {
@@ -436,7 +439,7 @@ const toggleAdmin = async (req, res) => {
   }
 };
 
-// ── PATCH /api/admin/users/:id/reset-password ─────────────────────────────
+// ── PATCH /api/admin/users/:id/reset-password 
 const resetPassword = async (req, res) => {
   try {
     const { id } = req.params;
@@ -468,7 +471,7 @@ const resetPassword = async (req, res) => {
   }
 };
 
-// ── GET /api/admin/colaboradores-pendentes ──────────────────────────────────
+// ── GET /api/admin/colaboradores-pendentes 
 const getColaboradoresPendentes = async (req, res) => {
   try {
     const colaboradoresPendentes = await Usuario.unscoped().findAll({
@@ -484,7 +487,7 @@ const getColaboradoresPendentes = async (req, res) => {
       order: [['createdAt', 'ASC']],
     });
     
-    console.log('✅ [getColaboradoresPendentes] Colaboradores pendentes retornados:', colaboradoresPendentes.length);
+    console.log('[SUCCESS] [getColaboradoresPendentes] Colaboradores pendentes retornados:', colaboradoresPendentes.length);
     
     res.status(200).json({
       message: 'Colaboradores pendentes obtidos com sucesso',
@@ -497,7 +500,7 @@ const getColaboradoresPendentes = async (req, res) => {
   }
 };
 
-// ── PATCH /api/admin/users/:id/aprovar-colaborador ──────────────────────────
+// ── PATCH /api/admin/users/:id/aprovar-colaborador 
 const aprovarColaborador = async (req, res) => {
   try {
     const { id } = req.params;
@@ -512,32 +515,32 @@ const aprovarColaborador = async (req, res) => {
 
     // Validar que disciplina foi fornecida
     if (!disciplina_colaborador || typeof disciplina_colaborador !== 'string' || disciplina_colaborador.trim() === '') {
-      console.log('   ❌ Validação falhou: Disciplina vazia ou inválida');
+      console.log('   [ERROR] Validação falhou: Disciplina vazia ou inválida');
       return res.status(422).json({
         message: 'Disciplina é obrigatória.',
         fieldErrors: { disciplina_colaborador: 'A disciplina deve ser informada.' }
       });
     }
 
-    console.log('   ✅ Validação disciplina passou');
+    console.log('   [SUCCESS] Validação disciplina passou');
 
     const user = await Usuario.unscoped().findByPk(id);
     if (!user) {
-      console.log('   ❌ Usuário não encontrado:', id);
+      console.log('   [ERROR] Usuário não encontrado:', id);
       return res.status(404).json({ message: 'Colaborador não encontrado.' });
     }
 
     if (user.role !== 'colaborador') {
-      console.log('   ❌ Usuário não é colaborador:', user.role);
+      console.log('   [ERROR] Usuário não é colaborador:', user.role);
       return res.status(400).json({ message: 'O usuário não é um colaborador.' });
     }
 
     if (user.status_colaborador !== 'pendente') {
-      console.log('   ❌ Status não é pendente:', user.status_colaborador);
+      console.log('   [ERROR] Status não é pendente:', user.status_colaborador);
       return res.status(400).json({ message: 'Este colaborador já foi processado.' });
     }
 
-    console.log('   ✅ Todas as validações passaram');
+    console.log('   [SUCCESS] Todas as validações passaram');
 
     // Aprovar colaborador
     await user.update({
@@ -546,7 +549,7 @@ const aprovarColaborador = async (req, res) => {
       updatedAt: new Date()
     });
 
-    console.log(`   ✅ Colaborador ${user.email} aprovado com disciplina: ${disciplina_colaborador}\n`);
+    console.log(`   [SUCCESS] Colaborador ${user.email} aprovado com disciplina: ${disciplina_colaborador}\n`);
 
     // Notificar via socket
     if (req.io) {
@@ -578,13 +581,13 @@ const aprovarColaborador = async (req, res) => {
       data: userSafe
     });
   } catch (error) {
-    console.error('❌ [aprovarColaborador] Erro:', error.message);
+    console.error('[ERROR] [aprovarColaborador] Erro:', error.message);
     console.error('   Stack:', error.stack);
     res.status(500).json({ message: 'Erro ao aprovar colaborador.', error: error.message });
   }
 };
 
-// ── PATCH /api/admin/users/:id/rejeitar-colaborador ──────────────────────────
+// ── PATCH /api/admin/users/:id/rejeitar-colaborador 
 const rejeitarColaborador = async (req, res) => {
   try {
     const { id } = req.params;
@@ -611,7 +614,7 @@ const rejeitarColaborador = async (req, res) => {
       updatedAt: new Date()
     });
 
-    console.log(`❌ Colaborador ${user.email} rejeitado por admin ${requestingUser?.id}`);
+    console.log(`[ERROR] Colaborador ${user.email} rejeitado por admin ${requestingUser?.id}`);
 
     // Notificar via socket
     if (req.io) {
@@ -648,7 +651,7 @@ const rejeitarColaborador = async (req, res) => {
   }
 };
 
-// ── GET /api/admin/colaboradores ─────────────────────────────────────────────
+// ── GET /api/admin/colaboradores 
 const getColaboradores = async (req, res) => {
   try {
     const colaboradores = await Usuario.unscoped().findAll({
@@ -663,7 +666,7 @@ const getColaboradores = async (req, res) => {
       order: [['createdAt', 'DESC']],
     });
     
-    console.log('✅ [getColaboradores] Colaboradores retornados:');
+    console.log('[SUCCESS] [getColaboradores] Colaboradores retornados:');
     console.log('   Total:', colaboradores.length);
     if (colaboradores.length > 0) {
       console.log('   Primeiro:', {
@@ -699,7 +702,7 @@ const getColaboradores = async (req, res) => {
   }
 };
 
-// ── PUT /api/usuarios/:id/atribuir-disciplina ──────────────────────────────────────
+// ── PUT /api/usuarios/:id/atribuir-disciplina 
 // Assign a user as colaborador to a specific disciplina
 // Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6
 const assignColaborador = async (req, res) => {

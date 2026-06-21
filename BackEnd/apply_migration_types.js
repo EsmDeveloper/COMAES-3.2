@@ -6,7 +6,7 @@ import sequelize from './config/db.js';
 
 async function applyMigration() {
   try {
-    console.log('🚀 Aplicando migration de tipos de torneio...\n');
+    console.log('[ROCKET] Aplicando migration de tipos de torneio...\n');
 
     const queryInterface = sequelize.getQueryInterface();
 
@@ -14,7 +14,7 @@ async function applyMigration() {
     const tableInfo = await queryInterface.describeTable('torneios');
     
     if (tableInfo.tipo_torneio && tableInfo.disciplina_especifica) {
-      console.log('✅ Colunas já existem! Migration já foi aplicada.');
+      console.log('[SUCCESS] Colunas já existem! Migration já foi aplicada.');
       process.exit(0);
       return;
     }
@@ -30,9 +30,9 @@ async function applyMigration() {
           NOT NULL DEFAULT 'generico'
           COMMENT 'Tipo de torneio: generico (multidisciplinar) ou especifico (uma disciplina)'
         `);
-        console.log('✅ Coluna tipo_torneio adicionada com sucesso!');
+        console.log('[SUCCESS] Coluna tipo_torneio adicionada com sucesso!');
       } catch (error) {
-        console.error('❌ Erro ao adicionar tipo_torneio:', error.message);
+        console.error('[ERROR] Erro ao adicionar tipo_torneio:', error.message);
         if (!error.message.includes('already exists')) throw error;
       }
     } else {
@@ -49,9 +49,9 @@ async function applyMigration() {
           ADD COLUMN disciplina_especifica VARCHAR(100)
           COMMENT 'Disciplina específica quando tipo_torneio = especifico'
         `);
-        console.log('✅ Coluna disciplina_especifica adicionada com sucesso!');
+        console.log('[SUCCESS] Coluna disciplina_especifica adicionada com sucesso!');
       } catch (error) {
-        console.error('❌ Erro ao adicionar disciplina_especifica:', error.message);
+        console.error('[ERROR] Erro ao adicionar disciplina_especifica:', error.message);
         if (!error.message.includes('already exists')) throw error;
       }
     } else {
@@ -66,10 +66,10 @@ async function applyMigration() {
         ALTER TABLE torneios
         ADD INDEX idx_tipo_torneio (tipo_torneio)
       `);
-      console.log('✅ Índice idx_tipo_torneio criado');
+      console.log('[SUCCESS] Índice idx_tipo_torneio criado');
     } catch (error) {
       if (!error.message.includes('Duplicate key name')) {
-        console.warn('⚠️  Erro ao criar índice tipo_torneio:', error.message);
+        console.warn('[WARNING]  Erro ao criar índice tipo_torneio:', error.message);
       } else {
         console.log('✓ Índice idx_tipo_torneio já existe');
       }
@@ -80,29 +80,29 @@ async function applyMigration() {
         ALTER TABLE torneios
         ADD INDEX idx_disciplina_especifica (disciplina_especifica)
       `);
-      console.log('✅ Índice idx_disciplina_especifica criado');
+      console.log('[SUCCESS] Índice idx_disciplina_especifica criado');
     } catch (error) {
       if (!error.message.includes('Duplicate key name')) {
-        console.warn('⚠️  Erro ao criar índice disciplina_especifica:', error.message);
+        console.warn('[WARNING]  Erro ao criar índice disciplina_especifica:', error.message);
       } else {
         console.log('✓ Índice idx_disciplina_especifica já existe');
       }
     }
 
-    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('✅ Migration aplicada com sucesso!');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    console.log('\n');
+    console.log('[SUCCESS] Migration aplicada com sucesso!');
+    console.log('\n');
 
     // Verificar resultado final
     console.log('🔍 Verificando resultado final...\n');
     const finalTableInfo = await queryInterface.describeTable('torneios');
     console.log('Colunas adicionadas:');
-    console.log('  - tipo_torneio:', finalTableInfo.tipo_torneio ? '✅ SIM' : '❌ NÃO');
-    console.log('  - disciplina_especifica:', finalTableInfo.disciplina_especifica ? '✅ SIM' : '❌ NÃO');
+    console.log('  - tipo_torneio:', finalTableInfo.tipo_torneio ? '[SUCCESS] SIM' : '[ERROR] NÃO');
+    console.log('  - disciplina_especifica:', finalTableInfo.disciplina_especifica ? '[SUCCESS] SIM' : '[ERROR] NÃO');
 
     process.exit(0);
   } catch (error) {
-    console.error('\n❌ ERRO FATAL:', error.message);
+    console.error('\n[ERROR] ERRO FATAL:', error.message);
     console.error(error);
     process.exit(1);
   }

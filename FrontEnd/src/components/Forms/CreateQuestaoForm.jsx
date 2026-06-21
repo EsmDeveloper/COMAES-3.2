@@ -241,7 +241,7 @@ export default function CreateQuestaoForm({
             >
               <option value="facil">⭐ Fácil</option>
               <option value="medio">⭐⭐ Médio</option>
-              <option value="dificil">⭐⭐⭐ Difícil</option>
+              <option value="dificil"> Difícil</option>
             </select>
           </div>
 

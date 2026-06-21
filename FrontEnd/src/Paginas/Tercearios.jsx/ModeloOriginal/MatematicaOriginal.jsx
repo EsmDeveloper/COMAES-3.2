@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 window.TEST_MARKER = "MATEMATICA_LOADED_" + Date.now();
 console.log("MARKER SET:", window.TEST_MARKER);
 import { useNavigate } from "react-router-dom";
@@ -7,7 +7,7 @@ import { FaSignOutAlt } from "react-icons/fa";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
-// ImportaÃ§Ãµes para certificados e vencedores
+// ImportaçÃµes para certificados e vencedores
 import CertMatematica from '../../../certificados/CertMatematica';
 import useCertificado from '../../../hooks/useCertificado';
 import ModalVencedores from '../../../components/ModalVencedores';
@@ -17,7 +17,7 @@ import TournamentFinishedModal from '../../../components/TournamentFinishedModal
 import useTorneioParticipante from '../../../hooks/useTorneioParticipante';
 
 const TEMPO_QUESTAO = 90;
-const DISCIPLINA = 'MatemÃ¡tica';
+const DISCIPLINA = 'Matemática';
 
 export default function MatematicaOriginal() {
   const navigate = useNavigate();
@@ -40,7 +40,7 @@ export default function MatematicaOriginal() {
     dentroDoPeriodo,
     setDentroDoPeriodo,
     actualizarParticipante,
-  } = useTorneioParticipante({ disciplina: 'MatemÃ¡tica', disciplinaSlug: 'matematica', user, token });
+  } = useTorneioParticipante({ disciplina: 'Matemática', disciplinaSlug: 'matematica', user, token });
 
   // Estados locais
   const [progresso, setProgresso] = useState(0);
@@ -67,14 +67,14 @@ export default function MatematicaOriginal() {
     certificadoData, 
     fecharCertificado,
     abrirCertificado 
-  } = useCertificado('MatemÃ¡tica', participante, ranking);
+  } = useCertificado('Matemática', participante, ranking);
 
   // Hook para vencedores
   const { 
     mostrarVencedores, 
     vencedores, 
     fecharVencedores 
-  } = useVencedores('MatemÃ¡tica', ranking, torneio, participante);
+  } = useVencedores('Matemática', ranking, torneio, participante);
 
   const calcularTempoRestante = (torneioData) => {
     if (!torneioData?.termina_em) {
@@ -98,7 +98,7 @@ export default function MatematicaOriginal() {
     return { dias, horas, minutos, segundos };
   };
 
-  // FunÃ§Ã£o para calcular progresso
+  // Função para calcular progresso
   const calcularProgressoTemporal = (torneioData) => {
     if (!torneioData?.inicia_em || !torneioData?.termina_em) return 100;
     
@@ -154,7 +154,7 @@ export default function MatematicaOriginal() {
         setResposta("");
         setResultado("");
         setPontuacao(null);
-        // Scroll para o enunciado apÃ³s mudar de nÃ­vel
+        // Scroll para o enunciado após mudar de nível
         setTimeout(() => {
           if (enunciadoRef.current) {
             enunciadoRef.current.scrollIntoView({ 
@@ -174,7 +174,7 @@ export default function MatematicaOriginal() {
     }
   }, [questoes]);
 
-  // Limpar timer de auto-avanÃ§o
+  // Limpar timer de auto-avanço
   useEffect(() => {
     return () => {
       if (autoAvancarTimer) {
@@ -183,7 +183,7 @@ export default function MatematicaOriginal() {
     };
   }, [autoAvancarTimer]);
 
-  // SCROLL AUTOMÃTICO QUANDO A QUESTÃƒO MUDA
+  // SCROLL AUTOMÃTICO QUANDO A QUESTÃO MUDA
   useEffect(() => {
     if (questoesFiltradas.length > 0 && enunciadoRef.current) {
       setTimeout(() => {
@@ -195,7 +195,7 @@ export default function MatematicaOriginal() {
     }
   }, [questaoIndex]);
 
-  // SCROLL AUTOMÃTICO NO CARREGAMENTO INICIAL
+  // SCROLL AUTOMÃTICO NO CARREGAMENTO INICIAL
   useEffect(() => {
     if (questoesFiltradas.length > 0 && enunciadoRef.current) {
       setTimeout(() => {
@@ -209,7 +209,7 @@ export default function MatematicaOriginal() {
 
   // Torneio e participante geridos pelo hook useTorneioParticipante
 
-  // Carregar questÃµes quando o torneio ficar disponÃ­vel
+  // Carregar questÃµes quando o torneio ficar disponível
   useEffect(() => {
     if (torneio?.id) {
       buscarQuestoes(torneio.id);
@@ -221,11 +221,11 @@ export default function MatematicaOriginal() {
   // Buscar questÃµes do banco de dados
   const buscarQuestoes = async (torneioId) => {
     try {
-      console.log(`ðŸ“š Buscando questÃµes de matemÃ¡tica para torneio ${torneioId}...`);
+      console.log(` Buscando questÃµes de matemática para torneio ${torneioId}...`);
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/torneios/${torneioId}/questoes/matematica`);
       const data = await response.json();
       
-      console.log('ðŸ“Š Dados recebidos das questÃµes:', data);
+      console.log(' Dados recebidos das questÃµes:', data);
       
       if (data.success && data.data.length > 0) {
         const questoesFormatadas = data.data.map(questao => ({
@@ -240,27 +240,27 @@ export default function MatematicaOriginal() {
         const filtradas = questoesFormatadas.filter(q => q.dificuldade === 'facil');
         setQuestoesFiltradas(filtradas);
         setNivelSelecionado('facil');
-        console.log(`âœ… ${filtradas.length} questÃµes fÃ¡ceis carregadas`);
+        console.log(`âœ… ${filtradas.length} questÃµes fáceis carregadas`);
       } else {
-        console.log('âš ï¸ Nenhuma questÃ£o encontrada');
+        console.log('âš  Nenhuma questão encontrada');
         setQuestoes([]);
         setQuestoesFiltradas([]);
       }
     } catch (err) {
-      console.error('âŒ Erro ao carregar questÃµes:', err);
+      console.error('âŒ Erro ao carregar questÃµes:', err);
       setQuestoes([]);
       setQuestoesFiltradas([]);
     }
   };
 
-  // Temporizador da questÃ£o
+  // Temporizador da questão
   useEffect(() => {
     if (questoesFiltradas.length === 0) return;
     
     const interval = setInterval(() => {
       setQuestaoTime((prev) => {
         if (prev <= 0) {
-          // Quando o tempo acaba, avanÃ§a automaticamente
+          // Quando o tempo acaba, avança automaticamente
           handleProximaQuestaoAutomatica();
           return TEMPO_QUESTAO;
         }
@@ -299,7 +299,7 @@ export default function MatematicaOriginal() {
     }
     
     if (questoesFiltradas.length > 0) {
-      // AvanÃ§a para a prÃ³xima questÃ£o ou volta para a primeira se for a Ãºltima
+      // Avança para a próxima questão ou volta para a primeira se for a Ãºltima
       setQuestaoIndex((prev) => (prev + 1 < questoesFiltradas.length ? prev + 1 : 0));
       setQuestaoTime(TEMPO_QUESTAO);
     }
@@ -341,7 +341,7 @@ export default function MatematicaOriginal() {
     if (executando) return;
     setExecutando(true);
 
-    // Preparar payload para a API de avaliaÃ§Ã£o
+    // Preparar payload para a API de avaliação
     const payload = {
       usuario_id: user?.id || participante?.usuario_id,
       disciplina: DISCIPLINA,
@@ -362,7 +362,7 @@ export default function MatematicaOriginal() {
 
       const data = await resp.json();
       if (!data.success) {
-        setResultado('Erro ao avaliar: ' + (data.error || 'Resposta invÃ¡lida'));
+        setResultado('Erro ao avaliar: ' + (data.error || 'Resposta inválida'));
         setPontuacao(0);
         setAvaliacaoDetalhes(null);
       } else {
@@ -370,14 +370,14 @@ export default function MatematicaOriginal() {
         const total = Number(data.data.totalPontos || 0);
         setAvaliacaoDetalhes(detalhes[0] ? detalhes[0] : detalhes);
         setPontuacao(total);
-        setResultado(detalhes[0]?.feedback || 'AvaliaÃ§Ã£o concluÃ­da');
+        setResultado(detalhes[0]?.feedback || 'Avaliação concluída');
 
         // Atualiza participante localmente
         if (data.data.participante) actualizarParticipante(data.data.participante);
       }
     } catch (err) {
       console.error('Erro ao chamar /api/avaliar', err);
-      setResultado('Erro de comunicaÃ§Ã£o com o servidor');
+      setResultado('Erro de comunicação com o servidor');
       setPontuacao(0);
       setAvaliacaoDetalhes(null);
     } finally {
@@ -396,7 +396,7 @@ export default function MatematicaOriginal() {
       <div className="flex justify-center items-center h-screen bg-gray-100">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando torneio de MatemÃ¡tica...</p>
+          <p className="mt-4 text-gray-600">Carregando torneio de Matemática...</p>
         </div>
       </div>
     );
@@ -406,9 +406,9 @@ export default function MatematicaOriginal() {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-100">
         <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-md">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Torneio IndisponÃ­vel</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Torneio Indisponível</h2>
           <p className="text-gray-600 mb-6">
-            {error || "NÃ£o hÃ¡ torneio de MatemÃ¡tica ativo no momento."}
+            {error || "Não há torneio de Matemática ativo no momento."}
           </p>
           <button 
             onClick={() => navigate("/entrar-no-torneio")}
@@ -449,7 +449,7 @@ export default function MatematicaOriginal() {
               className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-full shadow-lg transition-all text-[10px] sm:text-xs md:text-sm"
               title="Verificar Certificado"
             >
-              ðŸ† <span className="hidden sm:inline">Certificado</span>
+               <span className="hidden sm:inline">Certificado</span>
             </button>
             <div className="bg-white text-blue-600 font-bold px-2 py-1 text-[10px] sm:px-3 sm:py-1.5 sm:text-xs md:px-4 md:py-2 md:text-sm rounded-full flex items-center gap-1 shadow-md">
               Mathematics Tournament
@@ -468,7 +468,7 @@ export default function MatematicaOriginal() {
       <div className="flex flex-1 overflow-hidden">
         {/* SIDEBAR ESQUERDA - RANKING */}
         <div className="hidden lg:block w-80 bg-white text-gray-800 shadow-lg p-3 overflow-y-auto" translate="no">
-          <h2 className="text-xl font-bold mb-4 text-center border-b border-gray-300 pb-1">Ranking de MatemÃ¡tica</h2>
+          <h2 className="text-xl font-bold mb-4 text-center border-b border-gray-300 pb-1">Ranking de Matemática</h2>
           <table className="w-full table-auto text-sm">
             <thead className="bg-gray-100">
               <tr>
@@ -490,9 +490,9 @@ export default function MatematicaOriginal() {
                     }`}
                   >
                     <td className="px-2 py-2 font-semibold">
-                      {participanteRank.posicao === 1 ? 'ðŸ¥‡' : 
-                       participanteRank.posicao === 2 ? 'ðŸ¥ˆ' : 
-                       participanteRank.posicao === 3 ? 'ðŸ¥‰' : 
+                      {participanteRank.posicao === 1 ? '' : 
+                       participanteRank.posicao === 2 ? '' : 
+                       participanteRank.posicao === 3 ? '' : 
                        participanteRank.posicao ?? '-'}
                     </td>
                     <td className="px-2 py-2">
@@ -510,10 +510,10 @@ export default function MatematicaOriginal() {
                         )}
                         <div className="flex flex-col min-w-0">
                           <span className={`truncate ${isMe ? 'font-bold text-blue-700' : ''}`}>
-                            {participanteRank.usuario?.nome || 'UsuÃ¡rio'}
+                            {participanteRank.usuario?.nome || 'Usuário'}
                           </span>
                           {isMe && (
-                            <span className="text-[10px] font-bold text-blue-500 leading-none">â— vocÃª</span>
+                            <span className="text-[10px] font-bold text-blue-500 leading-none">â— vocÃª</span>
                           )}
                         </div>
                       </div>
@@ -554,15 +554,15 @@ export default function MatematicaOriginal() {
               {/* HEADER */}
               <div className="w-full max-w-4xl bg-white rounded-xl shadow-md p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <h1 className="text-lg md:text-xl lg:text-2xl font-normal text-gray-800 text-center">
-                  {torneio?.titulo || 'Torneio de MatemÃ¡tica'}
+                  {torneio?.titulo || 'Torneio de Matemática'}
                 </h1>
                 
-                {/* BOTÃ•ES DE NÃVEL */}
+                {/* BOTÃ•ES DE NÃVEL */}
                 <div className="flex gap-2 flex-wrap justify-center">
                   {[
-                    { nivel: "facil", label: "FÃ¡cil", pts: 5 },
-                    { nivel: "medio", label: "MÃ©dio", pts: 10 },
-                    { nivel: "dificil", label: "DifÃ­cil", pts: 20 }
+                    { nivel: "facil", label: "Fácil", pts: 5 },
+                    { nivel: "medio", label: "Médio", pts: 10 },
+                    { nivel: "dificil", label: "Difícil", pts: 20 }
                   ].map((item) => (
                     <button 
                       key={item.nivel} 
@@ -573,7 +573,7 @@ export default function MatematicaOriginal() {
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
-                      {item.label} â€¢ {item.pts} pts
+                      {item.label} • {item.pts} pts
                       <span className="ml-1 text-xs">
                         ({questoes.filter(q => q.dificuldade === item.nivel).length})
                       </span>
@@ -582,16 +582,16 @@ export default function MatematicaOriginal() {
                 </div>
               </div>
 
-              {/* MENSAGEM SE NÃƒO HÃ QUESTÃ•ES */}
+              {/* MENSAGEM SE NÃO HÃ QUESTÃ•ES */}
               {questoesFiltradas.length === 0 ? (
                 <div className="w-full max-w-4xl bg-yellow-50 border border-yellow-200 rounded-xl shadow p-6 text-center">
-                  <h3 className="text-lg font-semibold text-yellow-800 mb-2">Nenhuma questÃ£o disponÃ­vel</h3>
+                  <h3 className="text-lg font-semibold text-yellow-800 mb-2">Nenhuma questão disponível</h3>
                   <p className="text-yellow-700">
-                    NÃ£o hÃ¡ questÃµes de {nivelSelecionado === 'facil' ? 'fÃ¡cil' : nivelSelecionado === 'medio' ? 'mÃ©dio' : 'difÃ­cil'} 
-                    disponÃ­veis no momento.
+                    Não há questÃµes de {nivelSelecionado === 'facil' ? 'fácil' : nivelSelecionado === 'medio' ? 'médio' : 'difícil'} 
+                    disponíveis no momento.
                   </p>
                   <p className="text-sm text-yellow-600 mt-2">
-                    Selecione outro nÃ­vel de dificuldade.
+                    Selecione outro nível de dificuldade.
                   </p>
                 </div>
               ) : (
@@ -608,7 +608,7 @@ export default function MatematicaOriginal() {
                       {questoesFiltradas[questaoIndex]?.enunciado || questoesFiltradas[questaoIndex]?.descricao}
                     </p>
                     <div className="mt-2 text-xs text-gray-500">
-                      <span>QuestÃ£o {questaoIndex + 1} de {questoesFiltradas.length}</span>
+                      <span>Questão {questaoIndex + 1} de {questoesFiltradas.length}</span>
                       <span className="ml-4 capitalize font-semibold">
                         Dificuldade: {questoesFiltradas[questaoIndex]?.dificuldade || 'N/A'}
                       </span>
@@ -618,33 +618,33 @@ export default function MatematicaOriginal() {
                     </div>
                   </div>
 
-                  {/* AVALIAÃ‡ÃƒO / FEEDBACK */}
+                  {/* AVALIAO / FEEDBACK */}
                   <div ref={avaliacaoRef} className="w-full max-w-4xl bg-white rounded-xl shadow-md p-4 mt-4">
                     <h4 className="font-semibold text-gray-800 mb-2">Feedback da IA</h4>
                     {avaliacaoDetalhes ? (
                       <div className="space-y-2">
                         <div className="flex items-center gap-3">
-                          <span className="text-2xl">{avaliacaoDetalhes.score >= 0.9 ? 'âœ…' : avaliacaoDetalhes.score >= 0.6 ? 'âš ï¸' : 'âŒ'}</span>
+                          <span className="text-2xl">{avaliacaoDetalhes.score >= 0.9 ? 'âœ…' : avaliacaoDetalhes.score >= 0.6 ? 'âš ' : 'âŒ'}</span>
                           <div>
                             <div className="font-semibold">{avaliacaoDetalhes.feedback || 'Nenhum feedback curto fornecido'}</div>
-                            <div className="text-xs text-gray-500">Pontos atribuÃ­dos: <span className="font-bold text-blue-600">{avaliacaoDetalhes.pontos}</span></div>
+                            <div className="text-xs text-gray-500">Pontos atribuídos: <span className="font-bold text-blue-600">{avaliacaoDetalhes.pontos}</span></div>
                           </div>
                         </div>
                         {avaliacaoDetalhes.evidencias && (
                           <div className="mt-2 p-3 bg-gray-50 rounded">{avaliacaoDetalhes.evidencias}</div>
                         )}
-                        <div className="mt-2 text-sm text-gray-600">Total nesta avaliaÃ§Ã£o: <span className="font-bold text-green-600">{pontuacao || 0}</span></div>
+                        <div className="mt-2 text-sm text-gray-600">Total nesta avaliação: <span className="font-bold text-green-600">{pontuacao || 0}</span></div>
                       </div>
                     ) : (
-                      <div className="text-sm text-gray-500">Nenhum feedback disponÃ­vel. Execute a resoluÃ§Ã£o para receber feedback IA.</div>
+                      <div className="text-sm text-gray-500">Nenhum feedback disponível. Execute a resolução para receber feedback IA.</div>
                     )}
                   </div>
 
                   {/* EDITOR */}
                   <div className="w-full max-w-4xl bg-white rounded-xl shadow-md p-4 space-y-3">
-                    {/* SÃMBOLOS MATEMÃTICOS */}
+                    {/* SÃMBOLOS MATEMÃTICOS */}
                     <div className="flex gap-1 md:gap-2 flex-wrap justify-center border-b pb-3 overflow-x-auto">
-                      {["+", "-", "Ã—", "Ã·", "âˆš", "(", ")", "Â²", "Â³", "=", "Ï€", "Â°", "â‰¤", "â‰¥", "â‰ ", "â‰ˆ", "âˆ«", "âˆ‘", "âˆž"].map((op) => (
+                      {["+", "-", "Ã—", "Ã·", "âˆš", "(", ")", "²", "³", "=", "Ï€", "°", "â‰¤", "â‰", "â‰ ", "â‰ˆ", "âˆ«", "âˆ‘", "âˆž"].map((op) => (
                         <button 
                           key={op} 
                           onClick={() => handleResposta(op)}
@@ -660,7 +660,7 @@ export default function MatematicaOriginal() {
                       value={resposta} 
                       onChange={(e) => setResposta(e.target.value)}
                       className="w-full h-80 resize-none p-3 text-sm md:text-base bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Digite aqui sua resoluÃ§Ã£o passo a passo. Use os sÃ­mbolos acima para facilitar a notaÃ§Ã£o matemÃ¡tica..."
+                      placeholder="Digite aqui sua resolução passo a passo. Use os símbolos acima para facilitar a notação matemática..."
                       spellCheck="false"
                     />
                   </div>
@@ -668,7 +668,7 @@ export default function MatematicaOriginal() {
                   {/* TEMPORIZADOR */}
                   <div className="w-full max-w-4xl bg-white rounded-xl shadow-md p-4">
                     <div className="flex justify-between items-center mb-2 text-sm md:text-base font-semibold text-gray-700">
-                      <span>Tempo restante para esta questÃ£o</span>
+                      <span>Tempo restante para esta questão</span>
                       <span className="px-2 py-0.5 rounded bg-gray-100">{formatSeconds(questaoTime)}</span>
                     </div>
                     <div className="w-full h-3 rounded-full bg-gray-200 overflow-hidden">
@@ -679,7 +679,7 @@ export default function MatematicaOriginal() {
                     </div>
                   </div>
 
-                  {/* BOTÃ•ES DE CONTROLE - APENAS EXECUTAR RESOLUÃ‡ÃƒO */}
+                  {/* BOTÃ•ES DE CONTROLE - APENAS EXECUTAR RESOLUO */}
                   <div className="flex gap-3 w-full max-w-4xl">
                     <button 
                       onClick={executarResposta}
@@ -695,7 +695,7 @@ export default function MatematicaOriginal() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <span className="text-sm md:text-base">
-                        {executando ? "Processando..." : "Executar ResoluÃ§Ã£o"}
+                        {executando ? "Processando..." : "Executar Resolução"}
                       </span>
                     </button>
                   </div>
@@ -724,14 +724,14 @@ export default function MatematicaOriginal() {
                 </button>
               </div>
 
-              {/* RESULTADO / AVALIAÃ‡ÃƒO */}
+              {/* RESULTADO / AVALIAO */}
               {resultado && (
                 <div className="w-full max-w-4xl bg-white rounded-xl shadow-md p-4 border-l-4 border-blue-600">
-                  <h3 className="text-gray-700 font-semibold mb-2">AvaliaÃ§Ã£o da ResoluÃ§Ã£o</h3>
+                  <h3 className="text-gray-700 font-semibold mb-2">Avaliação da Resolução</h3>
                   <p className="text-gray-800 mb-2">{resultado}</p>
                   {pontuacao !== null && (
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-gray-700">PontuaÃ§Ã£o:</span>
+                      <span className="font-bold text-gray-700">Pontuação:</span>
                       <span className={`font-bold px-2 py-1 rounded ${
                         pontuacao >= 15 ? "bg-blue-200 text-blue-800" :
                         pontuacao >= 8 ? "bg-yellow-200 text-yellow-800" :
@@ -747,7 +747,7 @@ export default function MatematicaOriginal() {
           )}
         </div>
 
-        {/* SIDEBAR DIREITA - INFO USUÃRIO */}
+        {/* SIDEBAR DIREITA - INFO USUÃRIO */}
         <div className="hidden lg:flex w-64 bg-white text-gray-800 shadow-lg p-4 overflow-y-auto flex-col items-center space-y-3">
           <div className="flex flex-col items-center mb-3">
             {participante?.usuario?.imagem ? (
@@ -761,13 +761,13 @@ export default function MatematicaOriginal() {
                 {participante?.usuario?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || user?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'U'}
               </div>
             )}
-            <h3 className="text-lg font-bold mt-2">{participante?.usuario?.nome || user?.nome || "UsuÃ¡rio"}</h3>
+            <h3 className="text-lg font-bold mt-2">{participante?.usuario?.nome || user?.nome || "Usuário"}</h3>
             <p className="text-sm text-gray-500">Participante do Torneio</p>
           </div>
 
           {participante ? (
             <div className="w-full flex flex-col gap-2 items-center">
-              {/* PONTUAÃ‡ÃƒO */}
+              {/* PONTUAO */}
               <div className="bg-white rounded-3xl border border-blue-200 p-2 flex flex-col items-center gap-1 w-40">
                 <div className="w-14 h-14">
                   <CircularProgressbar 
@@ -782,10 +782,10 @@ export default function MatematicaOriginal() {
                     })} 
                   />
                 </div>
-                <span className="text-xs font-semibold text-center">PontuaÃ§Ã£o</span>
+                <span className="text-xs font-semibold text-center">Pontuação</span>
               </div>
               
-              {/* POSIÃ‡ÃƒO */}
+              {/* POSIO */}
               <div className="bg-white rounded-3xl border border-blue-200 p-2 flex flex-col items-center gap-1 w-40">
                 <div className="w-14 h-14">
                   <CircularProgressbar 
@@ -800,7 +800,7 @@ export default function MatematicaOriginal() {
                     })} 
                   />
                 </div>
-                <span className="text-xs font-semibold text-center">PosiÃ§Ã£o</span>
+                <span className="text-xs font-semibold text-center">Posição</span>
               </div>
               
               {/* CASOS RESOLVIDOS */}
@@ -821,7 +821,7 @@ export default function MatematicaOriginal() {
                 <span className="text-xs font-semibold text-center">Casos Resolvidos</span>
               </div>
 
-              {/* BotÃ£o de VerificaÃ§Ã£o de Certificado */}
+              {/* Botão de Verificação de Certificado */}
               <div className="mt-4 w-full">
                 <CertificateCheckButton 
                   onClick={abrirCertificado}
@@ -831,7 +831,7 @@ export default function MatematicaOriginal() {
             </div>
           ) : (
             <div className="text-center p-4">
-              <p className="text-gray-600 mb-3">VocÃª ainda nÃ£o estÃ¡ participando deste torneio</p>
+              <p className="text-gray-600 mb-3">VocÃª ainda não está participando deste torneio</p>
               <button 
                 onClick={() => window.location.reload()}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
@@ -849,7 +849,7 @@ export default function MatematicaOriginal() {
           <div className="absolute inset-0 bg-black/60 transition-opacity duration-300" onClick={() => setMostrarRanking(false)} />
           <div className="relative w-80 bg-white text-gray-800 p-4 overflow-y-auto transform transition-transform duration-300 ease-out translate-x-0">
             <button onClick={() => setMostrarRanking(false)} className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl transition-colors">âœ•</button>
-            <h2 className="text-xl font-bold mb-4 text-center border-b border-gray-300 pb-1">Ranking de MatemÃ¡tica</h2>
+            <h2 className="text-xl font-bold mb-4 text-center border-b border-gray-300 pb-1">Ranking de Matemática</h2>
             <table className="w-full table-auto text-sm">
               <thead className="bg-gray-100">
                 <tr>
@@ -871,9 +871,9 @@ export default function MatematicaOriginal() {
                       }`}
                     >
                       <td className="px-2 py-2 font-semibold">
-                        {participanteRank.posicao === 1 ? 'ðŸ¥‡' : 
-                         participanteRank.posicao === 2 ? 'ðŸ¥ˆ' : 
-                         participanteRank.posicao === 3 ? 'ðŸ¥‰' : 
+                        {participanteRank.posicao === 1 ? '' : 
+                         participanteRank.posicao === 2 ? '' : 
+                         participanteRank.posicao === 3 ? '' : 
                          participanteRank.posicao ?? '-'}
                       </td>
                       <td className="px-2 py-2">
@@ -891,10 +891,10 @@ export default function MatematicaOriginal() {
                           )}
                           <div className="flex flex-col min-w-0">
                             <span className={`truncate ${isMe ? 'font-bold text-blue-700' : ''}`}>
-                              {participanteRank.usuario?.nome || 'UsuÃ¡rio'}
+                              {participanteRank.usuario?.nome || 'Usuário'}
                             </span>
                             {isMe && (
-                              <span className="text-[10px] font-bold text-blue-500 leading-none">â— vocÃª</span>
+                              <span className="text-[10px] font-bold text-blue-500 leading-none">â— vocÃª</span>
                             )}
                           </div>
                         </div>
@@ -936,12 +936,12 @@ export default function MatematicaOriginal() {
                   {participante?.usuario?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || user?.nome?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'U'}
                 </div>
               )}
-              <h3 className="text-lg font-bold mt-2">{participante?.usuario?.nome || user?.nome || "UsuÃ¡rio"}</h3>
+              <h3 className="text-lg font-bold mt-2">{participante?.usuario?.nome || user?.nome || "Usuário"}</h3>
             </div>
             
             {participante ? (
               <div className="w-full flex flex-col mt-4 gap-4 items-center">
-                {/* PONTUAÃ‡ÃƒO */}
+                {/* PONTUAO */}
                 <div className="bg-white rounded-3xl border border-blue-200 p-2 flex flex-col items-center gap-1 w-40">
                   <div className="w-14 h-14">
                     <CircularProgressbar 
@@ -956,10 +956,10 @@ export default function MatematicaOriginal() {
                       })} 
                     />
                   </div>
-                  <span className="text-xs font-semibold text-center">PontuaÃ§Ã£o</span>
+                  <span className="text-xs font-semibold text-center">Pontuação</span>
                 </div>
                 
-                {/* POSIÃ‡ÃƒO */}
+                {/* POSIO */}
                 <div className="bg-white rounded-3xl border border-blue-200 p-2 flex flex-col items-center gap-1 w-40">
                   <div className="w-14 h-14">
                     <CircularProgressbar 
@@ -974,7 +974,7 @@ export default function MatematicaOriginal() {
                       })} 
                     />
                   </div>
-                  <span className="text-xs font-semibold text-center">PosiÃ§Ã£o</span>
+                  <span className="text-xs font-semibold text-center">Posição</span>
                 </div>
                 
                 {/* CASOS RESOLVIDOS */}
@@ -995,7 +995,7 @@ export default function MatematicaOriginal() {
                   <span className="text-xs font-semibold text-center">Casos Resolvidos</span>
                 </div>
                 
-                {/* BotÃ£o de VerificaÃ§Ã£o de Certificado Mobile */}
+                {/* Botão de Verificação de Certificado Mobile */}
                 <div className="mt-4 w-full px-4">
                   <CertificateCheckButton 
                     onClick={abrirCertificado}
@@ -1005,7 +1005,7 @@ export default function MatematicaOriginal() {
               </div>
             ) : (
               <div className="text-center p-4">
-                <p className="text-gray-600">VocÃª ainda nÃ£o estÃ¡ participando</p>
+                <p className="text-gray-600">VocÃª ainda não está participando</p>
               </div>
             )}
           </div>
@@ -1028,7 +1028,7 @@ export default function MatematicaOriginal() {
         isOpen={mostrarVencedores}
         onClose={fecharVencedores}
         vencedores={vencedores}
-        disciplina="MatemÃ¡tica"
+        disciplina="Matemática"
         torneio={torneio}
       />
     </div>

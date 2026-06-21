@@ -15,13 +15,13 @@ import {
   getDashboardGamificacao,
 } from '../controllers/missoesController.js';
 
-// ── Rotas de missões (/api/missoes) ───────────────────────────────
+// ── Rotas de missões (/api/missoes) 
 export const missoesRouter = express.Router();
 
 missoesRouter.get('/ativas', auth, isNotColaborador, getMissoesAtivasHandler);
 missoesRouter.post('/:id/progresso', auth, isNotColaborador, incrementarProgressoHandler);
 
-// ── Rota do dashboard agregado (/api/usuarios) ────────────────────
+// ── Rota do dashboard agregado (/api/usuarios) 
 export const dashboardGamificacaoRouter = express.Router();
 
 dashboardGamificacaoRouter.get('/me/dashboard-gamificacao', auth, isNotColaborador, getDashboardGamificacao);

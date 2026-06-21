@@ -93,7 +93,7 @@ async function diagnose() {
       }
     }
 
-    console.log('═══════════════════════════════════════════════════════════');
+    console.log('');
     console.log('CONCLUSÃO:');
     if (admins.length === 0) {
       console.log('❌ Problema: Nenhum admin no banco');
@@ -102,7 +102,7 @@ async function diagnose() {
     } else {
       console.log('✅ Admin configurado corretamente no banco');
     }
-    console.log('═══════════════════════════════════════════════════════════\n');
+    console.log('\n');
 
   } catch (error) {
     console.error('❌ Erro ao diagnosticar:', error.message);

@@ -1,6 +1,6 @@
 ﻿/**
  * BlocosService.js
- * ServiÃ§o frontend para gestÃ£o de Blocos de QuestÃµes via API.
+ * Serviço frontend para gestão de Blocos de QuestÃµes via API.
  * Substitui a persistÃªncia em localStorage do BlocoQuestoesManager anterior.
  */
 
@@ -41,7 +41,7 @@ export const BlocosService = {
     return handleResponse(res);
   },
 
-  /** ObtÃ©m detalhe de um bloco com suas questÃµes */
+  /** Obtém detalhe de um bloco com suas questÃµes */
   async obter(token, id) {
     const res = await fetch(`${API_BASE}/api/blocos/${id}`, {
       headers: headers(token),
@@ -68,7 +68,7 @@ export const BlocosService = {
     return handleResponse(res);
   },
 
-  /** Adiciona uma questÃ£o a um bloco */
+  /** Adiciona uma questão a um bloco */
   async adicionarQuestao(token, blocoId, questaoId, ordem) {
     const res = await fetch(`${API_BASE}/api/blocos/${blocoId}/questoes`, {
       method: 'POST',
@@ -78,7 +78,7 @@ export const BlocosService = {
     return handleResponse(res);
   },
 
-  /** Remove uma questÃ£o de um bloco (nÃ£o deleta a questÃ£o) */
+  /** Remove uma questão de um bloco (não deleta a questão) */
   async removerQuestao(token, blocoId, questaoId) {
     const res = await fetch(`${API_BASE}/api/blocos/${blocoId}/questoes/${questaoId}`, {
       method: 'DELETE',

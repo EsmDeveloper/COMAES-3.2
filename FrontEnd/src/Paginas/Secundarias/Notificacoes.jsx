@@ -64,7 +64,7 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
 
       const data = await response.json();
       if (data.success) {
-        // Formatar notificaÃ§Ãµes vindas do banco
+        // Formatar notificaçÃµes vindas do banco
         const formatted = data.data.map((n) => {
           const conteudo = normalizeConteudo(n.conteudo);
           const title = conteudo.titulo || conteudo.title || n.tipo || "";
@@ -85,13 +85,13 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
         lastFetchRef.current = Date.now();
       }
     } catch (error) {
-      console.error("Erro ao carregar notificaÃ§Ãµes:", error);
+      console.error("Erro ao carregar notificaçÃµes:", error);
     } finally {
       setLoading(false);
     }
   }, [user]);
 
-  // Polling automÃ¡tico quando modal estÃ¡ aberto
+  // Polling automático quando modal está aberto
   useEffect(() => {
     if (isOpen && user?.id) {
       fetchNotifications();
@@ -115,8 +115,8 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
     const diffInSeconds = Math.floor((now - date) / 1000);
     
     if (diffInSeconds < 60) return "Agora mesmo";
-    if (diffInSeconds < 3600) return `HÃ¡ ${Math.floor(diffInSeconds / 60)} min`;
-    if (diffInSeconds < 86400) return `HÃ¡ ${Math.floor(diffInSeconds / 3600)} h`;
+    if (diffInSeconds < 3600) return `Há ${Math.floor(diffInSeconds / 60)} min`;
+    if (diffInSeconds < 86400) return `Há ${Math.floor(diffInSeconds / 3600)} h`;
     if (diffInSeconds < 172800) return "Ontem";
     return date.toLocaleDateString('pt-PT');
   };
@@ -133,7 +133,7 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
   };
 
   const marcarComoLida = async (id) => {
-    // Verificar se jÃ¡ estÃ¡ lida para nÃ£o decrementar o contador desnecessariamente
+    // Verificar se já está lida para não decrementar o contador desnecessariamente
     const notif = notifications.find(n => n.id === id);
     if (notif && notif.read) return;
 
@@ -273,7 +273,7 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
     }
   };
 
-  // Filtrar notificaÃ§Ãµes
+  // Filtrar notificaçÃµes
   const filteredNotifications = notifications.filter(n => {
     if (filter === 'unread') return !n.read;
     if (filter === 'read') return n.read;
@@ -293,7 +293,7 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
         footer={<ModalBtnPrimary onClick={onClose}>Fechar</ModalBtnPrimary>}
       >
         <p className="text-gray-600 text-sm text-center leading-relaxed py-2">
-          FaÃ§a login para visualizar suas notificaÃ§Ãµes.
+          Faça login para visualizar suas notificaçÃµes.
         </p>
       </ComaesModal>
     );
@@ -317,7 +317,7 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
             className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md h-[80vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* CabeÃ§alho */}
+            {/* Cabeçalho */}
             <div className="p-4 md:p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -330,9 +330,9 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
                     )}
                   </div>
                   <div className="min-w-0">
-                    <h2 className="text-lg md:text-xl font-bold text-gray-800">NotificaÃ§Ãµes</h2>
+                    <h2 className="text-lg md:text-xl font-bold text-gray-800">NotificaçÃµes</h2>
                     <p className="text-xs md:text-sm text-gray-500">
-                      {unreadCount} nÃ£o lida{unreadCount !== 1 ? 's' : ''}
+                      {unreadCount} não lida{unreadCount !== 1 ? 's' : ''}
                     </p>
                   </div>
                 </div>
@@ -366,21 +366,21 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
                         : 'bg-white text-gray-700 border border-gray-300 hover:border-blue-400'
                     }`}
                   >
-                    {f === 'all' ? 'Todas' : f === 'unread' ? 'NÃ£o Lidas' : 'Lidas'}
+                    {f === 'all' ? 'Todas' : f === 'unread' ? 'Não Lidas' : 'Lidas'}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Lista de NotificaÃ§Ãµes */}
+            {/* Lista de NotificaçÃµes */}
             <div className="flex-1 overflow-y-auto p-3 md:p-4">
               {filteredNotifications.length === 0 ? (
                 <div className="text-center py-12">
                   <IoNotifications className="text-4xl text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500">
-                    {filter === 'unread' ? 'Nenhuma notificaÃ§Ã£o nÃ£o lida' : 
-                     filter === 'read' ? 'Nenhuma notificaÃ§Ã£o lida' : 
-                     'Nenhuma notificaÃ§Ã£o'}
+                    {filter === 'unread' ? 'Nenhuma notificação não lida' : 
+                     filter === 'read' ? 'Nenhuma notificação lida' : 
+                     'Nenhuma notificação'}
                   </p>
                 </div>
               ) : (
@@ -431,10 +431,10 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
               )}
             </div>
 
-            {/* RodapÃ© */}
+            {/* Rodapé */}
             <div className="p-3 md:p-4 border-t border-gray-200 bg-gray-50">
               <div className="flex items-center justify-between text-xs md:text-sm text-gray-600 mb-3">
-                <span>COMAES NotificaÃ§Ãµes</span>
+                <span>COMAES NotificaçÃµes</span>
                 <div className="flex items-center gap-2">
                   <span>{filteredNotifications.length} itens</span>
                   {notifications.length > 0 && (
@@ -451,7 +451,7 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
                 </div>
               </div>
               
-              {/* BotÃµes de aÃ§Ã£o */}
+              {/* BotÃµes de ação */}
               {unreadCount > 0 && (
                 <button
                   onClick={marcarTodasComoLidas}

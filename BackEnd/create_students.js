@@ -77,7 +77,7 @@ const createStudents = async () => {
 
     console.log('🎉 3 estudantes criados com sucesso!');
     console.log('\n📋 CREDENCIAIS:');
-    console.log('───────────────────────────────────────');
+    console.log('');
     console.log('Estudante 1:');
     console.log('  Email: lucas.alves@example.com');
     console.log('  Senha: 928837792Esm.');
@@ -87,7 +87,7 @@ const createStudents = async () => {
     console.log('\nEstudante 3:');
     console.log('  Email: tiago.ferreira@example.com');
     console.log('  Senha: 928837792Esm.');
-    console.log('───────────────────────────────────────\n');
+    console.log('\n');
 
     process.exit(0);
   } catch (e) {

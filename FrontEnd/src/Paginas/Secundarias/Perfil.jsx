@@ -18,7 +18,7 @@ import { validateNome, validateEmail, validateBio, validateFileUpload } from '..
 
 const API = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
-/* ─── Toast ────────────────────────────────────────────────────── */
+/*  Toast  */
 function Toast({ type, msg, onClose }) {
   useEffect(() => {
     if (!msg) return;
@@ -37,7 +37,7 @@ function Toast({ type, msg, onClose }) {
   );
 }
 
-/* ─── StatCard ─────────────────────────────────────────────────── */
+/*  StatCard  */
 function StatCard({ icon, label, value, colorClass = 'bg-blue-50 text-blue-600' }) {
   return (
     <div className="flex-1 min-w-[130px] bg-white rounded-2xl border border-gray-200 p-4 flex items-center gap-3 shadow-sm">
@@ -52,12 +52,12 @@ function StatCard({ icon, label, value, colorClass = 'bg-blue-50 text-blue-600' 
   );
 }
 
-/* ─── SectionTitle ─────────────────────────────────────────────── */
+/*  SectionTitle  */
 function SectionTitle({ children }) {
   return <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wide mb-3">{children}</h2>;
 }
 
-/* ─── Tab button ────────────────────────────────────────────────── */
+/*  Tab button  */
 function Tab({ active, onClick, children }) {
   return (
     <button
@@ -70,7 +70,7 @@ function Tab({ active, onClick, children }) {
   );
 }
 
-/* ─── Avatar ────────────────────────────────────────────────────── */
+/*  Avatar  */
 function AvatarBlock({ src, initials, size = 88, editMode, onFile }) {
   return (
     <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
@@ -92,7 +92,7 @@ function AvatarBlock({ src, initials, size = 88, editMode, onFile }) {
   );
 }
 
-/* ─── InfoRow ────────────────────────────────────────────────────── */
+/*  InfoRow  */
 function InfoRow({ icon, label, value }) {
   if (!value) return null;
   return (
@@ -106,17 +106,17 @@ function InfoRow({ icon, label, value }) {
   );
 }
 
-/* ─── MedalIcon ──────────────────────────────────────────────────── */
+/*  MedalIcon  */
 function MedalIcon({ pos }) {
-  if (pos === 1) return <span>🥇</span>;
-  if (pos === 2) return <span>🥈</span>;
-  if (pos === 3) return <span>🥉</span>;
+  if (pos === 1) return <span>[GOLD]</span>;
+  if (pos === 2) return <span>[SILVER]</span>;
+  if (pos === 3) return <span>[BRONZE]</span>;
   return <span className="text-gray-400 text-xs font-semibold">{pos}º</span>;
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* 
    PERFIL DO ADMINISTRADOR
-═══════════════════════════════════════════════════════════════ */
+ */
 function AdminPerfilLayout({ user, token, onLogout, navigate }) {
   const [stats, setStats] = useState(null);
   const [recentActivity, setRecentActivity] = useState([]);
@@ -237,14 +237,16 @@ function AdminPerfilLayout({ user, token, onLogout, navigate }) {
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
             <SectionTitle>Actividade Recente do Sistema</SectionTitle>
             <div className="space-y-2">
-              {recentActivity.slice(0, 5).map((act, i) => (
-                <div key={i} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
+              {Array.isArray(recentActivity) && recentActivity.slice(0, 5).map((act, i) => (
+                <div key={act?.id ?? i} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
                   <div className="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <BarChart3 size={12} className="text-blue-500" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-700">{act.descricao || act.mensagem || JSON.stringify(act)}</p>
-                    {act.data && (
+                    <p className="text-sm text-gray-700">
+                      {act?.descricao || act?.mensagem || String(act || 'Atividade')}
+                    </p>
+                    {act?.data && (
                       <p className="text-xs text-gray-400 mt-0.5">
                         {new Date(act.data).toLocaleString('pt-PT')}
                       </p>
@@ -261,9 +263,9 @@ function AdminPerfilLayout({ user, token, onLogout, navigate }) {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* 
    PERFIL DO COLABORADOR
-═══════════════════════════════════════════════════════════════ */
+ */
 function ColaboradorPerfilLayout({ user, token, onSave, saving, editMode, setEditMode, form, setForm, formErrors, cancelEdit, handleFile, preview, onLogout, navigate, toast, setToast, showLogout, setShowLogout, logout, inputCls, avatarSrc, initials, joinDate }) {
   const [questoes, setQuestoes]     = useState([]);
   const [loadingQ, setLoadingQ]     = useState(true);
@@ -438,9 +440,9 @@ function ColaboradorPerfilLayout({ user, token, onSave, saving, editMode, setEdi
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* 
    MAIN COMPONENT
-═══════════════════════════════════════════════════════════════ */
+ */
 export default function Perfil() {  const { user, token, login, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -618,8 +620,8 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
     );
   }
 
-  // ─── Perfil do ADMINISTRADOR ─────────────────────────────────────────────
-  const isAdmin = user.isAdmin === true || user.isAdmin === 1 || user.role === 'admin';
+  //  Perfil do ADMINISTRADOR 
+  const isAdmin = user.role === 'admin';
 
   // Calcular valores comuns (usados tanto no perfil de colaborador como de estudante)
   const avatarSrc = preview || user.avatar || user.imagem || null;
@@ -635,12 +637,12 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
     return <AdminPerfilLayout user={user} token={token} onLogout={() => { logout(); navigate('/login'); }} navigate={navigate} />;
   }
 
-  // ─── Perfil do COLABORADOR ───────────────────────────────────────────────
+  //  Perfil do COLABORADOR 
   if (user.role === 'colaborador') {
     return <ColaboradorPerfilLayout user={user} token={token} onSave={onSave} saving={saving} editMode={editMode} setEditMode={setEditMode} form={form} setForm={setForm} formErrors={formErrors} cancelEdit={cancelEdit} handleFile={handleFile} preview={preview} onLogout={() => { setShowLogout(true); }} navigate={navigate} toast={toast} setToast={setToast} showLogout={showLogout} setShowLogout={setShowLogout} logout={logout} inputCls={inputCls} avatarSrc={avatarSrc} initials={initials} joinDate={joinDate} />;
   }
 
-  // ─── Perfil do ESTUDANTE (padrão) ─────────────────────────────────────────
+  //  Perfil do ESTUDANTE (padrão) 
   return (
     <Layout>
       <LogoutModal
@@ -651,7 +653,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
 
       <div className="max-w-3xl mx-auto px-4 py-8 pb-20 flex flex-col gap-5">
 
-        {/* ───────── HERO CARD ───────── */}
+        {/*  HERO CARD  */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
           <div className="flex items-start gap-5 flex-wrap">
 
@@ -771,7 +773,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
           )}
         </div>
 
-        {/* ───────── STATS ROW ───────── */}
+        {/*  STATS ROW  */}
         <div className="flex flex-wrap gap-3">
           <StatCard icon={<Trophy size={16} />} label="Torneios" value={totalTorneios}
             colorClass="bg-yellow-50 text-yellow-600" />
@@ -783,7 +785,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
             colorClass="bg-purple-50 text-purple-600" />
         </div>
 
-        {/* ───────── IDENTITY DETAILS + TABS ───────── */}
+        {/*  IDENTITY DETAILS + TABS  */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200">
 
           {/* Tab bar */}
@@ -894,7 +896,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
               <SectionTitle>Meus Certificados</SectionTitle>
               {certificados.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="text-5xl mb-3">🏆</div>
+                  <div className="text-5xl mb-3">[TROPHY]</div>
                   <h3 className="font-semibold text-gray-800 mb-1">Nenhum certificado ainda</h3>
                   <p className="text-sm text-gray-500">Conquiste o pódio em torneios para ganhar certificados!</p>
                 </div>
@@ -906,7 +908,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
                       2: { bg: 'bg-gray-50',   border: 'border-gray-300',   text: 'text-gray-700',   icon: '🥈' },
                       3: { bg: 'bg-orange-50', border: 'border-orange-300', text: 'text-orange-800', icon: '🥉' },
                     };
-                    const m = medals[cert.posicao] || { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800', icon: '🏆' };
+                    const m = medals[cert.posicao] || { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800', icon: '[TROPHY]' };
                     return (
                       <div key={cert.id}
                         className={`flex items-center gap-4 p-4 rounded-xl border-2 ${m.bg} ${m.border}`}>

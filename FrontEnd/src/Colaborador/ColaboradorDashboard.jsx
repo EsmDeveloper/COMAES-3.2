@@ -33,7 +33,7 @@ const TabContent = ({ children }) => (
 // ============================================
 // COMPONENTE: Aba Criar Blocos
 // ============================================
-// ━━ Constantes (mesmo estilo do Admin) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━ Constantes (mesmo estilo do Admin) 
 const DISCIPLINAS = [
   { id: 'matematica',  label: 'Matemática',  cor: 'blue'   },
   { id: 'programacao', label: 'Programação', cor: 'indigo' },
@@ -91,7 +91,7 @@ const CriarBlocosTab = ({ token, apiBase }) => {
   const [showEditQuestao, setShowEditQuestao] = useState(false);
 
   const carregarBlocos = useCallback(async () => {
-    console.log('🔄 Carregando blocos...');
+    console.log('[LOAD] Carregando blocos...');
     setLoading(true);
     try {
       // Debug: Decodificar token para verificar payload
@@ -100,12 +100,12 @@ const CriarBlocosTab = ({ token, apiBase }) => {
         if (parts.length === 3) {
           try {
             const decoded = JSON.parse(atob(parts[1]));
-            console.log('📋 Token payload:', decoded);
+            console.log('[DEBUG] Token payload:', decoded);
             console.log('   - role:', decoded.role);
             console.log('   - status_colaborador:', decoded.status_colaborador);
             console.log('   - disciplina_colaborador:', decoded.disciplina_colaborador);
           } catch (e) {
-            console.warn('⚠️ Não conseguiu decodificar token');
+            console.warn('[WARN] Não conseguiu decodificar token');
           }
         }
       }
@@ -119,17 +119,17 @@ const CriarBlocosTab = ({ token, apiBase }) => {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error(`❌ Erro ${response.status}:`, errorData.mensagem || errorData.error || 'Erro desconhecido');
+        console.error(`[ERROR] Erro ${response.status}:`, errorData.mensagem || errorData.error || 'Erro desconhecido');
         throw new Error(`Erro ${response.status}`);
       }
       
       const data = await response.json();
       const blocosList = data.dados?.blocos || [];
       
-      console.log(`✅ ${blocosList.length} blocos carregados`);
+      console.log(`[SUCCESS] ${blocosList.length} blocos carregados`);
       setBlocos(blocosList);
     } catch (error) {
-      console.error('❌ Erro ao carregar blocos:', error);
+      console.error('[ERROR] Erro ao carregar blocos:', error);
       setBlocos([]);
       showMessage('Erro ao carregar blocos', 'error');
     } finally {
@@ -138,7 +138,7 @@ const CriarBlocosTab = ({ token, apiBase }) => {
   }, [token, apiBase]);
 
   useEffect(() => {
-    console.log('✅ Componente CriarBlocosTab montado');
+    console.log('[SUCCESS] Componente CriarBlocosTab montado');
     // Carregar blocos quando o componente é montado
     carregarBlocos();
   }, [carregarBlocos]);
@@ -298,7 +298,7 @@ const CriarBlocosTab = ({ token, apiBase }) => {
   };
 
   const carregarQuestoesDoBlocoExpandido = async (blocoId) => {
-    console.log(`🔄 Carregando questões do bloco ${blocoId}...`);
+    console.log(`[LOAD] Carregando questões do bloco ${blocoId}...`);
     setCarregandoQuestoesBlocos(prev => ({ ...prev, [blocoId]: true }));
     
     try {
@@ -325,7 +325,7 @@ const CriarBlocosTab = ({ token, apiBase }) => {
           ...prev,
           [blocoId]: questoesBloco
         }));
-        console.log(`✅ ${questoesBloco.length} questões filtradas para bloco ${blocoId}`);
+        console.log(`[SUCCESS] ${questoesBloco.length} questões filtradas para bloco ${blocoId}`);
         return;
       }
 
@@ -335,7 +335,7 @@ const CriarBlocosTab = ({ token, apiBase }) => {
         ...prev,
         [blocoId]: questoes
       }));
-      console.log(`✅ ${questoes.length} questões carregadas para bloco ${blocoId}`);
+      console.log(`[SUCCESS] ${questoes.length} questões carregadas para bloco ${blocoId}`);
     } catch (error) {
       console.error('Erro ao carregar questões do bloco:', error);
       setQuestoesPorBloco(prev => ({
@@ -364,7 +364,7 @@ const CriarBlocosTab = ({ token, apiBase }) => {
       const data = await response.json();
       const questoes = data.dados?.questoes || data.questoes || [];
       setQuestoesDisponiveis(questoes);
-      console.log(`✅ ${questoes.length} questões carregadas`);
+      console.log(`[SUCCESS] ${questoes.length} questões carregadas`);
     } catch (error) {
       console.error('Erro ao carregar questões:', error);
       showMessage('Erro ao carregar questões: ' + error.message, 'error');
@@ -380,23 +380,23 @@ const CriarBlocosTab = ({ token, apiBase }) => {
     setCarregandoQuestoes(true);
     try {
       const url = `${apiBase}/api/colaborador/blocos/${selectedBlocoForQuestoes.id}/questoes/${questaoId}`;
-      console.log(`🔗 Enviando para: ${url}`);
+      console.log(`[INFO] Enviando para: ${url}`);
       
       const response = await fetch(url, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      console.log(`📊 Status: ${response.status}`);
+      console.log(`[DEBUG] Status: ${response.status}`);
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error(`❌ Erro da API:`, errorData);
+        console.error(`[ERROR] Erro da API:`, errorData);
         throw new Error(errorData.message || errorData.erros?.detalhes || 'Erro ao adicionar questão');
       }
 
       const data = await response.json();
-      console.log(`✅ Resposta:`, data);
+      console.log(`[SUCCESS] Resposta:`, data);
 
       showMessage('Questão adicionada ao bloco com sucesso!', 'success');
       
@@ -567,8 +567,8 @@ const CriarBlocosTab = ({ token, apiBase }) => {
                                 'bg-red-100 text-red-700'
                               }`}>
                                 {bloco.status === 'pendente' ? '⏳ Pendente' :
-                                 bloco.status === 'aprovado' ? '✅ Aprovado' :
-                                 '❌ Rejeitado'}
+                                 bloco.status === 'aprovado' ? '[SUCCESS] Aprovado' :
+                                 '[ERROR] Rejeitado'}
                               </span>
                             </div>
 
@@ -664,7 +664,7 @@ const CriarBlocosTab = ({ token, apiBase }) => {
                                     <p className="text-xs font-semibold text-slate-700 line-clamp-2">{questao.titulo}</p>
                                     <p className="text-xs text-slate-500 line-clamp-1">{questao.descricao}</p>
                                   </div>
-                                  {/* ✅ NOVO: Botões de Editar e Remover */}
+                                  {/* [SUCCESS] NOVO: Botões de Editar e Remover */}
                                   <div className="flex items-center gap-1 flex-shrink-0">
                                     <button
                                       onClick={() => {
@@ -1001,7 +1001,7 @@ const ColaboradorDashboard = () => {
     userId: user?.id,
     onNovaNotificacao: (notificacao) => {
       // Recarregar contagem correta ao invés de somar
-      console.log('🔔 Nova notificação recebida:', notificacao);
+      console.log('[NOTIFY] Nova notificação recebida:', notificacao);
       fetchUnreadNotificationsCount();
     },
     enabled: !!user?.id

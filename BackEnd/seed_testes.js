@@ -10,7 +10,7 @@ async function seedTestes() {
 
     // Deletar registros antigos
     await ResultadoTeste.destroy({ where: {} });
-    console.log('🗑️ Registros antigos deletados');
+    console.log(' Registros antigos deletados');
 
     // Buscar usuários existentes
     const usuarios = await Usuario.findAll({ limit: 5 });

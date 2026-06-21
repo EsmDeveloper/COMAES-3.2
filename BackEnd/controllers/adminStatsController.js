@@ -4,7 +4,9 @@ import Questao from '../models/Questao.js';
 import ParticipanteTorneio from '../models/ParticipanteTorneio.js';
 import TentativaTeste from '../models/TentativaTeste.js';
 import ResultadoTeste from '../models/ResultadoTeste.js';
+import Certificado from '../models/Certificado.js';
 import { Op, fn, col } from 'sequelize';
+import sequelize from '../config/db.js';
 
 export async function getStats(req, res) {
   console.log('[adminStatsController] getStats chamado');
@@ -12,7 +14,7 @@ export async function getStats(req, res) {
   try {
     // ========== USUÁRIOS ==========
     const totalUsuarios = await Usuario.count();
-    const totalAdmins = await Usuario.count({ where: { isAdmin: true } });
+    const totalAdmins = await Usuario.count({ where: { role: 'admin' } });
     
     // Calcular novos usuários nos últimos 7, 30 e 90 dias
     const hoje = new Date();
@@ -239,7 +241,7 @@ export async function getUsuariosPorDia(req, res) {
 }
 
 // ============================================
-// ENDPOINT: Atividades recentes
+// ENDPOINT: Atividades recentes (DADOS REAIS)
 // GET /api/admin/atividades-recentes?limite=5
 // ============================================
 export async function getAtividadesRecentes(req, res) {
@@ -248,37 +250,205 @@ export async function getAtividadesRecentes(req, res) {
 
     console.log(`[adminStatsController] getAtividadesRecentes: limite=${limite}`);
 
-    // Gerar dados mockados temporariamente
     const atividades = [];
 
-    // Gerar atividades recentes fictícias
-    const acoes = [
-      { acao: 'inscricao_torneio', detalhe: 'Inscrito em "Torneio de Matemática"', usuario: 'João Silva' },
-      { acao: 'completar_teste', detalhe: 'Teste de Programação - 85% acertos', usuario: 'Maria Santos' },
-      { acao: 'finalizar_torneio', detalhe: 'Torneio "Inglês Avançado" foi finalizado', usuario: 'Sistema' },
-      { acao: 'inscricao_torneio', detalhe: 'Inscrito em "Competição de Cultura Geral"', usuario: 'Carlos Oliveira' },
-      { acao: 'completar_teste', detalhe: 'Teste de Matemática - 92% acertos', usuario: 'Ana Rodrigues' }
-    ];
-
-    // Gerar datas recentes
-    for (let i = 0; i < limite && i < acoes.length; i++) {
-      const data = new Date();
-      data.setHours(data.getHours() - i * 3); // Cada atividade 3 horas antes da anterior
-
-      atividades.push({
-        usuario_nome: acoes[i].usuario,
-        acao: acoes[i].acao,
-        detalhe: acoes[i].detalhe,
-        data_hora: data.toISOString()
+    // 1. PARTICIPAÇÕES EM TORNEIOS (últimas 24h)
+    try {
+      const participacoes = await ParticipanteTorneio.findAll({
+        include: [
+          { model: Usuario, attributes: ['id', 'nome', 'email'] },
+          { model: Torneio, attributes: ['id', 'titulo'] }
+        ],
+        where: {
+          createdAt: {
+            [sequelize.Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000)
+          }
+        },
+        order: [['createdAt', 'DESC']],
+        limit: limite,
+        raw: false
       });
+
+      for (const p of participacoes) {
+        if (p.Usuario && p.Torneio) {
+          atividades.push({
+            usuario_nome: p.Usuario.nome || 'Usuário desconhecido',
+            acao: 'inscricao_torneio',
+            detalhe: `Inscrito em "${p.Torneio.titulo}"`,
+            data_hora: p.createdAt,
+            tipo: 'participacao'
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('[adminStatsController] Erro ao buscar participações:', e.message);
     }
 
-    console.log(`[adminStatsController] getAtividadesRecentes: ${atividades.length} atividades retornadas (mock)`);
+    // 2. TESTES COMPLETADOS (últimas 24h)
+    try {
+      const testes = await TentativaTeste.findAll({
+        include: [
+          { model: Usuario, attributes: ['id', 'nome', 'email'] }
+        ],
+        where: {
+          createdAt: {
+            [sequelize.Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000)
+          },
+          status: 'completo'
+        },
+        order: [['createdAt', 'DESC']],
+        limit: limite,
+        raw: false
+      });
+
+      for (const t of testes) {
+        if (t.Usuario) {
+          const score = t.score || 0;
+          const percentual = Math.round(score);
+          atividades.push({
+            usuario_nome: t.Usuario.nome || 'Usuário desconhecido',
+            acao: 'completar_teste',
+            detalhe: `Teste completado - ${percentual}% de acertos`,
+            data_hora: t.createdAt,
+            tipo: 'teste'
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('[adminStatsController] Erro ao buscar testes:', e.message);
+    }
+
+    // 3. QUESTÕES CRIADAS (últimas 24h)
+    try {
+      const questoes = await Questao.findAll({
+        include: [
+          { model: Usuario, attributes: ['id', 'nome', 'email'], as: 'autor' }
+        ],
+        where: {
+          createdAt: {
+            [sequelize.Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000)
+          }
+        },
+        order: [['createdAt', 'DESC']],
+        limit: limite,
+        raw: false
+      });
+
+      for (const q of questoes) {
+        const autorNome = q.autor?.nome || q.autor_id || 'Colaborador desconhecido';
+        atividades.push({
+          usuario_nome: autorNome,
+          acao: 'criar_questao',
+          detalhe: `Criou questão: "${(q.titulo || q.enunciado || 'Sem título').substring(0, 50)}..."`,
+          data_hora: q.createdAt,
+          tipo: 'questao'
+        });
+      }
+    } catch (e) {
+      console.warn('[adminStatsController] Erro ao buscar questões:', e.message);
+    }
+
+    // 4. QUESTÕES APROVADAS (últimas 24h)
+    try {
+      const questoesAprovadas = await Questao.findAll({
+        include: [
+          { model: Usuario, attributes: ['id', 'nome', 'email'], as: 'autor' }
+        ],
+        where: {
+          status_aprovacao: 'aprovada',
+          updatedAt: {
+            [sequelize.Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000)
+          }
+        },
+        order: [['updatedAt', 'DESC']],
+        limit: limite,
+        raw: false
+      });
+
+      for (const q of questoesAprovadas) {
+        const autorNome = q.autor?.nome || q.autor_id || 'Colaborador desconhecido';
+        atividades.push({
+          usuario_nome: autorNome,
+          acao: 'questao_aprovada',
+          detalhe: `Questão aprovada: "${(q.titulo || q.enunciado || 'Sem título').substring(0, 50)}..."`,
+          data_hora: q.updatedAt,
+          tipo: 'aprovacao'
+        });
+      }
+    } catch (e) {
+      console.warn('[adminStatsController] Erro ao buscar questões aprovadas:', e.message);
+    }
+
+    // 5. CERTIFICADOS EMITIDOS (últimas 24h)
+    try {
+      const certificados = await Certificado.findAll({
+        include: [
+          { model: Usuario, attributes: ['id', 'nome', 'email'] },
+          { model: Torneio, attributes: ['id', 'titulo'] }
+        ],
+        where: {
+          createdAt: {
+            [sequelize.Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000)
+          }
+        },
+        order: [['createdAt', 'DESC']],
+        limit: limite,
+        raw: false
+      });
+
+      for (const c of certificados) {
+        if (c.Usuario && c.Torneio) {
+          atividades.push({
+            usuario_nome: c.Usuario.nome || 'Usuário desconhecido',
+            acao: 'certificado_emitido',
+            detalhe: `Certificado emitido: ${c.Torneio.titulo}`,
+            data_hora: c.createdAt,
+            tipo: 'certificado'
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('[adminStatsController] Erro ao buscar certificados:', e.message);
+    }
+
+    // 6. TORNEIOS FINALIZADOS (últimas 24h)
+    try {
+      const torneiFinalizados = await Torneio.findAll({
+        where: {
+          status: 'finalizado',
+          updatedAt: {
+            [sequelize.Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000)
+          }
+        },
+        order: [['updatedAt', 'DESC']],
+        limit: limite,
+        raw: false
+      });
+
+      for (const t of torneiFinalizados) {
+        atividades.push({
+          usuario_nome: 'Sistema',
+          acao: 'finalizar_torneio',
+          detalhe: `Torneio "${t.titulo}" foi finalizado`,
+          data_hora: t.updatedAt,
+          tipo: 'sistema'
+        });
+      }
+    } catch (e) {
+      console.warn('[adminStatsController] Erro ao buscar torneios finalizados:', e.message);
+    }
+
+    // Ordenar por data (mais recentes primeiro) e limitar ao número solicitado
+    atividades.sort((a, b) => new Date(b.data_hora) - new Date(a.data_hora));
+    const atividadesFinais = atividades.slice(0, limite);
+
+    console.log(`[adminStatsController] getAtividadesRecentes: ${atividadesFinais.length} atividades retornadas (DADOS REAIS)`);
 
     res.json({
       success: true,
       limite,
-      dados: atividades
+      total: atividadesFinais.length,
+      dados: atividadesFinais
     });
   } catch (error) {
     console.error('[adminStatsController] ERRO getAtividadesRecentes:', error.message);

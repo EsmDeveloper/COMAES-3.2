@@ -1,4 +1,4 @@
-﻿import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, Share2, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -38,7 +38,7 @@ export default function CertificadoBase({
     return Math.min((numericScore / safeBase) * 100, 100).toFixed(1);
   };
 
-  // Buscar dados do certificado (cÃ³digo, etc.)
+  // Buscar dados do certificado (código, etc.)
   useEffect(() => {
     if (!isOpen || !participante || !torneio || !user) return;
 
@@ -87,7 +87,7 @@ export default function CertificadoBase({
 
         setCertData(data);
       } catch (err) {
-        setError(err?.message || 'Erro de conexÃ£o. Tente novamente.');
+        setError(err?.message || 'Erro de conexão. Tente novamente.');
       } finally {
         setLoading(false);
       }
@@ -130,7 +130,7 @@ export default function CertificadoBase({
       try {
         await navigator.share({
         title: 'Meu Certificado COMAES',
-        text: `Conquistei ${posicao}Âº lugar no Torneio Academico COMAES (${disciplina}).`,
+        text: `Conquistei ${posicao}º lugar no Torneio Academico COMAES (${disciplina}).`,
         url: validatorUrl,
         });
       } catch {
@@ -149,10 +149,10 @@ export default function CertificadoBase({
   if (!isOpen) return null;
 
   const posicaoExtenso = {
-    1: '1Âº LUGAR',
-    2: '2Âº LUGAR',
-    3: '3Âº LUGAR',
-  }[posicao] || `${posicao}Âº LUGAR`;
+    1: '1º LUGAR',
+    2: '2º LUGAR',
+    3: '3º LUGAR',
+  }[posicao] || `${posicao}º LUGAR`;
 
   const nomeUsuario = (user?.nome || participante?.usuario?.nome || 'Participante').toUpperCase();
   const nomeTorneio = torneio?.titulo || 'Torneio Academico COMAES 2026';
@@ -186,20 +186,20 @@ export default function CertificadoBase({
           <div className="w-full lg:w-[280px] bg-slate-50 p-4 md:p-5 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-100 overflow-y-auto">
             <div>
               <div className="flex items-center gap-2 mb-6">
-                <div className="w-10 h-10 bg-[#1E3A8A] rounded-xl flex items-center justify-center text-white text-xl">ðŸ†</div>
+                <div className="w-10 h-10 bg-[#1E3A8A] rounded-xl flex items-center justify-center text-white text-xl"></div>
                 <div>
-                  <h3 className="font-bold text-gray-900 leading-tight">ParabÃ©ns!</h3>
-                  <p className="text-xs text-gray-500">Seu certificado estÃ¡ pronto</p>
+                  <h3 className="font-bold text-gray-900 leading-tight">Parabéns!</h3>
+                  <p className="text-xs text-gray-500">Seu certificado está pronto</p>
                 </div>
               </div>
 
               <div className="space-y-4 mb-8 text-sm">
                 <div className="p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
-                  <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-1">PosiÃ§Ã£o</p>
-                  <p className="text-[#1E3A8A] font-extrabold text-lg">{posicao}Âº LUGAR</p>
+                  <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-1">Posição</p>
+                  <p className="text-[#1E3A8A] font-extrabold text-lg">{posicao}º LUGAR</p>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
-                  <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-1">PontuaÃ§Ã£o</p>
+                  <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-1">Pontuação</p>
                   <p className="text-gray-800 font-extrabold text-lg">{pontuacaoFinal}%</p>
                 </div>
               </div>
@@ -225,7 +225,7 @@ export default function CertificadoBase({
                 onClick={onClose}
                 className="w-full py-2 text-sm text-gray-400 hover:text-gray-600 font-medium"
               >
-                Fechar VisualizaÃ§Ã£o
+                Fechar Visualização
               </button>
             </div>
           </div>
@@ -238,7 +238,7 @@ export default function CertificadoBase({
               </div>
             ) : error ? (
               <div className="bg-white p-8 rounded-2xl text-center max-w-sm shadow-xl">
-                <div className="text-4xl mb-4">âš ï¸</div>
+                <div className="text-4xl mb-4">â </div>
                 <h4 className="text-xl font-bold text-gray-900 mb-2">Ops! Algo deu errado</h4>
                 <p className="text-gray-500 text-sm mb-6">{error}</p>
                 <button onClick={onClose} className="w-full bg-gray-900 text-white py-2 rounded-lg">Voltar</button>
@@ -252,7 +252,7 @@ export default function CertificadoBase({
                   <div className="relative z-10 text-center">
                     <img src={logo} alt="Logo COMAES" className="mx-auto mb-3 h-12 w-12 object-contain" />
                     <h1 className="text-[#1E3A8A] text-sm sm:text-lg md:text-2xl font-extrabold tracking-wide uppercase">
-                      Certificado de Reconhecimento AcadÃ©mico
+                      Certificado de Reconhecimento Académico
                     </h1>
                     <p className="text-[#2563EB] text-[11px] md:text-sm font-semibold tracking-[0.18em] mt-1 uppercase">
                       Plataforma COMAES
@@ -263,7 +263,7 @@ export default function CertificadoBase({
                     <p className="text-slate-700 text-sm">A Plataforma COMAES certifica que, em Luanda,</p>
                     <h2 className="text-lg sm:text-2xl md:text-3xl font-black text-[#1E3A8A] tracking-wide">{nomeUsuario}</h2>
                     <p className="text-slate-800 text-sm md:text-base">
-                      AlcanÃ§ou o <strong>{posicaoExtenso}</strong> no Torneio AcadÃ©mico COMAES 2026.
+                      Alcançou o <strong>{posicaoExtenso}</strong> no Torneio Académico COMAES 2026.
                     </p>
                     <p className="text-slate-600 text-xs md:text-sm">{nomeTorneio} - {disciplina}</p>
                   </div>
@@ -274,7 +274,7 @@ export default function CertificadoBase({
                       <p className="text-xl font-bold text-[#1E3A8A]">{totalParticipantes}</p>
                     </div>
                     <div className="rounded-lg border border-[#1E3A8A]/20 bg-[#1E3A8A]/5 p-3 text-center">
-                      <p className="text-xs uppercase text-slate-500 font-semibold">PontuaÃ§Ã£o Final (%)</p>
+                      <p className="text-xs uppercase text-slate-500 font-semibold">Pontuação Final (%)</p>
                       <p className="text-xl font-bold text-[#1E3A8A]">{pontuacaoFinal}%</p>
                     </div>
                     <div className="rounded-lg border border-[#1E3A8A]/20 bg-[#1E3A8A]/5 p-3 text-center">
@@ -294,8 +294,8 @@ export default function CertificadoBase({
                     </div>
                     <div className="text-center min-w-[260px]">
                       <div className="h-px bg-slate-700 mb-2" />
-                      <p className="uppercase font-bold text-[#1E3A8A] text-sm">PROF. DR. ANTÃ“NIO SILVA</p>
-                      <p className="text-xs text-slate-600 italic">Diretor de AvaliaÃ§Ã£o e Desempenho</p>
+                      <p className="uppercase font-bold text-[#1E3A8A] text-sm">PROF. DR. ANTÃNIO SILVA</p>
+                      <p className="text-xs text-slate-600 italic">Diretor de Avaliação e Desempenho</p>
                     </div>
                   </div>
                 </div>

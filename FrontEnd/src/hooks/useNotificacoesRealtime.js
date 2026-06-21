@@ -23,7 +23,7 @@ export const useNotificacoesRealtime = ({
     
     // Evitar configurar listener múltiplas vezes
     if (listenerSetupRef.current) {
-      console.log('⚠️ Listener já está configurado, ignorando duplicata');
+      console.log('[INFO] Listener já está configurado, ignorando duplicata');
       return;
     }
     
@@ -31,14 +31,14 @@ export const useNotificacoesRealtime = ({
       // Evento específico para este usuário
       const eventName = `notificacao:${userId}`;
       
-      console.log(`🔌 Configurando listener para: ${eventName}`);
+      console.log(`[SETUP] Configurando listener para: ${eventName}`);
       
       // Remover listener anterior se existir (evitar duplicatas)
       socket.off(eventName);
       
       // Configurar novo listener
       socket.on(eventName, (notificacao) => {
-        console.log(`🔔 Notificação recebida via Socket.IO:`, notificacao);
+        console.log(`[NOTIFICATION] Notificação recebida via Socket.IO:`, notificacao);
         
         if (onNovaNotificacao && typeof onNovaNotificacao === 'function') {
           onNovaNotificacao(notificacao);
@@ -46,7 +46,7 @@ export const useNotificacoesRealtime = ({
       });
       
       listenerSetupRef.current = true;
-      console.log(`✅ Listener configurado com sucesso para ${eventName}`);
+      console.log(`[SUCCESS] Listener configurado com sucesso para ${eventName}`);
       
       return () => {
         // Cleanup: remover listener
@@ -54,7 +54,7 @@ export const useNotificacoesRealtime = ({
         listenerSetupRef.current = false;
       };
     } catch (error) {
-      console.error('❌ Erro ao configurar listener de notificações:', error);
+      console.error('[ERROR] Erro ao configurar listener de notificações:', error);
     }
   }, [userId, enabled, onNovaNotificacao]);
 

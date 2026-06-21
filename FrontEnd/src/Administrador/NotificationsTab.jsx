@@ -26,7 +26,7 @@ const NotificationsTab = ({ token }) => {
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   
-  // Estados do formulÃ¡rio
+  // Estados do formulário
   const [formData, setFormData] = useState({
     titulo: '',
     mensagem: '',
@@ -43,7 +43,7 @@ const NotificationsTab = ({ token }) => {
   const [sortBy, setSortBy] = useState('nome');
   const [sortOrder, setSortOrder] = useState('asc');
 
-  // Tipos de notificaÃ§Ã£o disponÃ­veis
+  // Tipos de notificação disponíveis
   const notificationTypes = [
     { value: 'geral', label: 'Geral', color: 'bg-gray-500' },
     { value: 'torneio', label: 'Torneio', color: 'bg-yellow-500' },
@@ -53,18 +53,24 @@ const NotificationsTab = ({ token }) => {
     { value: 'lembrete', label: 'Lembrete', color: 'bg-purple-500' }
   ];
 
-  // Carregar usuÃ¡rios
+  // Carregar usuários
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         setLoading(true);
         const service = adminService(token);
+        
+        // ✅ FIX: Usar service.user.getAll() - adminService agora expõe serviços diretamente
         const data = await service.user.getAll();
-        setUsers(Array.isArray(data) ? data : []);
+        
+        // ✅ Normalizar resposta - pode vir como { success, data } ou array direto
+        const normalizedData = data?.data || data;
+        setUsers(Array.isArray(normalizedData) ? normalizedData : []);
         setError(null);
       } catch (err) {
-        console.error('Erro ao carregar usuÃ¡rios:', err);
-        setError('Erro ao carregar usuÃ¡rios');
+        console.error('Erro ao carregar usuários:', err);
+        console.error('Detalhes do erro:', err.response?.data || err.message);
+        setError(`Erro ao carregar usuários: ${err.response?.data?.message || err.message}`);
       } finally {
         setLoading(false);
       }
@@ -73,15 +79,19 @@ const NotificationsTab = ({ token }) => {
     if (token) fetchUsers();
   }, [token]);
 
-  // Carregar notificaÃ§Ãµes
+  // Carregar notificações
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
         const service = adminService(token);
         const data = await service.notificacao.getAll();
-        setNotifications(Array.isArray(data) ? data : []);
+        
+        // ✅ Normalizar resposta
+        const normalizedData = data?.data || data;
+        setNotifications(Array.isArray(normalizedData) ? normalizedData : []);
       } catch (err) {
-        console.error('Erro ao carregar notificaÃ§Ãµes:', err);
+        console.error('Erro ao carregar notificações:', err);
+        console.error('Detalhes do erro:', err.response?.data || err.message);
       }
     };
 
@@ -90,7 +100,7 @@ const NotificationsTab = ({ token }) => {
     }
   }, [token, activeTab]);
 
-  // Filtrar e ordenar usuÃ¡rios
+  // Filtrar e ordenar usuários
   const filteredUsers = useCallback(() => {
     let filtered = users.filter(user => {
       const searchLower = searchTerm.toLowerCase();
@@ -119,18 +129,18 @@ const NotificationsTab = ({ token }) => {
     return filtered;
   }, [users, searchTerm, filterType, sortBy, sortOrder]);
 
-  // Filtrar notificaÃ§Ãµes
+  // Filtrar notificações
   const filteredNotifications = useCallback(() => {
     return notifications.filter(notif => {
       const matchType = filterType === 'all' || notif.tipo === filterType;
       const matchStatus = filterStatus === 'all' || 
         (filterStatus === 'lido' && notif.lido) ||
-        (filterStatus === 'nao-lido' && !notif.lido);
+        (filterStatus === 'não-lido' && !notif.lido);
       return matchType && matchStatus;
     });
   }, [notifications, filterType, filterStatus]);
 
-  // Selecionar/desselecionar usuÃ¡rio
+  // Selecionar/desselecionar usuário
   const toggleUserSelection = (userId) => {
     const newSelected = new Set(selectedUsers);
     if (newSelected.has(userId)) {
@@ -153,17 +163,17 @@ const NotificationsTab = ({ token }) => {
     }
   };
 
-  // Enviar notificaÃ§Ãµes
+  // Enviar notificações
   const handleSendNotifications = async (e) => {
     e.preventDefault();
     
     if (!formData.titulo.trim() || !formData.mensagem.trim()) {
-      setError('TÃ­tulo e mensagem sÃ£o obrigatÃ³rios');
+      setError('Título e mensagem são obrigatórios');
       return;
     }
 
     if (selectedUsers.size === 0) {
-      setError('Selecione pelo menos um usuÃ¡rio');
+      setError('Selecione pelo menos um usuário');
       return;
     }
 
@@ -171,7 +181,7 @@ const NotificationsTab = ({ token }) => {
       setLoading(true);
       setError(null);
 
-      // Enviar para todos os usuÃ¡rios selecionados de uma vez
+      // Enviar para todos os usuários selecionados de uma vez
       const API_BASE = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}`;
       
       const response = await fetch(`${API_BASE}/api/notificacoes`, {
@@ -191,41 +201,42 @@ const NotificationsTab = ({ token }) => {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Erro ao enviar notificaÃ§Ãµes');
+        throw new Error(data.error || 'Erro ao enviar notificaçÃães');
       }
 
-      setSuccess(`NotificaÃ§Ãµes enviadas para ${selectedUsers.size} usuÃ¡rio(s)`);
+      setSuccess(`NotificaçÃães enviadas para ${selectedUsers.size} usuário(s)`);
       setFormData({ titulo: '', mensagem: '', tipo: 'geral' });
       setSelectedUsers(new Set());
       setSelectAll(false);
 
-      // Limpar mensagem de sucesso apÃ³s 3 segundos
+      // Limpar mensagem de sucesso após 3 segundos
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      console.error('Erro ao enviar notificaÃ§Ãµes:', err);
-      setError(err.message || 'Erro ao enviar notificaÃ§Ãµes');
+      console.error('Erro ao enviar notificaçÃães:', err);
+      setError(err.message || 'Erro ao enviar notificaçÃães');
     } finally {
       setLoading(false);
     }
   };
 
-  // Deletar notificaÃ§Ã£o
+  // Deletar notificação
   const handleDeleteNotification = async (id) => {
-    if (!window.confirm('Tem certeza que deseja deletar esta notificaÃ§Ã£o?')) return;
+    if (!window.confirm('Tem certeza que deseja deletar esta notificação?')) return;
 
     try {
       const service = adminService(token);
       await service.notificacao.delete(id);
       setNotifications(notifications.filter(n => n.id !== id));
-      setSuccess('NotificaÃ§Ã£o deletada com sucesso');
+      setSuccess('Notificação deletada com sucesso');
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      console.error('Erro ao deletar notificaÃ§Ã£o:', err);
-      setError('Erro ao deletar notificaÃ§Ã£o');
+      console.error('Erro ao deletar notificação:', err);
+      console.error('Detalhes do erro:', err.response?.data || err.message);
+      setError(`Erro ao deletar notificação: ${err.response?.data?.message || err.message}`);
     }
   };
 
-  // Marcar como lida/nÃ£o lida
+  // Marcar como lida/não lida
   const handleToggleReadStatus = async (id, currentStatus) => {
     try {
       const service = adminService(token);
@@ -235,7 +246,8 @@ const NotificationsTab = ({ token }) => {
       ));
     } catch (err) {
       console.error('Erro ao atualizar status:', err);
-      setError('Erro ao atualizar status');
+      console.error('Detalhes do erro:', err.response?.data || err.message);
+      setError(`Erro ao atualizar status: ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -265,9 +277,9 @@ const NotificationsTab = ({ token }) => {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <Bell className="w-8 h-8 text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-800">Centro de NotificaÃ§Ãµes</h1>
+          <h1 className="text-3xl font-bold text-gray-800">Centro de Notificações</h1>
         </div>
-        <p className="text-gray-600">Gerencie e envie notificaÃ§Ãµes para usuÃ¡rios da plataforma</p>
+        <p className="text-gray-600">Gerencie e envie notificações para usuários da plataforma</p>
       </div>
 
       {/* Mensagens de Erro/Sucesso */}
@@ -303,7 +315,7 @@ const NotificationsTab = ({ token }) => {
         >
           <div className="flex items-center gap-2">
             <Send className="w-4 h-4" />
-            Enviar NotificaÃ§Ãµes
+            Enviar Notificações
           </div>
         </button>
         <button
@@ -316,15 +328,15 @@ const NotificationsTab = ({ token }) => {
         >
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4" />
-            HistÃ³rico
+            Histórico
           </div>
         </button>
       </div>
 
-      {/* TAB: ENVIAR NOTIFICAÃ‡Ã•ES */}
+      {/* TAB: ENVIAR NOTIFICAES */}
       {activeTab === 'send' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* FormulÃ¡rio */}
+          {/* Formulário */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Compor Mensagem</h2>
@@ -333,7 +345,7 @@ const NotificationsTab = ({ token }) => {
                 {/* Tipo */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tipo de NotificaÃ§Ã£o
+                    Tipo de Notificação
                   </label>
                   <select
                     value={formData.tipo}
@@ -348,16 +360,16 @@ const NotificationsTab = ({ token }) => {
                   </select>
                 </div>
 
-                {/* TÃ­tulo */}
+                {/* Título */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    TÃ­tulo *
+                    Título *
                   </label>
                   <input
                     type="text"
                     value={formData.titulo}
                     onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
-                    placeholder="Ex: Novo Torneio DisponÃ­vel"
+                    placeholder="Ex: Novo Torneio Disponível"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     maxLength={100}
                   />
@@ -380,32 +392,32 @@ const NotificationsTab = ({ token }) => {
                   <p className="text-xs text-gray-500 mt-1">{formData.mensagem.length}/500</p>
                 </div>
 
-                {/* Info de seleÃ§Ã£o */}
+                {/* Info de seleção */}
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <p className="text-sm text-blue-800">
-                    <strong>{selectedUsers.size}</strong> usuÃ¡rio(s) selecionado(s)
+                    <strong>{selectedUsers.size}</strong> usuário(s) selecionado(s)
                   </p>
                 </div>
 
-                {/* BotÃ£o Enviar */}
+                {/* Botão Enviar */}
                 <button
                   type="submit"
                   disabled={loading || selectedUsers.size === 0}
                   className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                   <Send className="w-4 h-4" />
-                  {loading ? 'Enviando...' : 'Enviar NotificaÃ§Ãµes'}
+                  {loading ? 'Enviando...' : 'Enviar NotificaçÃães'}
                 </button>
               </form>
             </div>
           </div>
 
-          {/* Lista de UsuÃ¡rios */}
+          {/* Lista de Usuários */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <Users className="w-5 h-5" />
-                Selecionar UsuÃ¡rios
+                Selecionar Usuários
               </h2>
 
               {/* Filtros e Busca */}
@@ -426,7 +438,7 @@ const NotificationsTab = ({ token }) => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Tipo de UsuÃ¡rio
+                      Tipo de Usuário
                     </label>
                     <select
                       value={filterType}
@@ -435,7 +447,7 @@ const NotificationsTab = ({ token }) => {
                     >
                       <option value="all">Todos</option>
                       <option value="admin">Admin</option>
-                      <option value="user">UsuÃ¡rio</option>
+                      <option value="user">Usuário</option>
                     </select>
                   </div>
 
@@ -469,12 +481,12 @@ const NotificationsTab = ({ token }) => {
                 </div>
               </div>
 
-              {/* Lista de UsuÃ¡rios */}
+              {/* Lista de Usuários */}
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {loading ? (
-                  <div className="text-center py-8 text-gray-500">Carregando usuÃ¡rios...</div>
+                  <div className="text-center py-8 text-gray-500">Carregando usuários...</div>
                 ) : filteredUsers().length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">Nenhum usuÃ¡rio encontrado</div>
+                  <div className="text-center py-8 text-gray-500">Nenhum usuário encontrado</div>
                 ) : (
                   filteredUsers().map(user => (
                     <div
@@ -508,7 +520,7 @@ const NotificationsTab = ({ token }) => {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
             <Clock className="w-5 h-5" />
-            HistÃ³rico de NotificaÃ§Ãµes
+            Histórico de NotificaçÃães
           </h2>
 
           {/* Filtros */}
@@ -542,7 +554,7 @@ const NotificationsTab = ({ token }) => {
               >
                 <option value="all">Todos</option>
                 <option value="lido">Lido</option>
-                <option value="nao-lido">NÃ£o Lido</option>
+                <option value="nao-lido">Não Lido</option>
               </select>
             </div>
 
@@ -554,7 +566,7 @@ const NotificationsTab = ({ token }) => {
                 <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Buscar tÃ­tulo..."
+                  placeholder="Buscar título..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -563,12 +575,12 @@ const NotificationsTab = ({ token }) => {
             </div>
           </div>
 
-          {/* Lista de NotificaÃ§Ãµes */}
+          {/* Lista de NotificaçÃães */}
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {loading ? (
-              <div className="text-center py-8 text-gray-500">Carregando notificaÃ§Ãµes...</div>
+              <div className="text-center py-8 text-gray-500">Carregando notificaçÃães...</div>
             ) : filteredNotifications().length === 0 ? (
-              <div className="text-center py-8 text-gray-500">Nenhuma notificaÃ§Ã£o encontrada</div>
+              <div className="text-center py-8 text-gray-500">Nenhuma notificação encontrada</div>
             ) : (
               filteredNotifications().map(notif => (
                 <div
@@ -591,7 +603,7 @@ const NotificationsTab = ({ token }) => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-bold text-gray-800 truncate">
-                            {notif.titulo || 'Sem tÃ­tulo'}
+                            {notif.titulo || 'Sem título'}
                           </h3>
                           {notif.lido ? (
                             <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
@@ -603,12 +615,12 @@ const NotificationsTab = ({ token }) => {
                           {notif.mensagem || 'Sem mensagem'}
                         </p>
                         <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                          <span>UsuÃ¡rio ID: {notif.usuario_id}</span>
+                          <span>Usuário ID: {notif.usuario_id}</span>
                           <span>{formatDate(notif.criado_em)}</span>
                         </div>
                       </div>
 
-                      {/* AÃ§Ãµes */}
+                      {/* AçÃães */}
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <button
                           onClick={(e) => {
@@ -616,7 +628,7 @@ const NotificationsTab = ({ token }) => {
                             handleToggleReadStatus(notif.id, notif.lido);
                           }}
                           className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-                          title={notif.lido ? 'Marcar como nÃ£o lida' : 'Marcar como lida'}
+                          title={notif.lido ? 'Marcar como não lida' : 'Marcar como lida'}
                         >
                           {notif.lido ? (
                             <EyeOff className="w-4 h-4 text-gray-600" />

@@ -8,11 +8,11 @@ import sequelize from './config/db.js';
 
 async function runMigrations() {
   try {
-    console.log('🚀 Iniciando migrations...\n');
+    console.log('[ROCKET] Iniciando migrations...\n');
 
     // Conectar ao banco
     await sequelize.authenticate();
-    console.log('✅ Conectado ao banco de dados\n');
+    console.log('[SUCCESS] Conectado ao banco de dados\n');
 
     // Migrations a executar (ordem importa!)
     const migrations = [
@@ -84,22 +84,22 @@ async function runMigrations() {
       },
     ];
 
-    console.log(`📊 Executando ${migrations.length} migrations\n`);
+    console.log(`[CHART] Executando ${migrations.length} migrations\n`);
 
     for (let i = 0; i < migrations.length; i++) {
       const migration = migrations[i];
       try {
         await sequelize.query(migration.sql);
-        console.log(`✅ [${i + 1}/${migrations.length}] ${migration.name}`);
+        console.log(`[SUCCESS] [${i + 1}/${migrations.length}] ${migration.name}`);
       } catch (err) {
         if (
           err.message.includes('already exists') ||
           err.message.includes('Duplicate') ||
           err.message.includes('CONSTRAINT')
         ) {
-          console.log(`ℹ️  [${i + 1}/${migrations.length}] ${migration.name} (já existe)`);
+          console.log(`[INFO] [${i + 1}/${migrations.length}] ${migration.name} (já existe)`);
         } else {
-          console.error(`❌ [${i + 1}/${migrations.length}] ${migration.name}`);
+          console.error(`[ERROR] [${i + 1}/${migrations.length}] ${migration.name}`);
           console.error(`   Erro: ${err.message}`);
           // Continuar com próximas migrations
         }
@@ -107,7 +107,7 @@ async function runMigrations() {
     }
 
     // Verificar se colunas foram criadas
-    console.log('\n📋 Verificando resultado da migração...\n');
+    console.log('\n[LIST] Verificando resultado da migração...\n');
     try {
       const result = await sequelize.query(`
         SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE
@@ -120,12 +120,12 @@ async function runMigrations() {
       
       if (result && result[0] && result[0].length > 0) {
         console.table(result[0]);
-        console.log('\n🎉 Migrations completadas com sucesso!\n');
+        console.log('\n[CELEBRATE] Migrations completadas com sucesso!\n');
       } else {
-        console.log('⚠️  Nenhuma coluna nova foi encontrada\n');
+        console.log('[WARNING]  Nenhuma coluna nova foi encontrada\n');
       }
     } catch (err) {
-      console.log('⚠️  Erro ao verificar resultado:', err.message);
+      console.log('[WARNING]  Erro ao verificar resultado:', err.message);
     }
 
     // Desconectar
@@ -133,7 +133,7 @@ async function runMigrations() {
     process.exit(0);
 
   } catch (err) {
-    console.error('\n❌ Erro ao executar migrations:', err.message);
+    console.error('\n[ERROR] Erro ao executar migrations:', err.message);
     process.exit(1);
   }
 }

@@ -76,7 +76,7 @@ export const QuestionCardEnhanced = ({
             </span>
             <span className={`inline-block px-3 py-1.5 rounded-full text-sm font-medium ${colors.badge}`}>
               <span className={`inline-block w-2 h-2 rounded-full ${colors.dot} mr-1.5`} />
-              {difficulty === 'facil' ? '⭐ Fácil' : difficulty === 'dificil' ? '⭐⭐⭐ Difícil' : '⭐⭐ Médio'}
+              {difficulty === 'facil' ? '⭐ Fácil' : difficulty === 'dificil' ? ' Difícil' : '⭐⭐ Médio'}
             </span>
           </div>
           

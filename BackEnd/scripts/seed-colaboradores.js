@@ -19,7 +19,7 @@ async function seedColaboradores() {
     console.log('✅ Conectado ao banco de dados');
 
     // 1. Limpar colaboradores existentes (com força máxima)
-    console.log('\n🗑️  Limpando colaboradores existentes...');
+    console.log('\n  Limpando colaboradores existentes...');
     
     // Primeiro, desabilitar FK constraints
     await sequelize.query('SET FOREIGN_KEY_CHECKS=0');

@@ -3,10 +3,11 @@ import Layout from './Layout';
 import {
   Newspaper, TrendingUp, Calendar, User, Clock,
   ExternalLink, BookOpen, Trophy, Zap, Share2,
-  Bookmark, BookmarkCheck, Filter, Search, Eye, X
+  Bookmark, BookmarkCheck, Filter, Search, Eye, X,
+  Sparkles, RefreshCw, Lightbulb, Mail, Award, Star
 } from 'lucide-react';
 
-/* â”€â”€â”€ Design tokens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --------------------------------------------------------------------- */
 const t = {
   primary:     '#4F6EF7',
   primarySoft: '#EEF1FE',
@@ -24,23 +25,23 @@ const t = {
   subtle:      '#9CA3AF',
 };
 
-/* â”€â”€â”€ Category config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --------------------------------------------------------------------- */
 const catConfig = {
-  novidade:    { label: 'ðŸŽ‰ Novidade',    bg: t.primarySoft, color: t.primary,  accent: t.primary,  badgeBg: '#DBEAFE', badgeColor: '#1D4ED8' },
-  'atualizaÃ§Ã£o':{ label: 'ðŸ”„ AtualizaÃ§Ã£o',bg: t.successSoft, color: t.success,  accent: t.success,  badgeBg: '#D1FAE5', badgeColor: '#065F46' },
-  evento:      { label: 'ðŸ“… Evento',      bg: t.purpleSoft,  color: t.purple,   accent: t.purple,   badgeBg: '#EDE9FE', badgeColor: '#5B21B6' },
-  dica:        { label: 'ðŸ’¡ Dica',        bg: t.amberSoft,   color: t.amber,    accent: '#D97706',  badgeBg: '#FEF3C7', badgeColor: '#92400E' },
+  novidade:    { label: 'Novidade',    bg: t.primarySoft, color: t.primary,  accent: t.primary,  badgeBg: '#DBEAFE', badgeColor: '#1D4ED8', icon: Sparkles },
+  atualizacao: { label: 'Atualização', bg: t.successSoft, color: t.success,  accent: t.success,  badgeBg: '#D1FAE5', badgeColor: '#065F46', icon: RefreshCw },
+  evento:      { label: 'Evento',      bg: t.purpleSoft,  color: t.purple,   accent: t.purple,   badgeBg: '#EDE9FE', badgeColor: '#5B21B6', icon: Calendar },
+  dica:        { label: 'Dica',        bg: t.amberSoft,   color: t.amber,    accent: '#D97706',  badgeBg: '#FEF3C7', badgeColor: '#92400E', icon: Lightbulb },
 };
 
 const ALL_CATS = [
-  { id: 'all',          label: 'Todas',        emoji: 'ðŸ“°' },
-  { id: 'novidade',     label: 'Novidades',    emoji: 'ðŸŽ‰' },
-  { id: 'atualizaÃ§Ã£o',  label: 'AtualizaÃ§Ãµes', emoji: 'ðŸ”„' },
-  { id: 'evento',       label: 'Eventos',      emoji: 'ðŸ“…' },
-  { id: 'dica',         label: 'Dicas',        emoji: 'ðŸ’¡' },
+  { id: 'all',          label: 'Todas',        icon: Newspaper },
+  { id: 'novidade',     label: 'Novidades',    icon: Sparkles },
+  { id: 'atualizacao',  label: 'Atualizações', icon: RefreshCw },
+  { id: 'evento',       label: 'Eventos',      icon: Calendar },
+  { id: 'dica',         label: 'Dicas',        icon: Lightbulb },
 ];
 
-/* â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --------------------------------------------------------------------- */
 const cardBase = {
   background: t.surface,
   borderRadius: 18,
@@ -49,56 +50,56 @@ const cardBase = {
   overflow: 'hidden',
 };
 
-/* â”€â”€â”€ Pill badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --------------------------------------------------------------------- */
 function Badge({ cat }) {
   const cfg = catConfig[cat] || catConfig['novidade'];
+  const Icon = cfg.icon;
   return (
-    <span style={{ 
+    <span style={{
       padding: '3px 10px', borderRadius: 999,
       fontSize: 11, fontWeight: 700,
       background: cfg.badgeBg, color: cfg.badgeColor,
       letterSpacing: '0.02em',
-     }}>
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+    }}>
+      <Icon size={12} />
       {cfg.label}
     </span>
   );
 }
 
-/* â”€â”€â”€ News Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --------------------------------------------------------------------- */
 function NewsCard({ id, category, title, excerpt, author, date, readTime, views, isBookmarked, onBookmark, imageUrl, tags = [] }) {
   const cfg = catConfig[category] || catConfig['novidade'];
   const [hovered, setHovered] = useState(false);
 
   return (
     <div
-      style={{ 
+      style={{
         ...cardBase,
         transition: 'box-shadow 0.22s ease, transform 0.22s ease',
         boxShadow: hovered ? '0 8px 32px rgba(15,17,23,0.10)' : cardBase.boxShadow,
         transform: hovered ? 'translateY(-2px)' : 'none',
-       }}
+      }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       {/* Image */}
       {imageUrl && (
-        <div style={{  height: 200, overflow: 'hidden', position: 'relative'  }}>
-          <img src={imageUrl} alt={title} style={{ 
+        <div style={{ height: 200, overflow: 'hidden', position: 'relative' }}>
+          <img src={imageUrl} alt={title} style={{
             width: '100%', height: '100%', objectFit: 'cover',
             transition: 'transform 0.5s ease',
             transform: hovered ? 'scale(1.04)' : 'scale(1)',
-           }} />
-          {/* Gradient overlay */}
-          <div style={{ 
+          }} />
+          <div style={{
             position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%',
             background: 'linear-gradient(to top, rgba(15,17,23,0.5), transparent)',
-           }} />
-          {/* Category badge over image */}
-          <div style={{  position: 'absolute', top: 14, left: 14  }}>
+          }} />
+          <div style={{ position: 'absolute', top: 14, left: 14 }}>
             <Badge cat={category} />
           </div>
-          {/* Bookmark */}
-          <button onClick={() => onBookmark(id)} style={{ 
+          <button onClick={() => onBookmark(id)} style={{
             position: 'absolute', top: 10, right: 12,
             background: isBookmarked ? t.amber : 'rgba(255,255,255,0.9)',
             border: 'none', borderRadius: '50%',
@@ -108,80 +109,80 @@ function NewsCard({ id, category, title, excerpt, author, date, readTime, views,
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             transition: 'background 0.2s',
             color: isBookmarked ? '#fff' : t.subtle,
-           }}>
-            {isBookmarked ? <BookmarkCheck size={16}/> : <Bookmark size={16}/>}
+          }}>
+            {isBookmarked ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
           </button>
         </div>
       )}
 
-      <div style={{  padding: '20px 22px'  }}>
+      <div style={{ padding: '20px 22px' }}>
         {/* Top row (no image fallback) */}
         {!imageUrl && (
-          <div style={{  display: 'flex', justifyContent: 'space-between', marginBottom: 12  }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
             <Badge cat={category} />
-            <button onClick={() => onBookmark(id)} style={{ 
+            <button onClick={() => onBookmark(id)} style={{
               background: 'none', border: 'none', cursor: 'pointer',
               color: isBookmarked ? t.amber : t.subtle,
-             }}>
-              {isBookmarked ? <BookmarkCheck size={18}/> : <Bookmark size={18}/>}
+            }}>
+              {isBookmarked ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
             </button>
           </div>
         )}
 
         {/* Tags */}
         {tags.length > 0 && (
-          <div style={{  display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10  }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
             {tags.slice(0, 3).map((tag, i) => (
-              <span key={i} style={{ 
+              <span key={i} style={{
                 fontSize: 11, color: cfg.color, background: cfg.bg,
                 borderRadius: 6, padding: '2px 8px', fontWeight: 500,
-               }}>#{tag}</span>
+              }}>#{tag}</span>
             ))}
           </div>
         )}
 
         {/* Title */}
-        <h3 style={{ 
+        <h3 style={{
           fontSize: 17, fontWeight: 700, color: t.text,
           lineHeight: 1.45, marginBottom: 8,
           transition: 'color 0.15s',
           ...(hovered ? { color: cfg.accent } : {}),
-         }}>{title}</h3>
+        }}>{title}</h3>
 
         {/* Excerpt */}
-        <p style={{  fontSize: 13, color: t.muted, lineHeight: 1.65, marginBottom: 16  }}>
+        <p style={{ fontSize: 13, color: t.muted, lineHeight: 1.65, marginBottom: 16 }}>
           {excerpt}
         </p>
 
         {/* Meta footer */}
-        <div style={{ 
+        <div style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           paddingTop: 14, borderTop: `1px solid ${t.border}`,
-         }}>
-          <div style={{  display: 'flex', alignItems: 'center', gap: 14  }}>
-            <span style={{  display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: t.subtle  }}>
-              <User size={12}/> {author}
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: t.subtle }}>
+              <User size={12} /> {author}
             </span>
-            <span style={{  display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: t.subtle  }}>
-              <Calendar size={12}/> {date}
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: t.subtle }}>
+              <Calendar size={12} /> {date}
             </span>
-            <span style={{  display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: t.subtle  }}>
-              <Clock size={12}/> {readTime}
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: t.subtle }}>
+              <Clock size={12} /> {readTime}
             </span>
           </div>
 
-          <div style={{  display: 'flex', alignItems: 'center', gap: 14  }}>
-            <span style={{  display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: t.subtle  }}>
-              <Eye size={12}/> {views}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: t.subtle }}>
+              <Eye size={12} /> {views}
             </span>
-            <button style={{ 
+            <button style={{
               display: 'flex', alignItems: 'center', gap: 5,
               fontSize: 13, fontWeight: 600, color: t.primary,
               background: t.primarySoft, border: 'none', cursor: 'pointer',
               padding: '4px 10px', borderRadius: 8,
               transition: 'opacity 0.15s',
-             }}>
-              Ler <ExternalLink size={12}/>
+            }}>
+              Ler <ExternalLink size={12} />
             </button>
           </div>
         </div>
@@ -190,101 +191,98 @@ function NewsCard({ id, category, title, excerpt, author, date, readTime, views,
   );
 }
 
-/* â”€â”€â”€ Featured Hero Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --------------------------------------------------------------------- */
 function FeaturedCard({ title, description, imageUrl, category = 'novidade', ctaText = 'Saiba mais' }) {
   const gradients = {
     novidade:    'linear-gradient(135deg, #4F6EF7 0%, #6B8BF5 100%)',
-    'atualizaÃ§Ã£o':'linear-gradient(135deg, #10B981 0%, #34D399 100%)',
+    atualizacao: 'linear-gradient(135deg, #10B981 0%, #34D399 100%)',
     evento:      'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)',
     dica:        'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)',
   };
 
   return (
-    <div style={{ 
+    <div style={{
       borderRadius: 20, overflow: 'hidden', position: 'relative',
       minHeight: 240,
-     }}>
-      {/* BG image */}
+    }}>
       {imageUrl && (
-        <img src={imageUrl} alt={title} style={{ 
+        <img src={imageUrl} alt={title} style={{
           position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
-         }}/>
+        }} />
       )}
-      {/* Overlay */}
-      <div style={{ 
+      <div style={{
         position: 'absolute', inset: 0,
         background: imageUrl
           ? 'linear-gradient(135deg, rgba(15,17,23,0.75) 0%, rgba(15,17,23,0.4) 100%)'
           : (gradients[category] || gradients['novidade']),
-       }}/>
+      }} />
 
-      {/* Content */}
-      <div style={{  position: 'relative', padding: '36px 32px'  }}>
-        <div style={{  display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14  }}>
-          <Trophy size={16} color="rgba(255,255,255,0.8)"/>
-          <span style={{  fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.8)', letterSpacing: '0.1em', textTransform: 'uppercase'  }}>
+      <div style={{ position: 'relative', padding: '36px 32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+          <Trophy size={16} color="rgba(255,255,255,0.8)" />
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.8)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
             Destaque
           </span>
         </div>
-        <h2 style={{  fontSize: 22, fontWeight: 800, color: '#fff', lineHeight: 1.3, marginBottom: 10  }}>{title}</h2>
-        <p style={{  fontSize: 14, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6, marginBottom: 22, maxWidth: 420  }}>{description}</p>
-        <button style={{ 
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#fff', lineHeight: 1.3, marginBottom: 10 }}>{title}</h2>
+        <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6, marginBottom: 22, maxWidth: 420 }}>{description}</p>
+        <button style={{
           padding: '10px 22px', background: 'rgba(255,255,255,0.95)',
           color: t.text, border: 'none', borderRadius: 10,
           fontSize: 13, fontWeight: 700, cursor: 'pointer',
           transition: 'background 0.15s',
-         }}
-        onMouseEnter={e=>e.target.style.background='#fff'}
-        onMouseLeave={e=>e.target.style.background='rgba(255,255,255,0.95)'}>
-          {ctaText} â†’
+        }}
+          onMouseEnter={e => e.target.style.background = '#fff'}
+          onMouseLeave={e => e.target.style.background = 'rgba(255,255,255,0.95)'}>
+          {ctaText} →
         </button>
       </div>
     </div>
   );
 }
 
-/* â”€â”€â”€ Quick Update â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --------------------------------------------------------------------- */
 function QuickUpdateCard({ icon: Icon, title, description, date, color = 'blue' }) {
   const colors = {
-    blue:   { bg: t.primarySoft, color: t.primary },
-    green:  { bg: t.successSoft, color: t.success },
-    purple: { bg: t.purpleSoft,  color: t.purple  },
-    orange: { bg: t.amberSoft,   color: t.amber   },
+    blue: { bg: t.primarySoft, color: t.primary },
+    green: { bg: t.successSoft, color: t.success },
+    purple: { bg: t.purpleSoft, color: t.purple },
+    orange: { bg: t.amberSoft, color: t.amber },
   };
   const c = colors[color] || colors.blue;
 
   return (
-    <div style={{ 
+    <div style={{
       display: 'flex', alignItems: 'flex-start', gap: 14,
       padding: '14px 16px',
       background: t.bg, borderRadius: 12,
       transition: 'background 0.15s',
-     }}
-    onMouseEnter={e=>e.currentTarget.style.background='#EDEEF5'}
-    onMouseLeave={e=>e.currentTarget.style.background=t.bg}>
-      <div style={{ 
+    }}
+      onMouseEnter={e => e.currentTarget.style.background = '#EDEEF5'}
+      onMouseLeave={e => e.currentTarget.style.background = t.bg}>
+      <div style={{
         width: 38, height: 38, borderRadius: 10, flexShrink: 0,
         background: c.bg, color: c.color,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-       }}>
-        <Icon size={16}/>
+      }}>
+        <Icon size={16} />
       </div>
       <div>
-        <div style={{  fontSize: 13, fontWeight: 600, color: t.text, marginBottom: 2  }}>{title}</div>
-        <div style={{  fontSize: 12, color: t.muted, lineHeight: 1.5, marginBottom: 4  }}>{description}</div>
-        <div style={{  fontSize: 11, color: t.subtle  }}>{date}</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: t.text, marginBottom: 2 }}>{title}</div>
+        <div style={{ fontSize: 12, color: t.muted, lineHeight: 1.5, marginBottom: 4 }}>{description}</div>
+        <div style={{ fontSize: 11, color: t.subtle }}>{date}</div>
       </div>
     </div>
   );
 }
 
-/* â”€â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --------------------------------------------------------------------- */
 export default function News() {
-  const [news, setNews]           = useState([]);
+  const [news, setNews] = useState([]);
   const [bookmarked, setBookmarked] = useState([]);
-  const [filter, setFilter]       = useState('all');
-  const [search, setSearch]       = useState('');
-  const [loading, setLoading]     = useState(true);
+  const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
   const [catCounts, setCatCounts] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [emailNewsletter, setEmailNewsletter] = useState('');
@@ -301,13 +299,11 @@ export default function News() {
         const result = await response.json();
         if (result.success) {
           const transformed = result.data.map(item => {
-            // Parse seguro de tags â€” suporta string simples, JSON array, ou double-encoded
             const parseTags = (raw) => {
               if (!raw) return [];
               if (Array.isArray(raw)) return raw;
               try {
                 let parsed = JSON.parse(raw);
-                // double-encoded: resultado ainda Ã© string
                 if (typeof parsed === 'string') parsed = JSON.parse(parsed);
                 if (Array.isArray(parsed)) return parsed;
                 if (typeof parsed === 'string') {
@@ -315,7 +311,6 @@ export default function News() {
                 }
                 return [];
               } catch {
-                // fallback: tratar como string separada por vÃ­rgulas
                 return String(raw).replace(/['"\\]/g, '').split(',').map(t => t.trim()).filter(Boolean);
               }
             };
@@ -324,15 +319,15 @@ export default function News() {
 
             let category = 'novidade';
             if (tagsArr.some(t => t.toLowerCase().includes('evento'))) category = 'evento';
-            else if (tagsArr.some(t => t.toLowerCase().includes('atualizaÃ§Ã£o') || t.toLowerCase().includes('update'))) category = 'atualizaÃ§Ã£o';
+            else if (tagsArr.some(t => t.toLowerCase().includes('atualização') || t.toLowerCase().includes('update'))) category = 'atualizacao';
             else if (tagsArr.some(t => t.toLowerCase().includes('dica'))) category = 'dica';
             return {
               id: item.id, category,
               title: item.titulo,
-              excerpt: item.resumo || item.conteudo.substring(0, 150) + 'â€¦',
+              excerpt: item.resumo || item.conteudo.substring(0, 150) + '…',
               author: item.autor?.nome || item.usuario?.nome || 'Equipe COMAES',
               date: item.publicado_em
-                ? new Date(item.publicado_em).toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' })
+                ? new Date(item.publicado_em).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
                 : 'Recentemente',
               readTime: Math.ceil((item.conteudo || '').split(' ').length / 200) + ' min',
               views: item.visualizacoes ?? 0,
@@ -344,13 +339,12 @@ export default function News() {
           setNews(transformed);
           setCatCounts({
             all: transformed.length,
-            novidade:      transformed.filter(n => n.category === 'novidade').length,
-            'atualizaÃ§Ã£o': transformed.filter(n => n.category === 'atualizaÃ§Ã£o').length,
-            evento:        transformed.filter(n => n.category === 'evento').length,
-            dica:          transformed.filter(n => n.category === 'dica').length,
+            novidade: transformed.filter(n => n.category === 'novidade').length,
+            atualizacao: transformed.filter(n => n.category === 'atualizacao').length,
+            evento: transformed.filter(n => n.category === 'evento').length,
+            dica: transformed.filter(n => n.category === 'dica').length,
           });
 
-          // Incrementar visualizaÃ§Ãµes de todas as notÃ­cias carregadas (entrada na aba)
           transformed.forEach(item => {
             fetch(`${API_BASE}/noticias/${item.id}/visualizar`, { method: 'POST' })
               .then(r => r.json())
@@ -361,11 +355,11 @@ export default function News() {
                   ));
                 }
               })
-              .catch(() => {}); // silencioso â€” nÃ£o bloqueia a UI
+              .catch(() => {});
           });
         }
       } catch (error) {
-        console.error("Erro ao carregar notÃ­cias:", error);
+        console.error("Erro ao carregar notícias:", error);
       } finally {
         setLoading(false);
       }
@@ -374,7 +368,7 @@ export default function News() {
   }, []);
 
   useEffect(() => {
-    setCurrentPage(1); // Volta para a primeira pÃ¡gina ao filtrar ou pesquisar
+    setCurrentPage(1);
   }, [filter, search]);
 
   const filteredNews = news.filter(item => {
@@ -392,10 +386,10 @@ export default function News() {
   const handleNewsletter = (e) => {
     e.preventDefault();
     if (!emailNewsletter || !emailNewsletter.includes('@')) {
-      setToast({ show: true, message: 'Insira um e-mail vÃ¡lido.', type: 'error' });
+      setToast({ show: true, message: 'Insira um e-mail válido.', type: 'error' });
       return;
     }
-    setToast({ show: true, message: 'InscriÃ§Ã£o realizada com sucesso! ðŸŽ‰', type: 'success' });
+    setToast({ show: true, message: 'Inscrição realizada com sucesso!', type: 'success' });
     setEmailNewsletter('');
     setTimeout(() => setToast({ ...toast, show: false }), 4000);
   };
@@ -411,16 +405,16 @@ export default function News() {
 
   const featuredNews = (news.filter(n => n.tags.some(tg => tg.toLowerCase().includes('destaque'))) || news).slice(0, 2);
   const displayFeatured = featuredNews.length > 0 ? featuredNews : news.slice(0, 2);
-  const quickUpdates = news.filter(n => n.category === 'atualizaÃ§Ã£o' || n.category === 'novidade').slice(0, 3);
-  const popular = [...news].sort((a,b) => b.views - a.views).slice(0, 4);
+  const quickUpdates = news.filter(n => n.category === 'atualizacao' || n.category === 'novidade').slice(0, 3);
+  const popular = [...news].sort((a, b) => b.views - a.views).slice(0, 4);
 
   if (loading) {
     return (
       <Layout>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        <div style={{  display:'flex', alignItems:'center', justifyContent:'center', height:'60vh', flexDirection:'column', gap:16  }}>
-          <div style={{  width:40, height:40, borderRadius:'50%', border:`3px solid ${t.border}`, borderTopColor:t.primary, animation:'spin 0.8s linear infinite'  }}/>
-          <span style={{  color:t.muted, fontSize:15  }}>Carregando notÃ­ciasâ€¦</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', flexDirection: 'column', gap: 16 }}>
+          <div style={{ width: 40, height: 40, borderRadius: '50%', border: `3px solid ${t.border}`, borderTopColor: t.primary, animation: 'spin 0.8s linear infinite' }} />
+          <span style={{ color: t.muted, fontSize: 15 }}>Carregando notícias…</span>
         </div>
       </Layout>
     );
@@ -434,97 +428,98 @@ export default function News() {
         .anim { animation: fadeUp 0.45s cubic-bezier(0.22,1,0.36,1) both; }
       `}</style>
 
-      <div style={{  maxWidth: 1200, margin: '0 auto'  }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
 
-        {/* â”€â”€ Page header â”€â”€ */}
-        <div className="anim" style={{  marginBottom: 32, animationDelay:'0ms'  }}>
-          <div style={{ 
+        {/* Page header */}
+        <div className="anim" style={{ marginBottom: 32, animationDelay: '0ms' }}>
+          <div style={{
             background: `linear-gradient(135deg, ${t.primary} 0%, #6B8BF5 100%)`,
             borderRadius: 24, padding: '36px 40px', color: '#fff',
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap:'wrap', gap:20,
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20,
             position: 'relative', overflow: 'hidden',
-           }}>
-            <div style={{  position:'absolute', top:-50, right:-50, width:220, height:220, borderRadius:'50%', background:'rgba(255,255,255,0.07)'  }}/>
-            <div style={{  position:'absolute', bottom:-60, right:120, width:160, height:160, borderRadius:'50%', background:'rgba(255,255,255,0.04)'  }}/>
-            <div style={{  position:'relative'  }}>
-              <div style={{  display:'flex', alignItems:'center', gap:8, marginBottom:8  }}>
-                <Newspaper size={14} style={{  opacity:0.75  }}/>
-                <span style={{  fontSize:12, opacity:0.75, fontWeight:500, letterSpacing:'0.06em', textTransform:'uppercase'  }}>
-                  NotÃ­cias COMAES
+          }}>
+            <div style={{ position: 'absolute', top: -50, right: -50, width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,0.07)' }} />
+            <div style={{ position: 'absolute', bottom: -60, right: 120, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
+            <div style={{ position: 'relative' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <Newspaper size={14} style={{ opacity: 0.75 }} />
+                <span style={{ fontSize: 12, opacity: 0.75, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                  Notícias COMAES
                 </span>
               </div>
-              <h1 style={{  fontSize:28, fontWeight:800, marginBottom:6  }}>NotÃ­cias da Plataforma</h1>
-              <p style={{  fontSize:14, opacity:0.8  }}>Fique por dentro das novidades, atualizaÃ§Ãµes e eventos</p>
+              <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 6 }}>Notícias da Plataforma</h1>
+              <p style={{ fontSize: 14, opacity: 0.8 }}>Fique por dentro das novidades, atualizações e eventos</p>
             </div>
-            <div style={{  display:'flex', gap:24, position:'relative'  }}>
+            <div style={{ display: 'flex', gap: 24, position: 'relative' }}>
               {[
-                { label:'PublicaÃ§Ãµes', value: news.length },
-                { label:'Salvos', value: bookmarked.length },
+                { label: 'Publicações', value: news.length },
+                { label: 'Salvos', value: bookmarked.length },
               ].map(s => (
-                <div key={s.label} style={{ 
-                  background:'rgba(255,255,255,0.12)', borderRadius:12, padding:'12px 20px', textAlign:'center', backdropFilter:'blur(8px)',
-                 }}>
-                  <div style={{  fontSize:24, fontWeight:800  }}>{s.value}</div>
-                  <div style={{  fontSize:12, opacity:0.75, marginTop:2  }}>{s.label}</div>
+                <div key={s.label} style={{
+                  background: 'rgba(255,255,255,0.12)', borderRadius: 12, padding: '12px 20px', textAlign: 'center', backdropFilter: 'blur(8px)',
+                }}>
+                  <div style={{ fontSize: 24, fontWeight: 800 }}>{s.value}</div>
+                  <div style={{ fontSize: 12, opacity: 0.75, marginTop: 2 }}>{s.label}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* â”€â”€ Search + Filter bar â”€â”€ */}
-        <div className="anim" style={{  marginBottom:28, animationDelay:'50ms'  }}>
-          <div style={{  display:'flex', gap:12, flexWrap:'wrap', alignItems:'center'  }}>
-            {/* Search */}
-            <div style={{  position:'relative', flex:1, minWidth:220  }}>
-              <Search size={16} style={{  position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:t.subtle  }}/>
+        {/* Search + Filter bar */}
+        <div className="anim" style={{ marginBottom: 28, animationDelay: '50ms' }}>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
+              <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: t.subtle }} />
               <input
                 type="text"
-                placeholder="Pesquisar notÃ­cias, tagsâ€¦"
+                placeholder="Pesquisar notícias, tags…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                style={{ 
-                  width:'100%', padding:'12px 16px 12px 42px',
-                  border:`1.5px solid ${t.border}`, borderRadius:12,
-                  fontSize:14, color:t.text, background:t.surface,
-                  outline:'none', boxSizing:'border-box',
-                  transition:'border-color 0.2s',
-                 }}
+                style={{
+                  width: '100%', padding: '12px 16px 12px 42px',
+                  border: `1.5px solid ${t.border}`, borderRadius: 12,
+                  fontSize: 14, color: t.text, background: t.surface,
+                  outline: 'none', boxSizing: 'border-box',
+                  transition: 'border-color 0.2s',
+                }}
                 onFocus={e => e.target.style.borderColor = t.primary}
                 onBlur={e => e.target.style.borderColor = t.border}
               />
               {search && (
-                <button onClick={() => setSearch('')} style={{ 
-                  position:'absolute', right:12, top:'50%', transform:'translateY(-50%)',
-                  background:'none', border:'none', cursor:'pointer', color:t.subtle,
-                 }}>
-                  <X size={14}/>
+                <button onClick={() => setSearch('')} style={{
+                  position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer', color: t.subtle,
+                }}>
+                  <X size={14} />
                 </button>
               )}
             </div>
 
-            {/* Category pill filters */}
-            <div style={{  display:'flex', gap:8, flexWrap:'wrap'  }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {ALL_CATS.map(cat => {
                 const active = filter === cat.id;
                 const cfg = catConfig[cat.id];
+                const Icon = cat.icon;
+                const bgColor = active ? (cfg ? cfg.accent : t.primary) : t.surface;
+                const textColor = active ? '#fff' : t.muted;
                 return (
-                  <button key={cat.id} onClick={() => setFilter(cat.id)} style={{ 
-                    padding:'9px 16px', borderRadius:10, fontSize:13, fontWeight:600, cursor:'pointer',
+                  <button key={cat.id} onClick={() => setFilter(cat.id)} style={{
+                    padding: '9px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer',
                     border: active ? 'none' : `1.5px solid ${t.border}`,
-                    background: active ? (cfg ? cfg.accent : t.primary) : t.surface,
-                    color: active ? '#fff' : t.muted,
-                    transition:'all 0.18s',
-                    display:'flex', alignItems:'center', gap:6,
-                   }}>
-                    <span>{cat.emoji}</span>
+                    background: bgColor,
+                    color: textColor,
+                    transition: 'all 0.18s',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                  }}>
+                    <Icon size={14} />
                     {cat.label}
-                    <span style={{ 
-                      fontSize:11, fontWeight:700, padding:'1px 6px',
-                      borderRadius:999,
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, padding: '1px 6px',
+                      borderRadius: 999,
                       background: active ? 'rgba(255,255,255,0.25)' : t.bg,
                       color: active ? '#fff' : t.subtle,
-                     }}>
+                    }}>
                       {catCounts[cat.id] ?? 0}
                     </span>
                   </button>
@@ -534,12 +529,12 @@ export default function News() {
           </div>
         </div>
 
-        {/* â”€â”€ Featured strip â”€â”€ */}
+        {/* Featured strip */}
         {displayFeatured.length > 0 && (
-          <div className="anim" style={{ 
-            display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))',
-            gap:18, marginBottom:32, animationDelay:'100ms',
-           }}>
+          <div className="anim" style={{
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: 18, marginBottom: 32, animationDelay: '100ms',
+          }}>
             {displayFeatured.map(f => (
               <FeaturedCard key={f.id} title={f.title} description={f.excerpt}
                 imageUrl={f.imageUrl} category={f.category} />
@@ -547,39 +542,37 @@ export default function News() {
           </div>
         )}
 
-        {/* â”€â”€ Main layout â”€â”€ */}
-        <div style={{  display:'flex', flexWrap: 'wrap', gap:24, alignItems:'start'  }}>
+        {/* Main layout */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'start' }}>
 
           {/* Left: news list */}
           <div style={{ flex: '1 1 600px', minWidth: 'min(100%, 600px)' }}>
-            {/* List header */}
-            <div className="anim" style={{ 
-              display:'flex', justifyContent:'space-between', alignItems:'center',
-              marginBottom:18, animationDelay:'140ms',
-             }}>
+            <div className="anim" style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              marginBottom: 18, animationDelay: '140ms',
+            }}>
               <div>
-                <h3 style={{  fontSize:16, fontWeight:700, color:t.text  }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: t.text }}>
                   {ALL_CATS.find(c => c.id === filter)?.label || 'Todas'}{' '}
-                  <span style={{  color:t.subtle, fontWeight:400  }}>({filteredNews.length})</span>
+                  <span style={{ color: t.subtle, fontWeight: 400 }}>({filteredNews.length})</span>
                 </h3>
                 {search && (
-                  <p style={{  fontSize:12, color:t.muted, marginTop:2  }}>
+                  <p style={{ fontSize: 12, color: t.muted, marginTop: 2 }}>
                     Resultados para "<strong>{search}</strong>"
                   </p>
                 )}
               </div>
-              <div style={{  display:'flex', alignItems:'center', gap:16  }}>
-                <button style={{  display:'flex', alignItems:'center', gap:6, fontSize:13, fontWeight:600, color:t.primary, background:'none', border:'none', cursor:'pointer'  }}>
-                  <Share2 size={14}/> Compartilhar
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <button style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: t.primary, background: 'none', border: 'none', cursor: 'pointer' }}>
+                  <Share2 size={14} /> Compartilhar
                 </button>
-                <div style={{  display:'flex', alignItems:'center', gap:5, fontSize:13, color:t.muted  }}>
-                  <BookmarkCheck size={14} style={{  color:t.amber  }}/> {bookmarked.length} salvos
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: t.muted }}>
+                  <BookmarkCheck size={14} style={{ color: t.amber }} /> {bookmarked.length} salvos
                 </div>
               </div>
             </div>
 
-            {/* Cards */}
-            <div className="anim" style={{  display:'flex', flexDirection:'column', gap:18, animationDelay:'180ms'  }}>
+            <div className="anim" style={{ display: 'flex', flexDirection: 'column', gap: 18, animationDelay: '180ms' }}>
               {currentNewsItems.length > 0 ? (
                 currentNewsItems.map(item => (
                   <NewsCard
@@ -589,17 +582,17 @@ export default function News() {
                   />
                 ))
               ) : (
-                <div style={{ 
-                  ...cardBase, padding:'60px 24px', textAlign:'center',
-                 }}>
-                  <Newspaper size={40} style={{  color:t.border, margin:'0 auto 14px'  }}/>
-                  <h4 style={{  fontSize:16, fontWeight:600, color:t.text, marginBottom:6  }}>Nenhuma notÃ­cia encontrada</h4>
-                  <p style={{  fontSize:14, color:t.muted  }}>Tente alterar os filtros ou termos de busca</p>
-                  <button onClick={() => { setFilter('all'); setSearch('');  }} style={{ 
-                    marginTop:16, padding:'9px 20px', background:t.primarySoft,
-                    color:t.primary, border:'none', borderRadius:10,
-                    fontSize:13, fontWeight:600, cursor:'pointer',
-                   }}>
+                <div style={{
+                  ...cardBase, padding: '60px 24px', textAlign: 'center',
+                }}>
+                  <Newspaper size={40} style={{ color: t.border, margin: '0 auto 14px' }} />
+                  <h4 style={{ fontSize: 16, fontWeight: 600, color: t.text, marginBottom: 6 }}>Nenhuma notícia encontrada</h4>
+                  <p style={{ fontSize: 14, color: t.muted }}>Tente alterar os filtros ou termos de busca</p>
+                  <button onClick={() => { setFilter('all'); setSearch(''); }} style={{
+                    marginTop: 16, padding: '9px 20px', background: t.primarySoft,
+                    color: t.primary, border: 'none', borderRadius: 10,
+                    fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  }}>
                     Limpar filtros
                   </button>
                 </div>
@@ -608,92 +601,93 @@ export default function News() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="anim" style={{  display:'flex', justifyContent:'center', gap:8, marginTop:28, animationDelay:'220ms'  }}>
-                <button 
+              <div className="anim" style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 28, animationDelay: '220ms' }}>
+                <button
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(prev => prev - 1)}
-                  style={{ 
-                    padding:'9px 16px', borderRadius:10, fontSize:13, fontWeight:600, cursor:'pointer',
-                    border:`1.5px solid ${t.border}`, background: t.surface, color: t.muted, opacity: currentPage === 1 ? 0.5 : 1
+                  style={{
+                    padding: '9px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    border: `1.5px solid ${t.border}`, background: t.surface, color: t.muted, opacity: currentPage === 1 ? 0.5 : 1
                   }}
                 >Anterior</button>
-                
+
                 {[...Array(totalPages)].map((_, i) => (
-                  <button 
-                    key={i} 
+                  <button
+                    key={i}
                     onClick={() => setCurrentPage(i + 1)}
-                    style={{ 
-                      padding:'9px 16px', borderRadius:10, fontSize:13, fontWeight:600, cursor:'pointer',
-                      border:`1.5px solid ${currentPage === i + 1 ? t.primary : t.border}`,
+                    style={{
+                      padding: '9px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                      border: `1.5px solid ${currentPage === i + 1 ? t.primary : t.border}`,
                       background: currentPage === i + 1 ? t.primary : t.surface,
                       color: currentPage === i + 1 ? '#fff' : t.muted,
                     }}
                   >{i + 1}</button>
                 ))}
 
-                <button 
+                <button
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(prev => prev + 1)}
-                  style={{ 
-                    padding:'9px 16px', borderRadius:10, fontSize:13, fontWeight:600, cursor:'pointer',
-                    border:`1.5px solid ${t.border}`, background: t.surface, color: t.muted, opacity: currentPage === totalPages ? 0.5 : 1
+                  style={{
+                    padding: '9px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    border: `1.5px solid ${t.border}`, background: t.surface, color: t.muted, opacity: currentPage === totalPages ? 0.5 : 1
                   }}
-                >PrÃ³xima</button>
+                >Próxima</button>
               </div>
             )}
           </div>
 
-          {/* â”€â”€ Sidebar â”€â”€ */}
-          <div className="anim news-sidebar" style={{  display:'flex', flexDirection:'column', gap:18, flex: '1 1 310px', minWidth: 'min(100%, 310px)', animationDelay:'160ms'  }}>
+          {/* Sidebar */}
+          <div className="anim news-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: 18, flex: '1 1 310px', minWidth: 'min(100%, 310px)', animationDelay: '160ms' }}>
 
             {/* Quick updates */}
-            <div style={{  ...cardBase, padding:'22px 20px'  }}>
-              <div style={{  display:'flex', alignItems:'center', gap:8, marginBottom:16, paddingBottom:14, borderBottom:`1px solid ${t.border}`  }}>
-                <Zap size={16} color={t.amber}/>
-                <span style={{  fontSize:15, fontWeight:700, color:t.text  }}>AtualizaÃ§Ãµes Recentes</span>
+            <div style={{ ...cardBase, padding: '22px 20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, paddingBottom: 14, borderBottom: `1px solid ${t.border}` }}>
+                <Zap size={16} color={t.amber} />
+                <span style={{ fontSize: 15, fontWeight: 700, color: t.text }}>Atualizações Recentes</span>
               </div>
-              <div style={{  display:'flex', flexDirection:'column', gap:8  }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {quickUpdates.map((n, i) => (
                   <QuickUpdateCard key={i}
-                    icon={n.category === 'atualizaÃ§Ã£o' ? TrendingUp : Zap}
+                    icon={n.category === 'atualizacao' ? TrendingUp : Zap}
                     title={n.title}
-                    description={n.excerpt.substring(0, 65) + 'â€¦'}
+                    description={n.excerpt.substring(0, 65) + '…'}
                     date={n.date}
-                    color={n.category === 'atualizaÃ§Ã£o' ? 'blue' : 'green'}
+                    color={n.category === 'atualizacao' ? 'blue' : 'green'}
                   />
                 ))}
               </div>
             </div>
 
             {/* Categories sidebar */}
-            <div style={{  ...cardBase, padding:'22px 20px'  }}>
-              <h3 style={{  fontSize:15, fontWeight:700, color:t.text, marginBottom:14, paddingBottom:12, borderBottom:`1px solid ${t.border}`  }}>
+            <div style={{ ...cardBase, padding: '22px 20px' }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: t.text, marginBottom: 14, paddingBottom: 12, borderBottom: `1px solid ${t.border}` }}>
                 Categorias
               </h3>
-              <div style={{  display:'flex', flexDirection:'column', gap:6  }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {ALL_CATS.map(cat => {
                   const active = filter === cat.id;
                   const cfg = catConfig[cat.id];
+                  const Icon = cat.icon;
                   return (
-                    <button key={cat.id} onClick={() => setFilter(cat.id)} style={{ 
-                      display:'flex', alignItems:'center', justifyContent:'space-between',
-                      padding:'10px 12px', borderRadius:10, cursor:'pointer',
+                    <button key={cat.id} onClick={() => setFilter(cat.id)} style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
                       background: active ? (cfg?.bg || t.primarySoft) : 'transparent',
                       border: active ? `1.5px solid ${cfg?.accent || t.primary}20` : '1.5px solid transparent',
                       color: active ? (cfg?.accent || t.primary) : t.muted,
-                      transition:'all 0.15s',
-                     }}
-                    onMouseEnter={e => { if(!active) e.currentTarget.style.background=t.bg;  }}
-                    onMouseLeave={e => { if(!active) e.currentTarget.style.background='transparent';  }}>
-                      <div style={{  display:'flex', alignItems:'center', gap:10  }}>
-                        <span style={{  fontSize:16  }}>{cat.emoji}</span>
-                        <span style={{  fontSize:13, fontWeight:600  }}>{cat.label}</span>
+                      transition: 'all 0.15s',
+                    }}
+                      onMouseEnter={e => { if (!active) e.currentTarget.style.background = t.bg; }}
+                      onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <Icon size={16} />
+                        <span style={{ fontSize: 13, fontWeight: 600 }}>{cat.label}</span>
                       </div>
-                      <span style={{ 
-                        fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:999,
+                      <span style={{
+                        fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999,
                         background: active ? (cfg?.accent || t.primary) + '20' : t.bg,
                         color: active ? (cfg?.accent || t.primary) : t.subtle,
-                       }}>
+                      }}>
                         {catCounts[cat.id] ?? 0}
                       </span>
                     </button>
@@ -703,101 +697,126 @@ export default function News() {
             </div>
 
             {/* Popular */}
-            <div style={{  ...cardBase, padding:'22px 20px'  }}>
-              <h3 style={{  fontSize:15, fontWeight:700, color:t.text, marginBottom:14, paddingBottom:12, borderBottom:`1px solid ${t.border}`  }}>
+            <div style={{ ...cardBase, padding: '22px 20px' }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: t.text, marginBottom: 14, paddingBottom: 12, borderBottom: `1px solid ${t.border}` }}>
                 Mais Populares
               </h3>
-              <div style={{  display:'flex', flexDirection:'column', gap:12  }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {popular.map((item, i) => (
-                  <div key={item.id} style={{ 
-                    display:'flex', gap:12, alignItems:'flex-start',
-                    padding:'10px', borderRadius:10,
-                    transition:'background 0.15s', cursor:'pointer',
-                   }}
-                  onMouseEnter={e=>e.currentTarget.style.background=t.bg}
-                  onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-                    <div style={{ 
-                      width:42, height:42, borderRadius:10, overflow:'hidden', flexShrink:0,
-                      background:t.bg,
-                     }}>
-                      {item.imageUrl && <img src={item.imageUrl} alt={item.title} style={{  width:'100%', height:'100%', objectFit:'cover'  }}/>}
+                  <div key={item.id} style={{
+                    display: 'flex', gap: 12, alignItems: 'flex-start',
+                    padding: '10px', borderRadius: 10,
+                    transition: 'background 0.15s', cursor: 'pointer',
+                  }}
+                    onMouseEnter={e => e.currentTarget.style.background = t.bg}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <div style={{
+                      width: 42, height: 42, borderRadius: 10, overflow: 'hidden', flexShrink: 0,
+                      background: t.bg,
+                    }}>
+                      {item.imageUrl && <img src={item.imageUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                     </div>
-                    <div style={{  flex:1, minWidth:0  }}>
-                      <div style={{ 
-                        fontSize:13, fontWeight:600, color:t.text, lineHeight:1.4,
-                        marginBottom:4,
-                        overflow:'hidden', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical',
-                       }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontSize: 13, fontWeight: 600, color: t.text, lineHeight: 1.4,
+                        marginBottom: 4,
+                        overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                      }}>
                         {item.title}
                       </div>
-                      <div style={{  display:'flex', alignItems:'center', gap:8, fontSize:11, color:t.subtle  }}>
-                        <Eye size={10}/> {item.views}
-                        <Clock size={10}/> {item.date}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: t.subtle }}>
+                        <Eye size={10} /> {item.views}
+                        <Clock size={10} /> {item.date}
                       </div>
-                    </div>
-                    <div style={{ 
-                      width:22, height:22, borderRadius:6, background:t.bg,
-                      display:'flex', alignItems:'center', justifyContent:'center',
-                      fontSize:11, fontWeight:800, color:t.subtle, flexShrink:0,
-                     }}>
-                      {i + 1}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Newsletter */}
-            <div style={{ 
-              borderRadius:18, overflow:'hidden', position:'relative',
-              background:'linear-gradient(135deg, #4F6EF7 0%, #8B5CF6 100%)',
-              padding:'26px 22px',
-             }}>
-              <div style={{  position:'absolute', top:-30, right:-30, width:120, height:120, borderRadius:'50%', background:'rgba(255,255,255,0.07)'  }}/>
-              <div style={{  position:'relative'  }}>
-                <div style={{  fontSize:18, marginBottom:8  }}>ðŸ“¬</div>
-                <h3 style={{  fontSize:15, fontWeight:700, color:'#fff', marginBottom:8  }}>Receba Novidades</h3>
-                <p style={{  fontSize:13, color:'rgba(255,255,255,0.75)', marginBottom:18, lineHeight:1.55  }}>
-                  Inscreva-se para receber as principais notÃ­cias por email
-                </p>
-                <form onSubmit={handleNewsletter}>
-                  <input type="email" placeholder="Seu email"
-                    value={emailNewsletter}
-                    onChange={(e) => setEmailNewsletter(e.target.value)}
-                  style={{ 
-                    width:'100%', padding:'10px 14px', borderRadius:10,
-                    border:'none', fontSize:13, marginBottom:10,
-                    boxSizing:'border-box', outline:'none',
-                   }}
+            {/* Newsletter signup */}
+            <div style={{ ...cardBase, padding: '22px 20px', background: `linear-gradient(135deg, ${t.primary}15 0%, ${t.purple}15 100%)` }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: t.text, marginBottom: 8 }}>Receba Novidades</h3>
+              <p style={{ fontSize: 12, color: t.muted, marginBottom: 14 }}>Inscreva-se na nossa newsletter e fique por dentro de tudo</p>
+              <form onSubmit={handleNewsletter} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <input
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={emailNewsletter}
+                  onChange={(e) => setEmailNewsletter(e.target.value)}
+                  style={{
+                    padding: '10px 12px', border: `1.5px solid ${t.border}`, borderRadius: 10,
+                    fontSize: 13, color: t.text, background: t.surface,
+                    outline: 'none', boxSizing: 'border-box',
+                  }}
+                  required
                 />
-                <button type="submit" style={{ 
-                  width:'100%', padding:'11px 0',
-                  background:'rgba(255,255,255,0.15)', border:'1.5px solid rgba(255,255,255,0.3)',
-                  borderRadius:10, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer',
-                  backdropFilter:'blur(8px)', transition:'background 0.2s',
-                 }}
-                onMouseEnter={e=>e.target.style.background='rgba(255,255,255,0.25)'}
-                onMouseLeave={e=>e.target.style.background='rgba(255,255,255,0.15)'}>
-                  Inscrever-se â†’
+                <button
+                  type="submit"
+                  style={{
+                    padding: '10px 16px', background: t.primary, color: '#fff',
+                    border: 'none', borderRadius: 10,
+                    fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    transition: 'background 0.2s',
+                  }}
+                  onMouseEnter={e => e.target.style.background = '#4052D4'}
+                  onMouseLeave={e => e.target.style.background = t.primary}
+                >
+                  <Mail size={12} style={{ display: 'inline', marginRight: 6 }} />
+                  Inscrever
                 </button>
-                </form>
-              </div>
+              </form>
             </div>
 
+            {/* Archive section */}
+            <div style={{ ...cardBase, padding: '22px 20px' }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: t.text, marginBottom: 14, paddingBottom: 12, borderBottom: `1px solid ${t.border}` }}>
+                Arquivo
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {['Dezembro 2024', 'Novembro 2024', 'Outubro 2024'].map(month => (
+                  <button
+                    key={month}
+                    style={{
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
+                      background: 'transparent', border: '1.5px solid transparent',
+                      color: t.muted, transition: 'all 0.15s',
+                      fontSize: 13, fontWeight: 500,
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = t.bg;
+                      e.currentTarget.style.borderColor = t.border;
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.borderColor = 'transparent';
+                    }}
+                  >
+                    <span>{month}</span>
+                    <TrendingUp size={12} />
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-        
-        {toast.show && (
-          <div style={{
-            position:'fixed', bottom:24, right:24, padding:'12px 20px', borderRadius:12,
-            background: toast.type === 'success' ? t.success : '#EF4444', color:'#fff',
-            fontSize:14, fontWeight:600, boxShadow:'0 8px 24px rgba(0,0,0,0.15)', zIndex:9999
-          }}>
-            {toast.message}
-          </div>
-        )}
       </div>
+
+      {/* Toast notification */}
+      {toast.show && (
+        <div style={{
+          position: 'fixed', bottom: 20, right: 20,
+          padding: '14px 20px', borderRadius: 12,
+          background: toast.type === 'success' ? t.success : '#EF4444',
+          color: '#fff', fontSize: 13, fontWeight: 600,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          animation: 'fadeUp 0.3s ease-out',
+          zIndex: 1000,
+        }}>
+          {toast.message}
+        </div>
+      )}
     </Layout>
   );
 }
-

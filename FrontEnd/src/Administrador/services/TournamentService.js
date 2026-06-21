@@ -1,7 +1,7 @@
 ﻿/**
  * TournamentService.js
- * ServiÃ§o centralizado para operaÃ§Ãµes de torneios
- * Responsabilidade Ãºnica: ComunicaÃ§Ã£o com API
+ * Serviço centralizado para operaçÃµes de torneios
+ * Responsabilidade Ãºnica: Comunicação com API
  */
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
@@ -46,7 +46,7 @@ export const TournamentService = {
   },
 
   /**
-   * Buscar um torneio especÃ­fico
+   * Buscar um torneio específico
    */
   async fetchById(id, token) {
     const res = await fetch(`${apiBaseUrl}/api/admin/torneos/${id}`, {
@@ -138,7 +138,7 @@ export const TournamentService = {
     if (res.status < 200 || res.status >= 300) {
       if (res.status === 409) {
         const errorData = await res.json();
-        throw new Error(errorData.message || 'NÃ£o Ã© possÃ­vel deletar este torneio');
+        throw new Error(errorData.message || 'Não é possível deletar este torneio');
       }
       
       const errorData = await res.json().catch(() => ({}));

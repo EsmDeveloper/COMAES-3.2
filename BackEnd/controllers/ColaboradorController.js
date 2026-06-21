@@ -7,7 +7,7 @@ import Questao from '../models/Questao.js';
 import Usuario from '../models/User.js';
 import { Op } from 'sequelize';
 
-// ─── HELPERS ──────────────────────────────────────────────────────
+//  HELPERS 
 
 const respostaSucesso = (res, statusCode, dados, mensagem = '') => {
   res.status(statusCode).json({
@@ -27,7 +27,7 @@ const respostaErro = (res, statusCode, mensagem, erros = null) => {
   });
 };
 
-// ─── CONTROLLER ───────────────────────────────────────────────────
+//  CONTROLLER 
 
 export const ColaboradorController = {
   /**

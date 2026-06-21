@@ -39,15 +39,15 @@ console.log('\n🔄 A conectar ao MySQL...');
 await rootSeq.authenticate();
 console.log('✅ Conectado!\n');
 
-// ── 1. Dropar e recriar o banco ──────────────────────────────
-console.log(`🗑️  A dropar banco "${DB_NAME}"...`);
+// ── 1. Dropar e recriar o banco 
+console.log(`  A dropar banco "${DB_NAME}"...`);
 await rootSeq.query(`DROP DATABASE IF EXISTS \`${DB_NAME}\``);
 console.log(`🔨 A criar banco "${DB_NAME}"...`);
 await rootSeq.query(`CREATE DATABASE \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci`);
 console.log(`✅ Banco "${DB_NAME}" recriado.\n`);
 await rootSeq.close();
 
-// ── 2. Conexão com o banco recriado ──────────────────────────
+// ── 2. Conexão com o banco recriado 
 const seq = new Sequelize(DB_NAME, DB_USER, DB_PASS, {
   host: DB_HOST,
   port: DB_PORT,
@@ -59,7 +59,7 @@ const seq = new Sequelize(DB_NAME, DB_USER, DB_PASS, {
 
 await seq.authenticate();
 
-// ── 3. Criar tabelas na ordem correcta (respeita FK) ─────────
+// ── 3. Criar tabelas na ordem correcta (respeita FK) 
 console.log('📋 A criar tabelas...');
 
 // Ordem que respeita as dependências de chave estrangeira
@@ -373,7 +373,7 @@ if (tables.length === 0) {
 }
 console.log('✅ Tabela "usuarios" confirmada.\n');
 
-// ── 4. Inserir utilizador admin ──────────────────────────────
+// ── 4. Inserir utilizador admin 
 const adminData = {
   nome:       'Administrador',
   email:      'admin@comaes.ao',

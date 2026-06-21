@@ -1,4 +1,4 @@
-﻿/**
+/**
  * CertificadosTab.jsx
  * Gerenciamento administrativo de certificados
  * Permite visualizar, filtrar e gerenciar todos os certificados emitidos
@@ -26,28 +26,58 @@ const STATUS_CONFIG = {
   gerado: {
     label: 'Gerado',
     className: 'bg-blue-100 text-blue-700',
-    icon: 'ðŸ“„',
+    icon: FileText,
+    description: 'Certificado gerado'
   },
   validado: {
     label: 'Validado',
     className: 'bg-green-100 text-green-700',
-    icon: 'âœ…',
+    icon: CheckCircle,
+    description: 'Certificado validado'
   },
   cancelado: {
     label: 'Cancelado',
     className: 'bg-red-100 text-red-700',
-    icon: 'âŒ',
+    icon: XCircle,
+    description: 'Certificado cancelado'
   },
 };
 
 const MEDAL_CONFIG = {
-  1: { label: 'ðŸ¥‡ Ouro', color: 'text-yellow-600', bg: 'bg-yellow-50' },
-  2: { label: 'ðŸ¥ˆ Prata', color: 'text-gray-600', bg: 'bg-gray-50' },
-  3: { label: 'ðŸ¥‰ Bronze', color: 'text-orange-600', bg: 'bg-orange-50' },
+  1: { 
+    label: 'Ouro', 
+    icon: Trophy,
+    color: 'text-yellow-600', 
+    bg: 'bg-yellow-50',
+    position: '1º Lugar'
+  },
+  2: { 
+    label: 'Prata', 
+    icon: Award,
+    color: 'text-gray-600', 
+    bg: 'bg-gray-50',
+    position: '2º Lugar'
+  },
+  3: { 
+    label: 'Bronze', 
+    icon: Award,
+    color: 'text-orange-600', 
+    bg: 'bg-orange-50',
+    position: '3º Lugar'
+  },
 };
 
 export default function CertificadosTab() {
   const { token } = useAuth();
+  
+  // Função helper para renderizar ícones
+  const renderIcon = (iconComponent, size = 16) => {
+    if (typeof iconComponent === 'function' || typeof iconComponent === 'object') {
+      const IconComponent = iconComponent;
+      return <IconComponent size={size} className="flex-shrink-0" />;
+    }
+    return <span>{iconComponent}</span>;
+  };
 
   // Estado de dados
   const [certificados, setCertificados] = useState([]);
@@ -102,7 +132,7 @@ export default function CertificadosTab() {
   }, [token, fetchCertificados]);
 
   // ============================================
-  // NOTIFICAÃ‡Ã•ES
+  // NOTIFICAááES
   // ============================================
   const showToast = useCallback((message, type = 'success') => {
     setToast({ show: true, message, type });
@@ -127,7 +157,7 @@ export default function CertificadosTab() {
   });
 
   // ============================================
-  // ESTATÃSTICAS
+  // ESTATáSTICAS
   // ============================================
   const stats = {
     total: certificados.length,
@@ -154,11 +184,11 @@ export default function CertificadosTab() {
   };
 
   // ============================================
-  // RENDERIZAÃ‡ÃƒO
+  // RENDERIZAááO
   // ============================================
   return (
     <div className="p-2 sm:p-4">
-      {/* Header com EstatÃ­sticas */}
+      {/* Header com Estatásticas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
           <div className="flex items-center gap-3">
@@ -217,7 +247,7 @@ export default function CertificadosTab() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder="Buscar por usuÃ¡rio, torneio ou cÃ³digo..."
+              placeholder="Buscar por usuário, torneio ou código..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
@@ -232,9 +262,9 @@ export default function CertificadosTab() {
               className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
             >
               <option value="">Todas Disciplinas</option>
-              <option value="MatemÃ¡tica">MatemÃ¡tica</option>
-              <option value="ProgramaÃ§Ã£o">ProgramaÃ§Ã£o</option>
-              <option value="InglÃªs">InglÃªs</option>
+              <option value="Matemática">Matemática</option>
+              <option value="Programação">Programação</option>
+              <option value="Ingláªs">Ingláªs</option>
             </select>
 
             <select
@@ -253,10 +283,10 @@ export default function CertificadosTab() {
               onChange={(e) => setFilterPosicao(e.target.value)}
               className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
             >
-              <option value="">Todas PosiÃ§Ãµes</option>
-              <option value="1">ðŸ¥‡ 1Âº Lugar</option>
-              <option value="2">ðŸ¥ˆ 2Âº Lugar</option>
-              <option value="3">ðŸ¥‰ 3Âº Lugar</option>
+              <option value="">Todas as Posições</option>
+              <option value="1">1º Lugar - Ouro</option>
+              <option value="2">2º Lugar - Prata</option>
+              <option value="3">3º Lugar - Bronze</option>
             </select>
           </div>
         </div>
@@ -267,14 +297,14 @@ export default function CertificadosTab() {
         <table className="w-full text-left border-collapse">
           <thead className="bg-gray-50/50 border-b border-gray-100">
             <tr>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">UsuÃ¡rio</th>
+              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Usuário</th>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Torneio</th>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Disciplina</th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">PosiÃ§Ã£o</th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">PontuaÃ§Ã£o</th>
+              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Posição</th>
+              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Pontuação</th>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Status</th>
               <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Data</th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase text-right">AÃ§Ãµes</th>
+              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase text-right">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -306,7 +336,7 @@ export default function CertificadosTab() {
                         <User size={16} className="text-gray-400" />
                         <div>
                           <div className="font-semibold text-gray-900 text-sm">
-                            {cert.usuario?.nome || 'UsuÃ¡rio'}
+                            {cert.usuario?.nome || 'Usuário'}
                           </div>
                           <div className="text-xs text-gray-400">
                             ID: {cert.usuario_id}
@@ -328,7 +358,8 @@ export default function CertificadosTab() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${medalConfig.bg} ${medalConfig.color}`}>
+                      <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${medalConfig.bg} ${medalConfig.color} flex items-center gap-2 w-fit`}>
+                        {renderIcon(medalConfig.icon, 16)}
                         {medalConfig.label}
                       </span>
                     </td>
@@ -339,7 +370,7 @@ export default function CertificadosTab() {
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 w-fit ${statusConfig.className}`}>
-                        <span>{statusConfig.icon}</span>
+                        {renderIcon(statusConfig.icon, 14)}
                         {statusConfig.label}
                       </span>
                     </td>
@@ -354,10 +385,10 @@ export default function CertificadosTab() {
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(cert.codigo_certificado);
-                            showToast('CÃ³digo copiado!');
+                            showToast('Código copiado!');
                           }}
                           className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                          title="Copiar cÃ³digo"
+                          title="Copiar código"
                         >
                           <FileText size={18} />
                         </button>

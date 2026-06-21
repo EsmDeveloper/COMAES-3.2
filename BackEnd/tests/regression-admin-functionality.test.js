@@ -27,11 +27,11 @@ describe('REGRESSION TEST 17.2: Admin Functionality', function () {
   let studentUser = null;
   let createdTournamentId = null;
 
-  // ──────────────────────────────────────────────────────────────────
+  // 
   // SETUP: Create test users
-  // ──────────────────────────────────────────────────────────────────
+  // 
   before(async function () {
-    console.log('\n═══ SETTING UP TEST DATA ═══\n');
+    console.log('\n SETTING UP TEST DATA \n');
 
     try {
       // Ensure database is synced
@@ -79,9 +79,9 @@ describe('REGRESSION TEST 17.2: Admin Functionality', function () {
     }
   });
 
-  // ──────────────────────────────────────────────────────────────────
+  // 
   // TEST SCENARIO 1: Admin login still works
-  // ──────────────────────────────────────────────────────────────────
+  // 
   describe('1. Admin Login (Scenario 1)', function () {
     it('Should login with admin credentials and receive JWT token with role=admin', async function () {
       try {
@@ -116,9 +116,9 @@ describe('REGRESSION TEST 17.2: Admin Functionality', function () {
     });
   });
 
-  // ──────────────────────────────────────────────────────────────────
+  // 
   // TEST SCENARIO 2: Admin can still create tournaments
-  // ──────────────────────────────────────────────────────────────────
+  // 
   describe('2. Admin Create Tournament (Scenario 2)', function () {
     it('Should access tournament creation page (via route)', async function () {
       // Test that admin can access the tournament routes
@@ -181,9 +181,9 @@ describe('REGRESSION TEST 17.2: Admin Functionality', function () {
     });
   });
 
-  // ──────────────────────────────────────────────────────────────────
+  // 
   // TEST SCENARIO 3: Admin statistics page works
-  // ──────────────────────────────────────────────────────────────────
+  // 
   describe('3. Admin Statistics Page (Scenario 3)', function () {
     it('Should access admin stats dashboard', async function () {
       try {
@@ -257,9 +257,9 @@ describe('REGRESSION TEST 17.2: Admin Functionality', function () {
     });
   });
 
-  // ──────────────────────────────────────────────────────────────────
+  // 
   // TEST SCENARIO 4: Existing admin routes still accessible
-  // ──────────────────────────────────────────────────────────────────
+  // 
   describe('4. Admin Routes Accessibility (Scenario 4)', function () {
     it('Should access main admin dashboard route (/administrador)', async function () {
       try {
@@ -332,9 +332,9 @@ describe('REGRESSION TEST 17.2: Admin Functionality', function () {
     });
   });
 
-  // ──────────────────────────────────────────────────────────────────
+  // 
   // TEST SCENARIO 5: Admin-only access control maintained
-  // ──────────────────────────────────────────────────────────────────
+  // 
   describe('5. Access Control (Scenario 5)', function () {
     before(async function () {
       // Get student token for access control tests
@@ -432,11 +432,11 @@ describe('REGRESSION TEST 17.2: Admin Functionality', function () {
     });
   });
 
-  // ──────────────────────────────────────────────────────────────────
+  // 
   // CLEANUP
-  // ──────────────────────────────────────────────────────────────────
+  // 
   after(async function () {
-    console.log('\n═══ CLEANUP ═══\n');
+    console.log('\n CLEANUP \n');
     try {
       // Delete test tournament
       if (createdTournamentId) {
@@ -450,9 +450,9 @@ describe('REGRESSION TEST 17.2: Admin Functionality', function () {
     }
   });
 
-  // ──────────────────────────────────────────────────────────────────
+  // 
   // FINAL SUMMARY
-  // ──────────────────────────────────────────────────────────────────
+  // 
   afterEach(function () {
     if (this.currentTest.state === 'failed') {
       console.error('❌ Test failed:', this.currentTest.title);

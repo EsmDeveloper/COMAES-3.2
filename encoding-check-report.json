@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-06-19T14:00:22.514Z",
+  "mojibakes_found": 19,
+  "files_with_issues": [
+    "FrontEnd\\src\\Administrador\\BlocoQuestoesManager.jsx",
+    "FrontEnd\\src\\Administrador\\CertificadosTab.jsx",
+    "FrontEnd\\src\\Administrador\\QuestoesTestesTab.jsx",
+    "FrontEnd\\src\\Administrador\\QuestoesTorneiosTab.jsx",
+    "FrontEnd\\src\\certificados\\CertificadoBase.jsx",
+    "FrontEnd\\src\\certificates\\pages\\MeusCertificados.jsx",
+    "FrontEnd\\src\\components\\TournamentFinishedModal.jsx",
+    "FrontEnd\\src\\Paginas\\Primarias\\CollaboratorRegisterForm.jsx",
+    "FrontEnd\\src\\Paginas\\Secundarias\\Dashboard.jsx",
+    "FrontEnd\\src\\Paginas\\Secundarias\\EntrarTorneio.jsx",
+    "FrontEnd\\src\\Paginas\\Secundarias\\MinhaJornada.jsx",
+    "FrontEnd\\src\\Paginas\\Secundarias\\Ranking.jsx",
+    "FrontEnd\\src\\Paginas\\Secundarias\\RankingCompleto.jsx",
+    "FrontEnd\\src\\Paginas\\Secundarias\\RankingGlobal.jsx",
+    "FrontEnd\\src\\Paginas\\Tercearios.jsx\\ModeloOriginal\\InglesOriginal.jsx",
+    "FrontEnd\\src\\Paginas\\Tercearios.jsx\\ModeloOriginal\\MatematicaOriginal.jsx",
+    "FrontEnd\\src\\Paginas\\Tercearios.jsx\\ModeloOriginal\\ProgramacaoOriginal.jsx",
+    "BackEnd\\insert_questoes_v2.js",
+    "BackEnd\\scripts\\seedMatematicaFacil.js"
+  ]
+}

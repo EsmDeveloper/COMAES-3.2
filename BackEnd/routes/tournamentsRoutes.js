@@ -38,7 +38,7 @@ const fetchRanking = async (where) => {
   return participantes.map((p, i) => ({ ...p.toJSON(), posicao: i + 1 }));
 };
 
-// ── Listar todos os torneios ──────────────────────────────────────────────
+// ── Listar todos os torneios 
 router.get('/', async (req, res) => {
   try {
     const torneios = await Torneio.findAll({
@@ -53,7 +53,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ✨ ── Criar novo torneio (ADMIN) ─────────────────────────────────────────
+// ✨ ── Criar novo torneio (ADMIN) 
 router.post('/', TorneoController.createTorneo);
 
 // ✨ IMPORTANT: Specific routes BEFORE generic /:id routes!
@@ -135,7 +135,7 @@ router.put('/certificados/:id/cancelar', CertificateController.cancelarCertifica
 
 // ✨ GENERIC routes AFTER specific ones
 
-// ── Contagem de participantes por disciplina ──────────────────────────────
+// ── Contagem de participantes por disciplina 
 router.get('/:tournamentId/participant-counts', async (req, res) => {
   try {
     const { tournamentId } = req.params;
@@ -166,7 +166,7 @@ router.get('/:tournamentId/participant-counts', async (req, res) => {
   }
 });
 
-// ── Ranking completo de um torneio (todas as disciplinas) ─────────────────
+// ── Ranking completo de um torneio (todas as disciplinas) 
 router.get('/:tournamentId/ranking', async (req, res) => {
   try {
     const { tournamentId } = req.params;
@@ -194,7 +194,7 @@ router.get('/:tournamentId/ranking', async (req, res) => {
   }
 });
 
-// ── Ranking filtrado por disciplina ───────────────────────────────────────
+// ── Ranking filtrado por disciplina 
 router.get('/:tournamentId/ranking/:disciplina', async (req, res) => {
   try {
     const { tournamentId, disciplina } = req.params;

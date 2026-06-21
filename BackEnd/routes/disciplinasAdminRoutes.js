@@ -14,7 +14,8 @@
 
 import express from 'express';
 import auth from '../middlewares/auth.js';
-import isAdmin from '../middlewares/isAdmin.js';
+import { authenticate } from '../middlewares/auth.js';
+import { requireAdmin } from '../middlewares/authorize.js';
 import { DisciplinaController } from '../controllers/DisciplinaController.js';
 
 const router = express.Router();
@@ -52,7 +53,7 @@ const router = express.Router();
  *   }
  * }
  */
-router.post('/', auth, isAdmin, DisciplinaController.createDisciplina);
+router.post('/', auth, authenticate, requireAdmin, DisciplinaController.createDisciplina);
 
 /**
  * Task 6.2: Get all disciplinas
@@ -88,7 +89,7 @@ router.post('/', auth, isAdmin, DisciplinaController.createDisciplina);
  *   ]
  * }
  */
-router.get('/', auth, isAdmin, DisciplinaController.getAllDisciplinas);
+router.get('/', auth, authenticate, requireAdmin, DisciplinaController.getAllDisciplinas);
 
 /**
  * Task 6.3: Get collaborators by disciplina
@@ -122,7 +123,7 @@ router.get('/', auth, isAdmin, DisciplinaController.getAllDisciplinas);
  *   ]
  * }
  */
-router.get('/:id/colaboradores', auth, isAdmin, DisciplinaController.getColaboradoresByDisciplina);
+router.get('/:id/colaboradores', auth, authenticate, requireAdmin, DisciplinaController.getColaboradoresByDisciplina);
 
 /**
  * Task 13.1: Delete a disciplina
@@ -140,6 +141,6 @@ router.get('/:id/colaboradores', auth, isAdmin, DisciplinaController.getColabora
  *   message: 'Disciplina deletada com sucesso'
  * }
  */
-router.delete('/:id', auth, isAdmin, DisciplinaController.deleteDisciplina);
+router.delete('/:id', auth, authenticate, requireAdmin, DisciplinaController.deleteDisciplina);
 
 export default router;

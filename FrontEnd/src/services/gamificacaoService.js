@@ -1,5 +1,5 @@
 ﻿/**
- * gamificacaoService.js - ServiÃ§o para endpoints de gamificaÃ§Ã£o
+ * gamificacaoService.js - Serviço para endpoints de gamificação
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
@@ -10,8 +10,8 @@ const getAuthHeaders = () => ({
 });
 
 /**
- * Busca os dados agregados de gamificaÃ§Ã£o para o usuÃ¡rio autenticado
- * @returns {Promise} Promise com os dados de gamificaÃ§Ã£o
+ * Busca os dados agregados de gamificação para o usuário autenticado
+ * @returns {Promise} Promise com os dados de gamificação
  */
 export const fetchDashboardGamificacao = async () => {
   try {
@@ -29,19 +29,19 @@ export const fetchDashboardGamificacao = async () => {
     const data = await response.json();
     
     if (!data.success) {
-      throw new Error(data.message || 'Erro ao carregar dados de gamificaÃ§Ã£o');
+      throw new Error(data.message || 'Erro ao carregar dados de gamificação');
     }
 
     return data.data;
   } catch (error) {
-    console.error('Erro no serviÃ§o de gamificaÃ§Ã£o:', error);
+    console.error('Erro no serviço de gamificação:', error);
     throw error;
   }
 };
 
 /**
- * Busca o nÃ­vel atual do usuÃ¡rio
- * @returns {Promise} Promise com dados do nÃ­vel
+ * Busca o nível atual do usuário
+ * @returns {Promise} Promise com dados do nível
  */
 export const fetchNivelAtual = async () => {
   try {
@@ -59,13 +59,13 @@ export const fetchNivelAtual = async () => {
     const data = await response.json();
     return data.success ? data.data : null;
   } catch (error) {
-    console.error('Erro ao buscar nÃ­vel:', error);
+    console.error('Erro ao buscar nível:', error);
     return null;
   }
 };
 
 /**
- * Busca a sequÃªncia de aprendizagem (streak) do usuÃ¡rio
+ * Busca a sequÃªncia de aprendizagem (streak) do usuário
  * @returns {Promise} Promise com dados do streak
  */
 export const fetchStreak = async () => {
@@ -90,8 +90,8 @@ export const fetchStreak = async () => {
 };
 
 /**
- * Busca as conquistas recentes do usuÃ¡rio
- * @param {number} limit - Limite de conquistas (padrÃ£o: 5)
+ * Busca as conquistas recentes do usuário
+ * @param {number} limit - Limite de conquistas (padrão: 5)
  * @returns {Promise} Promise com lista de conquistas
  */
 export const fetchConquistasRecentes = async (limit = 5) => {
@@ -116,7 +116,7 @@ export const fetchConquistasRecentes = async (limit = 5) => {
 };
 
 /**
- * Busca as posiÃ§Ãµes do usuÃ¡rio nos rankings
+ * Busca as posiçÃµes do usuário nos rankings
  * @returns {Promise} Promise com dados de ranking
  */
 export const fetchRankings = async () => {
@@ -141,8 +141,8 @@ export const fetchRankings = async () => {
 };
 
 /**
- * Busca as missÃµes ativas do usuÃ¡rio
- * @param {number} limit - Limite de missÃµes (padrÃ£o: 3)
+ * Busca as missÃµes ativas do usuário
+ * @param {number} limit - Limite de missÃµes (padrão: 3)
  * @returns {Promise} Promise com lista de missÃµes
  */
 export const fetchMissoesAtivas = async (limit = 3) => {
@@ -167,8 +167,8 @@ export const fetchMissoesAtivas = async (limit = 3) => {
 };
 
 /**
- * Busca a evoluÃ§Ã£o de XP do usuÃ¡rio (Ãºltimos 30 dias)
- * @returns {Promise} Promise com dados de evoluÃ§Ã£o de XP
+ * Busca a evolução de XP do usuário (Ãºltimos 30 dias)
+ * @returns {Promise} Promise com dados de evolução de XP
  */
 export const fetchEvolucaoXP = async () => {
   try {
@@ -186,13 +186,13 @@ export const fetchEvolucaoXP = async () => {
     const data = await response.json();
     return data.success ? data.data : [];
   } catch (error) {
-    console.error('Erro ao buscar evoluÃ§Ã£o de XP:', error);
+    console.error('Erro ao buscar evolução de XP:', error);
     return [];
   }
 };
 
 /**
- * Atualiza todas as funÃ§Ãµes para usar o novo endpoint agregado
+ * Atualiza todas as funçÃµes para usar o novo endpoint agregado
  */
 export default {
   fetchDashboardGamificacao,

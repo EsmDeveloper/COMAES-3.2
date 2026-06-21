@@ -395,7 +395,7 @@ async function seedPerguntasQuiz() {
     
     // Limpar perguntas existentes
     await Pergunta.destroy({ where: { tipo: ['matematica', 'ingles', 'programacao'] } });
-    console.log('🗑️ Perguntas anteriores removidas');
+    console.log(' Perguntas anteriores removidas');
     
     // Inserir novas perguntas
     await Pergunta.bulkCreate(perguntas);

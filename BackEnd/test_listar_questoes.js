@@ -1,4 +1,4 @@
-﻿/**
+/**
  * test_listar_questoes.js
  * Script para testar listagem de questÃµes via API
  */
@@ -10,7 +10,7 @@ import db from './config/db.js';
 async function test() {
   try {
     console.log('='.repeat(80));
-    console.log('ðŸ§ª TESTE: Listar QuestÃµes via API');
+    console.log(' TESTE: Listar QuestÃµes via API');
     console.log('='.repeat(80));
 
     // 1. Conectar
@@ -23,7 +23,7 @@ async function test() {
     });
 
     if (!colaborador) {
-      console.error('âŒ Nenhum colaborador encontrado!');
+      console.error('âŒ Nenhum colaborador encontrado!');
       process.exit(1);
     }
 
@@ -37,7 +37,7 @@ async function test() {
     );
 
     // 4. GET questÃµes
-    console.log('\nðŸ“¡ Fazendo GET para /api/colaborador/questoes...');
+    console.log('\n Fazendo GET para /api/colaborador/questoes...');
     const response = await fetch('http://localhost:3002/api/colaborador/questoes', {
       method: 'GET',
       headers: {
@@ -53,25 +53,25 @@ async function test() {
     if (response.ok) {
       console.log(`\nâœ… SUCESSO!`);
       console.log(`Total de questÃµes: ${data.dados.paginacao.total}`);
-      console.log(`QuestÃµes nesta pÃ¡gina: ${data.dados.questoes.length}`);
+      console.log(`QuestÃµes nesta página: ${data.dados.questoes.length}`);
       
       if (data.dados.questoes.length > 0) {
-        console.log('\nðŸ“‹ Primeira questÃ£o:');
+        console.log('\n Primeira questão:');
         const q = data.dados.questoes[0];
         console.log(`  ID: ${q.id}`);
-        console.log(`  TÃ­tulo: ${q.titulo}`);
+        console.log(`  Título: ${q.titulo}`);
         console.log(`  Status: ${q.status_aprovacao}`);
         console.log(`  Dificuldade: ${q.dificuldade}`);
-        console.log(`  Data criaÃ§Ã£o: ${q.created_at}`);
+        console.log(`  Data criação: ${q.created_at}`);
       }
     } else {
-      console.error(`âŒ FALHA!`);
+      console.error(`âŒ FALHA!`);
       console.error('Erro:', data.mensagem);
     }
 
     process.exit(response.ok ? 0 : 1);
   } catch (error) {
-    console.error('âŒ ERRO:', error.message);
+    console.error('âŒ ERRO:', error.message);
     process.exit(1);
   }
 }

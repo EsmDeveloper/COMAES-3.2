@@ -15,7 +15,7 @@ import { registarAtividade } from '../services/streakService.js';
 
 const router = express.Router();
 
-// ── POST /api/resultados ──────────────────────────────────────────
+// ── POST /api/resultados 
 // Salva o resultado de um teste concluído e devolve o melhor desempenho atualizado
 router.post('/', auth, isNotColaborador, async (req, res) => {
   try {
@@ -68,7 +68,7 @@ router.post('/', auth, isNotColaborador, async (req, res) => {
   }
 });
 
-// ── GET /api/usuarios/me/melhores-desempenhos ─────────────────────
+// ── GET /api/usuarios/me/melhores-desempenhos 
 // Devolve o melhor percentual de acertos por área do utilizador logado
 router.get('/me/melhores-desempenhos', auth, async (req, res) => {
   try {
@@ -86,7 +86,7 @@ router.get('/me/melhores-desempenhos', auth, async (req, res) => {
   }
 });
 
-// ── Helper ────────────────────────────────────────────────────────
+// ── Helper 
 async function getMelhoresDesempenhos(usuario_id) {
   const areas = ['matematica', 'programacao', 'ingles'];
   const result = { matematica: null, programacao: null, ingles: null };

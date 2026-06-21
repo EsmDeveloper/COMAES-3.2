@@ -61,9 +61,9 @@ import {
 
 const router = express.Router();
 
-// ────────────────────────────────────────────────────────────────────────────
+// 
 // MIDDLEWARE PARA VALIDAR COLABORADOR APROVADO
-// ────────────────────────────────────────────────────────────────────────────
+// 
 
 /**
  * Middleware para verificar se é um colaborador aprovado
@@ -111,9 +111,9 @@ const validarColaboradorAprovado = (req, res, next) => {
   }
 };
 
-// ────────────────────────────────────────────────────────────────────────────
+// 
 // BLOCOS - ENDPOINTS DO COLABORADOR
-// ────────────────────────────────────────────────────────────────────────────
+// 
 
 router.post(
   '/blocos',
@@ -171,9 +171,9 @@ router.delete(
   removerQuestaoDoBlocoColaborador
 );
 
-// ────────────────────────────────────────────────────────────────────────────
+// 
 // QUESTÕES - ENDPOINTS DO COLABORADOR
-// ────────────────────────────────────────────────────────────────────────────
+// 
 
 router.post(
   '/questoes',
@@ -217,9 +217,9 @@ router.post(
   submeterQuestaoColaborador
 );
 
-// ────────────────────────────────────────────────────────────────────────────
+// 
 // ADMIN - ENDPOINTS DE APROVAÇÃO
-// ────────────────────────────────────────────────────────────────────────────
+// 
 
 router.get(
   '/blocos-pendentes',
@@ -271,9 +271,9 @@ router.post(
   rejeitarQuestaoAdmin
 );
 
-// ────────────────────────────────────────────────────────────────────────────
+// 
 // ADMIN - LISTAR QUESTÕES DE COLABORADOR ESPECÍFICO
-// ────────────────────────────────────────────────────────────────────────────
+// 
 
 /**
  * GET /api/admin/colaboradores/:colaboradorId/questoes

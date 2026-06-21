@@ -1,11 +1,11 @@
 ﻿/**
  * colaboradorService.js
- * ServiÃ§o para acessar endpoints especÃ­ficos de colaboradores
+ * Serviço para acessar endpoints específicos de colaboradores
  * 
- * DecisÃ£o de reutilizaÃ§Ã£o:
+ * Decisão de reutilização:
  * - CRUD de questÃµes (criar/editar/deletar/listar) â†’ questoesService (/api/questoes)
- *   O endpoint /api/questoes jÃ¡ filtra automaticamente por colaborador via aplicarEscopoColaborador()
- * - EstatÃ­sticas detalhadas â†’ /api/colaborador/estatisticas (dados especÃ­ficos: porTipo, mediaPontos, etc.)
+ *   O endpoint /api/questoes já filtra automaticamente por colaborador via aplicarEscopoColaborador()
+ * - Estatísticas detalhadas â†’ /api/colaborador/estatisticas (dados específicos: porTipo, mediaPontos, etc.)
  * - Perfil â†’ /api/colaborador/perfil
  */
 
@@ -23,7 +23,7 @@ const getAuthHeaders = () => {
 
 export const colaboradorService = {
   /**
-   * Obter estatÃ­sticas do colaborador
+   * Obter estatísticas do colaborador
    * Usa /api/colaborador/estatisticas que retorna dados detalhados:
    * porTipo, mediaPontos, taxaRejeicao, ultimasQuestoes, perfil
    */
@@ -32,17 +32,17 @@ export const colaboradorService = {
       headers: { ...getAuthHeaders(), 'Accept': 'application/json' },
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.mensagem || data.message || 'Erro ao obter estatÃ­sticas');
+    if (!res.ok) throw new Error(data.mensagem || data.message || 'Erro ao obter estatísticas');
     return data;
   },
 
   /**
    * Obter questÃµes do colaborador com filtros
-   * REUTILIZA questoesService.listar() â€” /api/questoes jÃ¡ filtra por colaborador automaticamente
+   * REUTILIZA questoesService.listar() â€” /api/questoes já filtra por colaborador automaticamente
    * via aplicarEscopoColaborador() no backend
    */
   async obterMinhasQuestoes(params = {}) {
-    // Reutiliza o endpoint genÃ©rico que jÃ¡ aplica o escopo do colaborador
+    // Reutiliza o endpoint genérico que já aplica o escopo do colaborador
     return questoesService.listar(params);
   },
 
@@ -59,7 +59,7 @@ export const colaboradorService = {
   },
 
   /**
-   * Obter estatÃ­sticas resumidas (mÃ©todo auxiliar)
+   * Obter estatísticas resumidas (método auxiliar)
    */
   async obterEstatisticasResumidas() {
     try {
@@ -75,7 +75,7 @@ export const colaboradorService = {
         perfil: stats.dados?.perfil || {}
       };
     } catch (error) {
-      console.error('Erro ao obter estatÃ­sticas resumidas:', error);
+      console.error('Erro ao obter estatísticas resumidas:', error);
       return {
         total: 0,
         aprovadas: 0,
@@ -98,7 +98,7 @@ export const colaboradorService = {
     if (status && status !== 'todas') {
       params.status_aprovacao = status;
     }
-    // Reutiliza o endpoint genÃ©rico
+    // Reutiliza o endpoint genérico
     return questoesService.listar(params);
   }
 };

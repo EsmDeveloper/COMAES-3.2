@@ -14,7 +14,7 @@ import Questao from '../models/Questao.js';
 import Torneio from '../models/Torneio.js';
 import { Op } from 'sequelize';
 
-// ─── MAPEAMENTO DE MODELOS ───────────────────────────────────────
+//  MAPEAMENTO DE MODELOS 
 const MODELOS = {
   matematica: Questao,
   ingles: Questao,
@@ -27,7 +27,7 @@ const MODALIDADES = {
   programacao: 'Programação'
 };
 
-// ─── VALIDADORES ─────────────────────────────────────────────────
+//  VALIDADORES 
 
 /**
  * Valida campos comuns a todas as questões
@@ -156,7 +156,7 @@ const validarProgramacao = (data) => {
   return erros;
 };
 
-// ─── SERVIÇO ──────────────────────────────────────────────────────
+//  SERVIÇO 
 
 const questoesService = {
   /**
@@ -564,7 +564,7 @@ const questoesService = {
           if (!torneio) {
             await q.destroy();
             totalDeletadas++;
-            console.log(`🗑️ Questão órfã deletada: ${mod} ID ${q.id}`);
+            console.log(` Questão órfã deletada: ${mod} ID ${q.id}`);
           }
         }
       }

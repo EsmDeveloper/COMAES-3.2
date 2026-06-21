@@ -6,7 +6,7 @@ import sequelize from './config/db.js';
     console.log('✅ Conectado ao banco de dados\n');
 
     // Deletar disciplinas com IDs 31-36 (as que foram criadas)
-    console.log('🗑️  Removendo disciplinas criadas...');
+    console.log('  Removendo disciplinas criadas...');
     
     const [result] = await sequelize.query(
       "DELETE FROM disciplinas WHERE id IN (31, 32, 33, 34, 35, 36)"

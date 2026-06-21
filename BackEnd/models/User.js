@@ -120,12 +120,7 @@ const Usuario = sequelize.define('Usuario', {
     allowNull: false,
     defaultValue: 'pendente',
   },
-  isAdmin: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-    allowNull: false,
-  },
-  // ── Sistema de Níveis COMAES ──────────────────────────────────
+  // ── Sistema de Níveis COMAES 
   xp_total: {
     type: DataTypes.INTEGER,
     allowNull: false,

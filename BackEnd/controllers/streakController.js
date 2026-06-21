@@ -7,7 +7,7 @@
 
 import { registarAtividade, obterStreak } from '../services/streakService.js';
 
-// ── POST /api/usuarios/atividade ─────────────────────────────────
+// ── POST /api/usuarios/atividade 
 export const registarAtividadeHandler = async (req, res) => {
   try {
     const usuarioId = req.user?.id;
@@ -38,7 +38,7 @@ export const registarAtividadeHandler = async (req, res) => {
   }
 };
 
-// ── GET /api/usuarios/me/streak ──────────────────────────────────
+// ── GET /api/usuarios/me/streak 
 export const getMeuStreak = async (req, res) => {
   try {
     const usuarioId = req.user?.id;

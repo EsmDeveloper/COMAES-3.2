@@ -1,5 +1,6 @@
 import React from 'react';
 import CertificadoBase from './CertificadoBase';
+import { getIconForEmoji } from '../utils/iconMapper';
 
 const config = {
   1: { frase: "Desenvolveu soluções inovadoras e código eficiente", icone: "💻" },
@@ -24,7 +25,9 @@ export default function CertProgramacao({ isOpen, onClose, participante, posicao
       torneio={torneio}
     >
       <div className="bg-gray-800 text-white rounded-lg p-4 text-center font-mono">
-        <div className="text-3xl mb-2">{icone}</div>
+        <div className="text-3xl mb-2 text-blue-400">
+          {getIconForEmoji(icone, 32)}
+        </div>
         <p className="text-green-400">function award() {`{ return "${frase}"; }`}</p>
       </div>
     </CertificadoBase>

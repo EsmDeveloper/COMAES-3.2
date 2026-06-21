@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth, getPostLoginRoute } from "../../context/AuthContext";
@@ -28,8 +28,8 @@ function Login() {
     setLoginError("");
     let newErrors = {};
 
-    if (!form.usuario.trim()) newErrors.usuario = "Este campo Ã© obrigatÃ³rio";
-    if (!form.senha.trim()) newErrors.senha = "Este campo Ã© obrigatÃ³rio";
+    if (!form.usuario.trim()) newErrors.usuario = "Este campo é obrigatório";
+    if (!form.senha.trim()) newErrors.senha = "Este campo é obrigatório";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -47,11 +47,11 @@ function Login() {
       const body = await res.json();
 
       if (!res.ok) {
-        setLoginError(body.error || 'UsuÃ¡rio ou senha invÃ¡lidos');
+        setLoginError(body.error || 'Usuário ou senha inválidos');
       } else {
         const user = body.data;
         const token = body.token || null;
-        // Limpar sessÃ£o anterior antes de guardar nova
+        // Limpar sessão anterior antes de guardar nova
         localStorage.removeItem('comaes_user');
         localStorage.removeItem('comaes_token');
         login(user, token);
@@ -90,7 +90,7 @@ function Login() {
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-gray-200"
         >
-          {/* Logo no formulÃ¡rio */}
+          {/* Logo no formulário */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -110,7 +110,7 @@ function Login() {
             transition={{ delay: 0.3 }}
             className="text-center text-gray-700 mb-6"
           >
-            Entre na melhor plataforma de competiÃ§Ãµes educativas online
+            Entre na melhor plataforma de competiçÃµes educativas online
           </motion.p>
 
           {/* Mensagem de erro geral */}
@@ -126,12 +126,12 @@ function Login() {
 
           {/* FORM */}
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-            {/* INPUT USUÃRIO */}
+            {/* INPUT USUÃRIO */}
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
               <input
                 type="text"
                 name="usuario"
-                placeholder="Email do UsuÃ¡rio"
+                placeholder="Email do Usuário"
                 value={form.usuario}
                 onChange={handleChange}
                 className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-[border-color,box-shadow] duration-fast ease-out-fluid hover:border-gray-400"
@@ -158,7 +158,7 @@ function Login() {
               )}
             </motion.div>
 
-            {/* BOTÃƒO ENTRAR */}
+            {/* BOTÃO ENTRAR */}
             <motion.button
               whileHover={{ scale: isLoading ? 1 : 1.02 }}
               whileTap={{ scale: isLoading ? 1 : 0.98 }}

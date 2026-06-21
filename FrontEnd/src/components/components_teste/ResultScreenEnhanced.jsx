@@ -26,13 +26,13 @@ const STUDY_SUGGESTIONS = {
   programacao: [
     { topic: 'Estruturas de Dados', icon: '📊', link: '#estruturas' },
     { topic: 'Algoritmos', icon: '⚙️', link: '#algoritmos' },
-    { topic: 'Programação OOP', icon: '🏗️', link: '#oop' },
+    { topic: 'Programação OOP', icon: '', link: '#oop' },
     { topic: 'Web Development', icon: '🌐', link: '#web' },
   ],
   ingles: [
     { topic: 'Gramática Essencial', icon: '✏️', link: '#gramatica' },
     { topic: 'Vocabulário', icon: '📚', link: '#vocabulario' },
-    { topic: 'Compreensão de Leitura', icon: '👁️', link: '#reading' },
+    { topic: 'Compreensão de Leitura', icon: '', link: '#reading' },
     { topic: 'Pronuncia', icon: '🎤', link: '#pronuncia' },
   ],
 };

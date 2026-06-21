@@ -9,14 +9,15 @@
  */
 
 import express from 'express';
-import isAdmin from '../middlewares/isAdmin.js';
+import { authenticate } from '../middlewares/auth.js';
+import { requireAdmin } from '../middlewares/authorize.js';
 import Usuario from '../models/User.js';
 import Disciplina from '../models/Disciplina.js';
 
 const router = express.Router();
 
 // Aplicar middleware de autenticação e verificação de role admin a todas as rotas
-router.use(isAdmin);
+router.use(authenticate, requireAdmin);
 
 /**
  * PUT /api/usuarios/:id/atribuir
@@ -78,7 +79,7 @@ router.put('/:id/atribuir', async (req, res) => {
     }
 
     // Validar: não é possível atribuir usuário admin como colaborador
-    if (usuario.role === 'admin' || usuario.isAdmin === true) {
+    if (usuario.role === 'admin') {
       return res.status(403).json({
         sucesso: false,
         mensagem: 'Não é possível atribuir um administrador como colaborador',

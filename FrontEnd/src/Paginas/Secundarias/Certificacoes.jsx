@@ -68,9 +68,9 @@ export default function Certificacoes() {
   };
 
   const getMedalDisplay = (posicao) => {
-    if (posicao === 1) return { icon: '🥇', color: '#fbbf24', label: '1º Lugar' };
-    if (posicao === 2) return { icon: '🥈', color: '#c0c0c0', label: '2º Lugar' };
-    if (posicao === 3) return { icon: '🥉', color: '#cd7f32', label: '3º Lugar' };
+    if (posicao === 1) return { icon: '[GOLD]', color: '#fbbf24', label: '1º Lugar' };
+    if (posicao === 2) return { icon: '[SILVER]', color: '#c0c0c0', label: '2º Lugar' };
+    if (posicao === 3) return { icon: '[BRONZE]', color: '#cd7f32', label: '3º Lugar' };
     return { icon: '📜', color: '#667eea', label: 'Certificado' };
   };
 

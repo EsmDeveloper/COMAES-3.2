@@ -24,12 +24,12 @@ function Cadastro() {
   const [serverError, setServerError] = useState("");
 
   const escolas = [
-    "Instituto PolitÃ©cnico Industrial de Lunada - IPIL",
+    "Instituto Politécnico Industrial de Lunada - IPIL",
     "Instituto Medio de Economia de Luanda - IMEL",
-    "Instituto MÃ©dio Comercial de Luanda - IMCL",
-    "Instituto de TelecomunicaÃ§Ãµes de Luanda - ITEL",
-    "Instituto MÃ©dio PolitÃ©cnico Nova Vida - IMP NV",
-    "Instituto MÃ©dio PolitÃ©cnico Alda Lara - IMPAL",
+    "Instituto Médio Comercial de Luanda - IMCL",
+    "Instituto de TelecomunicaçÃµes de Luanda - ITEL",
+    "Instituto Médio Politécnico Nova Vida - IMP NV",
+    "Instituto Médio Politécnico Alda Lara - IMPAL",
   ];
 
   const handleChange = (e) => {
@@ -101,7 +101,7 @@ function Cadastro() {
         navigate('/login');
       }
     } catch {
-      setServerError('Erro de conexÃ£o. Verifique sua internet e tente novamente.');
+      setServerError('Erro de conexão. Verifique sua internet e tente novamente.');
     } finally {
       setIsLoading(false);
     }
@@ -126,7 +126,7 @@ function Cadastro() {
             <img src={logotipo} alt="Comaes" className="h-24 w-auto object-contain" />
           </div>
           <p className="text-center text-gray-700 mb-6">
-            Cadastre-se na melhor plataforma de competiÃ§Ãµes educativas online
+            Cadastre-se na melhor plataforma de competiçÃµes educativas online
           </p>
 
           {serverError && (
@@ -199,7 +199,7 @@ function Cadastro() {
                 maxLength={128} autoComplete="new-password" />
               {errors.senha
                 ? <p className="text-red-600 text-xs mt-1">{errors.senha}</p>
-                : <p className="text-gray-400 text-xs mt-1">MÃ­n. 8 caracteres, maiÃºscula, nÃºmero e sÃ­mbolo.</p>}
+                : <p className="text-gray-400 text-xs mt-1">Mín. 8 caracteres, maiÃºscula, nÃºmero e símbolo.</p>}
             </div>
 
             <div>
@@ -222,7 +222,7 @@ function Cadastro() {
           </form>
 
           <p className="mt-4 text-center text-sm">
-            JÃ¡ tem uma conta?{' '}
+            Já tem uma conta?{' '}
             <Link to="/login" className="text-blue-600 font-semibold hover:underline">Entrar</Link>
           </p>
         </div>

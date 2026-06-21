@@ -17,7 +17,7 @@ import ConquistaUsuario from '../models/ConquistaUsuario.js';
 import Conquista from '../models/Conquista.js';
 import sequelize from '../config/db.js';
 
-// ── GET /api/missoes/ativas ───────────────────────────────────────
+// ── GET /api/missoes/ativas 
 export const getMissoesAtivasHandler = async (req, res) => {
   try {
     const usuarioId = req.user?.id;
@@ -32,7 +32,7 @@ export const getMissoesAtivasHandler = async (req, res) => {
   }
 };
 
-// ── POST /api/missoes/:id/progresso ───────────────────────────────
+// ── POST /api/missoes/:id/progresso 
 export const incrementarProgressoHandler = async (req, res) => {
   try {
     const usuarioId = req.user?.id;
@@ -56,7 +56,7 @@ export const incrementarProgressoHandler = async (req, res) => {
   }
 };
 
-// ── GET /api/usuarios/me/dashboard-gamificacao ────────────────────
+// ── GET /api/usuarios/me/dashboard-gamificacao 
 // Endpoint agregado — retorna todos os dados em UMA chamada
 export const getDashboardGamificacao = async (req, res) => {
   try {
@@ -102,7 +102,7 @@ export const getDashboardGamificacao = async (req, res) => {
       }).catch(() => []),
     ]);
 
-    // ── Processar nível ──────────────────────────────────────────
+    // ── Processar nível 
     const u = usuario.status === 'fulfilled' ? usuario.value : null;
     const xpTotal = u?.xp_total || 0;
     const nivelNum = u?.nivel_atual || 1;
@@ -110,10 +110,10 @@ export const getDashboardGamificacao = async (req, res) => {
     const proximoNivel = await Nivel.findOne({ where: { numero: nivelNum + 1 } }).catch(() => null);
     const progressoXP = calcularProgressoParaProximoNivel(xpTotal);
 
-    // ── Processar streak ─────────────────────────────────────────
+    // ── Processar streak 
     const streakData = streak.status === 'fulfilled' ? streak.value : null;
 
-    // ── Processar missões ────────────────────────────────────────
+    // ── Processar missões 
     const missoesData = missoes.status === 'fulfilled' ? missoes.value : [];
     // Máximo 3 por widget: 2 diárias não concluídas + 1 semanal
     const missoesWidget = [
@@ -121,7 +121,7 @@ export const getDashboardGamificacao = async (req, res) => {
       ...missoesData.filter(m => m.ciclo === 'weekly' && !m.concluida).slice(0, 1),
     ];
 
-    // ── Processar conquistas ─────────────────────────────────────
+    // ── Processar conquistas 
     const conquistasData = conquistas.status === 'fulfilled'
       ? conquistas.value.map(cu => ({
           id: cu.conquista?.id,
@@ -132,7 +132,7 @@ export const getDashboardGamificacao = async (req, res) => {
         }))
       : [];
 
-    // ── Processar ranking ────────────────────────────────────────
+    // ── Processar ranking 
     const participacoes = rankingGlobal.status === 'fulfilled' ? rankingGlobal.value : [];
     const melhorPosicao = participacoes.reduce((best, p) => {
       if (!p.posicao) return best;
@@ -147,7 +147,7 @@ export const getDashboardGamificacao = async (req, res) => {
       return acc;
     }, {});
 
-    // ── Processar gráfico de XP (agrupa por semana) ──────────────
+    // ── Processar gráfico de XP (agrupa por semana) 
     const resultados = xpHistory.status === 'fulfilled' ? xpHistory.value : [];
     const xpPorSemana = {};
     resultados.forEach(r => {

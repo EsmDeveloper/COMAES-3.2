@@ -35,7 +35,7 @@ import {
 
 const router = express.Router();
 
-// ── Blocos ────────────────────────────────────────────────────────────────────
+// ── Blocos 
 router.get('/',              canManageQuestoes, listarBlocos);
 router.post('/',             isAdmin,           criarBloco);
 router.get('/:id',           canManageQuestoes, obterBloco);
@@ -46,7 +46,7 @@ router.delete('/:id/questoes/:qid', isAdmin,    removerQuestao);
 
 export default router;
 
-// ── Router separado para rotas de torneios (montado em /api/torneios) ─────────
+// ── Router separado para rotas de torneios (montado em /api/torneios) 
 export const torneiBlocosRouter = express.Router({ mergeParams: true });
 torneiBlocosRouter.get('/',       canManageQuestoes, listarBlocosDoTorneio);
 torneiBlocosRouter.post('/',      isAdmin,           associarBlocoAoTorneio);

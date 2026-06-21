@@ -18,7 +18,7 @@
 
 import Usuario from '../models/User.js';
 
-// ── Tabela de limiares de XP (sincronizada com a tabela niveis no BD) ─────────
+// ── Tabela de limiares de XP (sincronizada com a tabela niveis no BD) 
 export const NIVEIS = [
   { numero: 1, xp_minimo: 0     },
   { numero: 2, xp_minimo: 200   },
@@ -32,7 +32,7 @@ export const NIVEIS = [
   { numero: 10, xp_minimo: 18000 },
 ];
 
-// ── Calcular nível a partir do XP total ───────────────────────────────────────
+// ── Calcular nível a partir do XP total 
 export function calcularNivel(xpTotal) {
   let nivel = 1;
   for (const n of NIVEIS) {
@@ -42,7 +42,7 @@ export function calcularNivel(xpTotal) {
   return nivel;
 }
 
-// ── Calcular XP para próximo nível ────────────────────────────────────────────
+// ── Calcular XP para próximo nível 
 export function calcularProgressoParaProximoNivel(xpTotal) {
   const nivelAtual = calcularNivel(xpTotal);
   const nivelInfo = NIVEIS.find(n => n.numero === nivelAtual);
@@ -69,7 +69,7 @@ export function calcularProgressoParaProximoNivel(xpTotal) {
   };
 }
 
-// ── Incrementar XP de um utilizador e promover nível se necessário ────────────
+// ── Incrementar XP de um utilizador e promover nível se necessário 
 /**
  * @param {number} usuarioId — ID do utilizador
  * @param {number} xpGanho   — Quantidade de XP a adicionar (inteiro positivo)
@@ -114,7 +114,7 @@ export async function incrementarXP(usuarioId, xpGanho, motivo = '') {
   }
 }
 
-// ── XP por resposta correta em torneio ────────────────────────────────────────
+// ── XP por resposta correta em torneio 
 /**
  * @param {number}  pontosQuestao  — Pontos da questão (5, 10 ou 20 conforme dificuldade)
  * @param {boolean} correta        — Se a resposta foi correta
@@ -130,7 +130,7 @@ export function calcularXPResposta(pontosQuestao, correta, streak = 0) {
   return xpBase + xpStreak;
 }
 
-// ── XP por conclusão de teste de conhecimento ─────────────────────────────────
+// ── XP por conclusão de teste de conhecimento 
 /**
  * @param {number} pontos              — Pontos obtidos no teste
  * @param {number} percentualAcertos   — % de acertos (0–100)
@@ -143,7 +143,7 @@ export function calcularXPTeste(pontos, percentualAcertos) {
   return xpBase + bonusExcelencia;
 }
 
-// ── XP por posição final em torneio ───────────────────────────────────────────
+// ── XP por posição final em torneio 
 /**
  * @param {number|null} posicao — Posição final (1 = melhor; null = não calculada)
  * @returns {number} XP a atribuir

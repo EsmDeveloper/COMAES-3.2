@@ -5,7 +5,7 @@
  */
 
 import Usuario from "./User.js";
-import Funcao from "./Funcao.js";
+// ❌ REMOVIDO: import Funcao from "./Funcao.js"; - Modelo deprecado (Task 1 security audit)
 import RedefinicaoSenha from "./RedefinicaoSenha.js";
 import ConfiguracaoUsuario from "./ConfiguracaoUsuario.js";
 import Torneio from "./Torneio.js";
@@ -38,15 +38,16 @@ let associationsConfigured = false;
 
 export const setupAssociations = () => {
   if (associationsConfigured) {
-    console.log('⚠️ Associações já foram configuradas anteriormente');
+    console.log('[WARNING] Associações já foram configuradas anteriormente');
     return;
   }
 
   console.log('🔗 Configurando associações Sequelize...');
 
-  // Usuario <-> Funcao
-  Funcao.hasMany(Usuario, { foreignKey: 'funcao_id', as: 'usuarios' });
-  Usuario.belongsTo(Funcao, { foreignKey: 'funcao_id', as: 'funcao' });
+  // ❌ REMOVIDO: Usuario <-> Funcao (modelo Funcao deprecado - Task 1 security audit)
+  // A autorização agora é baseada APENAS no campo `role` do Usuario
+  // Funcao.hasMany(Usuario, { foreignKey: 'funcao_id', as: 'usuarios' });
+  // Usuario.belongsTo(Funcao, { foreignKey: 'funcao_id', as: 'funcao' });
 
   // Usuario <-> RedefinicaoSenha
   Usuario.hasMany(RedefinicaoSenha, { foreignKey: 'usuario_id', as: 'redefinicoes' });
@@ -154,7 +155,7 @@ export const setupAssociations = () => {
   Usuario.hasMany(ResultadoTeste, { foreignKey: 'usuario_id', as: 'resultadosTeste' });
   ResultadoTeste.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
 
-  // ── Blocos de Questões ────────────────────────────────────────────────────
+  // ── Blocos de Questões 
 
   // BlocoQuestoes <-> Usuario (criador)
   Usuario.hasMany(BlocoQuestoes, { foreignKey: 'criado_por', as: 'blocosCriados' });
@@ -210,25 +211,25 @@ export const setupAssociations = () => {
   BlocoQuestoes.hasMany(TorneioBloco, { foreignKey: 'bloco_id', as: 'torneioAssociacoes' });
   TorneioBloco.belongsTo(BlocoQuestoes, { foreignKey: 'bloco_id', as: 'bloco' });
 
-  // ── Streak / Sequência de Aprendizagem ────────────────────────────────────
+  // ── Streak / Sequência de Aprendizagem 
   Usuario.hasOne(SequenciaAprendizagem, { foreignKey: 'usuario_id', as: 'sequencia' });
   SequenciaAprendizagem.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
 
-  // ── Missões ────────────────────────────────────────────────────────────────
+  // ── Missões 
   Usuario.hasMany(MissaoUsuario, { foreignKey: 'usuario_id', as: 'missoes_usuario' });
   MissaoUsuario.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
   Missao.hasMany(MissaoUsuario, { foreignKey: 'missao_id', as: 'progressos' });
   MissaoUsuario.belongsTo(Missao, { foreignKey: 'missao_id', as: 'missao' });
 
-  // ── Rankings Educacionais Gamificados ─────────────────────────────────────
+  // ── Rankings Educacionais Gamificados 
   try {
     console.log('🔗 Configurando associação Ranking <-> Usuario...');
     Usuario.hasMany(Ranking, { foreignKey: 'usuario_id', as: 'rankings' });
     Ranking.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
-    console.log('   ✅ Associação Ranking <-> Usuario configurada');
+    console.log('   [SUCCESS] Associação Ranking <-> Usuario configurada');
   } catch (error) {
-    console.error('   ❌ Erro ao configurar associação Ranking:', error.message);
-    console.log('   ⚠️ O modelo Ranking ainda não foi inicializado. Inicializando agora...');
+    console.error('   [ERROR] Erro ao configurar associação Ranking:', error.message);
+    console.log('   [WARNING] O modelo Ranking ainda não foi inicializado. Inicializando agora...');
     
     try {
       // Tentar inicializar o modelo Ranking manualmente
@@ -238,19 +239,19 @@ export const setupAssociations = () => {
       
       Usuario.hasMany(Ranking, { foreignKey: 'usuario_id', as: 'rankings' });
       Ranking.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
-      console.log('   ✅ Associação Ranking <-> Usuario configurada após inicialização');
+      console.log('   [SUCCESS] Associação Ranking <-> Usuario configurada após inicialização');
     } catch (initError) {
-      console.error('   ❌ Falha ao inicializar modelo Ranking:', initError.message);
-      console.log('   ⚠️ Contornando erro - continuando sem associação Ranking');
+      console.error('   [ERROR] Falha ao inicializar modelo Ranking:', initError.message);
+      console.log('   [WARNING] Contornando erro - continuando sem associação Ranking');
     }
   }
 
   associationsConfigured = true;
-  console.log('✅ Associações Sequelize configuradas com sucesso!');
-  console.log('   - Usuario <-> ParticipanteTorneio: ✅');
-  console.log('   - ParticipanteTorneio <-> Torneio: ✅');
-  console.log('   - Rankings <-> Usuario: ✅');
-  console.log('   - Todas as outras associações: ✅');
+  console.log('[SUCCESS] Associações Sequelize configuradas com sucesso!');
+  console.log('   - Usuario <-> ParticipanteTorneio: [SUCCESS]');
+  console.log('   - ParticipanteTorneio <-> Torneio: [SUCCESS]');
+  console.log('   - Rankings <-> Usuario: [SUCCESS]');
+  console.log('   - Todas as outras associações: [SUCCESS]');
 };
 
 // Configurar associações imediatamente quando este módulo é importado

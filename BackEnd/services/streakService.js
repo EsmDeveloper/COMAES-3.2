@@ -2,7 +2,7 @@
  * streakService.js — Serviço de Sequências de Aprendizagem (Streak) COMAES
  *
  * Regras de negócio:
- * ─────────────────────────────────────────────────────────────────────────────
+ * 
  * 1. Uma atividade válida num dia incrementa o streak em 1.
  * 2. Múltiplas atividades no mesmo dia NÃO incrementam mais de uma vez (idempotente).
  * 3. Se a última atividade foi ONTEM → continua a sequência (+1).
@@ -11,7 +11,7 @@
  *    A reinicialização é amigável: a nova sequência começa hoje.
  * 6. streak_maximo é atualizado sempre que streak_atual supera o histórico.
  * 7. Nunca há penalização de XP ou pontos no reset.
- * ─────────────────────────────────────────────────────────────────────────────
+ * 
  */
 
 import SequenciaAprendizagem from '../models/SequenciaAprendizagem.js';
@@ -71,7 +71,7 @@ export async function registarAtividade(usuarioId) {
 
     const ultimaData = seq.ultima_data_atividade;
 
-    // ── Caso 1: já houve atividade hoje — idempotente ──────────────────
+    // ── Caso 1: já houve atividade hoje — idempotente 
     if (ultimaData === hoje) {
       return {
         streak_atual: seq.streak_atual,
@@ -87,10 +87,10 @@ export async function registarAtividade(usuarioId) {
     let reiniciou = false;
 
     if (diff === 1) {
-      // ── Caso 2: atividade ontem → continua a sequência ──────────────
+      // ── Caso 2: atividade ontem → continua a sequência 
       novoStreak = seq.streak_atual + 1;
     } else {
-      // ── Caso 3: lacuna de 2+ dias → reset amigável para 1 ───────────
+      // ── Caso 3: lacuna de 2+ dias → reset amigável para 1 
       novoStreak = 1;
       reiniciou = seq.streak_atual > 1; // só "reiniciou" se havia sequência real
     }

@@ -80,19 +80,19 @@ function validarPayload(body) {
   return errors;
 }
 
-// ── POST /auth/registro-colaborador ──────────────────────────────────────────
+// ── POST /auth/registro-colaborador 
 export const registrarColaborador = async (req, res) => {
   try {
     const body = req.body;
     const files = req.files || [];
 
     // DEBUG: Log EXACTO do que está chegando
-    console.log('\n🚨 ════════════════════════════════════════════════════════════');
+    console.log('\n🚨 ');
     console.log('📥 REGISTO COLABORADOR - DUMP COMPLETO DO req.body:');
     console.log('🔍 Todas as chaves:', Object.keys(body));
     console.log('🔍 area_especialidade recebida:', body.area_especialidade, `(tipo: ${typeof body.area_especialidade})`);
     console.log('🔍 Conteúdo completo:', JSON.stringify(body, null, 2));
-    console.log('════════════════════════════════════════════════════════════\n');
+    console.log('\n');
 
     const errors = validarPayload(body);
     
@@ -192,7 +192,7 @@ export const registrarColaborador = async (req, res) => {
   }
 };
 
-// ── PATCH /api/admin/colaboradores/:id/suspender ──────────────────────────────
+// ── PATCH /api/admin/colaboradores/:id/suspender 
 export const suspenderColaborador = async (req, res) => {
   try {
     const { id } = req.params;
@@ -233,7 +233,7 @@ export const suspenderColaborador = async (req, res) => {
   }
 };
 
-// ── GET /api/admin/colaboradores/:id/documentos ───────────────────────────────
+// ── GET /api/admin/colaboradores/:id/documentos 
 export const getDocumentosColaborador = async (req, res) => {
   try {
     const { id } = req.params;

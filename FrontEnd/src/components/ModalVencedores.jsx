@@ -14,9 +14,9 @@ export default function ModalVencedores({ isOpen, onClose, vencedores, disciplin
   if (!showModal || !vencedores || vencedores.length === 0) return null;
 
   const medalhas = {
-    1: { icone: <FaCrown className="text-yellow-500" />, cor: 'from-yellow-400 to-yellow-600', bg: 'bg-yellow-100', texto: 'text-yellow-800', medalha: '🥇' },
-    2: { icone: <FaMedal className="text-gray-400" />, cor: 'from-gray-300 to-gray-500', bg: 'bg-gray-100', texto: 'text-gray-800', medalha: '🥈' },
-    3: { icone: <FaAward className="text-amber-600" />, cor: 'from-amber-500 to-amber-700', bg: 'bg-amber-100', texto: 'text-amber-800', medalha: '🥉' }
+    1: { icone: <FaCrown className="text-yellow-500" />, cor: 'from-yellow-400 to-yellow-600', bg: 'bg-yellow-100', texto: 'text-yellow-800', label: '1º Lugar' },
+    2: { icone: <FaMedal className="text-gray-400" />, cor: 'from-gray-300 to-gray-500', bg: 'bg-gray-100', texto: 'text-gray-800', label: '2º Lugar' },
+    3: { icone: <FaAward className="text-amber-600" />, cor: 'from-amber-500 to-amber-700', bg: 'bg-amber-100', texto: 'text-amber-800', label: '3º Lugar' }
   };
 
   const getDisciplinaNome = (disc) => {
@@ -63,7 +63,7 @@ export default function ModalVencedores({ isOpen, onClose, vencedores, disciplin
                 <div className="flex justify-center mb-4">
                   <img src={logotipo} alt="Comaes" className="h-12 object-contain bg-white rounded-lg p-1" />
                 </div>
-                <h2 className="text-3xl font-bold mb-2">🏆 TORNEIO FINALIZADO 🏆</h2>
+                <h2 className="text-3xl font-bold mb-2">[TROPHY] TORNEIO FINALIZADO [TROPHY]</h2>
                 <p className="text-blue-100">{torneio?.titulo || `Torneio de ${getDisciplinaNome(disciplina)}`}</p>
                 <p className="text-sm text-blue-200 mt-2">
                   Finalizado em {formatarData(torneio?.termina_em || new Date())}
@@ -73,7 +73,7 @@ export default function ModalVencedores({ isOpen, onClose, vencedores, disciplin
               {/* Conteúdo */}
               <div className="p-8">
                 <h3 className="text-2xl font-bold text-center text-gray-800 mb-8">
-                  🎉 VENCEDORES DO TORNEIO 🎉
+                  [CELEBRATE] VENCEDORES DO TORNEIO [CELEBRATE]
                 </h3>
 
                 {/* Pódio */}
@@ -121,7 +121,7 @@ export default function ModalVencedores({ isOpen, onClose, vencedores, disciplin
                       className={`${medalhas[1].bg} rounded-xl p-6 text-center transform scale-105 hover:scale-110 transition-all duration-300 border-2 border-yellow-500 relative shadow-xl`}
                     >
                       <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white px-4 py-1 rounded-full text-sm font-bold">
-                        🏆 CAMPEÃO 🏆
+                        [TROPHY] CAMPEÃO [TROPHY]
                       </div>
                       <div className="text-6xl mb-3">{medalhas[1].medalha}</div>
                       {vencedores[0].usuario?.imagem ? (
@@ -184,7 +184,7 @@ export default function ModalVencedores({ isOpen, onClose, vencedores, disciplin
                 {/* Mensagem de agradecimento */}
                 <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
                   <p className="text-blue-800 mb-2">
-                    <span className="font-bold">Parabéns aos vencedores! 🎉</span>
+                    <span className="font-bold">Parabéns aos vencedores! [CELEBRATE]</span>
                   </p>
                   <p className="text-sm text-blue-600">
                     Agradecemos a todos os participantes pelo empenho e dedicação.

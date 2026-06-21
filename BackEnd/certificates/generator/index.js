@@ -291,7 +291,7 @@ const getCertificateHTML = (data) => {
 // Função principal para gerar certificado
 export const generateCertificate = async ({ userId, tournamentId, disciplina }) => {
   try {
-    console.log('🎯 Iniciando geração de certificado:', { userId, tournamentId, disciplina });
+    console.log('[TARGET] Iniciando geração de certificado:', { userId, tournamentId, disciplina });
 
     // Normalizar disciplina
     const normalizeDisciplina = (disc) => {
@@ -324,11 +324,11 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
     }
 
     // FORÇAR ATUALIZAÇÃO DO RANKING ANTES DE VERIFICAR POSIÇÃO
-    console.log(`📊 Atualizando posições para Torneio ${tournamentId} e Disciplina ${disciplinaNormalizada}...`);
+    console.log(`[CHART] Atualizando posições para Torneio ${tournamentId} e Disciplina ${disciplinaNormalizada}...`);
     try {
       await ParticipanteTorneio.atualizarPosicoes(tournamentId, disciplinaNormalizada);
     } catch (rankErr) {
-      console.warn('⚠️ Erro ao atualizar posições (não crítico):', rankErr.message);
+      console.warn('[WARNING] Erro ao atualizar posições (não crítico):', rankErr.message);
     }
 
     let participation = await ParticipanteTorneio.findOne({
@@ -365,15 +365,15 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
     }
 
     if (!participation) {
-      console.warn('❌ Participação não encontrada:', { userId, tournamentId, disciplinaNormalizada });
+      console.warn('[ERROR] Participação não encontrada:', { userId, tournamentId, disciplinaNormalizada });
       return { success: false, statusCode: 404, error: 'Participação não encontrada para este torneio/disciplina.' };
     }
 
-    console.log('✅ Participação encontrada:', { posicao: participation.posicao, pontuacao: participation.pontuacao });
+    console.log('[SUCCESS] Participação encontrada:', { posicao: participation.posicao, pontuacao: participation.pontuacao });
 
     // Verificar se está no top 3
     if (Number(participation.posicao) > 3) {
-      console.warn('❌ Posição fora do top 3:', participation.posicao);
+      console.warn('[ERROR] Posição fora do top 3:', participation.posicao);
       return {
         success: false,
         statusCode: 403,
@@ -415,9 +415,9 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
         url_certificado: '',  // ← Corrigido
         disciplina: disciplinaNormalizada
       });
-      console.log('✅ Novo certificado criado:', certificate.id);
+      console.log('[SUCCESS] Novo certificado criado:', certificate.id);
     } else {
-      console.log('✅ Certificado existente encontrado:', certificate.id);
+      console.log('[SUCCESS] Certificado existente encontrado:', certificate.id);
     }
 
     // Buscar dados completos com relacionamentos
@@ -479,7 +479,7 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
     // Gerar PDF com Puppeteer
     let browser;
     try {
-      console.log('🖨️  Iniciando Puppeteer...');
+      console.log('  Iniciando Puppeteer...');
       browser = await puppeteer.launch({
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
@@ -512,7 +512,7 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
       });
 
       await browser.close();
-      console.log('✅ PDF gerado com sucesso');
+      console.log('[SUCCESS] PDF gerado com sucesso');
 
       // Verificar se arquivo foi criado
       if (!fs.existsSync(filePath)) {
@@ -523,7 +523,7 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
       const certificateURL = `/uploads/certificates/${fileName}`;
       await certificate.update({ url_certificado: certificateURL });  // ← Corrigido
 
-      console.log('✅ Certificado gerado com sucesso:', filePath);
+      console.log('[SUCCESS] Certificado gerado com sucesso:', filePath);
 
       return {
         success: true,
@@ -538,14 +538,14 @@ export const generateCertificate = async ({ userId, tournamentId, disciplina }) 
         disciplina: disciplinaNormalizada,
       };
     } catch (pdfError) {
-      console.error('❌ Erro ao gerar PDF:', pdfError.message);
+      console.error('[ERROR] Erro ao gerar PDF:', pdfError.message);
       if (browser) {
         await browser.close().catch(() => {});
       }
       throw pdfError;
     }
   } catch (error) {
-    console.error('❌ Erro ao gerar certificado:', {
+    console.error('[ERROR] Erro ao gerar certificado:', {
       message: error.message,
       stack: error.stack,
       code: error.code

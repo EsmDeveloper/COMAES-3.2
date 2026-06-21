@@ -135,7 +135,7 @@ export const TorneoController = {
             try {
                 await ParticipanteTorneio.calcularRanking(torneio_id, disciplina_competida);
             } catch (err) {
-                console.warn('⚠️ Aviso ao sincronizar ranking após inscrição:', err.message);
+                console.warn('[WARNING] Aviso ao sincronizar ranking após inscrição:', err.message);
             }
 
             await transaction.commit();
@@ -232,7 +232,7 @@ export const TorneoController = {
     // Create tournament
     createTorneo: async (req, res) => {
         try {
-            console.log('🔄 Criando torneio com dados RECEBIDOS:', req.body);
+            console.log('[REFRESH] Criando torneio com dados RECEBIDOS:', req.body);
             const { titulo, descricao, inicia_em, termina_em, maximo_participantes, criado_por, status, público, tipo_torneio, disciplina_especifica } = req.body;
 
             console.log('🔍 Valores extraídos:');
@@ -310,7 +310,7 @@ export const TorneoController = {
                 .replace(/-+/g, '-')
                 .replace(/^-|-$/g, '');
             
-            console.log('🏷️ Slug gerado:', slug);
+            console.log(' Slug gerado:', slug);
 
             const requestingUserId = req.user?.id;
             const createdBy = requestingUserId || criado_por;
@@ -346,7 +346,7 @@ export const TorneoController = {
 
             const novoTorneio = await Torneio.create(torneioData);
             
-            console.log('✅ Torneio criado no banco:');
+            console.log('[SUCCESS] Torneio criado no banco:');
             console.log('  - tipo_torneio (BD):', novoTorneio.tipo_torneio);
             console.log('  - disciplina_especifica (BD):', novoTorneio.disciplina_especifica);
             
@@ -357,7 +357,7 @@ export const TorneoController = {
                 torneio: formattedTorneio
             });
         } catch (error) {
-            console.error('❌ Erro ao criar torneio:', error);
+            console.error('[ERROR] Erro ao criar torneio:', error);
             res.status(500).json({ message: 'Erro ao criar torneio', error: error.message });
         }
     },
@@ -627,7 +627,7 @@ export const TorneoController = {
                 try {
                     await ParticipanteTorneio.calcularRanking(id, disciplina);
                 } catch (e) {
-                    console.log(`ℹ️  Nenhum participante em ${disciplina}`);
+                    console.log(`[INFO]  Nenhum participante em ${disciplina}`);
                 }
             }
 
@@ -697,7 +697,7 @@ export const TorneoController = {
                     status: 'encerrado_operacionalmente'
                 });
 
-                console.log(`✅ Torneio ${torneio.titulo} encerrado para ${atualizado} participantes`);
+                console.log(`[SUCCESS] Torneio ${torneio.titulo} encerrado para ${atualizado} participantes`);
             }
 
             await transaction.commit();
@@ -827,7 +827,7 @@ export const TorneoController = {
                                 medalha: cert.tipo_medalha
                             });
                         } catch (e) {
-                            console.error(`⚠️ Erro ao gerar certificado para participante ${participante.usuario_id}:`, e.message);
+                            console.error(`[WARNING] Erro ao gerar certificado para participante ${participante.usuario_id}:`, e.message);
                         }
                     }
 

@@ -1,14 +1,14 @@
 ﻿/**
  * useTorneioParticipante
  *
- * Hook partilhado pelas trÃªs pÃ¡ginas de torneio (MatemÃ¡tica, InglÃªs, ProgramaÃ§Ã£o).
+ * Hook partilhado pelas trÃªs páginas de torneio (Matemática, InglÃªs, Programação).
  *
  * Garante:
  *  1. Registo imediato do participante ao entrar (mesmo com 0 pontos)
- *  2. Aparecimento instantÃ¢neo no ranking local antes da resposta do servidor
- *  3. SincronizaÃ§Ã£o via socket (ranking_update) com fallback de polling a 15 s
- *  4. PosiÃ§Ãµes sempre calculadas localmente â€” nunca null/0/9999
- *  5. Compatibilidade com disciplinas acentuadas (MatemÃ¡tica, InglÃªs, ProgramaÃ§Ã£o)
+ *  2. Aparecimento instantâneo no ranking local antes da resposta do servidor
+ *  3. Sincronização via socket (ranking_update) com fallback de polling a 15 s
+ *  4. PosiçÃµes sempre calculadas localmente â€” nunca null/0/9999
+ *  5. Compatibilidade com disciplinas acentuadas (Matemática, InglÃªs, Programação)
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -18,7 +18,7 @@ const API = () =>
   import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
 // ---------------------------------------------------------------------------
-// NormalizaÃ§Ã£o de disciplina â€” espelha o normalizeDisciplina do backend
+// Normalização de disciplina â€” espelha o normalizeDisciplina do backend
 // ---------------------------------------------------------------------------
 function normalizarDisciplina(raw) {
   if (!raw) return '';
@@ -27,14 +27,14 @@ function normalizarDisciplina(raw) {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .trim();
-  if (s === 'matematica') return 'MatemÃ¡tica';
-  if (s === 'programacao') return 'ProgramaÃ§Ã£o';
+  if (s === 'matematica') return 'Matemática';
+  if (s === 'programacao') return 'Programação';
   if (s === 'ingles' || s === 'lingua inglesa') return 'InglÃªs';
   return raw.charAt(0).toUpperCase() + raw.slice(1);
 }
 
 // ---------------------------------------------------------------------------
-// CÃ¡lculo de posiÃ§Ãµes locais â€” nunca devolve null/0/9999
+// Cálculo de posiçÃµes locais â€” nunca devolve null/0/9999
 // ---------------------------------------------------------------------------
 export function calcularPosicoesLocais(lista) {
   if (!lista || lista.length === 0) return [];
@@ -70,7 +70,7 @@ export default function useTorneioParticipante({ disciplina, disciplinaSlug, use
   // â”€â”€ disciplina normalizada (usada para comparar eventos do socket) â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const disciplinaNorm = normalizarDisciplina(disciplina);
 
-  // â”€â”€ ordenar + calcular posiÃ§Ãµes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â”€â”€ ordenar + calcular posiçÃµes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const normalizarRanking = useCallback((lista) => {
     if (!Array.isArray(lista) || lista.length === 0) return [];
     const ordenada = [...lista].sort((a, b) => {
@@ -98,7 +98,7 @@ export default function useTorneioParticipante({ disciplina, disciplinaSlug, use
   // â”€â”€ adicionar participante ao ranking local imediatamente â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const adicionarAoRankingLocal = useCallback((dadosParticipante, dadosUsuario) => {
     setRanking(prev => {
-      // NÃ£o duplicar
+      // Não duplicar
       const jaExiste = prev.some(
         p => p.usuario_id === dadosParticipante.usuario_id || p.id === dadosParticipante.id
       );
@@ -119,7 +119,7 @@ export default function useTorneioParticipante({ disciplina, disciplinaSlug, use
     registradoRef.current = true;
 
     try {
-      // InserÃ§Ã£o optimista: adicionar ao ranking local antes da resposta
+      // Inserção optimista: adicionar ao ranking local antes da resposta
       const placeholderUsuario = {
         id: userId,
         nome: user?.nome || user?.displayName || '...',
@@ -173,7 +173,7 @@ export default function useTorneioParticipante({ disciplina, disciplinaSlug, use
     }
   }, [disciplina, disciplinaNorm, token, user, adicionarAoRankingLocal, normalizarRanking, buscarRanking]);
 
-  // â”€â”€ buscar dados do utilizador (ou registar se nÃ£o existir) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â”€â”€ buscar dados do utilizador (ou registar se não existir) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const buscarDadosUsuario = useCallback(async (torneioId, userId) => {
     try {
       const res  = await fetch(`${API()}/api/participantes/usuario/${userId}/${disciplinaSlug}`);
@@ -181,7 +181,7 @@ export default function useTorneioParticipante({ disciplina, disciplinaSlug, use
 
       if (data.success && data.data) {
         setParticipante(data.data);
-        // Garantir que estÃ¡ no ranking local
+        // Garantir que está no ranking local
         adicionarAoRankingLocal(data.data, data.data.usuario);
       } else if (res.status === 404) {
         await registrarParticipante(userId, torneioId);
@@ -191,7 +191,7 @@ export default function useTorneioParticipante({ disciplina, disciplinaSlug, use
     }
   }, [disciplinaSlug, registrarParticipante, adicionarAoRankingLocal]);
 
-  // â”€â”€ inicializaÃ§Ã£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â”€â”€ inicialização â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     let cancelled = false;
     registradoRef.current = false;
@@ -272,7 +272,7 @@ export default function useTorneioParticipante({ disciplina, disciplinaSlug, use
     socket.on('ranking_update', handleRankingUpdate);
     socket.on('tournament_finished', handleTournamentFinished);
 
-    // Polling a cada 15 s â€” garante sincronizaÃ§Ã£o mesmo sem socket
+    // Polling a cada 15 s â€” garante sincronização mesmo sem socket
     pollingRef.current = setInterval(buscarRanking, 15_000);
 
     return () => {
@@ -282,7 +282,7 @@ export default function useTorneioParticipante({ disciplina, disciplinaSlug, use
     };
   }, [torneio, disciplinaNorm, normalizarRanking, buscarRanking]);
 
-  // â”€â”€ actualizar participante apÃ³s avaliaÃ§Ã£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â”€â”€ actualizar participante após avaliação â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const actualizarParticipante = useCallback((novoParticipante) => {
     if (!novoParticipante) return;
     setParticipante(novoParticipante);

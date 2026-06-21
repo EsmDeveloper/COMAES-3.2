@@ -1,5 +1,6 @@
 import React from 'react';
 import CertificadoBase from './CertificadoBase';
+import { getIconForEmoji } from '../utils/iconMapper';
 
 const config = {
   1: { frase: "Demonstrou proficiência excepcional na língua inglesa", icone: "🌍" },
@@ -24,7 +25,9 @@ export default function CertIngles({ isOpen, onClose, participante, posicao, tor
       torneio={torneio}
     >
       <div className="bg-blue-100/50 rounded-lg p-4 text-center">
-        <div className="text-4xl mb-2">{icone}</div>
+        <div className="text-4xl mb-2">
+          {getIconForEmoji(icone, 40)}
+        </div>
         <p className="text-blue-800 font-medium italic">"{frase}"</p>
         <p className="text-xs text-gray-500 mt-1">English Proficiency Certificate</p>
       </div>

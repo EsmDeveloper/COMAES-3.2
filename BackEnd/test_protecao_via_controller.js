@@ -103,9 +103,9 @@ async function testarProtecaoViaController() {
       console.log(`   Resposta: ${JSON.stringify(updateRes.jsonData, null, 2)}`);
     }
 
-    console.log('\n═══════════════════════════════════════════════════════════');
+    console.log('\n');
     console.log('Torneio ID para teste manual:', torneioId);
-    console.log('═══════════════════════════════════════════════════════════\n');
+    console.log('\n');
 
     process.exit(0);
   } catch (error) {

@@ -345,7 +345,7 @@ const questoesMatematicaFacil = [
     resposta_correta: "c"
   },
   {
-    titulo: "Ângulo Reto",
+    titulo: "ngulo Reto",
     enunciado: "Quantos graus tem um ângulo reto?",
     disciplina: "Matemática",
     dificuldade: "facil",
@@ -390,7 +390,7 @@ const questoesMatematicaFacil = [
     resposta_correta: "b"
   },
   {
-    titulo: "Soma dos Ângulos Internos",
+    titulo: "Soma dos ngulos Internos",
     enunciado: "Qual é a soma dos ângulos internos de um triângulo?",
     disciplina: "Matemática",
     dificuldade: "facil",
@@ -450,7 +450,7 @@ const questoesMatematicaFacil = [
     resposta_correta: "b"
   },
   {
-    titulo: "Ângulo Completo",
+    titulo: "ngulo Completo",
     enunciado: "Quantos graus tem um ângulo completo (volta completa)?",
     disciplina: "Matemática",
     dificuldade: "facil",

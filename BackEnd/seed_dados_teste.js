@@ -26,9 +26,9 @@ const seed = async () => {
     // Gerar hash de senha que será usado em todo o script
     const senhaHash = await bcrypt.hash('Senha123!', 10);
 
-    // ═══════════════════════════════════════════════════════════════════════
+    // 
     // 1️⃣ CRIAR QUESTÕES DE TESTE DE CONHECIMENTO
-    // ═══════════════════════════════════════════════════════════════════════
+    // 
 
     console.log('📚 Criando questões de teste de conhecimento...');
 
@@ -172,9 +172,9 @@ const seed = async () => {
     await QuestaoTesteConhecimento.bulkCreate(questoesTeste);
     console.log(`✅ ${questoesTeste.length} questões de teste criadas\n`);
 
-    // ═══════════════════════════════════════════════════════════════════════
+    // 
     // 2️⃣ CRIAR TORNEIO E BLOCOS
-    // ═══════════════════════════════════════════════════════════════════════
+    // 
 
     console.log('🏆 Criando torneio e blocos de questões...');
 
@@ -251,9 +251,9 @@ const seed = async () => {
 
     console.log(`✅ ${blocos.length} blocos de questões criados\n`);
 
-    // ═══════════════════════════════════════════════════════════════════════
+    // 
     // 3️⃣ CRIAR 2 COLABORADORES
-    // ═══════════════════════════════════════════════════════════════════════
+    // 
 
     console.log('👥 Criando colaboradores...');
 
@@ -299,9 +299,9 @@ const seed = async () => {
     console.log(`   📱 Telefone: ${colab2.telefone}`);
     console.log(`   ✅ Status: ${colab2.status_colaborador}\n`);
 
-    // ═══════════════════════════════════════════════════════════════════════
+    // 
     // 4️⃣ CRIAR QUESTÕES PARA COLABORADOR 2
-    // ═══════════════════════════════════════════════════════════════════════
+    // 
 
     console.log('📝 Criando questões para Maria Santos (Colaborador 2)...\n');
 
@@ -400,46 +400,46 @@ const seed = async () => {
 
     console.log(`✅ ${questoesAprovadas.length} questões APROVADAS criadas (já revisadas)\n`);
 
-    console.log('🛡️ Usuário administrador já foi criado acima\n');
+    console.log(' Usuário administrador já foi criado acima\n');
 
-    // ═══════════════════════════════════════════════════════════════════════
+    // 
     // 6️⃣ RESUMO FINAL
-    // ═══════════════════════════════════════════════════════════════════════
+    // 
 
-    console.log('════════════════════════════════════════════════════════════════════');
+    console.log('');
     console.log('✅ SEED DE DADOS CONCLUÍDO COM SUCESSO!');
-    console.log('════════════════════════════════════════════════════════════════════\n');
+    console.log('\n');
 
     console.log('📊 RESUMO DO QUE FOI CRIADO:');
-    console.log('─────────────────────────────────────────────────────────────────');
+    console.log('');
     console.log(`📚 Questões de Teste: ${questoesTeste.length}`);
     console.log(`   - Matemática: 5 questões`);
     console.log(`   - Inglês: 4 questões`);
     console.log(`   - Programação: 5 questões`);
     console.log(`\n🏆 Torneios: 1`);
     console.log(`   📅 Título: ${torneio.titulo}`);
-    console.log(`   🗂️ Blocos: ${blocos.length} (Matemática, Inglês, Programação)`);
+    console.log(`    Blocos: ${blocos.length} (Matemática, Inglês, Programação)`);
     console.log(`\n👥 Colaboradores: 2`);
     console.log(`   1. João Silva (Matemática) - STATUS: ⏳ PENDENTE`);
     console.log(`   2. Maria Santos (Inglês) - STATUS: ✅ APROVADO`);
     console.log(`      📝 Questões Pendentes: ${questoesPendentes.length}`);
     console.log(`      ✅ Questões Aprovadas: ${questoesAprovadas.length}`);
-    console.log(`\n🛡️ Admin: 1`);
-    console.log('─────────────────────────────────────────────────────────────────\n');
+    console.log(`\n Admin: 1`);
+    console.log('\n');
 
     console.log('🔐 CREDENCIAIS DE ACESSO:');
-    console.log('═════════════════════════════════════════════════════════════════\n');
+    console.log('\n');
 
     console.log('👤 COLABORADOR 1 (PENDENTE - Não pode acessar ainda):');
-    console.log('┌─────────────────────────────────────────────────────────────┐');
+    console.log('');
     console.log(`│ Email: joao.silva@example.com                              │`);
     console.log(`│ Senha: Senha123!                                           │`);
     console.log(`│ Disciplina: Matemática                                     │`);
     console.log(`│ Status: ⏳ PENDENTE (aguardando aprovação do admin)          │`);
-    console.log('└─────────────────────────────────────────────────────────────┘\n');
+    console.log('\n');
 
     console.log('👤 COLABORADOR 2 (APROVADO - Pode acessar):');
-    console.log('┌─────────────────────────────────────────────────────────────┐');
+    console.log('');
     console.log(`│ Email: maria.santos@example.com                            │`);
     console.log(`│ Senha: Senha123!                                           │`);
     console.log(`│ Disciplina: Inglês                                         │`);
@@ -448,16 +448,16 @@ const seed = async () => {
     console.log(`│ CENÁRIOS DE TESTE:                                         │`);
     console.log(`│ • 3 questões em status PENDENTE (aguardando revisão)       │`);
     console.log(`│ • 3 questões em status APROVADO (já revisadas)             │`);
-    console.log('└─────────────────────────────────────────────────────────────┘\n');
+    console.log('\n');
 
-    console.log('🛡️ ADMINISTRADOR:');
-    console.log('┌─────────────────────────────────────────────────────────────┐');
+    console.log(' ADMINISTRADOR:');
+    console.log('');
     console.log(`│ Email: admin@comaes.com                                    │`);
     console.log(`│ Senha: Senha123!                                           │`);
-    console.log('└─────────────────────────────────────────────────────────────┘\n');
+    console.log('\n');
 
     console.log('🎯 TESTES RECOMENDADOS:');
-    console.log('─────────────────────────────────────────────────────────────');
+    console.log('');
     console.log('1. Login como ADMIN → Revisar colaboradores pendentes');
     console.log('2. Login como Maria (Colaborador aprovado):');
     console.log('   - Ver questões pendentes (aguardando revisão)');
@@ -466,7 +466,7 @@ const seed = async () => {
     console.log('3. Como ADMIN → Revisar questões pendentes de Maria');
     console.log('4. Testar fluxo de aprovação/rejeição');
     console.log('5. Verificar notificações (quando implementadas)');
-    console.log('─────────────────────────────────────────────────────────────\n');
+    console.log('\n');
 
     process.exit(0);
   } catch (error) {

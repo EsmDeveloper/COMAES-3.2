@@ -106,13 +106,13 @@ export default function TournamentForm({
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
-  // ── Estado de Blocos ──────────────────────────────────────────────────────
+  // ── Estado de Blocos 
   const [blocosDisponiveis, setBlocosDisponiveis] = useState([]);   // todos os blocos publicados
   const [blocosAssociados, setBlocosAssociados] = useState([]);     // IDs dos blocos já no torneio
   const [loadingBlocos, setLoadingBlocos] = useState(false);
   const [blocoError, setBlocoError] = useState('');
 
-  // ✅ NOVO: Filtrar blocos por disciplina se o torneio for específico
+  // [SUCCESS] NOVO: Filtrar blocos por disciplina se o torneio for específico
   const blocosFiltrados = useMemo(() => {
     if (formData.tipo_torneio !== 'especifico' || !formData.disciplina_especifica) {
       return blocosDisponiveis;
@@ -126,11 +126,11 @@ export default function TournamentForm({
     };
     
     const disciplinaBloco = disciplinaMapMap[formData.disciplina_especifica];
-    console.log(`📋 Filtrando blocos para ${formData.disciplina_especifica} (${disciplinaBloco})`);
+    console.log(`[LIST] Filtrando blocos para ${formData.disciplina_especifica} (${disciplinaBloco})`);
     
     return blocosDisponiveis.filter(b => {
       const match = b.disciplina === disciplinaBloco;
-      console.log(`   - Bloco "${b.titulo}" (${b.disciplina}): ${match ? '✅' : '❌'}`);
+      console.log(`   - Bloco "${b.titulo}" (${b.disciplina}): ${match ? '[SUCCESS]' : '[ERROR]'}`);
       return match;
     });
   }, [blocosDisponiveis, formData.tipo_torneio, formData.disciplina_especifica]);
@@ -157,7 +157,7 @@ export default function TournamentForm({
     return ['finalizado', 'cancelado'].includes(initialData.status);
   }, [mode, initialData]);
 
-  // ── Carregar blocos publicados disponíveis ────────────────────────────────
+  // ── Carregar blocos publicados disponíveis 
   useEffect(() => {
     if (!token) return;
     setLoadingBlocos(true);
@@ -167,7 +167,7 @@ export default function TournamentForm({
       .finally(() => setLoadingBlocos(false));
   }, [token]);
 
-  // ── Carregar blocos já associados ao torneio (modo edição) ────────────────
+  // ── Carregar blocos já associados ao torneio (modo edição) 
   useEffect(() => {
     if (mode !== 'edit' || !initialData?.id || !token) return;
     BlocosService.listarBlocosDoTorneio(token, initialData.id)
@@ -175,7 +175,7 @@ export default function TournamentForm({
       .catch(() => {});
   }, [mode, initialData?.id, token]);
 
-  // ── Toggle associação de bloco ────────────────────────────────────────────
+  // ── Toggle associação de bloco 
   const handleToggleBloco = useCallback(async (blocoId) => {
     if (!initialData?.id) {
       // Modo criação: apenas marcar localmente (associar após criar o torneio)
@@ -201,7 +201,7 @@ export default function TournamentForm({
     }
   }, [blocosAssociados, initialData?.id, token]);
 
-  // ── Carregar dados iniciais (modo edição) ─────────────────────────────────
+  // ── Carregar dados iniciais (modo edição) 
   useEffect(() => {
     if (mode === 'edit' && initialData) {
       console.log('[TournamentForm] Carregando dados para edição:', {
@@ -261,7 +261,7 @@ export default function TournamentForm({
       if (field === 'titulo' && mode === 'create') {
         updated.slug = TournamentValidation.generateSlug(value);
       }
-      // ✅ DEBUG: Log quando tipo_torneio muda
+      // [SUCCESS] DEBUG: Log quando tipo_torneio muda
       if (field === 'tipo_torneio') {
         console.log('[TournamentForm] tipo_torneio alterado:', {
           anterior: prev.tipo_torneio,
@@ -311,7 +311,7 @@ export default function TournamentForm({
       return;
     }
 
-    // ✅ NOVA VALIDAÇÃO: Se ativar torneio, validar blocos
+    // [SUCCESS] NOVA VALIDAÇÃO: Se ativar torneio, validar blocos
     if (formData.status === 'ativo' && mode === 'create') {
       if (blocosAssociados.length === 0) {
         setBlocoError('Torneio deve ter pelo menos um bloco de questões com mínimo 5 questões para ser ativado');
@@ -366,8 +366,8 @@ export default function TournamentForm({
       _blocosParaAssociar: mode === 'create' ? blocosAssociados : [],
     };
 
-    // ✅ DEBUG: Log detalhado do payload
-    console.log('[TournamentForm] ✅ Validação passou! Payload completo:', {
+    // [SUCCESS] DEBUG: Log detalhado do payload
+    console.log('[TournamentForm] [SUCCESS] Validação passou! Payload completo:', {
       tipo_torneio_no_formdata: formData.tipo_torneio,
       tipo_torneio_no_payload: payload.tipo_torneio,
       disciplina_no_formdata: formData.disciplina_especifica,
@@ -662,7 +662,7 @@ export default function TournamentForm({
             </div>
           )}
 
-          {/* ── TIPO DE TORNEIO ────────────────────────────────────────────────── */}
+          {/* ── TIPO DE TORNEIO  */}
           <div className="pt-2 space-y-2">
             <label className="block text-sm font-semibold text-gray-700">
               Tipo de Torneio <span className="text-rose-500">*</span>
@@ -707,7 +707,7 @@ export default function TournamentForm({
             </div>
           </div>
 
-          {/* ── DISCIPLINA ESPECÍFICA (Apenas se específico) ────────────────────── */}
+          {/* ── DISCIPLINA ESPECÍFICA (Apenas se específico)  */}
           {formData.tipo_torneio === 'especifico' && (
             <div className="space-y-1.5 animate-fade-in">
               <label className="block text-sm font-semibold text-gray-700">
@@ -806,7 +806,7 @@ export default function TournamentForm({
             </label>
           </div>
 
-          {/* ── Seleção de Blocos de Questões ─────────────────────────────── */}
+          {/* ── Seleção de Blocos de Questões  */}
           <div className="pt-2 space-y-2 border border-amber-200 bg-amber-50 rounded-xl p-3">
             <div className="flex items-center gap-2">
               <Layers size={16} className="text-amber-600" />

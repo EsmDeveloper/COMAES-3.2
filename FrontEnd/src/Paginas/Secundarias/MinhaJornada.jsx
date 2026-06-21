@@ -1,13 +1,13 @@
-﻿/**
- * MinhaJornada.jsx - PÃ¡gina de GamificaÃ§Ã£o COMAES
+/**
+ * MinhaJornada.jsx - Página de Gamificação COMAES
  * 
  * Blocos implementados:
- * 1. Card do nÃ­vel atual com barra de XP para o prÃ³ximo nÃ­vel
- * 2. Card da sequÃªncia de aprendizagem com Ã­cone de chama e dias consecutivos
- * 3. Lista das Ãºltimas 5 conquistas desbloqueadas (com Ã­cones)
- * 4. PosiÃ§Ã£o nos rankings (global e por categoria) com link para pÃ¡gina de rankings
- * 5. MissÃµes ativas do dia/semana (mÃ¡ximo 3) com progresso
- * 6. Mini grÃ¡fico de evoluÃ§Ã£o de XP nos Ãºltimos 30 dias (opcional)
+ * 1. Card do nível atual com barra de XP para o próximo nível
+ * 2. Card da sequÃªncia de aprendizagem com ícone de chama e dias consecutivos
+ * 3. Lista das Ãºltimas 5 conquistas desbloqueadas (com ícones)
+ * 4. Posição nos rankings (global e por categoria) com link para página de rankings
+ * 5. MissÃµes ativas do dia/semana (máximo 3) com progresso
+ * 6. Mini gráfico de evolução de XP nos Ãºltimos 30 dias (opcional)
  */
 
 import React, { useState, useEffect } from 'react';
@@ -50,7 +50,7 @@ const MinhaJornada = () => {
       const token = localStorage.getItem('comaes_token');
       
       if (!token) {
-        throw new Error('UsuÃ¡rio nÃ£o autenticado. FaÃ§a login novamente.');
+        throw new Error('Usuário não autenticado. Faça login novamente.');
       }
       
       const response = await fetch(
@@ -92,18 +92,18 @@ const MinhaJornada = () => {
             id: c.id,
             titulo: c.nome,
             descricao: c.descricao,
-            icone: c.url_icone || 'ðŸ†',
+            icone: c.url_icone || '',
             data: c.concedido_em
           })) || [],
           rankings: {
             global: { 
               posicao: data.ranking?.melhor_posicao || 0,
-              total: 1000 // valor padrÃ£o, poderia vir da API
+              total: 1000 // valor padrão, poderia vir da API
             },
             categorias: Object.entries(data.ranking?.por_disciplina || {}).map(([categoria, posicao]) => ({
               categoria: categoria,
               posicao: posicao,
-              total: 100 // valor padrÃ£o
+              total: 100 // valor padrão
             }))
           },
           missoes: data.missoes?.map(m => ({
@@ -125,11 +125,11 @@ const MinhaJornada = () => {
         
         setGamificacaoData(formattedData);
       } else {
-        throw new Error(result.error || 'Erro ao carregar dados de gamificaÃ§Ã£o');
+        throw new Error(result.error || 'Erro ao carregar dados de gamificação');
       }
     } catch (err) {
-      console.error('Erro ao buscar dados de gamificaÃ§Ã£o:', err);
-      setError(err.message || 'NÃ£o foi possÃ­vel carregar os dados da sua jornada');
+      console.error('Erro ao buscar dados de gamificação:', err);
+      setError(err.message || 'Não foi possível carregar os dados da sua jornada');
     } finally {
       setLoading(false);
     }
@@ -172,7 +172,7 @@ const MinhaJornada = () => {
     nivel: {
       numero: 3,
       titulo: "Coruja Aprendiz",
-      icone: "ðŸ“š",
+      icone: "🏅",
       cor: "#3B82F6",
       xp_minimo: 500
     },
@@ -183,17 +183,17 @@ const MinhaJornada = () => {
       ativa: true
     },
     conquistas: [
-      { id: 1, titulo: "Primeira QuestÃ£o", descricao: "Acertou sua primeira questÃ£o", icone: "ðŸŽ¯", data: "2024-01-15" },
-      { id: 2, titulo: "SÃ©rie de 3 Dias", descricao: "3 dias consecutivos de aprendizado", icone: "ðŸ”¥", data: "2024-01-18" },
-      { id: 3, titulo: "NÃ­vel 3 AlcanÃ§ado", descricao: "Evoluiu para Coruja Aprendiz", icone: "ðŸ“š", data: "2024-01-20" },
-      { id: 4, titulo: "Participante Ativo", descricao: "10 questÃµes respondidas", icone: "âœ…", data: "2024-01-22" },
-      { id: 5, titulo: "Primeiro Torneio", descricao: "Participou de um torneio", icone: "ðŸ†", data: "2024-01-25" }
+      { id: 1, titulo: "Primeira Questão", descricao: "Acertou sua primeira questão", icone: "", data: "2024-01-15" },
+      { id: 2, titulo: "Série de 3 Dias", descricao: "3 dias consecutivos de aprendizado", icone: "🏅", data: "2024-01-18" },
+      { id: 3, titulo: "Nível 3 Alcançado", descricao: "Evoluiu para Coruja Aprendiz", icone: "🏅", data: "2024-01-20" },
+      { id: 4, titulo: "Participante Ativo", descricao: "10 questÃµes respondidas", icone: "â", data: "2024-01-22" },
+      { id: 5, titulo: "Primeiro Torneio", descricao: "Participou de um torneio", icone: "", data: "2024-01-25" }
     ],
     rankings: {
       global: { posicao: 42, total: 1500 },
       categorias: [
-        { categoria: "MatemÃ¡tica", posicao: 15, total: 300 },
-        { categoria: "ProgramaÃ§Ã£o", posicao: 8, total: 200 },
+        { categoria: "Matemática", posicao: 15, total: 300 },
+        { categoria: "Programação", posicao: 8, total: 200 },
         { categoria: "InglÃªs", posicao: 25, total: 400 }
       ]
     },
@@ -211,7 +211,7 @@ const MinhaJornada = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* CabeÃ§alho */}
+        {/* Cabeçalho */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -219,7 +219,7 @@ const MinhaJornada = () => {
         >
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Minha Jornada</h1>
           <p className="text-gray-600 text-lg">
-            Acompanhe seu progresso, conquistas e evoluÃ§Ã£o na COMAES
+            Acompanhe seu progresso, conquistas e evolução na COMAES
           </p>
         </motion.div>
 
@@ -229,7 +229,7 @@ const MinhaJornada = () => {
           {/* Coluna 1 */}
           <div className="lg:col-span-2 space-y-6">
             
-            {/* Bloco 1: Card do NÃ­vel */}
+            {/* Bloco 1: Card do Nível */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -240,7 +240,7 @@ const MinhaJornada = () => {
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
                     <FaTrophy className="text-yellow-500" />
-                    Seu NÃ­vel Atual
+                    Seu Nível Atual
                   </h2>
                   <p className="text-gray-600 mt-1">Continue aprendendo para evoluir!</p>
                 </div>
@@ -251,7 +251,7 @@ const MinhaJornada = () => {
               
               <div className="max-w-lg">
                 <div className="space-y-4">
-                  {/* NÃ­vel atual */}
+                  {/* Nível atual */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
@@ -259,13 +259,13 @@ const MinhaJornada = () => {
                       </div>
                       <div>
                         <h3 className="font-bold text-gray-900 text-lg">{data.nivel.titulo}</h3>
-                        <p className="text-sm text-gray-600">NÃ­vel {data.nivel.numero}</p>
+                        <p className="text-sm text-gray-600">Nível {data.nivel.numero}</p>
                       </div>
                     </div>
                     {data.proximoNivel && (
                       <div className="text-right">
-                        <p className="text-sm text-gray-500">PrÃ³ximo nÃ­vel:</p>
-                        <p className="font-bold text-blue-600">NÃ­vel {data.proximoNivel.numero} - {data.proximoNivel.nome}</p>
+                        <p className="text-sm text-gray-500">Próximo nível:</p>
+                        <p className="font-bold text-blue-600">Nível {data.proximoNivel.numero} - {data.proximoNivel.nome}</p>
                       </div>
                     )}
                   </div>
@@ -273,7 +273,7 @@ const MinhaJornada = () => {
                   {/* Barra de progresso */}
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm text-gray-600">
-                      <span>Progresso para o prÃ³ximo nÃ­vel</span>
+                      <span>Progresso para o próximo nível</span>
                       <span>{Math.round(data.progresso || 0)}%</span>
                     </div>
                     <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
@@ -284,7 +284,7 @@ const MinhaJornada = () => {
                     </div>
                     <div className="flex justify-between text-xs text-gray-500">
                       <span>{data.xpTotal} XP</span>
-                      <span>{data.proximoNivel ? `${data.proximoNivel.xp_minimo} XP` : 'NÃ­vel mÃ¡ximo'}</span>
+                      <span>{data.proximoNivel ? `${data.proximoNivel.xp_minimo} XP` : 'Nível máximo'}</span>
                     </div>
                   </div>
                 </div>
@@ -304,7 +304,7 @@ const MinhaJornada = () => {
                     <FaFire className="text-orange-500" />
                     SequÃªncia de Aprendizagem
                   </h2>
-                  <p className="text-gray-600 mt-1">Mantenha o hÃ¡bito de estudar todos os dias!</p>
+                  <p className="text-gray-600 mt-1">Mantenha o hábito de estudar todos os dias!</p>
                 </div>
                 {data.streak.maximo > 0 && (
                   <div className="text-sm text-gray-500">
@@ -324,7 +324,7 @@ const MinhaJornada = () => {
                         {data.streak.atual} {data.streak.atual === 1 ? 'dia' : 'dias'} consecutivos
                       </h3>
                       <p className="text-gray-600">
-                        {data.streak.ativa ? 'ðŸ”¥ Seu hÃ¡bito estÃ¡ ativo!' : 'Recomece sua sequÃªncia hoje!'}
+                        {data.streak.ativa ? '🏅 Seu hábito está ativo!' : 'Recomece sua sequÃªncia hoje!'}
                       </p>
                     </div>
                   </div>
@@ -360,7 +360,7 @@ const MinhaJornada = () => {
                     <FaMedal className="text-purple-500" />
                     Conquistas Recentes
                   </h2>
-                  <p className="text-gray-600 mt-1">Ãšltimas 5 conquistas desbloqueadas</p>
+                  <p className="text-gray-600 mt-1">Ãltimas 5 conquistas desbloqueadas</p>
                 </div>
                 <Link 
                   to="/conquistas" 
@@ -397,7 +397,7 @@ const MinhaJornada = () => {
           {/* Coluna 2 */}
           <div className="space-y-6">
             
-            {/* Bloco 4: PosiÃ§Ã£o nos Rankings */}
+            {/* Bloco 4: Posição nos Rankings */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -408,9 +408,9 @@ const MinhaJornada = () => {
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
                     <FaCrown className="text-yellow-500" />
-                    PosiÃ§Ã£o nos Rankings
+                    Posição nos Rankings
                   </h2>
-                  <p className="text-gray-600 mt-1">Veja como estÃ¡ em relaÃ§Ã£o Ã  comunidade</p>
+                  <p className="text-gray-600 mt-1">Veja como está em relação Ã  comunidade</p>
                 </div>
                 <Link 
                   to="/ranking" 
@@ -426,11 +426,11 @@ const MinhaJornada = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-semibold text-gray-900">Ranking Global</h3>
-                      <p className="text-sm text-gray-600">PosiÃ§Ã£o entre todos os usuÃ¡rios</p>
+                      <p className="text-sm text-gray-600">Posição entre todos os usuários</p>
                     </div>
                     <div className="text-center">
                       <div className="text-3xl font-bold text-blue-600">
-                        {data.rankings.global.posicao}Âº
+                        {data.rankings.global.posicao}º
                       </div>
                       <div className="text-xs text-gray-500">
                         de {data.rankings.global.total}
@@ -452,7 +452,7 @@ const MinhaJornada = () => {
                     >
                       <span className="font-medium text-gray-800">{cat.categoria}</span>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-gray-900">{cat.posicao}Âº</span>
+                        <span className="font-bold text-gray-900">{cat.posicao}º</span>
                         <span className="text-xs text-gray-500">/ {cat.total}</span>
                       </div>
                     </motion.div>
@@ -524,7 +524,7 @@ const MinhaJornada = () => {
               </div>
             </motion.div>
 
-            {/* Bloco 6: EvoluÃ§Ã£o de XP */}
+            {/* Bloco 6: Evolução de XP */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -535,9 +535,9 @@ const MinhaJornada = () => {
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
                     <FaChartBar className="text-indigo-500" />
-                    EvoluÃ§Ã£o de XP
+                    Evolução de XP
                   </h2>
-                  <p className="text-gray-600 mt-1">Ãšltimos 30 dias de aprendizado</p>
+                  <p className="text-gray-600 mt-1">Ãltimos 30 dias de aprendizado</p>
                 </div>
                 <span className="text-sm text-gray-500">
                   <FaChartLine className="inline mr-1" />
@@ -545,7 +545,7 @@ const MinhaJornada = () => {
                 </span>
               </div>
               
-              {/* Mini grÃ¡fico */}
+              {/* Mini gráfico */}
               <div className="h-48 flex items-end gap-1">
                 {data.evolucaoXP.slice(-15).map((dia, index) => {
                   const maxXP = Math.max(...data.evolucaoXP.map(d => d.xp));
@@ -570,15 +570,15 @@ const MinhaJornada = () => {
               
               {/* Linha do tempo */}
               <div className="flex justify-between text-xs text-gray-500 mt-3">
-                <span>15 dias atrÃ¡s</span>
-                <span>7 dias atrÃ¡s</span>
+                <span>15 dias atrás</span>
+                <span>7 dias atrás</span>
                 <span>Hoje</span>
               </div>
             </motion.div>
           </div>
         </div>
 
-        {/* RodapÃ© motivacional */}
+        {/* Rodapé motivacional */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -589,8 +589,8 @@ const MinhaJornada = () => {
             <FaStar className="text-4xl mx-auto mb-4" />
             <h3 className="text-2xl font-bold mb-2">Continue sua jornada!</h3>
             <p className="text-blue-100 max-w-2xl mx-auto">
-              Cada questÃ£o respondida, cada torneio completado e cada dia de estudo contam 
-              para sua evoluÃ§Ã£o. O aprendizado contÃ­nuo Ã© o caminho para o sucesso.
+              Cada questão respondida, cada torneio completado e cada dia de estudo contam 
+              para sua evolução. O aprendizado contínuo é o caminho para o sucesso.
             </p>
             <div className="flex justify-center gap-4 mt-6">
               <Link

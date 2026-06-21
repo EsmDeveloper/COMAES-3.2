@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   Users, Trophy, BookOpen, FileText, TrendingUp,
   Clock, CheckCircle, AlertCircle, Calendar, Activity, RefreshCw,
-  UserPlus, Clock as ClockIcon
+  UserPlus, Clock as ClockIcon, Award
 } from 'lucide-react';
 import {
   XAxis, YAxis, CartesianGrid,
@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 
 // ============================================
-// COMPONENTE: Gráfico de Novos Usuários
+// COMPONENTE: Gráfico de Novos Usuários 
 // ============================================
 const NovosUsuariosChart = () => {
   const { token } = useAuth();
@@ -219,6 +219,12 @@ const AtividadesRecentes = () => {
         return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'finalizar_torneio':
         return <Activity className="w-4 h-4 text-blue-500" />;
+      case 'criar_questao':
+        return <FileText className="w-4 h-4 text-purple-500" />;
+      case 'questao_aprovada':
+        return <CheckCircle className="w-4 h-4 text-emerald-500" />;
+      case 'certificado_emitido':
+        return <Award className="w-4 h-4 text-amber-500" />;
       default:
         return <Activity className="w-4 h-4 text-gray-500" />;
     }
@@ -320,19 +326,19 @@ const AtividadesRecentes = () => {
       <div className="space-y-1">
         {atividades.map((atividade, index) => (
           <div
-            key={index}
+            key={atividade?.id ?? index}
             className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0"
           >
             <div className="flex-shrink-0 w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center">
-              {getIconeAtividade(atividade.acao)}
+              {getIconeAtividade(atividade?.acao ?? '')}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm text-gray-800">
-                <span className="font-medium">{atividade.usuario_nome}</span>
-                {' '}{atividade.detalhe}
+                <span className="font-medium">{atividade?.usuario_nome ?? 'Usuário'}</span>
+                {' '}{atividade?.detalhe ?? 'realizou uma ação'}
               </p>
               <p className="text-xs text-gray-400 mt-0.5">
-                {formatarDataHora(atividade.data_hora)}
+                {formatarDataHora(atividade?.data_hora)}
               </p>
             </div>
           </div>
@@ -346,7 +352,7 @@ const AtividadesRecentes = () => {
 // COMPONENTE PRINCIPAL: AdminStats
 // ============================================
 const AdminStats = () => {
-  const { token, login } = useAuth();
+  const { token, login, logout } = useAuth();
   const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -404,9 +410,18 @@ const AdminStats = () => {
       }
 
       if (!response.ok) {
-        if (response.status === 403 && allowRefresh) {
+        if (response.status === 401 && allowRefresh) {
           const refreshedToken = await refreshSession(activeToken);
           return fetchStats(refreshedToken, false);
+        }
+
+        if (response.status === 401) {
+          logout?.();
+          throw new Error('Sessão expirada. Faça login novamente.');
+        }
+
+        if (response.status === 403) {
+          throw new Error(data?.message || data?.error || 'Acesso negado. Entre com uma conta administradora.');
         }
 
         const serverMessage = data?.message || `Erro ${response.status}: ${data?.error || 'Falha ao carregar estatísticas'}`;
@@ -501,7 +516,7 @@ const AdminStats = () => {
     return null;
   }
 
-  const { usuarios, torneios, questoes, testesConhecimento, evolucaoUsuarios, ultimasAtividades } = stats;
+  const { usuarios, torneios, questoes, testesConhecimento, evolucaoUsuarios, ultimasAtividades } = stats ?? {};
 
   const formatVariation = (variacao) => {
     if (variacao === 0) return { text: '0%', color: 'text-gray-500' };
@@ -509,8 +524,8 @@ const AdminStats = () => {
     return { text: `${prefix}${variacao}%`, color: variacao > 0 ? 'text-green-500' : 'text-red-500' };
   };
 
-  const variacao7 = formatVariation(usuarios.novos.variacao7Dias);
-  const variacao30 = formatVariation(usuarios.novos.variacao30Dias);
+  const variacao7 = formatVariation(usuarios?.novos?.variacao7Dias ?? 0);
+  const variacao30 = formatVariation(usuarios?.novos?.variacao30Dias ?? 0);
 
   return (
     <div className="space-y-6">
@@ -518,8 +533,8 @@ const AdminStats = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
         <StatCard
           title="Total de Usuários"
-          value={usuarios.total}
-          subtitle={`${usuarios.administradores} administradores`}
+          value={usuarios?.total ?? 0}
+          subtitle={`${usuarios?.administradores ?? 0} administradores`}
           icon={Users}
           gradient="from-blue-500 to-blue-600"
           variation={variacao7.text}
@@ -527,22 +542,22 @@ const AdminStats = () => {
         />
         <StatCard
           title="Torneios Ativos"
-          value={torneios.ativos}
-          subtitle={`${torneios.total} total (${torneios.finalizados} finalizados)`}
+          value={torneios?.ativos ?? 0}
+          subtitle={`${torneios?.total ?? 0} total (${torneios?.finalizados ?? 0} finalizados)`}
           icon={Trophy}
           gradient="from-blue-600 to-blue-700"
         />
         <StatCard
           title="Questões Cadastradas"
-          value={questoes.total}
-          subtitle={`${questoes.torneios} torneios | ${questoes.testeConhecimento} teste`}
-          icon={BookOpen}
+          value={questoes?.total ?? 0}
+          subtitle={`${questoes?.torneios ?? 0} torneios | ${questoes?.testeConhecimento ?? 0} teste`}
+          icon={BookOpen} 
           gradient="from-indigo-500 to-indigo-600"
         />
         <StatCard
           title="Testes Realizados (30d)"
-          value={testesConhecimento.realizados30Dias}
-          subtitle={`Média: ${testesConhecimento.mediaAcertos}% acertos`}
+          value={testesConhecimento?.realizados30Dias ?? 0}
+          subtitle={`Média: ${testesConhecimento?.mediaAcertos ?? 0}% acertos`}
           icon={FileText}
           gradient="from-indigo-600 to-indigo-700"
           variation={variacao30.text}
@@ -554,29 +569,29 @@ const AdminStats = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
         <StatCard
           title="Inscrições Ativas"
-          value={torneios.inscricoesAtivas}
+          value={torneios?.inscricoesAtivas ?? 0}
           subtitle="Em torneios ativos"
           icon={Activity}
           gradient="from-cyan-500 to-cyan-600"
         />
         <StatCard
           title="Novos (7 dias)"
-          value={usuarios.novos.dias7}
-          subtitle="Usu?rios novos"
+          value={usuarios?.novos?.dias7 ?? 0}
+          subtitle="Usuários novos"
           icon={TrendingUp}
           gradient="from-cyan-600 to-cyan-700"
         />
         <StatCard
           title="Novos (30 dias)"
-          value={usuarios.novos.dias30}
-          subtitle="Usu?rios novos"
+          value={usuarios?.novos?.dias30 ?? 0}
+          subtitle="Usuários novos"
           icon={Calendar}
           gradient="from-blue-400 to-blue-500"
         />
         <StatCard
           title="Novos (90 dias)"
-          value={usuarios.novos.dias90}
-          subtitle="Usu?rios novos"
+          value={usuarios?.novos?.dias90 ?? 0}
+          subtitle="Usuários novos"
           icon={Clock}
           gradient="from-indigo-400 to-indigo-500"
         />
@@ -653,30 +668,30 @@ const AdminStats = () => {
             Últimos Testes Concluídos
           </h3>
           <div className="space-y-3">
-            {ultimasAtividades.ultimosTestes.length > 0 ? (
+            {Array.isArray(ultimasAtividades?.ultimosTestes) && ultimasAtividades.ultimosTestes.length > 0 ? (
               ultimasAtividades.ultimosTestes.map((teste) => (
-                <div key={teste.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                <div key={teste?.id ?? Math.random()} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      teste.percentual >= 70 ? 'bg-green-100' :
-                      teste.percentual >= 50 ? 'bg-yellow-100' : 'bg-red-100'
+                      (teste?.percentual ?? 0) >= 70 ? 'bg-green-100' :
+                      (teste?.percentual ?? 0) >= 50 ? 'bg-yellow-100' : 'bg-red-100'
                     }`}>
                       <span className={`font-bold text-sm ${
-                        teste.percentual >= 70 ? 'text-green-600' :
-                        teste.percentual >= 50 ? 'text-yellow-600' : 'text-red-600'
+                        (teste?.percentual ?? 0) >= 70 ? 'text-green-600' :
+                        (teste?.percentual ?? 0) >= 50 ? 'text-yellow-600' : 'text-red-600'
                       }`}>
-                        {teste.percentual}%
+                        {teste?.percentual ?? 0}%
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-800">{teste.usuario}</p>
-                      <p className="text-sm text-gray-500 capitalize">{teste.area}</p>
+                      <p className="font-medium text-gray-800">{teste?.usuario ?? 'Usuário'}</p>
+                      <p className="text-sm text-gray-500 capitalize">{teste?.area ?? 'Geral'}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-gray-800">{teste.pontos} pts</p>
+                    <p className="font-semibold text-gray-800">{teste?.pontos ?? 0} pts</p>
                     <p className="text-xs text-gray-500">
-                      {new Date(teste.data).toLocaleDateString('pt-BR')}
+                      {teste?.data ? new Date(teste.data).toLocaleDateString('pt-BR') : '-'}
                     </p>
                   </div>
                 </div>
@@ -694,34 +709,34 @@ const AdminStats = () => {
             Últimos Torneios Criados
           </h3>
           <div className="space-y-3">
-            {ultimasAtividades.ultimosTorneios.length > 0 ? (
+            {Array.isArray(ultimasAtividades?.ultimosTorneios) && ultimasAtividades.ultimosTorneios.length > 0 ? (
               ultimasAtividades.ultimosTorneios.map((torneio) => (
-                <div key={torneio.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                <div key={torneio?.id ?? Math.random()} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      torneio.status === 'ativo' ? 'bg-green-100' :
-                      torneio.status === 'finalizado' ? 'bg-gray-100' :
+                      torneio?.status === 'ativo' ? 'bg-green-100' :
+                      torneio?.status === 'finalizado' ? 'bg-gray-100' :
                       'bg-blue-100'
                     }`}>
                       <Trophy className={`w-5 h-5 ${
-                        torneio.status === 'ativo' ? 'text-green-600' :
-                        torneio.status === 'finalizado' ? 'text-gray-600' :
+                        torneio?.status === 'ativo' ? 'text-green-600' :
+                        torneio?.status === 'finalizado' ? 'text-gray-600' :
                         'text-blue-600'
                       }`} />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-800">{torneio.titulo}</p>
+                      <p className="font-medium text-gray-800">{torneio?.titulo ?? 'Torneio'}</p>
                       <p className="text-sm text-gray-500">
-                        {new Date(torneio.criado_em).toLocaleDateString('pt-BR')}
+                        {torneio?.criado_em ? new Date(torneio.criado_em).toLocaleDateString('pt-BR') : '-'}
                       </p>
                     </div>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    torneio.status === 'ativo' ? 'bg-green-100 text-green-700' :
-                    torneio.status === 'finalizado' ? 'bg-gray-100 text-gray-700' :
+                    torneio?.status === 'ativo' ? 'bg-green-100 text-green-700' :
+                    torneio?.status === 'finalizado' ? 'bg-gray-100 text-gray-700' :
                     'bg-blue-100 text-blue-700'
                   }`}>
-                    {torneio.status}
+                    {torneio?.status ?? 'pendente'}
                   </span>
                 </div>
               ))

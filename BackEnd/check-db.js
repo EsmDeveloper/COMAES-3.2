@@ -4,7 +4,7 @@ import Usuario from './models/User.js';
 (async () => {
   try {
     await sequelize.authenticate();
-    console.log('✅ Connected to database');
+    console.log('[SUCCESS] Connected to database');
     
     // Check if table exists
     const [tables] = await sequelize.query(
@@ -12,20 +12,20 @@ import Usuario from './models/User.js';
     );
     
     if (tables.length === 0) {
-      console.log('❌ Table "usuarios" does not exist!');
+      console.log('[ERROR] Table "usuarios" does not exist!');
       console.log('🔨 Creating/Syncing table...');
       await Usuario.sync({ alter: true });
-      console.log('✅ Table created');
+      console.log('[SUCCESS] Table created');
     } else {
-      console.log('✅ Table "usuarios" exists');
+      console.log('[SUCCESS] Table "usuarios" exists');
       
       // Count rows
       const [count] = await sequelize.query('SELECT COUNT(*) as total FROM usuarios');
-      console.log('📊 Total records:', count[0].total);
+      console.log('[CHART] Total records:', count[0].total);
       
       if (count[0].total > 0) {
         const [users] = await sequelize.query('SELECT id, nome, email, telefone, role FROM usuarios LIMIT 10');
-        console.log('\n📋 First 10 users:');
+        console.log('\n[LIST] First 10 users:');
         users.forEach(u => {
           console.log(`   [${u.id}] ${u.nome} | ${u.email} | ${u.telefone} | Role: ${u.role}`);
         });
@@ -34,7 +34,7 @@ import Usuario from './models/User.js';
     
     process.exit(0);
   } catch (err) {
-    console.error('❌ Error:', err.message);
+    console.error('[ERROR] Error:', err.message);
     process.exit(1);
   }
 })();

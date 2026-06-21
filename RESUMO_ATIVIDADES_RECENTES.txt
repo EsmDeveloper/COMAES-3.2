@@ -1,0 +1,208 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                ║
+║           ✅ IMPLEMENTAÇÃO CONCLUÍDA: ATIVIDADES RECENTES REAIS               ║
+║                                                                                ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+
+📊 ANTES vs DEPOIS
+═════════════════════════════════════════════════════════════════════════════════
+
+ANTES (Mock Data - Fictício):
+  ❌ Nomes inventados: "João Silva", "Maria Santos", "Carlos Oliveira"
+  ❌ Sempre as mesmas 5 atividades
+  ❌ Datas simuladas: 3h, 6h, 9h, 12h atrás
+  ❌ Dados não mudam com o tempo
+  ❌ Logs mostram: "(mock)"
+
+DEPOIS (Dados Reais - Do Banco):
+  ✅ Nomes verdadeiros dos usuários do BD
+  ✅ Atividades variam conforme acontecem
+  ✅ Datas/horas reais
+  ✅ Dados mudam quando há inscrições, testes, etc
+  ✅ Logs mostram: "(DADOS REAIS)"
+
+
+📁 FICHEIROS MODIFICADOS
+═════════════════════════════════════════════════════════════════════════════════
+
+BackEnd:
+  ✅ controllers/adminStatsController.js
+     - Substituída função getAtividadesRecentes (mock → queries reais)
+     - Adicionada importação: Certificado, sequelize
+     - 6 tipos de atividades agora consultam o BD
+
+FrontEnd:
+  ✅ src/Administrador/AdminStats.jsx
+     - Adicionado ícone: Award (para certificados)
+     - Expandido mapeamento de ações (6 tipos)
+     - Build executado: ✅ Sucesso
+
+Documentação:
+  ✅ ATIVIDADES_RECENTES_IMPLEMENTACAO.md
+  ✅ PROXIMO_PASSO_ATIVIDADES_RECENTES.md
+  ✅ test-atividades-reais.js (script de teste)
+
+
+🔄 ATIVIDADES AGORA MONITORADAS
+═════════════════════════════════════════════════════════════════════════════════
+
+1. INSCRIÇÕES EM TORNEIOS
+   Tabela: participante_torneio
+   Filtro: Últimas 24h
+   Ícone: 🏆 Trophy (Amarelo)
+   Exemplo: "João inscrito em Torneio de Matemática"
+
+2. TESTES COMPLETADOS
+   Tabela: tentativa_teste (status='completo')
+   Filtro: Últimas 24h
+   Ícone: ✅ CheckCircle (Verde)
+   Exemplo: "Maria completou teste - 85% acertos"
+
+3. QUESTÕES CRIADAS
+   Tabela: questao
+   Filtro: Últimas 24h
+   Ícone: 📄 FileText (Púrpura)
+   Exemplo: "Carlos criou questão: 'Qual é...'"
+
+4. QUESTÕES APROVADAS
+   Tabela: questao (status_aprovacao='aprovada')
+   Filtro: Últimas 24h (updatedAt)
+   Ícone: ✅ CheckCircle (Esmeralda)
+   Exemplo: "Questão aprovada: 'Calcular...'"
+
+5. CERTIFICADOS EMITIDOS
+   Tabela: certificado
+   Filtro: Últimas 24h
+   Ícone: 🎖️ Award (Âmbar)
+   Exemplo: "Pedro recebeu certificado: Torneio X"
+
+6. TORNEIOS FINALIZADOS
+   Tabela: torneio (status='finalizado')
+   Filtro: Últimas 24h (updatedAt)
+   Ícone: 🏆 Trophy (Azul)
+   Exemplo: "Torneio 'Inglês Avançado' foi finalizado"
+
+
+🚀 ATIVAR AGORA - 2 PASSOS
+═════════════════════════════════════════════════════════════════════════════════
+
+PASSO 1: Reiniciar Backend
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ $ cd BackEnd                                                                │
+│ $ npm start                                                                 │
+│                                                                             │
+│ Aguarde até ver:                                                           │
+│ [adminStatsController] getAtividadesRecentes: X atividades (DADOS REAIS)  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+PASSO 2: Testar
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Opção A - Via Script:                                                      │
+│ $ node test-atividades-reais.js                                           │
+│                                                                             │
+│ Opção B - Via Browser:                                                     │
+│ • Abra Painel Admin                                                        │
+│ • Vá para "Visão Geral"                                                    │
+│ • Veja o card "Atividades Recentes"                                        │
+│ • Deve mostrar dados REAIS                                                 │
+│                                                                             │
+│ Opção C - Via cURL:                                                        │
+│ $ curl -X GET http://localhost:3002/api/admin/atividades-recentes?limite=5 \
+│   -H "Authorization: Bearer TOKEN"                                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+✅ VERIFICAÇÃO PASSO-A-PASSO
+═════════════════════════════════════════════════════════════════════════════════
+
+[ ] 1. Backend reiniciado (npm start)
+[ ] 2. Logs mostram "(DADOS REAIS)" em vez de "(mock)"
+[ ] 3. Abrir Painel Admin → Visão Geral
+[ ] 4. Card "Atividades Recentes" carrega sem erro
+[ ] 5. Nomes exibidos NÃO são fictícios (João Silva, Maria Santos)
+[ ] 6. Ícones coloridos aparecem (🏆 ✅ 📄 🎖️)
+[ ] 7. Datas/horas são realistas (hoje ou ontem)
+[ ] 8. Dados variam se recarregar a página
+
+
+🎯 RESULTADOS ESPERADOS
+═════════════════════════════════════════════════════════════════════════════════
+
+CENÁRIO 1 - Com atividades recentes no BD:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Atividades Recentes                                                         │
+│ ═════════════════════════════════════════════════════════════════════════  │
+│                                                                             │
+│ ✅ Pedro Silva                                                              │
+│    Teste completado - 92% de acertos                                       │
+│    2h atrás                                                                 │
+│                                                                             │
+│ 📄 Fernanda Costa                                                           │
+│    Criou questão: "Calcular a derivada..."                                │
+│    3h atrás                                                                 │
+│                                                                             │
+│ 🎖️ João Santos                                                             │
+│    Certificado emitido: Torneio de Lógica                                  │
+│    5h atrás                                                                 │
+│                                                                             │
+│ 🏆 Marina Oliveira                                                          │
+│    Inscrito em "Desafio de Programação"                                    │
+│    7h atrás                                                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+CENÁRIO 2 - Sem atividades recentes no BD:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Atividades Recentes                                                         │
+│ ═════════════════════════════════════════════════════════════════════════  │
+│                                                                             │
+│ Nenhuma atividade encontrada nas últimas 24h                               │
+│                                                                             │
+│ (Isto é OK - significa que não há atividades para mostrar)                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+🐛 TROUBLESHOOTING
+═════════════════════════════════════════════════════════════════════════════════
+
+❌ Problema: Ainda vejo "João Silva", "Maria Santos"
+   → Causa: Backend não reiniciado
+   → Solução: Ctrl+C para parar + npm start para iniciar
+
+❌ Problema: Erro 500
+   → Causa: Possível erro na query
+   → Solução: Verificar logs do backend para mensagem exata
+
+❌ Problema: Nenhuma atividade aparece
+   → Causa: Nenhuma atividade nas últimas 24h no BD
+   → Solução: Crie dados de teste (inscrição, teste, etc)
+
+❌ Problema: "Cannot read property 'nome'"
+   → Causa: Associações Sequelize não configuradas
+   → Solução: Verificar BackEnd/models/associations.js
+
+
+📝 DOCUMENTAÇÃO
+═════════════════════════════════════════════════════════════════════════════════
+
+Criados 3 ficheiros de documentação:
+
+1. ATIVIDADES_RECENTES_IMPLEMENTACAO.md
+   └─ Documentação completa técnica da implementação
+
+2. PROXIMO_PASSO_ATIVIDADES_RECENTES.md
+   └─ Guia passo-a-passo para ativar
+
+3. test-atividades-reais.js
+   └─ Script para testar a implementação
+
+
+═════════════════════════════════════════════════════════════════════════════════
+
+                        ✨ IMPLEMENTAÇÃO COMPLETA ✨
+
+                    Status: PRONTA PARA ATIVAR
+                    Próximo: Reiniciar Backend
+                    Tempo: ~2 minutos
+
+═════════════════════════════════════════════════════════════════════════════════

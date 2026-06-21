@@ -210,7 +210,7 @@ async function criarTorneioTesteMatematica() {
     
     await transaction.commit();
     
-    console.log('═══════════════════════════════════════════════════════════');
+    console.log('');
     console.log('✅ TORNEIO CRIADO COM SUCESSO!\n');
     console.log('📊 RESUMO:');
     console.log(`   Torneio ID: ${torneio.id}`);
@@ -219,7 +219,7 @@ async function criarTorneioTesteMatematica() {
     console.log(`   Status: ATIVO ✓`);
     console.log(`   Blocos: 2`);
     console.log(`   Questões: ${questoes1Criadas.length + questoes2Criadas.length}`);
-    console.log('═══════════════════════════════════════════════════════════\n');
+    console.log('\n');
     
     console.log('📝 INSTRUÇÕES PARA TESTAR:');
     console.log('   1. Acesse: http://localhost:5173/entrar-torneio');
@@ -241,7 +241,7 @@ async function criarTorneioTesteMatematica() {
     console.log('      ✅ Clique em "Entrar no Torneio" → redireciona para /matematica-original/...');
     console.log('      ✅ Clique em Inglês → NADA acontece (botão está desabilitado)');
     console.log('      ✅ Clique em Programação → NADA acontece (botão está desabilitado)');
-    console.log('\n═══════════════════════════════════════════════════════════\n');
+    console.log('\n\n');
     
   } catch (error) {
     await transaction.rollback();

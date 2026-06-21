@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Trophy, Medal, Crown, ArrowLeft } from 'lucide-react';
@@ -6,7 +6,7 @@ import Layout from './Layout';
 import socket from '../../socket';
 import NivelBadge, { getNivelMeta } from '../../components/NivelBadge';
 
-/* â”€â”€â”€ Design tokens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* âââ Design tokens ââââââââââââââââââââââââââââââââââââââââââââ */
 const c = {
   primary:     '#4F6EF7',
   primarySoft: '#EEF1FE',
@@ -31,7 +31,7 @@ const card = {
   boxShadow: '0 1px 3px rgba(15,17,23,0.05)',
 };
 
-/* â”€â”€â”€ Position badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* âââ Position badge âââââââââââââââââââââââââââââââââââââââââââ */
 function PosBadge({ pos }) {
   if (pos === 1) return (
     <div style={{ width: 32, height: 32, borderRadius: '50%', background: c.goldSoft, border: '1.5px solid #FCD34D', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -55,7 +55,7 @@ function PosBadge({ pos }) {
   );
 }
 
-/* â”€â”€â”€ Avatar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* âââ Avatar âââââââââââââââââââââââââââââââââââââââââââââââââââ */
 function UserAvatar({ nome, imagem, size = 36 }) {
   const initials = (nome || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   return (
@@ -67,7 +67,7 @@ function UserAvatar({ nome, imagem, size = 36 }) {
   );
 }
 
-/* â”€â”€â”€ Pulse indicator (live) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* âââ Pulse indicator (live) âââââââââââââââââââââââââââââââââââ */
 function LiveBadge() {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, color: '#065F46', background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: 999, padding: '2px 8px' }}>
@@ -78,7 +78,7 @@ function LiveBadge() {
   );
 }
 
-/* â”€â”€â”€ Main â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* âââ Main âââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 const POLL_INTERVAL_MS = 15_000; // recarrega a cada 15 segundos
 
 export default function Ranking() {
@@ -105,7 +105,7 @@ export default function Ranking() {
   useEffect(() => { selectedTournamentRef.current = selectedTournament; }, [selectedTournament]);
   useEffect(() => { disciplinaFilterRef.current = disciplinaFilter; }, [disciplinaFilter]);
 
-  /* â”€â”€ Carregar lista de torneios â”€â”€ */
+  /* ââ Carregar lista de torneios ââ */
   useEffect(() => {
     const load = async () => {
       setLoadingTournaments(true);
@@ -114,7 +114,7 @@ export default function Ranking() {
         const data = await res.json();
         setTournaments(data.tournaments || []);
       } catch {
-        setError('NÃ£o foi possÃ­vel carregar a lista de torneios.');
+        setError('Não foi possível carregar a lista de torneios.');
       } finally {
         setLoadingTournaments(false);
       }
@@ -122,7 +122,7 @@ export default function Ranking() {
     load();
   }, [apiBase]);
 
-  /* â”€â”€ FunÃ§Ã£o de carregamento do ranking â”€â”€ */
+  /* ââ Função de carregamento do ranking ââ */
   const loadRanking = useCallback(async (tournamentId, disciplina, silent = false) => {
     if (!tournamentId) { setRanking([]); setTournament(null); return; }
     if (!silent) setLoading(true);
@@ -149,12 +149,12 @@ export default function Ranking() {
     }
   }, [apiBase]);
 
-  /* â”€â”€ Carregar ranking quando torneio ou disciplina mudam â”€â”€ */
+  /* ââ Carregar ranking quando torneio ou disciplina mudam ââ */
   useEffect(() => {
     loadRanking(selectedTournament, disciplinaFilter);
   }, [selectedTournament, disciplinaFilter, loadRanking]);
 
-  /* â”€â”€ Polling automÃ¡tico a cada 15s â”€â”€ */
+  /* ââ Polling automático a cada 15s ââ */
   useEffect(() => {
     if (!selectedTournament) return;
     const interval = setInterval(() => {
@@ -163,25 +163,25 @@ export default function Ranking() {
     return () => clearInterval(interval);
   }, [selectedTournament, loadRanking]);
 
-  /* â”€â”€ Socket.io â€” atualizaÃ§Ã£o em tempo real â”€â”€ */
+  /* ââ Socket.io â atualização em tempo real ââ */
   useEffect(() => {
     const handleRankingUpdate = (data) => {
       const currentTournament = selectedTournamentRef.current;
       const currentDisciplina = disciplinaFilterRef.current;
 
-      // SÃ³ atualiza se for o torneio que estÃ¡ a ver
+      // Só atualiza se for o torneio que está a ver
       if (!currentTournament || String(data.torneio_id) !== String(currentTournament)) return;
 
-      // Se hÃ¡ filtro de disciplina, sÃ³ atualiza se for a mesma disciplina
+      // Se há filtro de disciplina, só atualiza se for a mesma disciplina
       if (currentDisciplina && data.disciplina && data.disciplina !== currentDisciplina) return;
 
-      // Se o evento tem ranking completo, usa-o directamente (SEM recalcular posiÃ§Ã£o)
+      // Se o evento tem ranking completo, usa-o directamente (SEM recalcular posição)
       if (data.ranking && Array.isArray(data.ranking)) {
-        // Usar as posiÃ§Ãµes oficiais da API, nunca recalcular
+        // Usar as posiçÃµes oficiais da API, nunca recalcular
         const filtered = currentDisciplina
           ? data.ranking.filter(p => p.disciplina_competida === currentDisciplina)
           : data.ranking;
-        setRanking(filtered);  // âœ… Usar dados da API como estÃ£o
+        setRanking(filtered);  // â Usar dados da API como estão
         setLastUpdated(new Date());
         setIsLive(true);
         setTimeout(() => setIsLive(false), 3000);
@@ -201,16 +201,16 @@ export default function Ranking() {
     navigate(`/ranking?tournament=${id}`);
   };
 
-  /* â”€â”€ Disciplinas Ãºnicas do ranking actual â”€â”€ */
+  /* ââ Disciplinas Ãºnicas do ranking actual ââ */
   const disciplinas = [...new Set(ranking.map(p => p.disciplina_competida).filter(Boolean))];
 
-  /* â”€â”€ Ranking filtrado (usa posiÃ§Ãµes oficiais da API) â”€â”€ */
+  /* ââ Ranking filtrado (usa posiçÃµes oficiais da API) ââ */
   const filtered = disciplinaFilter
     ? ranking.filter(p => p.disciplina_competida === disciplinaFilter)
     : ranking;
-  // âœ… NÃƒO recalcular posiÃ§Ã£o â€” usar os dados exatos da API
+  // â NÃO recalcular posição â usar os dados exatos da API
 
-  /* â”€â”€ PosiÃ§Ã£o do utilizador autenticado â”€â”€ */
+  /* ââ Posição do utilizador autenticado ââ */
   const myEntry = user ? filtered.find(p => p.usuario_id === user.id || p.usuario?.id === user.id) : null;
 
   const inputStyle = {
@@ -224,7 +224,7 @@ export default function Ranking() {
     <Layout>
       <div style={{ maxWidth: 760, margin: '0 auto', padding: '32px 20px 72px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-        {/* â”€â”€ Header â”€â”€ */}
+        {/* ââ Header ââ */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button
             onClick={() => navigate(-1)}
@@ -237,7 +237,7 @@ export default function Ranking() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 700, color: c.text, margin: 0 }}>Ranking</h1>
-            <p style={{ fontSize: 14, color: c.muted, margin: '4px 0 0' }}>ClassificaÃ§Ã£o dos participantes por torneio.</p>
+            <p style={{ fontSize: 14, color: c.muted, margin: '4px 0 0' }}>Classificação dos participantes por torneio.</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {isLive && <LiveBadge />}
@@ -249,18 +249,18 @@ export default function Ranking() {
           </div>
         </div>
 
-        {/* â”€â”€ Seletor de torneio â”€â”€ */}
+        {/* ââ Seletor de torneio ââ */}
         <div style={{ ...card, padding: '20px 24px' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end' }}>
             <div style={{ flex: '1 1 220px' }}>
               <label style={{ fontSize: 12, fontWeight: 600, color: c.muted, display: 'block', marginBottom: 6 }}>Torneio</label>
               <select style={inputStyle} value={selectedTournament} onChange={e => handleTournamentChange(e.target.value)} disabled={loadingTournaments}>
                 <option value="">
-                  {loadingTournaments ? 'Carregandoâ€¦' : 'Selecione um torneio'}
+                  {loadingTournaments ? 'Carregandoâ¦' : 'Selecione um torneio'}
                 </option>
                 {tournaments.map(t => (
                   <option key={t.id} value={t.id}>
-                    {t.titulo} â€” {t.status === 'finalizado' ? 'Finalizado' : t.status === 'ativo' ? 'Em andamento' : t.status === 'encerrando' ? 'Processando resultados' : t.status}
+                    {t.titulo} â {t.status === 'finalizado' ? 'Finalizado' : t.status === 'ativo' ? 'Em andamento' : t.status === 'encerrando' ? 'Processando resultados' : t.status}
                   </option>
                 ))}
               </select>
@@ -278,7 +278,7 @@ export default function Ranking() {
           </div>
         </div>
 
-        {/* â”€â”€ Banner da posiÃ§Ã£o do utilizador â”€â”€ */}
+        {/* ââ Banner da posição do utilizador ââ */}
         {myEntry && (
           <div style={{
             display: 'flex', alignItems: 'center', gap: 12,
@@ -288,24 +288,24 @@ export default function Ranking() {
           }}>
             <PosBadge pos={myEntry.posicao} />
             <span style={{ color: c.primary, fontWeight: 600 }}>
-              VocÃª estÃ¡ em {myEntry.posicao}Âº lugar com {Number(myEntry.pontuacao || 0).toLocaleString('pt-BR')} pontos
+              VocÃª está em {myEntry.posicao}º lugar com {Number(myEntry.pontuacao || 0).toLocaleString('pt-BR')} pontos
             </span>
           </div>
         )}
 
-        {/* â”€â”€ Erro â”€â”€ */}
+        {/* ââ Erro ââ */}
         {error && (
           <div style={{ padding: '12px 16px', borderRadius: 10, background: '#FEF2F2', border: '1px solid #FECACA', color: '#991B1B', fontSize: 14 }}>
             {error}
           </div>
         )}
 
-        {/* â”€â”€ Lista de ranking â”€â”€ */}
+        {/* ââ Lista de ranking ââ */}
         {loading ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, gap: 12, color: c.muted, fontSize: 14 }}>
             <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${c.border}`, borderTopColor: c.primary, animation: 'spin 0.7s linear infinite' }} />
             <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-            Carregando rankingâ€¦
+            Carregando rankingâ¦
           </div>
         ) : !selectedTournament ? (
           <div style={{ ...card, padding: 48, textAlign: 'center' }}>
@@ -319,14 +319,14 @@ export default function Ranking() {
           </div>
         ) : (
           <div style={{ ...card, overflow: 'hidden' }}>
-            {/* CabeÃ§alho do torneio */}
+            {/* Cabeçalho do torneio */}
             {tournament && (
               <div style={{ padding: '16px 24px', borderBottom: `1px solid ${c.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                 <div>
                   <h2 style={{ fontSize: 15, fontWeight: 700, color: c.text, margin: 0 }}>{tournament.titulo}</h2>
                   <p style={{ fontSize: 13, color: c.muted, margin: '2px 0 0' }}>
                     {filtered.length} participante{filtered.length !== 1 ? 's' : ''}
-                    {disciplinaFilter ? ` Â· ${disciplinaFilter}` : ''}
+                    {disciplinaFilter ? ` · ${disciplinaFilter}` : ''}
                   </p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -358,7 +358,7 @@ export default function Ranking() {
                     display: 'flex', alignItems: 'center', gap: 14,
                     padding: '14px 24px',
                     borderBottom: i < filtered.length - 1 ? `1px solid ${c.border}` : 'none',
-                    /* â”€â”€ Destaque visual do utilizador autenticado â”€â”€ */
+                    /* ââ Destaque visual do utilizador autenticado ââ */
                     background: isMe
                       ? 'linear-gradient(90deg, #EEF1FE 0%, #F5F7FF 100%)'
                       : i % 2 === 0 ? 'transparent' : '#FAFAFA',
@@ -396,7 +396,7 @@ export default function Ranking() {
                       {p.disciplina_competida && !disciplinaFilter && (
                         <p style={{ fontSize: 12, color: c.muted, margin: 0 }}>{p.disciplina_competida}</p>
                       )}
-                      {/* Badge de nÃ­vel do participante */}
+                      {/* Badge de nível do participante */}
                       {p.usuario?.nivel_atual && (
                         <NivelBadge
                           nivelNumero={p.usuario.nivel_atual}

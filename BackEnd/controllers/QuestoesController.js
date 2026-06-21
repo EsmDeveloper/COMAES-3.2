@@ -16,7 +16,7 @@ import QuestaoTesteConhecimento from '../models/QuestaoTesteConhecimento.js';
 import Torneio from '../models/Torneio.js';
 import { Op } from 'sequelize';
 
-// ─── HELPERS ──────────────────────────────────────────────────────
+//  HELPERS 
 
 const respostaSucesso = (res, statusCode, dados, mensagem = '') => {
   res.status(statusCode).json({
@@ -36,7 +36,7 @@ const respostaErro = (res, statusCode, mensagem, erros = null) => {
   });
 };
 
-// ─── VALIDAÇÕES ───────────────────────────────────────────────────
+//  VALIDAÇÕES 
 
 const validarQuestao = (dados) => {
   const erros = [];
@@ -130,7 +130,7 @@ const validarAcessoQuestao = (req, questao) => {
          questao?.autor_id === req.user.id;
 };
 
-// ─── CONTROLLER ───────────────────────────────────────────────────
+//  CONTROLLER 
 
 export const QuestoesController = {
   /**
@@ -209,11 +209,11 @@ export const QuestoesController = {
         status_aprovacao: dados.status_aprovacao || 'aprovada'
       });
 
-      console.log(`✅ Questão criada com sucesso - ID: ${questao.id}`);
+      console.log(`[SUCCESS] Questão criada com sucesso - ID: ${questao.id}`);
 
       respostaSucesso(res, 201, questao, 'Questão criada com sucesso');
     } catch (error) {
-      console.error('❌ Erro ao criar questão:', error);
+      console.error('[ERROR] Erro ao criar questão:', error);
       respostaErro(res, 500, 'Erro ao criar questão', { detalhes: error.message });
     }
   },
@@ -253,7 +253,7 @@ export const QuestoesController = {
 
       respostaSucesso(res, 200, questaoData, 'Questão obtida com sucesso');
     } catch (error) {
-      console.error('❌ Erro ao obter questão:', error);
+      console.error('[ERROR] Erro ao obter questão:', error);
       respostaErro(res, 500, 'Erro ao obter questão', { detalhes: error.message });
     }
   },
@@ -365,11 +365,11 @@ export const QuestoesController = {
         }
       }
 
-      console.log(`✅ Questão atualizada com sucesso - ID: ${questao.id}`);
+      console.log(`[SUCCESS] Questão atualizada com sucesso - ID: ${questao.id}`);
 
       respostaSucesso(res, 200, questaoData, 'Questão atualizada com sucesso');
     } catch (error) {
-      console.error('❌ Erro ao atualizar questão:', error);
+      console.error('[ERROR] Erro ao atualizar questão:', error);
       respostaErro(res, 500, 'Erro ao atualizar questão', { detalhes: error.message });
     }
   },
@@ -382,7 +382,7 @@ export const QuestoesController = {
     try {
       const { id } = req.params;
 
-      console.log(`🗑️ Deletando questão ID ${id}`);
+      console.log(` Deletando questão ID ${id}`);
 
       const questao = await Questao.findByPk(id);
       if (!questao) {
@@ -395,11 +395,11 @@ export const QuestoesController = {
       const torneioId = questao.torneio_id;
       await questao.destroy();
 
-      console.log(`✅ Questão deletada com sucesso - ID: ${id}`);
+      console.log(`[SUCCESS] Questão deletada com sucesso - ID: ${id}`);
 
       respostaSucesso(res, 200, { torneioId }, 'Questão deletada com sucesso');
     } catch (error) {
-      console.error('❌ Erro ao deletar questão:', error);
+      console.error('[ERROR] Erro ao deletar questão:', error);
       respostaErro(res, 500, 'Erro ao deletar questão', { detalhes: error.message });
     }
   },
@@ -413,7 +413,7 @@ export const QuestoesController = {
       const { torneioId } = req.params;
       const { disciplina, tipo, dificuldade, pagina = 1, limite = 20, busca = '', status_aprovacao } = req.query;
 
-      console.log(`📋 Listando questões do torneio ${torneioId}`, { 
+      console.log(`[LIST] Listando questões do torneio ${torneioId}`, { 
         disciplina, 
         tipo, 
         dificuldade, 
@@ -466,7 +466,7 @@ export const QuestoesController = {
         order: [['created_at', 'DESC']]
       });
 
-      console.log(`✅ ${rows.length} questões encontradas`);
+      console.log(`[SUCCESS] ${rows.length} questões encontradas`);
 
       // ✅ Normalizar opcoes antes de retornar
       const questoesNormalizadas = rows.map(questao => {
@@ -496,7 +496,7 @@ export const QuestoesController = {
         totalPaginas: Math.ceil(count / parseInt(limite))
       }, 'Questões listadas com sucesso');
     } catch (error) {
-      console.error('❌ Erro ao listar questões:', error);
+      console.error('[ERROR] Erro ao listar questões:', error);
       respostaErro(res, 500, 'Erro ao listar questões', { detalhes: error.message });
     }
   },
@@ -509,7 +509,7 @@ export const QuestoesController = {
     try {
       const { blocoId } = req.params;
 
-      console.log(`📋 Listando questões do bloco ${blocoId}`);
+      console.log(`[LIST] Listando questões do bloco ${blocoId}`);
 
       // Buscar todas as questões associadas ao bloco
       const questoes = await Questao.findAll({
@@ -517,7 +517,7 @@ export const QuestoesController = {
         order: [['created_at', 'DESC']]
       });
 
-      console.log(`✅ ${questoes.length} questões encontradas no bloco ${blocoId}`);
+      console.log(`[SUCCESS] ${questoes.length} questões encontradas no bloco ${blocoId}`);
 
       // Normalizar opções se necessário
       const questoesNormalizadas = questoes.map(questao => {
@@ -544,7 +544,7 @@ export const QuestoesController = {
         total: questoes.length
       }, 'Questões do bloco listadas com sucesso');
     } catch (error) {
-      console.error('❌ Erro ao listar questões do bloco:', error);
+      console.error('[ERROR] Erro ao listar questões do bloco:', error);
       respostaErro(res, 500, 'Erro ao listar questões do bloco', { detalhes: error.message });
     }
   },
@@ -558,7 +558,7 @@ export const QuestoesController = {
       const { area } = req.params;
       const { limit = 10, dificuldade } = req.query;
 
-      console.log(`🎯 Carregando questões para quiz - Área: ${area}, Limite: ${limit}, Dificuldade: ${dificuldade || 'todas'}`);
+      console.log(`[TARGET] Carregando questões para quiz - Área: ${area}, Limite: ${limit}, Dificuldade: ${dificuldade || 'todas'}`);
 
       const areaMap = {
         'matematica': 'matematica',
@@ -592,7 +592,7 @@ export const QuestoesController = {
       // Contar total de questões disponíveis para esta categoria/dificuldade (sem limite)
       const totalDisponivel = await QuestaoTesteConhecimento.count({ where });
 
-      console.log(`✅ ${questoes.length} questões carregadas para quiz (categoria: ${categoria}, total disponível: ${totalDisponivel})`);
+      console.log(`[SUCCESS] ${questoes.length} questões carregadas para quiz (categoria: ${categoria}, total disponível: ${totalDisponivel})`);
 
       // Formatar para o frontend: garantir que opcoes é sempre um array
       const questoesFormatadas = questoes.map(q => {
@@ -620,7 +620,7 @@ export const QuestoesController = {
         data: questoesFormatadas
       });
     } catch (error) {
-      console.error('❌ Erro ao carregar quiz:', error);
+      console.error('[ERROR] Erro ao carregar quiz:', error);
       res.status(500).json({
         success: false,
         error: error.message || 'Erro ao carregar questões para quiz'
@@ -636,7 +636,7 @@ export const QuestoesController = {
     try {
       const { pagina = 1, limite = 20, disciplina, tipo, dificuldade, status_aprovacao } = req.query;
 
-      console.log(`📋 Listando todas as questões`, { pagina, limite, disciplina, tipo, dificuldade, status_aprovacao });
+      console.log(`[LIST] Listando todas as questões`, { pagina, limite, disciplina, tipo, dificuldade, status_aprovacao });
 
       const where = {};
 
@@ -695,7 +695,7 @@ export const QuestoesController = {
         totalPaginas: Math.ceil(count / parseInt(limite))
       }, 'Questões listadas com sucesso');
     } catch (error) {
-      console.error('❌ Erro ao listar questões:', error);
+      console.error('[ERROR] Erro ao listar questões:', error);
       respostaErro(res, 500, 'Erro ao listar questões', { detalhes: error.message });
     }
   },
@@ -862,13 +862,13 @@ export const QuestoesController = {
         status_aprovacao: 'pendente'  // Definir status como pendente (Requisito 2.1)
       });
 
-      console.log(`✅ Questão criada com sucesso - ID: ${questao.id}, Status: pendente, Autor: ${req.user.id}`);
+      console.log(`[SUCCESS] Questão criada com sucesso - ID: ${questao.id}, Status: pendente, Autor: ${req.user.id}`);
 
       // Retornar questão criada (Requisito 2.6)
       const questaoData = questao.toJSON();
       respostaSucesso(res, 201, questaoData, 'Questão criada com sucesso e aguardando aprovação');
     } catch (error) {
-      console.error('❌ Erro ao criar questão:', error);
+      console.error('[ERROR] Erro ao criar questão:', error);
       respostaErro(res, 500, 'Erro ao criar questão', { detalhes: error.message });
     }
   },
@@ -896,7 +896,7 @@ export const QuestoesController = {
 
       const { dificuldade, status_aprovacao, pagina = 1, limite = 20 } = req.query;
 
-      console.log(`📋 Listando questões do colaborador ${req.user.id}`, { 
+      console.log(`[LIST] Listando questões do colaborador ${req.user.id}`, { 
         dificuldade, 
         status_aprovacao,
         pagina,
@@ -934,7 +934,7 @@ export const QuestoesController = {
         order: [['created_at', 'DESC']]  // Ordenar por createdAt conforme design
       });
 
-      console.log(`✅ ${rows.length} questões encontradas para colaborador ${req.user.id}`);
+      console.log(`[SUCCESS] ${rows.length} questões encontradas para colaborador ${req.user.id}`);
 
       // Normalizar opções antes de retornar
       const questoesNormalizadas = rows.map(questao => {
@@ -965,7 +965,7 @@ export const QuestoesController = {
         totalPaginas: Math.ceil(count / parseInt(limite))
       }, count === 0 ? 'Você não possui questões criadas' : 'Questões listadas com sucesso');
     } catch (error) {
-      console.error('❌ Erro ao listar minhas questões:', error);
+      console.error('[ERROR] Erro ao listar minhas questões:', error);
       respostaErro(res, 500, 'Erro ao listar questões', { detalhes: error.message });
     }
   },
@@ -1051,7 +1051,7 @@ export const QuestoesController = {
 
       await questao.save();
 
-      console.log(`✅ Questão atualizada com sucesso - ID: ${questao.id}, Novo status: ${questao.status_aprovacao}`);
+      console.log(`[SUCCESS] Questão atualizada com sucesso - ID: ${questao.id}, Novo status: ${questao.status_aprovacao}`);
 
       // Normalizar opções antes de retornar
       const questaoData = questao.toJSON();
@@ -1071,7 +1071,7 @@ export const QuestoesController = {
       // Retornar questão atualizada
       respostaSucesso(res, 200, questaoData, 'Questão atualizada com sucesso');
     } catch (error) {
-      console.error('❌ Erro ao atualizar questão:', error);
+      console.error('[ERROR] Erro ao atualizar questão:', error);
       respostaErro(res, 500, 'Erro ao atualizar questão', { detalhes: error.message });
     }
   },
@@ -1104,7 +1104,7 @@ export const QuestoesController = {
         return respostaErro(res, 403, 'Acesso negado');  // Requisito 5.2
       }
 
-      console.log(`🗑️ Colaborador deletando questão ID ${id}`, { 
+      console.log(` Colaborador deletando questão ID ${id}`, { 
         colaboradorId: req.user.id,
         disciplina: questao.disciplina
       });
@@ -1113,12 +1113,12 @@ export const QuestoesController = {
       // Cascade delete é automático conforme configurado no modelo (onDelete: 'CASCADE' em bloco_id)
       await questao.destroy();
 
-      console.log(`✅ Questão deletada com sucesso - ID: ${id}`);
+      console.log(`[SUCCESS] Questão deletada com sucesso - ID: ${id}`);
 
       // Retornar mensagem de sucesso (Requisito 5.4 - cascade handles respostas)
       respostaSucesso(res, 200, { deletedId: id }, 'Questão deletada com sucesso');
     } catch (error) {
-      console.error('❌ Erro ao deletar questão:', error);
+      console.error('[ERROR] Erro ao deletar questão:', error);
       respostaErro(res, 500, 'Erro ao deletar questão', { detalhes: error.message });
     }
   },
@@ -1143,7 +1143,7 @@ export const QuestoesController = {
 
       const { pagina = 1, limite = 20, disciplina, dificuldade } = req.query;
 
-      console.log(`📋 Admin listando questões pendentes`, { 
+      console.log(`[LIST] Admin listando questões pendentes`, { 
         pagina, 
         limite, 
         disciplina,
@@ -1181,7 +1181,7 @@ export const QuestoesController = {
         ]
       });
 
-      console.log(`✅ ${rows.length} questões pendentes encontradas (total: ${count})`);
+      console.log(`[SUCCESS] ${rows.length} questões pendentes encontradas (total: ${count})`);
 
       // Normalizar opções e incluir informações do autor
       const questoesComAutor = rows.map(questao => {
@@ -1217,7 +1217,7 @@ export const QuestoesController = {
         totalPaginas: Math.ceil(count / parseInt(limite))
       }, count === 0 ? 'Nenhuma questão pendente' : 'Questões pendentes listadas com sucesso');
     } catch (error) {
-      console.error('❌ Erro ao listar questões pendentes:', error);
+      console.error('[ERROR] Erro ao listar questões pendentes:', error);
       respostaErro(res, 500, 'Erro ao listar questões pendentes', { detalhes: error.message });
     }
   },
@@ -1243,7 +1243,7 @@ export const QuestoesController = {
         return respostaErro(res, 403, 'Apenas administradores podem aprovar questões');
       }
 
-      console.log(`✅ Admin aprovando questão ID ${id}`, { adminId: req.user.id });
+      console.log(`[SUCCESS] Admin aprovando questão ID ${id}`, { adminId: req.user.id });
 
       // Buscar questão (Requisito 7.4 - validar existência)
       const questao = await Questao.findByPk(id, {
@@ -1271,7 +1271,7 @@ export const QuestoesController = {
 
       await questao.save();
 
-      console.log(`✅ Questão aprovada com sucesso - ID: ${questao.id}, Revisado por: ${req.user.id}`);
+      console.log(`[SUCCESS] Questão aprovada com sucesso - ID: ${questao.id}, Revisado por: ${req.user.id}`);
 
       // Normalizar opções antes de retornar
       const questaoData = questao.toJSON();
@@ -1298,7 +1298,7 @@ export const QuestoesController = {
       // Retornar questão atualizada (Requisito 7.6 - com todos os campos de revisão)
       respostaSucesso(res, 200, questaoComAutor, 'Questão aprovada com sucesso');
     } catch (error) {
-      console.error('❌ Erro ao aprovar questão:', error);
+      console.error('[ERROR] Erro ao aprovar questão:', error);
       respostaErro(res, 500, 'Erro ao aprovar questão', { detalhes: error.message });
     }
   },
@@ -1330,7 +1330,7 @@ export const QuestoesController = {
         return respostaErro(res, 400, 'Motivo da rejeição é obrigatório');  // Requisito 8.2
       }
 
-      console.log(`❌ Admin rejeitando questão ID ${id}`, { 
+      console.log(`[ERROR] Admin rejeitando questão ID ${id}`, { 
         adminId: req.user.id,
         motivo: motivo_rejeicao.substring(0, 50) + '...'
       });
@@ -1357,7 +1357,7 @@ export const QuestoesController = {
 
       await questao.save();
 
-      console.log(`✅ Questão rejeitada com sucesso - ID: ${questao.id}, Revisado por: ${req.user.id}`);
+      console.log(`[SUCCESS] Questão rejeitada com sucesso - ID: ${questao.id}, Revisado por: ${req.user.id}`);
 
       // Normalizar opções antes de retornar
       const questaoData = questao.toJSON();
@@ -1384,7 +1384,7 @@ export const QuestoesController = {
       // Retornar questão atualizada (Requisito 8.6 - com todos os campos)
       respostaSucesso(res, 200, questaoComAutor, 'Questão rejeitada com sucesso');
     } catch (error) {
-      console.error('❌ Erro ao rejeitar questão:', error);
+      console.error('[ERROR] Erro ao rejeitar questão:', error);
       respostaErro(res, 500, 'Erro ao rejeitar questão', { detalhes: error.message });
     }
   },
@@ -1413,7 +1413,7 @@ export const QuestoesController = {
       const userId = req.user.id;
       const disciplina = req.user.disciplina_colaborador;
 
-      console.log(`📊 Obtendo estatísticas para colaborador ${userId} (disciplina: ${disciplina})`);
+      console.log(`[CHART] Obtendo estatísticas para colaborador ${userId} (disciplina: ${disciplina})`);
 
       // Contar questões por status
       const questoes_totais = await Questao.count({
@@ -1447,7 +1447,7 @@ export const QuestoesController = {
         }
       });
 
-      console.log(`📊 Estatísticas obtidas:`, { questoes_totais, pendentes, aprovadas, rejeitadas });
+      console.log(`[CHART] Estatísticas obtidas:`, { questoes_totais, pendentes, aprovadas, rejeitadas });
 
       const responseData = {
         success: true,
@@ -1462,7 +1462,7 @@ export const QuestoesController = {
 
       res.json(responseData);
     } catch (error) {
-      console.error('❌ Erro ao obter estatísticas do colaborador:', error);
+      console.error('[ERROR] Erro ao obter estatísticas do colaborador:', error);
       respostaErro(res, 500, 'Erro ao obter estatísticas', { detalhes: error.message });
     }
   }

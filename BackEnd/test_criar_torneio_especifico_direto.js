@@ -42,9 +42,9 @@ async function testarCriacaoTorneioEspecifico() {
       console.log(`❌ ERRO: tipo_torneio mudou para "${torneioRecuperado.tipo_torneio}" no banco!`);
     }
 
-    console.log('\n═══════════════════════════════════════════════════════════');
+    console.log('\n');
     console.log('Torneio ID para teste no painel admin:', novoTorneio.id);
-    console.log('═══════════════════════════════════════════════════════════\n');
+    console.log('\n');
 
     process.exit(0);
   } catch (error) {

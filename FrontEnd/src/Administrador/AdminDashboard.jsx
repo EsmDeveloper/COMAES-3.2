@@ -20,7 +20,7 @@ import QuestionsColaboradorPendentesTab from './QuestionsColaboradorPendentesTab
 import LogoutModal from '../components/LogoutModal';
 import { 
   BarChart3, Trophy, BookOpen, Users, Bell, Settings, 
-  Zap, FileText, X, Menu, UserCircle, LogOut, Clock, GraduationCap
+  Zap, FileText, X, Menu, UserCircle, LogOut, Clock, GraduationCap, AlertCircle
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -363,10 +363,23 @@ const AdminDashboard = () => {
               ) : activeTab === 'user' || activeTab === 'noticia' ? (
                 <TableManager table={activeTab} />
               ) : (
-                // REMOVIDO por alinhamento - 2026-05-26: IDs problemáticos redirecionam para 404
-                <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-                  <p className="text-xl font-semibold">Página não disponível</p>
-                  <p className="text-sm mt-2">Esta funcionalidade foi removida do painel administrativo.</p>
+                // Funcionalidade não disponível - feedback melhorado para o utilizador
+                <div className="flex flex-col items-center justify-center h-64 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                  <div className="text-center">
+                    <div className="mb-4 inline-block p-3 bg-yellow-100 rounded-full">
+                      <AlertCircle className="w-6 h-6 text-yellow-600" />
+                    </div>
+                    <p className="text-lg font-semibold text-slate-800">Funcionalidade não disponível</p>
+                    <p className="text-sm text-slate-600 mt-2 mb-4">
+                      Esta aba foi removida ou não está mais disponível nesta versão da plataforma.
+                    </p>
+                    <button
+                      onClick={() => setActiveTab('dashboard')}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold"
+                    >
+                      Voltar ao Dashboard
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

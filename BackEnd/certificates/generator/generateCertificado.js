@@ -437,17 +437,17 @@ export async function generateCertificate(torneioId, usuarioId, disciplina, posi
     const torneio = await Torneio.findByPk(torneioId);
 
     if (!usuario) {
-      console.error(`[CERTIFICADO] ❌ Usuário não encontrado: ${usuarioId}`);
+      console.error(`[CERTIFICADO] [ERROR] Usuário não encontrado: ${usuarioId}`);
       throw new Error('Utilizador não encontrado');
     }
 
     if (!torneio) {
-      console.error(`[CERTIFICADO] ❌ Torneio não encontrado: ${torneioId}`);
+      console.error(`[CERTIFICADO] [ERROR] Torneio não encontrado: ${torneioId}`);
       throw new Error('Torneio não encontrado');
     }
 
-    console.log(`[CERTIFICADO] ✅ Usuário: ${usuario.nome}`);
-    console.log(`[CERTIFICADO] ✅ Torneio: ${torneio.titulo}`);
+    console.log(`[CERTIFICADO] [SUCCESS] Usuário: ${usuario.nome}`);
+    console.log(`[CERTIFICADO] [SUCCESS] Torneio: ${torneio.titulo}`);
 
     let totalParticipants = totalParticipantesProp;
 
@@ -469,7 +469,7 @@ export async function generateCertificate(torneioId, usuarioId, disciplina, posi
             totalParticipants = total || 1;
             console.log(`[CERTIFICADO] Total de participantes: ${totalParticipants}`);
         } catch(e) {
-            console.warn('[CERTIFICADO] ⚠️  Erro ao contar participantes:', e.message);
+            console.warn('[CERTIFICADO] [WARNING]  Erro ao contar participantes:', e.message);
             totalParticipants = 1;
         }
       } else {
@@ -497,9 +497,9 @@ export async function generateCertificate(torneioId, usuarioId, disciplina, posi
     const qrCode = await generateQRCode(qrData);
     
     if (!qrCode) {
-      console.warn('[CERTIFICADO] ⚠️  QR Code não gerado, usando placeholder');
+      console.warn('[CERTIFICADO] [WARNING]  QR Code não gerado, usando placeholder');
     } else {
-      console.log('[CERTIFICADO] ✅ QR Code gerado com sucesso');
+      console.log('[CERTIFICADO] [SUCCESS] QR Code gerado com sucesso');
     }
 
     // Preparar dados
@@ -530,9 +530,9 @@ export async function generateCertificate(torneioId, usuarioId, disciplina, posi
     if (!fs.existsSync(uploadsDir)) {
       console.log('[CERTIFICADO] Criando diretório de uploads...');
       fs.mkdirSync(uploadsDir, { recursive: true });
-      console.log(`[CERTIFICADO] ✅ Diretório criado: ${uploadsDir}`);
+      console.log(`[CERTIFICADO] [SUCCESS] Diretório criado: ${uploadsDir}`);
     } else {
-      console.log(`[CERTIFICADO] ✅ Diretório existe: ${uploadsDir}`);
+      console.log(`[CERTIFICADO] [SUCCESS] Diretório existe: ${uploadsDir}`);
     }
 
     // Gerar PDF com Puppeteer
@@ -549,9 +549,9 @@ export async function generateCertificate(torneioId, usuarioId, disciplina, posi
           '--disable-gpu'
         ]
       });
-      console.log('[CERTIFICADO] ✅ Puppeteer iniciado');
+      console.log('[CERTIFICADO] [SUCCESS] Puppeteer iniciado');
     } catch (puppeteerError) {
-      console.error('[CERTIFICADO] ❌ Erro ao iniciar Puppeteer:', puppeteerError.message);
+      console.error('[CERTIFICADO] [ERROR] Erro ao iniciar Puppeteer:', puppeteerError.message);
       throw new Error(`Falha ao iniciar navegador: ${puppeteerError.message}`);
     }
 
@@ -565,7 +565,7 @@ export async function generateCertificate(torneioId, usuarioId, disciplina, posi
     // Carregar conteúdo HTML
     console.log('[CERTIFICADO] Carregando conteúdo HTML...');
     await page.setContent(htmlContent, { waitUntil: 'domcontentloaded', timeout: 120000 });
-    console.log('[CERTIFICADO] ✅ HTML carregado');
+    console.log('[CERTIFICADO] [SUCCESS] HTML carregado');
     
     await page.setViewport({ width: 1123, height: 794 });
 
@@ -584,7 +584,7 @@ export async function generateCertificate(torneioId, usuarioId, disciplina, posi
 
     await browser.close();
     browser = null;
-    console.log('[CERTIFICADO] ✅ PDF gerado e navegador fechado');
+    console.log('[CERTIFICADO] [SUCCESS] PDF gerado e navegador fechado');
 
     // Verificar se o arquivo foi criado
     if (!fs.existsSync(filePath)) {
@@ -592,7 +592,7 @@ export async function generateCertificate(torneioId, usuarioId, disciplina, posi
     }
 
     const fileStats = fs.statSync(filePath);
-    console.log(`[CERTIFICADO] ✅ Arquivo criado: ${fileName} (${fileStats.size} bytes)`);
+    console.log(`[CERTIFICADO] [SUCCESS] Arquivo criado: ${fileName} (${fileStats.size} bytes)`);
 
     // Salvar no banco de dados
     console.log('[CERTIFICADO] Salvando no banco de dados...');
@@ -615,8 +615,8 @@ export async function generateCertificate(torneioId, usuarioId, disciplina, posi
       }
     });
 
-    console.log('[CERTIFICADO] ✅ Certificado salvo no banco de dados (ID: ' + certificado.id + ')');
-    console.log('[CERTIFICADO] ✅ ✅ ✅ Certificado gerado com sucesso: ' + codigoCertificado);
+    console.log('[CERTIFICADO] [SUCCESS] Certificado salvo no banco de dados (ID: ' + certificado.id + ')');
+    console.log('[CERTIFICADO] [SUCCESS] [SUCCESS] [SUCCESS] Certificado gerado com sucesso: ' + codigoCertificado);
 
     return {
       success: true,
@@ -626,7 +626,7 @@ export async function generateCertificate(torneioId, usuarioId, disciplina, posi
     };
 
   } catch (error) {
-    console.error('[CERTIFICADO] ❌ ❌ ❌ Erro ao gerar certificado:', error.message);
+    console.error('[CERTIFICADO] [ERROR] [ERROR] [ERROR] Erro ao gerar certificado:', error.message);
     console.error('[CERTIFICADO] Stack trace:', error.stack);
     
     // Fechar navegador se ainda estiver aberto
@@ -670,7 +670,7 @@ export async function generateCertificatesForTournament(torneioId, disciplina) {
     );
 
     if (topParticipants.length === 0) {
-      console.warn('[CERTIFICADOS] ⚠️ Nenhum participante encontrado');
+      console.warn('[CERTIFICADOS] [WARNING] Nenhum participante encontrado');
       return { success: false, message: 'Nenhum participante encontrado' };
     }
 
@@ -702,7 +702,7 @@ export async function generateCertificatesForTournament(torneioId, disciplina) {
       results.push(result);
     }
 
-    console.log('[CERTIFICADOS] ✅ Gerados ' + results.length + ' certificados com sucesso');
+    console.log('[CERTIFICADOS] [SUCCESS] Gerados ' + results.length + ' certificados com sucesso');
 
     return {
       success: true,
@@ -711,7 +711,7 @@ export async function generateCertificatesForTournament(torneioId, disciplina) {
     };
 
   } catch (error) {
-    console.error('[CERTIFICADOS] ❌ Erro ao gerar certificados:', error.message);
+    console.error('[CERTIFICADOS] [ERROR] Erro ao gerar certificados:', error.message);
     return {
       success: false,
       error: error.message

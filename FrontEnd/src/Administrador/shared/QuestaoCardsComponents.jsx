@@ -7,9 +7,9 @@
 import React, { useState, useEffect } from 'react';
 import { X, AlertCircle, Loader, Check } from 'lucide-react';
 
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 // BADGES
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 
 /**
  * Badge de Status de Aprovação
@@ -97,9 +97,9 @@ export function DisciplinaBadge({ disciplina }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 // MODAIS
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 
 /**
  * Modal genérico de confirmação com motivo
@@ -397,9 +397,9 @@ export function ConfirmModal({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 // HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 
 /**
  * Extrair opções de questão (suporta múltiplos formatos)

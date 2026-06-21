@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Task 16.4: Test Admin Rejection Flow
  * 
  * Test Scenario:
@@ -112,7 +112,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       adminId = adminData.id;
       console.log('âœ… Admin logged in:', { adminId });
     } catch (err) {
-      console.error('âŒ Failed to login admin:', err.message);
+      console.error('âŒ Failed to login admin:', err.message);
       throw err;
     }
 
@@ -123,7 +123,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
       collaboratorId = collabData.id;
       console.log('âœ… Collaborator logged in:', { collaboratorId });
     } catch (err) {
-      console.error('âŒ Failed to login collaborator:', err.message);
+      console.error('âŒ Failed to login collaborator:', err.message);
       throw err;
     }
 
@@ -140,7 +140,7 @@ describe('Task 16.4: Admin Question Rejection Flow', () => {
         await client.delete(`/api/questoes/${createdQuestionId}`);
         console.log('âœ… Cleaned up test question:', createdQuestionId);
       } catch (err) {
-        console.warn('âš ï¸ Could not delete test question:', err.message);
+        console.warn('âš  Could not delete test question:', err.message);
       }
     }
   });

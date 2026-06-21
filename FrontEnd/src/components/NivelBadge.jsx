@@ -8,6 +8,7 @@
  */
 
 import React from 'react';
+import { getIconForEmoji } from '../utils/iconMapper';
 
 /* ── Dados dos níveis (espelho do xpService.js — fonte única de verdade é o backend) ── */
 export const NIVEIS_META = [
@@ -23,7 +24,7 @@ export const NIVEIS_META = [
   { numero: 10, titulo: 'Coruja Lendária',      xp_minimo: 18000, icone: '🔥', cor: '#7C3AED' },
 ];
 
-/* ── Utilitários locais ─────────────────────────────────────────────────────── */
+/* ── Utilitários locais  */
 export function getNivelMeta(numeroNivel) {
   return NIVEIS_META.find(n => n.numero === numeroNivel) || NIVEIS_META[0];
 }
@@ -38,7 +39,7 @@ export function calcularProgresso(xpTotal) {
   return { nivelAtual, proximoNivel, percentual, xpNoNivel, xpParaProximo };
 }
 
-/* ── Componente principal ───────────────────────────────────────────────────── */
+/* ── Componente principal  */
 export default function NivelBadge({
   nivelNumero,      // número do nível (1-10) — usado quando não passa nivelObj
   nivelObj,         // objeto { numero, titulo, icone, cor, xp_minimo } vindo da API
@@ -72,7 +73,9 @@ export default function NivelBadge({
           lineHeight: 1.5,
         }}
       >
-        <span style={{ fontSize: 12 }}>{meta.icone}</span>
+        <span style={{ fontSize: 12 }} className="flex items-center">
+          {getIconForEmoji(meta.icone, 14)}
+        </span>
         <span>Nível {meta.numero}</span>
       </span>
     );
@@ -102,7 +105,9 @@ export default function NivelBadge({
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 18,
             }}>
-              {meta.icone}
+              <span style={{ display: 'flex', alignItems: 'center' }}>
+                {getIconForEmoji(meta.icone, 20)}
+              </span>
             </div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#0F1117', lineHeight: 1.2 }}>

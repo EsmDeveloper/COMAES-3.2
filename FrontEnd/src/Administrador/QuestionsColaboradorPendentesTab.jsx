@@ -1,6 +1,6 @@
 ﻿/**
  * QuestionsColaboradorPendentesTab.jsx
- * Aba para admin revisar questÃµes pendentes de colaboradores
+ * Aba para admin revisar questões pendentes de colaboradores
  * Permite filtrar por colaborador, disciplina e status
  */
 
@@ -40,7 +40,7 @@ function StatusBadge({ status }) {
   );
 }
 
-// Badge de tipo de questÃ£o
+// Badge de tipo de questão
 function TipoBadge({ tipo }) {
   const styles = {
     multipla_escolha: 'bg-purple-100 text-purple-700',
@@ -50,7 +50,7 @@ function TipoBadge({ tipo }) {
   const labels = {
     multipla_escolha: 'MÃºltipla Escolha',
     texto: 'Texto',
-    codigo: 'CÃ³digo',
+    codigo: 'Código',
   };
   const icons = {
     multipla_escolha: BookOpen,
@@ -75,9 +75,9 @@ function DificuldadeBadge({ dificuldade }) {
     dificil: 'bg-red-100 text-red-700',
   };
   const labels = {
-    facil: 'FÃ¡cil',
-    medio: 'MÃ©dio',
-    dificil: 'DifÃ­cil',
+    facil: 'Fácil',
+    medio: 'Médio',
+    dificil: 'Difícil',
   };
   return (
     <span className={`px-2.5 py-1 rounded-full text-sm font-medium ${styles[dificuldade] || styles.medio}`}>
@@ -86,7 +86,7 @@ function DificuldadeBadge({ dificuldade }) {
   );
 }
 
-// Modal de rejeiÃ§Ã£o
+// Modal de rejeição
 function RejectQuestionModal({ isOpen, onClose, onConfirm, question }) {
   const [motivo, setMotivo] = useState('');
   const [loading, setLoading] = useState(false);
@@ -102,7 +102,7 @@ function RejectQuestionModal({ isOpen, onClose, onConfirm, question }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!motivo.trim()) {
-      setError('O motivo da rejeiÃ§Ã£o Ã© obrigatÃ³rio');
+      setError('O motivo da rejeição é obrigatório');
       return;
     }
     setLoading(true);
@@ -124,7 +124,7 @@ function RejectQuestionModal({ isOpen, onClose, onConfirm, question }) {
         <div className="border-b border-slate-200 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <AlertTriangle className="w-5 h-5 text-red-600" />
-            <h2 className="text-lg font-bold text-slate-800">Rejeitar QuestÃ£o</h2>
+            <h2 className="text-lg font-bold text-slate-800">Rejeitar Questão</h2>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition">
             <X className="w-5 h-5" />
@@ -133,7 +133,7 @@ function RejectQuestionModal({ isOpen, onClose, onConfirm, question }) {
 
         <form onSubmit={handleSubmit} className="p-6">
           <div className="mb-4">
-            <p className="text-sm text-slate-600 mb-3">VocÃª estÃ¡ rejeitando a questÃ£o:</p>
+            <p className="text-sm text-slate-600 mb-3">VocÃª está rejeitando a questão:</p>
             <p className="font-semibold text-slate-800 bg-slate-50 p-3.5 rounded-xl line-clamp-2 border-l-4 border-red-500">
               {question?.titulo}
             </p>
@@ -141,7 +141,7 @@ function RejectQuestionModal({ isOpen, onClose, onConfirm, question }) {
 
           <div className="mb-6">
             <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Motivo da RejeiÃ§Ã£o *
+              Motivo da Rejeição *
             </label>
             <textarea
               value={motivo}
@@ -149,7 +149,7 @@ function RejectQuestionModal({ isOpen, onClose, onConfirm, question }) {
                 setMotivo(e.target.value);
                 setError('');
               }}
-              placeholder="Explique por que esta questÃ£o estÃ¡ sendo rejeitada..."
+              placeholder="Explique por que esta questão está sendo rejeitada..."
               maxLength={500}
               rows={4}
               className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition resize-none"
@@ -188,7 +188,7 @@ function RejectQuestionModal({ isOpen, onClose, onConfirm, question }) {
   );
 }
 
-// Modal de visualizaÃ§Ã£o detalhada
+// Modal de visualização detalhada
 function QuestionDetailModal({ isOpen, onClose, question, onApprove, onReject }) {
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
@@ -308,7 +308,7 @@ function QuestionDetailModal({ isOpen, onClose, question, onApprove, onReject })
             {/* ConteÃºdo por tipo */}
             {question.tipo === 'multipla_escolha' && question.opcoes && question.opcoes.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3">OpÃ§Ãµes</h3>
+                <h3 className="text-sm font-semibold text-slate-700 mb-3">OpçÃµes</h3>
                 <div className="space-y-2">
                   {question.opcoes.map((opcao, idx) => (
                     <div
@@ -355,10 +355,10 @@ function QuestionDetailModal({ isOpen, onClose, question, onApprove, onReject })
               </>
             )}
 
-            {/* ExplicaÃ§Ã£o */}
+            {/* Explicação */}
             {question.explicacao && (
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-2">ExplicaÃ§Ã£o</h3>
+                <h3 className="text-sm font-semibold text-slate-700 mb-2">Explicação</h3>
                 <p className="text-slate-600 text-sm bg-blue-50 border border-blue-200 p-3.5 rounded-xl leading-relaxed">
                   {question.explicacao}
                 </p>
@@ -398,12 +398,12 @@ function QuestionDetailModal({ isOpen, onClose, question, onApprove, onReject })
               </div>
             </div>
 
-            {/* Motivo da rejeiÃ§Ã£o (se rejeitado) */}
+            {/* Motivo da rejeição (se rejeitado) */}
             {question.motivo_rejeicao && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-3.5">
                 <p className="text-xs font-semibold text-red-700 mb-2 flex items-center gap-2">
                   <XCircle className="w-4 h-4" />
-                  Motivo da RejeiÃ§Ã£o
+                  Motivo da Rejeição
                 </p>
                 <p className="text-sm text-red-900">{question.motivo_rejeicao}</p>
               </div>
@@ -425,7 +425,7 @@ function QuestionDetailModal({ isOpen, onClose, question, onApprove, onReject })
                   ) : (
                     <>
                       <CheckCircle className="w-4 h-4" />
-                      Aprovar QuestÃ£o
+                      Aprovar Questão
                     </>
                   )}
                 </button>
@@ -502,7 +502,7 @@ export default function QuestionsColaboradorPendentesTab() {
         setError(json.mensagem || 'Erro ao carregar questÃµes');
       }
     } catch (err) {
-      setError('Erro de conexÃ£o: ' + err.message);
+      setError('Erro de conexão: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -561,7 +561,7 @@ export default function QuestionsColaboradorPendentesTab() {
             <Search className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
             <input
               type="text"
-              placeholder="Buscar por tÃ­tulo..."
+              placeholder="Buscar por título..."
               value={filtros.busca}
               onChange={(e) => {
                 setFiltros({ ...filtros, busca: e.target.value });
@@ -620,11 +620,11 @@ export default function QuestionsColaboradorPendentesTab() {
               <option value="">Todos Tipos</option>
               <option value="multipla_escolha">MÃºltipla Escolha</option>
               <option value="texto">Texto</option>
-              <option value="codigo">CÃ³digo</option>
+              <option value="codigo">Código</option>
             </select>
           </div>
 
-          {/* OrdenaÃ§Ã£o */}
+          {/* Ordenação */}
           <div>
             <select
               value={filtros.ordenacao}
@@ -633,7 +633,7 @@ export default function QuestionsColaboradorPendentesTab() {
             >
               <option value="recentes">Mais Recentes</option>
               <option value="antigos">Mais Antigos</option>
-              <option value="titulo">Por TÃ­tulo (A-Z)</option>
+              <option value="titulo">Por Título (A-Z)</option>
             </select>
           </div>
         </div>
@@ -658,8 +658,8 @@ export default function QuestionsColaboradorPendentesTab() {
       ) : questions.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
           <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-          <p className="text-slate-600 text-lg font-medium">Nenhuma questÃ£o para revisar</p>
-          <p className="text-slate-500 text-sm mt-2">Todas as questÃµes foram revisadas ou nÃ£o hÃ¡ questÃµes aguardando revisÃ£o</p>
+          <p className="text-slate-600 text-lg font-medium">Nenhuma questão para revisar</p>
+          <p className="text-slate-500 text-sm mt-2">Todas as questÃµes foram revisadas ou não há questÃµes aguardando revisão</p>
         </div>
       ) : (
         <>
@@ -669,12 +669,12 @@ export default function QuestionsColaboradorPendentesTab() {
               <table className="w-full">
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">TÃ­tulo</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Título</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Autor</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Tipo</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Status</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Criado em</th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">AÃ§Ãµes</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">AçÃµes</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -719,7 +719,7 @@ export default function QuestionsColaboradorPendentesTab() {
             </div>
           </div>
 
-          {/* PaginaÃ§Ã£o */}
+          {/* Paginação */}
           {totalPaginas > 1 && (
             <div className="mt-6 flex items-center justify-center gap-2">
               <button
@@ -747,7 +747,7 @@ export default function QuestionsColaboradorPendentesTab() {
                 disabled={pagina === totalPaginas}
                 className="px-3 py-2 rounded-lg border-2 border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition"
               >
-                PrÃ³xima
+                Próxima
               </button>
             </div>
           )}

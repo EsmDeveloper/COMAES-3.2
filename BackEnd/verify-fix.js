@@ -87,7 +87,7 @@ try {
   }
 
   // Verificar tabela no banco
-  console.log('\n🗄️  Verificando estrutura da tabela no banco:');
+  console.log('\n  Verificando estrutura da tabela no banco:');
   console.log('-----------------------------------');
   
   const [columns] = await sequelize.query(`

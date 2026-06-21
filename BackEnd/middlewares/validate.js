@@ -9,7 +9,7 @@
  * A check is { fn: (value) => bool, msg: string }.
  */
 
-// ─── Regex (mirrors frontend validators.js) ───────────────────
+//  Regex (mirrors frontend validators.js) 
 const RE = {
   name:       /^[A-Za-zÀ-ÖØ-öø-ÿ\s]{2,100}$/,
   email:      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
@@ -20,12 +20,12 @@ const RE = {
   dangerous:  /[<>{};'"\\]/,
 };
 
-// ─── Primitive checks ─────────────────────────────────────────
+//  Primitive checks 
 const isEmpty  = (v) => v === undefined || v === null || String(v).trim() === '';
 const isString = (v) => typeof v === 'string';
 const hasDanger= (v) => isString(v) && RE.dangerous.test(v);
 
-// ─── Rule builders ────────────────────────────────────────────
+//  Rule builders 
 export const r = {
   required:  (msg = 'Campo obrigatório.')                => (v) => !isEmpty(v)          || msg,
   minLen:    (n, msg)                                    => (v) => !isString(v) || v.trim().length >= n || (msg || `Mínimo de ${n} caracteres.`),
@@ -45,7 +45,7 @@ export const r = {
   oneOf:     (arr, msg)                                      => (v) => isEmpty(v) || arr.includes(v) || (msg || `Valor inválido. Opções: ${arr.join(', ')}.`),
 };
 
-// ─── Rule sets ────────────────────────────────────────────────
+//  Rule sets 
 export const rules = {
   register: [
     { field: 'nome',       checks: [r.required('O nome é obrigatório.'), r.name(), r.noScript(), r.noSql()] },
@@ -93,7 +93,7 @@ export const rules = {
   ],
 };
 
-// ─── Middleware factory ───────────────────────────────────────
+//  Middleware factory 
 /**
  * @param {Array} ruleSet — array of { field, checks[] }
  * @param {{ strict?: boolean }} opts

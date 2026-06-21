@@ -1,4 +1,4 @@
-﻿/**
+/**
  * test_frontend_payload.js
  * Testa com EXATAMENTE o payload que o frontend envia
  */
@@ -10,7 +10,7 @@ import db from './config/db.js';
 async function test() {
   try {
     console.log('='.repeat(80));
-    console.log('ðŸ§ª TESTE: Payload do Frontend');
+    console.log(' TESTE: Payload do Frontend');
     console.log('='.repeat(80));
 
     await db.authenticate();
@@ -20,7 +20,7 @@ async function test() {
     });
 
     if (!colaborador) {
-      console.error('âŒ Nenhum colaborador');
+      console.error('âŒ Nenhum colaborador');
       process.exit(1);
     }
 
@@ -32,10 +32,10 @@ async function test() {
       { expiresIn: '24h' }
     );
 
-    // PAYLOAD EXATO DO FRONTEND (apÃ³s correÃ§Ã£o)
+    // PAYLOAD EXATO DO FRONTEND (após correção)
     const frontendPayload = {
       titulo: "Teste do Frontend",
-      enunciado: "Qual Ã© a capital da FranÃ§a?",
+      enunciado: "Qual é a capital da França?",
       disciplina: colaborador.disciplina_colaborador,
       dificuldade: "medio",
       tipo: "multipla_escolha",
@@ -44,10 +44,10 @@ async function test() {
       pontos: 15
     };
 
-    console.log('\nðŸ“‹ Payload do Frontend:');
+    console.log('\n Payload do Frontend:');
     console.log(JSON.stringify(frontendPayload, null, 2));
 
-    console.log('\nðŸ“¡ POST /api/colaborador/questoes...');
+    console.log('\n POST /api/colaborador/questoes...');
     const response = await fetch('http://localhost:3002/api/colaborador/questoes', {
       method: 'POST',
       headers: {
@@ -63,15 +63,15 @@ async function test() {
     
     if (response.ok) {
       console.log('\nâœ… SUCESSO!');
-      console.log(`QuestÃ£o criada com ID: ${data.dados.id}`);
+      console.log(`Questão criada com ID: ${data.dados.id}`);
     } else {
-      console.error(`\nâŒ FALHA!`);
+      console.error(`\nâŒ FALHA!`);
       console.error('Erro:', JSON.stringify(data, null, 2));
     }
 
     process.exit(response.ok ? 0 : 1);
   } catch (error) {
-    console.error('âŒ ERRO:', error.message);
+    console.error('âŒ ERRO:', error.message);
     process.exit(1);
   }
 }

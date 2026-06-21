@@ -42,7 +42,7 @@ async function testRankingSystem() {
     console.log(`   Total de usuários ativos: ${totalUsuarios}`);
     
     // 4. Testar estrutura do modelo
-    console.log('\n🏗️ Testando estrutura do modelo Ranking...');
+    console.log('\n Testando estrutura do modelo Ranking...');
     const firstRanking = await Ranking.findOne({
       include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'username'] }]
     });
@@ -123,13 +123,13 @@ async function testRankingSystem() {
     
     // 10. Resultado final
     console.log('\n📊 RESUMO DOS TESTES');
-    console.log('────────────────────────────────────────');
+    console.log('');
     console.log(`✅ Conexão com banco: ${totalUsuarios > 0 ? 'OK' : 'SEM USUÁRIOS'}`);
     console.log(`✅ Tabela Rankings: ${totalRankings > 0 ? 'COM DADOS' : 'VAZIA'}`);
     console.log(`✅ Modelo Ranking: ${firstRanking ? 'FUNCIONAL' : 'SEM DADOS'}`);
     console.log(`✅ Cálculo de pontuação: ${pontuacaoTeste === 123 ? 'CORRETO' : 'VERIFICAR'}`);
     console.log(`✅ Sistema de cache: ${cacheKey ? 'CONFIGURADO' : 'ERRO'}`);
-    console.log('────────────────────────────────────────');
+    console.log('');
     
     console.log('\n🎯 PRÓXIMOS PASSOS:');
     console.log('1. Executar migração (se tabela não existir): npx sequelize-cli db:migrate');

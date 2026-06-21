@@ -8,9 +8,9 @@ import fetch from 'node-fetch';
 
 async function testCompleteFlow() {
   try {
-    console.log('═══════════════════════════════════════════════════════════\n');
+    console.log('\n');
     console.log('🧪 TEST COMPLETO: Criar e recuperar Torneio Específico\n');
-    console.log('═══════════════════════════════════════════════════════════\n');
+    console.log('\n');
 
     // PASSO 1: Criar via banco de dados direto
     console.log('1️⃣  CRIANDO TORNEIO VIA DATABASE...\n');
@@ -84,7 +84,7 @@ async function testCompleteFlow() {
       console.log(`❌ ERRO! tipo_torneio é "${torneioJson?.tipo_torneio}" (esperado: "especifico")`);
     }
 
-    console.log('\n═══════════════════════════════════════════════════════════\n');
+    console.log('\n\n');
 
     process.exit(0);
   } catch (error) {

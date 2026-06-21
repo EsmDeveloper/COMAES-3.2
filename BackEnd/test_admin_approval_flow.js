@@ -31,7 +31,7 @@ const colors = {
 };
 
 const log = {
-  header: (msg) => console.log(`\n${colors.bright}${colors.cyan}═══ ${msg} ${colors.reset}`),
+  header: (msg) => console.log(`\n${colors.bright}${colors.cyan} ${msg} ${colors.reset}`),
   success: (msg) => console.log(`${colors.green}✅ ${msg}${colors.reset}`),
   error: (msg) => console.log(`${colors.red}❌ ${msg}${colors.reset}`),
   warn: (msg) => console.log(`${colors.yellow}⚠️  ${msg}${colors.reset}`),

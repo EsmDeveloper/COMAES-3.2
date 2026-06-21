@@ -4,7 +4,7 @@
  * Importar e reutilizar em todos os formulários.
  */
 
-// ─── Regex ────────────────────────────────────────────────────
+//  Regex 
 const RE = {
   name:     /^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/,
   email:    /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
@@ -21,7 +21,7 @@ const RE = {
   url:        /^https?:\/\/.+\..+/,
 };
 
-// ─── Helpers ──────────────────────────────────────────────────
+//  Helpers 
 const ok  = ()      => ({ valid: true,  error: null });
 const err = (msg)   => ({ valid: false, error: msg  });
 const isEmpty = (v) => !v || /^\s*$/.test(String(v));
@@ -32,7 +32,7 @@ export function sanitizeText(value) {
   return value.trim().replace(/[<>{}]/g, '');
 }
 
-// ─── Individual validators ────────────────────────────────────
+//  Individual validators 
 
 export function validateNome(nome) {
   if (isEmpty(nome))                          return err('O nome é obrigatório.');
@@ -169,7 +169,7 @@ export function validateFileUpload(file, opts = {}) {
   return ok();
 }
 
-// ─── Batch validator ──────────────────────────────────────────
+//  Batch validator 
 /**
  * Run multiple field validators at once.
  * @param {Record<string, () => {valid, error}>} checks — key: field name, value: validator call
@@ -184,7 +184,7 @@ export function runValidations(checks) {
   return { valid: Object.keys(errors).length === 0, errors };
 }
 
-// ─── Legacy named exports (backward compat) ──────────────────
+//  Legacy named exports (backward compat) 
 export function validateField(field, value) {
   switch (field) {
     case 'nome':     return validateNome(value);

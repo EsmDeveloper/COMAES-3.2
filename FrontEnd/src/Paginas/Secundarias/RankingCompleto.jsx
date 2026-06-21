@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -9,7 +9,7 @@ import {
 import Layout from './Layout';
 import socket from '../../socket';
 
-/* â”€â”€â”€ Tokens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Tokens  */
 const tk = {
   primary:     '#4F6EF7',
   primarySoft: '#EEF1FE',
@@ -40,13 +40,13 @@ const card = {
 
 const POLL_MS = 12_000;
 
-/* â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Helpers  */
 const fmtDate = (d) => d
   ? new Date(d).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-  : 'â€”';
+  : '';
 
 const fmtTime = (secs) => {
-  if (!secs || secs === 0) return 'â€”';
+  if (!secs || secs === 0) return '';
   const h = Math.floor(secs / 3600);
   const m = Math.floor((secs % 3600) / 60);
   const s = secs % 60;
@@ -56,12 +56,12 @@ const fmtTime = (secs) => {
 };
 
 const disciplinaColor = (d) => ({
-  'MatemÃ¡tica':  { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE' },
-  'InglÃªs':      { bg: '#F0FDF4', text: '#15803D', border: '#BBF7D0' },
-  'ProgramaÃ§Ã£o': { bg: '#FAF5FF', text: '#7E22CE', border: '#E9D5FF' },
+  'Matemtica':  { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE' },
+  'Inglªs':      { bg: '#F0FDF4', text: '#15803D', border: '#BBF7D0' },
+  'Programao': { bg: '#FAF5FF', text: '#7E22CE', border: '#E9D5FF' },
 }[d] || { bg: tk.bg, text: tk.muted, border: tk.border });
 
-/* â”€â”€â”€ Sub-components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Sub-components  */
 function PosBadge({ pos }) {
   if (pos === 1) return (
     <div style={{ width: 36, height: 36, borderRadius: '50%', background: tk.goldSoft, border: '2px solid #FCD34D', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -139,20 +139,20 @@ function SortBtn({ field, current, dir, onClick }) {
     <button onClick={() => onClick(field)}
       style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 600, color: active ? tk.primary : tk.muted, background: active ? tk.primarySoft : 'transparent', border: `1px solid ${active ? '#C7D2FE' : tk.border}`, borderRadius: 6, padding: '3px 8px', cursor: 'pointer', transition: 'all .15s' }}
     >
-      {field === 'posicao' ? 'PosiÃ§Ã£o' : field === 'pontuacao' ? 'PontuaÃ§Ã£o' : field === 'casos_resolvidos' ? 'Respostas' : 'Tempo'}
+      {field === 'posicao' ? 'Posio' : field === 'pontuacao' ? 'Pontuao' : field === 'casos_resolvidos' ? 'Respostas' : 'Tempo'}
       {active ? (dir === 'asc' ? <ChevronUp size={11} /> : <ChevronDown size={11} />) : <ChevronDown size={11} color={tk.subtle} />}
     </button>
   );
 }
 
-/* â”€â”€â”€ Main component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Main component  */
 export default function RankingCompleto() {
   const { tournamentId } = useParams();
   const [searchParams]   = useSearchParams();
   const navigate         = useNavigate();
   const { user }         = useAuth();
 
-  // Suporta tambÃ©m ?tournament=ID (vindo do modal antigo)
+  // Suporta tambm ?tournament=ID (vindo do modal antigo)
   const effectiveId = tournamentId || searchParams.get('tournament') || '';
 
   const [ranking,    setRanking]    = useState([]);
@@ -175,7 +175,7 @@ export default function RankingCompleto() {
 
   const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
-  /* â”€â”€ Load ranking â”€â”€ */
+  /*  Load ranking  */
   const load = useCallback(async (silent = false) => {
     if (!effectiveId) return;
     if (!silent) setLoading(true);
@@ -202,14 +202,14 @@ export default function RankingCompleto() {
 
   useEffect(() => { load(); }, [load, disciplinaFilter]);
 
-  /* â”€â”€ Polling (active tournaments only) â”€â”€ */
+  /*  Polling (active tournaments only)  */
   useEffect(() => {
     if (!effectiveId || tournament?.status !== 'ativo') return;
     const t = setInterval(() => load(true), POLL_MS);
     return () => clearInterval(t);
   }, [effectiveId, tournament?.status, load]);
 
-  /* â”€â”€ Socket real-time â”€â”€ */
+  /*  Socket real-time  */
   useEffect(() => {
     const handler = (data) => {
       if (!idRef.current || String(data.torneio_id) !== String(idRef.current)) return;
@@ -229,12 +229,12 @@ export default function RankingCompleto() {
     return () => socket.off('ranking_update', handler);
   }, [load]);
 
-  /* â”€â”€ Derived data â”€â”€ */
+  /*  Derived data  */
   const disciplinas = [...new Set(ranking.map(p => p.disciplina_competida).filter(Boolean))];
 
   const algumPontuou = ranking.some(p => parseFloat(p.pontuacao || 0) > 0);
 
-  // CampeÃ£o: primeiro do ranking com pontuaÃ§Ã£o real
+  // Campeo: primeiro do ranking com pontuao real
   const campiao = algumPontuou
     ? ranking.find(p => p.posicao === 1 && parseFloat(p.pontuacao || 0) > 0)
     : null;
@@ -264,7 +264,7 @@ export default function RankingCompleto() {
     else { setSortField(field); setSortDir(field === 'posicao' || field === 'tempo_total' ? 'asc' : 'desc'); }
   };
 
-  /* â”€â”€ Render â”€â”€ */
+  /*  Render  */
   return (
     <Layout>
       <style>{`
@@ -276,21 +276,21 @@ export default function RankingCompleto() {
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 16px 80px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-        {/* â”€â”€ Back â”€â”€ */}
+        {/*  Back  */}
         <button onClick={() => navigate(-1)}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: tk.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: 'fit-content' }}
         >
           <ArrowLeft size={15} /> Voltar
         </button>
 
-        {/* â”€â”€ Page title â”€â”€ */}
+        {/*  Page title  */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 24, fontWeight: 800, color: tk.text, margin: 0, letterSpacing: '-0.3px' }}>
               Ranking Completo
             </h1>
             <p style={{ fontSize: 14, color: tk.muted, margin: '3px 0 0' }}>
-              ClassificaÃ§Ã£o oficial de todos os participantes
+              Classificao oficial de todos os participantes
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -308,15 +308,15 @@ export default function RankingCompleto() {
           </div>
         </div>
 
-        {/* â”€â”€ Loading â”€â”€ */}
+        {/*  Loading  */}
         {loading && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, gap: 12, color: tk.muted, fontSize: 14 }}>
             <div style={{ width: 20, height: 20, borderRadius: '50%', border: `2px solid ${tk.border}`, borderTopColor: tk.primary, animation: 'spin .7s linear infinite' }} />
-            Carregando rankingâ€¦
+            Carregando ranking¦
           </div>
         )}
 
-        {/* â”€â”€ Error â”€â”€ */}
+        {/*  Error  */}
         {!loading && error && (
           <div style={{ padding: '14px 18px', borderRadius: 10, background: '#FEF2F2', border: '1px solid #FECACA', color: '#991B1B', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
             <AlertCircle size={16} /> {error}
@@ -325,7 +325,7 @@ export default function RankingCompleto() {
 
         {!loading && !error && tournament && (
           <>
-            {/* â”€â”€ Tournament info card â”€â”€ */}
+            {/*  Tournament info card  */}
             <div style={{ ...card, padding: '20px 24px' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-start', justifyContent: 'space-between' }}>
                 <div style={{ flex: '1 1 260px' }}>
@@ -353,7 +353,7 @@ export default function RankingCompleto() {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
                   {[
                     { icon: <Users size={14} />, label: 'Participantes', value: ranking.length },
-                    { icon: <Calendar size={14} />, label: 'InÃ­cio', value: fmtDate(tournament.inicia_em) },
+                    { icon: <Calendar size={14} />, label: 'Incio', value: fmtDate(tournament.inicia_em) },
                     { icon: <Clock size={14} />, label: 'Encerramento', value: fmtDate(tournament.termina_em) },
                   ].map(({ icon, label, value }) => (
                     <div key={label} style={{ background: tk.bg, borderRadius: 10, padding: '10px 14px', minWidth: 110, border: `1px solid ${tk.border}` }}>
@@ -366,48 +366,48 @@ export default function RankingCompleto() {
                 </div>
               </div>
 
-              {/* CampeÃ£o banner */}
+              {/* Campeo banner */}
               {campiao && (
                 <div style={{ marginTop: 16, padding: '12px 16px', borderRadius: 10, background: tk.goldSoft, border: '1px solid #FCD34D', display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ fontSize: 22 }}>ðŸ¥‡</span>
+                  <span style={{ fontSize: 22 }}></span>
                   <div>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: tk.gold, textTransform: 'uppercase', letterSpacing: '.05em' }}>CampeÃ£o Oficial</div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: tk.gold, textTransform: 'uppercase', letterSpacing: '.05em' }}>Campeo Oficial</div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: '#92400E' }}>
                       {campiao.usuario?.nome || 'Participante'}
-                      {campiao.disciplina_competida && <span style={{ fontSize: 12, fontWeight: 500, color: tk.gold, marginLeft: 8 }}>Â· {campiao.disciplina_competida}</span>}
+                      {campiao.disciplina_competida && <span style={{ fontSize: 12, fontWeight: 500, color: tk.gold, marginLeft: 8 }}>· {campiao.disciplina_competida}</span>}
                     </div>
                     <div style={{ fontSize: 12, color: '#B45309' }}>{parseFloat(campiao.pontuacao).toLocaleString('pt-BR')} pontos</div>
                   </div>
                 </div>
               )}
 
-              {/* Sem pontuaÃ§Ã£o vÃ¡lida */}
+              {/* Sem pontuao vlida */}
               {!algumPontuou && ranking.length > 0 && (
                 <div style={{ marginTop: 16, padding: '12px 16px', borderRadius: 10, background: '#F8FAFC', border: `1px solid ${tk.border}`, display: 'flex', alignItems: 'center', gap: 10, color: tk.muted, fontSize: 13 }}>
                   <AlertCircle size={16} color={tk.subtle} />
-                  Nenhum participante registrou pontuaÃ§Ã£o vÃ¡lida neste torneio. NÃ£o hÃ¡ vencedores oficiais.
+                  Nenhum participante registrou pontuao vlida neste torneio. No h vencedores oficiais.
                 </div>
               )}
             </div>
 
-            {/* â”€â”€ My position banner â”€â”€ */}
+            {/*  My position banner  */}
             {myEntry && (
               <div style={{ padding: '14px 20px', borderRadius: 12, background: tk.primarySoft, border: '1px solid #C7D2FE', display: 'flex', alignItems: 'center', gap: 12 }}>
                 <PosBadge pos={myEntry.posicao} />
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: tk.primary }}>
-                    VocÃª estÃ¡ em {myEntry.posicao ? `${myEntry.posicao}Âº lugar` : 'posiÃ§Ã£o nÃ£o definida'}
+                    Vocª est em {myEntry.posicao ? `${myEntry.posicao}º lugar` : 'posio no definida'}
                   </div>
                   <div style={{ fontSize: 12, color: tk.muted }}>
                     {parseFloat(myEntry.pontuacao || 0).toLocaleString('pt-BR')} pts
-                    {myEntry.casos_resolvidos > 0 && ` Â· ${myEntry.casos_resolvidos} respostas`}
-                    {myEntry.disciplina_competida && ` Â· ${myEntry.disciplina_competida}`}
+                    {myEntry.casos_resolvidos > 0 && ` · ${myEntry.casos_resolvidos} respostas`}
+                    {myEntry.disciplina_competida && ` · ${myEntry.disciplina_competida}`}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* â”€â”€ Filters & sort â”€â”€ */}
+            {/*  Filters & sort  */}
             <div style={{ ...card, padding: '14px 20px', display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: tk.muted, fontSize: 12, fontWeight: 600 }}>
                 <Filter size={13} /> Filtros
@@ -445,7 +445,7 @@ export default function RankingCompleto() {
               </div>
             </div>
 
-            {/* â”€â”€ Empty state â”€â”€ */}
+            {/*  Empty state  */}
             {display.length === 0 && (
               <div style={{ ...card, padding: 56, textAlign: 'center' }}>
                 <Trophy size={36} color={tk.subtle} style={{ margin: '0 auto 12px' }} />
@@ -455,7 +455,7 @@ export default function RankingCompleto() {
               </div>
             )}
 
-            {/* â”€â”€ Ranking table â”€â”€ */}
+            {/*  Ranking table  */}
             {display.length > 0 && (
               <div style={{ ...card, overflow: 'hidden' }}>
                 {/* Table header */}
@@ -505,7 +505,7 @@ export default function RankingCompleto() {
                             </span>
                             {isMe && (
                               <span style={{ fontSize: 10, fontWeight: 700, background: tk.primary, color: '#fff', borderRadius: 999, padding: '1px 6px', flexShrink: 0 }}>
-                                vocÃª
+                                vocª
                               </span>
                             )}
                           </div>
@@ -527,14 +527,14 @@ export default function RankingCompleto() {
                       {/* Points */}
                       <div style={{ textAlign: 'right' }}>
                         <span style={{ fontSize: 15, fontWeight: 700, color: isMe ? tk.primary : pts > 0 ? tk.text : tk.subtle }}>
-                          {pts > 0 ? pts.toLocaleString('pt-BR') : 'â€”'}
+                          {pts > 0 ? pts.toLocaleString('pt-BR') : ''}
                         </span>
                         {pts > 0 && <span style={{ fontSize: 10, color: tk.muted, display: 'block' }}>pts</span>}
                       </div>
 
                       {/* Cases */}
                       <div style={{ textAlign: 'right', fontSize: 13, fontWeight: 600, color: (p.casos_resolvidos || 0) > 0 ? tk.success : tk.subtle }}>
-                        {(p.casos_resolvidos || 0) > 0 ? p.casos_resolvidos : 'â€”'}
+                        {(p.casos_resolvidos || 0) > 0 ? p.casos_resolvidos : ''}
                       </div>
 
                       {/* Time */}
@@ -562,7 +562,7 @@ export default function RankingCompleto() {
                 <div style={{ padding: '12px 20px', background: tk.bg, borderTop: `1px solid ${tk.border}`, display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 12, color: tk.muted }}>
                   <span><strong style={{ color: tk.text }}>{display.length}</strong> participante{display.length !== 1 ? 's' : ''}</span>
                   {algumPontuou && (
-                    <span><strong style={{ color: tk.text }}>{display.filter(p => parseFloat(p.pontuacao || 0) > 0).length}</strong> com pontuaÃ§Ã£o</span>
+                    <span><strong style={{ color: tk.text }}>{display.filter(p => parseFloat(p.pontuacao || 0) > 0).length}</strong> com pontuao</span>
                   )}
                   {disciplinaFilter && <span>Filtrado por: <strong style={{ color: tk.text }}>{disciplinaFilter}</strong></span>}
                 </div>
@@ -571,11 +571,11 @@ export default function RankingCompleto() {
           </>
         )}
 
-        {/* â”€â”€ No tournament found â”€â”€ */}
+        {/*  No tournament found  */}
         {!loading && !error && !tournament && (
           <div style={{ ...card, padding: 56, textAlign: 'center' }}>
             <Trophy size={36} color={tk.subtle} style={{ margin: '0 auto 12px' }} />
-            <p style={{ fontSize: 15, fontWeight: 600, color: tk.muted, margin: 0 }}>Torneio nÃ£o encontrado.</p>
+            <p style={{ fontSize: 15, fontWeight: 600, color: tk.muted, margin: 0 }}>Torneio no encontrado.</p>
             <button onClick={() => navigate('/ranking')}
               style={{ marginTop: 16, fontSize: 13, color: tk.primary, background: tk.primarySoft, border: `1px solid #C7D2FE`, borderRadius: 8, padding: '8px 16px', cursor: 'pointer' }}
             >

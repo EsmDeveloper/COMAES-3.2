@@ -1,4 +1,4 @@
-﻿// Torneios.jsx - VERSÃƒO ATUALIZADA
+// Torneios.jsx - VERSÃO ATUALIZADA
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
@@ -13,7 +13,7 @@ const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_U
 const Torneios = () => {
   const navigate = useNavigate();
   const { user, token } = useAuth();
-  const [activeDiscipline, setActiveDiscipline] = useState('MatemÃ¡tica');
+  const [activeDiscipline, setActiveDiscipline] = useState('Matemática');
   const [torneios, setTorneios] = useState([]);
   const [ranking, setRanking] = useState([]);
   const [userStats, setUserStats] = useState(null);
@@ -30,9 +30,9 @@ const Torneios = () => {
   useEffect(() => { selectedTorneioRef.current = selectedTorneio; }, [selectedTorneio]);
 
   const disciplinas = [
-    { id: 'MatemÃ¡tica',  label: 'MatemÃ¡tica',  color: 'bg-blue-500',   icon: <Calculator className="w-5 h-5" /> },
+    { id: 'Matemática',  label: 'Matemática',  color: 'bg-blue-500',   icon: <Calculator className="w-5 h-5" /> },
     { id: 'InglÃªs',      label: 'InglÃªs',      color: 'bg-green-500',  icon: <BookOpen className="w-5 h-5" /> },
-    { id: 'ProgramaÃ§Ã£o', label: 'ProgramaÃ§Ã£o', color: 'bg-purple-500', icon: <Code className="w-5 h-5" /> },
+    { id: 'Programação', label: 'Programação', color: 'bg-purple-500', icon: <Code className="w-5 h-5" /> },
   ];
 
   /* â”€â”€ Carregar torneio activo e ranking â”€â”€ */
@@ -61,7 +61,7 @@ const Torneios = () => {
       const rankingData = await rankingRes.json();
       setRanking(rankingData.data || []);
 
-      // 3. ParticipaÃ§Ã£o do utilizador
+      // 3. Participação do utilizador
       try {
         const partRes  = await fetch(`${API_BASE}/api/participantes/usuario/${user.id}/${encodeURIComponent(disciplina)}`);
         const partData = await partRes.json();
@@ -116,15 +116,15 @@ const Torneios = () => {
 
   const getDisciplinaColor = (disciplina) => {
     switch(disciplina) {
-      case 'MatemÃ¡tica': return '#3b82f6';
+      case 'Matemática': return '#3b82f6';
       case 'InglÃªs': return '#10b981';
-      case 'ProgramaÃ§Ã£o': return '#a855f7';
+      case 'Programação': return '#a855f7';
       default: return '#6b7280';
     }
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'NÃ£o definida';
+    if (!dateString) return 'Não definida';
     const date = new Date(dateString);
     return date.toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -144,7 +144,7 @@ const Torneios = () => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2">Torneios COMAES</h1>
-        <p className="text-gray-300">Participe de torneios e compete com outros usuÃ¡rios</p>
+        <p className="text-gray-300">Participe de torneios e compete com outros usuários</p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">
@@ -187,12 +187,12 @@ const Torneios = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <div className="bg-gray-900 rounded p-3 sm:p-4">
                   <Clock className="w-5 h-5 mb-2 text-blue-400" />
-                  <p className="text-sm text-gray-400">InÃ­cio</p>
+                  <p className="text-sm text-gray-400">Início</p>
                   <p className="font-semibold">{formatDate(selectedTorneio.inicia_em)}</p>
                 </div>
                 <div className="bg-gray-900 rounded p-4">
                   <Clock className="w-5 h-5 mb-2 text-green-400" />
-                  <p className="text-sm text-gray-400">TÃ©rmino</p>
+                  <p className="text-sm text-gray-400">Término</p>
                   <p className="font-semibold">{formatDate(selectedTorneio.termina_em)}</p>
                 </div>
                 <div className="bg-gray-900 rounded p-4">
@@ -205,9 +205,9 @@ const Torneios = () => {
               <button
                 onClick={() => {
                   const routeMap = {
-                    'matemÃ¡tica': '/matematica-original',
+                    'matemática': '/matematica-original',
                     'inglÃªs': '/ingles-original',
-                    'programaÃ§Ã£o': '/programacao-original'
+                    'programação': '/programacao-original'
                   };
                   
                   const route = routeMap[activeDiscipline];
@@ -224,9 +224,9 @@ const Torneios = () => {
           ) : (
             <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg p-6 text-center">
               <AlertCircle className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-              <h3 className="text-xl font-bold mb-2">Nenhum Torneio DisponÃ­vel</h3>
+              <h3 className="text-xl font-bold mb-2">Nenhum Torneio Disponível</h3>
               <p className="text-gray-300">
-                NÃ£o hÃ¡ torneios ativos de {activeDiscipline} no momento.
+                Não há torneios ativos de {activeDiscipline} no momento.
               </p>
               <p className="text-sm text-gray-400 mt-2">
                 Volte mais tarde ou verifique outras disciplinas.
@@ -234,40 +234,40 @@ const Torneios = () => {
             </div>
           )}
 
-          {/* Ranking e Minha EstatÃ­stica */}
+          {/* Ranking e Minha Estatística */}
           {selectedTorneio && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Meus Dados */}
               <div className="bg-gray-800 rounded-lg p-6">
                 <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
                   <Trophy className="text-yellow-400" />
-                  Minha ParticipaÃ§Ã£o
+                  Minha Participação
                 </h3>
                 {userStats ? (
                   <div className="space-y-4">
                     <div className="flex justify-between items-center bg-gray-900 p-3 rounded">
-                      <span className="text-gray-400 text-sm">Sua PontuaÃ§Ã£o</span>
+                      <span className="text-gray-400 text-sm">Sua Pontuação</span>
                       <span className="text-2xl font-bold text-blue-400">{userStats.pontuacao || 0} pts</span>
                     </div>
                     <div className="flex justify-between items-center bg-gray-900 p-3 rounded">
-                      <span className="text-gray-400 text-sm">Sua PosiÃ§Ã£o</span>
+                      <span className="text-gray-400 text-sm">Sua Posição</span>
                       <span className="text-xl font-bold text-yellow-400">
                         {userStats.posicao != null ? `#${userStats.posicao}` : '---'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center bg-gray-900 p-3 rounded">
-                      <span className="text-gray-400 text-sm">NÃ­vel Atual</span>
+                      <span className="text-gray-400 text-sm">Nível Atual</span>
                       <span className="capitalize font-semibold text-purple-400">{userStats.nivel_atual || 'Iniciante'}</span>
                     </div>
                     <div className="flex justify-between items-center bg-gray-900 p-3 rounded">
-                      <span className="text-gray-400 text-sm">PrecisÃ£o</span>
+                      <span className="text-gray-400 text-sm">Precisão</span>
                       <span className="font-semibold text-green-400">{userStats.precisao || 0}%</span>
                     </div>
                   </div>
                 ) : (
                   <div className="text-center py-8 bg-gray-900 rounded border border-dashed border-gray-700">
-                    <p className="text-gray-400">VocÃª ainda nÃ£o estÃ¡ participando deste torneio.</p>
-                    <p className="text-xs text-gray-500 mt-1">Inicie o torneio para comeÃ§ar a competir!</p>
+                    <p className="text-gray-400">VocÃª ainda não está participando deste torneio.</p>
+                    <p className="text-xs text-gray-500 mt-1">Inicie o torneio para começar a competir!</p>
                   </div>
                 )}
               </div>
@@ -301,10 +301,10 @@ const Torneios = () => {
                           </span>
                           <div className="flex flex-col">
                             <span className={`font-medium ${isMe ? 'text-blue-300 font-bold' : ''}`}>
-                              {item.usuario?.nome || 'AnÃ´nimo'}
+                              {item.usuario?.nome || 'Anônimo'}
                             </span>
                             {isMe && (
-                              <span className="text-[10px] text-blue-400 font-bold leading-none">â— vocÃª</span>
+                              <span className="text-[10px] text-blue-400 font-bold leading-none">â— vocÃª</span>
                             )}
                           </div>
                         </div>
@@ -328,7 +328,7 @@ const Torneios = () => {
       <ComaesModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        title={modalType === 'success' ? 'Sucesso!' : modalType === 'error' ? 'Erro!' : 'InformaÃ§Ã£o'}
+        title={modalType === 'success' ? 'Sucesso!' : modalType === 'error' ? 'Erro!' : 'Informação'}
         icon={modalType === 'success' ? <CheckCircle2 size={18} /> : modalType === 'error' ? <AlertCircle size={18} /> : <Info size={18} />}
         iconBg={modalType === 'success' ? 'bg-green-100' : modalType === 'error' ? 'bg-red-100' : 'bg-blue-100'}
         iconColor={modalType === 'success' ? 'text-green-600' : modalType === 'error' ? 'text-red-600' : 'text-blue-600'}

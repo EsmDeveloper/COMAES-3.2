@@ -1,13 +1,29 @@
-import { getModel } from '../utils/modelMapper.js';
+/**
+ * ═══════════════════════════════════════════════════════════════════════
+ * COMAES 3.2 - GENERIC CONTROLLER SEGURO
+ * ═══════════════════════════════════════════════════════════════════════
+ * 
+ * Substituição completa do controller anterior
+ * Usa modelMapperSecure com whitelist estrita
+ */
+
+import { getModel, getModelSchema } from '../utils/modelMapperSecure.js';
 import { validateNome, validateEmail, validatePassword, validateUserData } from '../utils/validators.js';
 
-// Middleware to get the model for the route
+/**
+ * Middleware to get the model for the route
+ * Agora usa a whitelist segura
+ */
 export const getModelByName = (req, res, next) => {
     try {
         req.Model = getModel(req.params.model);
         next();
     } catch (error) {
-        res.status(404).json({ message: error.message });
+        res.status(404).json({ 
+          success: false,
+          message: error.message,
+          code: 'MODEL_NOT_ALLOWED'
+        });
     }
 };
 
@@ -23,24 +39,18 @@ export const getAll = async (req, res) => {
 
 export const getSchema = async (req, res) => {
     try {
-        const { Model } = req;
-        // rawAttributes contains sequelize attribute definitions
-        const attrs = Model.rawAttributes || {};
-        const schema = Object.keys(attrs).map(key => {
-            const a = attrs[key];
-            const enumValues = a.values || (a.type && a.type.values) || null;
-            return {
-                name: key,
-                allowNull: a.allowNull === undefined ? true : a.allowNull,
-                type: a.type ? a.type.toString() : 'STRING',
-                primaryKey: !!a.primaryKey,
-                defaultValue: a.defaultValue === undefined ? null : a.defaultValue,
-                enumValues: enumValues || null
-            };
+        const modelName = req.params.model;
+        const schema = getModelSchema(modelName);
+        res.status(200).json({
+          success: true,
+          data: schema
         });
-        res.status(200).json(schema);
     } catch (error) {
-        res.status(500).json({ message: `Erro ao obter schema de ${req.params.model}`, error: error.message });
+        res.status(500).json({ 
+          success: false,
+          message: `Erro ao obter schema de ${req.params.model}`, 
+          error: error.message 
+        });
     }
 };
 

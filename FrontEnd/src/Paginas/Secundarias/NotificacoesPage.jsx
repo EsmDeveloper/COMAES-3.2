@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Bell, 
@@ -55,10 +55,10 @@ export default function NotificacoesPage() {
       if (data.success) {
         setNotifications(data.data || []);
       } else {
-        setError('Erro ao carregar notificaÃ§Ãµes');
+        setError('Erro ao carregar notificaçÃµes');
       }
     } catch (err) {
-      console.error('Erro ao carregar notificaÃ§Ãµes:', err);
+      console.error('Erro ao carregar notificaçÃµes:', err);
       setError('Erro ao conectar com o servidor');
     } finally {
       setLoading(false);
@@ -89,9 +89,9 @@ export default function NotificacoesPage() {
     const diffInSeconds = Math.floor((now - date) / 1000);
 
     if (diffInSeconds < 60) return 'Agora mesmo';
-    if (diffInSeconds < 3600) return `HÃ¡ ${Math.floor(diffInSeconds / 60)} min`;
-    if (diffInSeconds < 86400) return `HÃ¡ ${Math.floor(diffInSeconds / 3600)}h`;
-    if (diffInSeconds < 604800) return `HÃ¡ ${Math.floor(diffInSeconds / 86400)}d`;
+    if (diffInSeconds < 3600) return `Há ${Math.floor(diffInSeconds / 60)} min`;
+    if (diffInSeconds < 86400) return `Há ${Math.floor(diffInSeconds / 3600)}h`;
+    if (diffInSeconds < 604800) return `Há ${Math.floor(diffInSeconds / 86400)}d`;
     
     return date.toLocaleDateString('pt-PT', {
       day: '2-digit',
@@ -122,7 +122,7 @@ export default function NotificacoesPage() {
         );
       }
     } catch (err) {
-      console.error('Erro ao atualizar notificaÃ§Ã£o:', err);
+      console.error('Erro ao atualizar notificação:', err);
     }
   };
 
@@ -142,7 +142,7 @@ export default function NotificacoesPage() {
         setNotifications(prev => prev.filter(n => n.id !== id));
       }
     } catch (err) {
-      console.error('Erro ao deletar notificaÃ§Ã£o:', err);
+      console.error('Erro ao deletar notificação:', err);
     }
   };
 
@@ -166,7 +166,7 @@ export default function NotificacoesPage() {
     }
   };
 
-  // Filtrar e ordenar notificaÃ§Ãµes
+  // Filtrar e ordenar notificaçÃµes
   const filteredNotifications = notifications
     .filter(notif => {
       const conteudo = normalizeConteudo(notif.conteudo);
@@ -203,10 +203,10 @@ export default function NotificacoesPage() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Bell className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-800">NotificaÃ§Ãµes</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-800">NotificaçÃµes</h1>
           </div>
           <p className="text-gray-600">
-            VocÃª tem <strong>{unreadCount}</strong> notificaÃ§Ã£o{unreadCount !== 1 ? 's' : ''} nÃ£o lida{unreadCount !== 1 ? 's' : ''}
+            VocÃª tem <strong>{unreadCount}</strong> notificação{unreadCount !== 1 ? 's' : ''} não lida{unreadCount !== 1 ? 's' : ''}
           </p>
         </div>
 
@@ -227,7 +227,7 @@ export default function NotificacoesPage() {
                 <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Buscar notificaÃ§Ãµes..."
+                  placeholder="Buscar notificaçÃµes..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -259,13 +259,13 @@ export default function NotificacoesPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">Todos os status</option>
-                <option value="nao-lido">NÃ£o lidas</option>
+                <option value="nao-lido">Não lidas</option>
                 <option value="lido">Lidas</option>
               </select>
             </div>
           </div>
 
-          {/* AÃ§Ãµes */}
+          {/* AçÃµes */}
           <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={() => fetchNotifications()}
@@ -294,28 +294,28 @@ export default function NotificacoesPage() {
               >
                 <option value="recent">Mais recentes</option>
                 <option value="oldest">Mais antigas</option>
-                <option value="unread">NÃ£o lidas primeiro</option>
+                <option value="unread">Não lidas primeiro</option>
               </select>
             </div>
           </div>
         </div>
 
-        {/* Lista de NotificaÃ§Ãµes */}
+        {/* Lista de NotificaçÃµes */}
         <div className="space-y-3">
           {loading && !notifications.length ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin">
                 <RefreshCw className="w-8 h-8 text-blue-600" />
               </div>
-              <p className="text-gray-600 mt-4">Carregando notificaÃ§Ãµes...</p>
+              <p className="text-gray-600 mt-4">Carregando notificaçÃµes...</p>
             </div>
           ) : filteredNotifications.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-lg">
               <Bell className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-600">
                 {searchTerm || filterType !== 'all' || filterStatus !== 'all'
-                  ? 'Nenhuma notificaÃ§Ã£o encontrada'
-                  : 'VocÃª nÃ£o tem notificaÃ§Ãµes'}
+                  ? 'Nenhuma notificação encontrada'
+                  : 'VocÃª não tem notificaçÃµes'}
               </p>
             </div>
           ) : (
@@ -332,7 +332,7 @@ export default function NotificacoesPage() {
                   }`}
                 >
                   <div className="flex items-start gap-4">
-                    {/* Ãcone */}
+                    {/* Ãcone */}
                     <div className={`${typeInfo.color} text-white p-3 rounded-lg flex-shrink-0`}>
                       <TypeIcon className="w-5 h-5" />
                     </div>
@@ -344,7 +344,7 @@ export default function NotificacoesPage() {
                           <h3 className={`font-bold text-lg ${
                             notif.lido ? 'text-gray-700' : 'text-gray-900'
                           }`}>
-                            {conteudo.titulo || 'Sem tÃ­tulo'}
+                            {conteudo.titulo || 'Sem título'}
                           </h3>
                           <p className="text-sm text-gray-500">
                             {formatDate(notif.criado_em)}
@@ -355,7 +355,7 @@ export default function NotificacoesPage() {
                             ? 'bg-gray-100 text-gray-700'
                             : 'bg-blue-100 text-blue-700'
                         }`}>
-                          {notif.lido ? 'Lida' : 'NÃ£o lida'}
+                          {notif.lido ? 'Lida' : 'Não lida'}
                         </span>
                       </div>
 
@@ -372,12 +372,12 @@ export default function NotificacoesPage() {
                       </div>
                     </div>
 
-                    {/* AÃ§Ãµes */}
+                    {/* AçÃµes */}
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button
                         onClick={() => markAsRead(notif.id, notif.lido)}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                        title={notif.lido ? 'Marcar como nÃ£o lida' : 'Marcar como lida'}
+                        title={notif.lido ? 'Marcar como não lida' : 'Marcar como lida'}
                       >
                         {notif.lido ? (
                           <Circle className="w-5 h-5 text-gray-400" />
@@ -403,7 +403,7 @@ export default function NotificacoesPage() {
           )}
         </div>
 
-        {/* Modal de ConfirmaÃ§Ã£o */}
+        {/* Modal de Confirmação */}
         <ConfirmModal
           isOpen={showDeleteModal}
           onClose={() => {
@@ -415,8 +415,8 @@ export default function NotificacoesPage() {
               deleteNotification(notificationToDelete.id);
             }
           }}
-          title="Confirmar ExclusÃ£o"
-          message="Tem certeza que deseja deletar esta notificaÃ§Ã£o? Esta aÃ§Ã£o nÃ£o pode ser desfeita."
+          title="Confirmar Exclusão"
+          message="Tem certeza que deseja deletar esta notificação? Esta ação não pode ser desfeita."
           confirmText="Deletar"
           cancelText="Cancelar"
           type="danger"

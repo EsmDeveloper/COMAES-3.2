@@ -10,12 +10,12 @@ async function updateDb() {
     // 1. Remover tabelas desnecessárias
     const tablesToDrop = ['testes', 'sessoes', 'midia', 'logs_atividade', 'comentarios'];
     for (const table of tablesToDrop) {
-      console.log(`🗑️ Removendo tabela: ${table}`);
+      console.log(` Removendo tabela: ${table}`);
       await sequelize.query(`DROP TABLE IF EXISTS ${table}`);
     }
 
     // 2. Modificar tabela perguntas
-    console.log('🛠️ Modificando tabela "perguntas"...');
+    console.log(' Modificando tabela "perguntas"...');
     
     // Remover colunas se existirem
     try {

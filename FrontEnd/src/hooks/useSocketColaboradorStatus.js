@@ -1,12 +1,12 @@
-﻿/**
+/**
  * useSocketColaboradorStatus.js
  *
  * Hook customizado para escutar eventos de status do colaborador
- * Permite que o colaborador receba notificaÃ§Ã£o instantÃ¢nea quando:
- * - Sua solicitaÃ§Ã£o Ã© aprovada
- * - Sua solicitaÃ§Ã£o Ã© rejeitada
+ * Permite que o colaborador receba notificação instantânea quando:
+ * - Sua solicitação é aprovada
+ * - Sua solicitação é rejeitada
  *
- * Evento especÃ­fico: `colaborador_status_${userId}`
+ * Evento específico: `colaborador_status_${userId}`
  */
 
 import { useEffect, useCallback } from 'react';
@@ -38,18 +38,18 @@ export const useSocketColaboradorStatus = ({
           transports: ['websocket', 'polling']
         });
 
-        // Eventos de conexÃ£o
+        // Eventos de conexão
         socket.on('connect', () => {
           console.log('âœ… Socket.IO conectado (status colaborador)');
         });
 
         socket.on('disconnect', () => {
-          console.log('âŒ Socket.IO desconectado');
+          console.log('âŒ Socket.IO desconectado');
         });
 
-        // Evento especÃ­fico para este colaborador
+        // Evento específico para este colaborador
         socket.on(`colaborador_status_${userId}`, (data) => {
-          console.log('ðŸ“¢ Status do colaborador atualizado:', data);
+          console.log(' Status do colaborador atualizado:', data);
           
           if (data.status === 'aprovado') {
             console.log('âœ… Colaborador aprovado!');
@@ -57,7 +57,7 @@ export const useSocketColaboradorStatus = ({
               onAprovado(data);
             }
           } else if (data.status === 'rejeitado') {
-            console.log('âŒ Colaborador rejeitado!');
+            console.log('âŒ Colaborador rejeitado!');
             if (onRejeitado) {
               onRejeitado(data);
             }
@@ -66,7 +66,7 @@ export const useSocketColaboradorStatus = ({
 
         // Tratamento de erros
         socket.on('error', (error) => {
-          console.error('âŒ Erro Socket.IO:', error);
+          console.error('âŒ Erro Socket.IO:', error);
         });
       }
     } catch (err) {
@@ -78,7 +78,7 @@ export const useSocketColaboradorStatus = ({
     if (socket?.connected) {
       socket.disconnect();
       socket = null;
-      console.log('ðŸ”Œ Socket.IO desconectado');
+      console.log(' Socket.IO desconectado');
     }
   }, []);
 
@@ -87,7 +87,7 @@ export const useSocketColaboradorStatus = ({
       connect();
     }
     return () => {
-      // NÃ£o desconectar ao unmount para evitar reconexÃµes contÃ­nuas
+      // Não desconectar ao unmount para evitar reconexÃµes contínuas
     };
   }, [enabled, userId, connect]);
 

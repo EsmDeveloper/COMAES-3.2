@@ -9,14 +9,14 @@ import sequelize from './config/db.js';
 import Usuario from './models/User.js';
 
 async function diagnosticar() {
-  console.log('\n═══════════════════════════════════════════════════════════════');
+  console.log('\n');
   console.log('🔬 DIAGNÓSTICO COMPLETO - DISCIPLINA COLABORADOR');
-  console.log('═══════════════════════════════════════════════════════════════\n');
+  console.log('\n');
 
   try {
     // 1. Verificar estrutura da tabela
     console.log('📋 PASSO 1: Verificar estrutura da tabela "usuarios"');
-    console.log('─────────────────────────────────────────────────────────────\n');
+    console.log('\n');
 
     const [columns] = await sequelize.query(`
       SELECT COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT
@@ -43,7 +43,7 @@ async function diagnosticar() {
 
     // 2. Verificar dados de colaboradores recentes
     console.log('\n📋 PASSO 2: Verificar últimos 10 colaboradores');
-    console.log('─────────────────────────────────────────────────────────────\n');
+    console.log('\n');
 
     const [colaboradores] = await sequelize.query(`
       SELECT 
@@ -72,7 +72,7 @@ async function diagnosticar() {
 
     // 3. Verificar se a coluna existe
     console.log('\n📋 PASSO 3: Verificar EXISTÊNCIA da coluna "disciplina_colaborador"');
-    console.log('─────────────────────────────────────────────────────────────\n');
+    console.log('\n');
 
     const [existencia] = await sequelize.query(`
       SELECT COUNT(*) as existe
@@ -90,7 +90,7 @@ async function diagnosticar() {
 
     // 4. Verificar valores ENUM permitidos
     console.log('\n📋 PASSO 4: Verificar valores ENUM permitidos');
-    console.log('─────────────────────────────────────────────────────────────\n');
+    console.log('\n');
 
     const [enumInfo] = await sequelize.query(`
       SELECT COLUMN_TYPE
@@ -106,7 +106,7 @@ async function diagnosticar() {
 
     // 5. Verificar Model Sequelize
     console.log('\n📋 PASSO 5: Verificar definição no Modelo Sequelize (User.js)');
-    console.log('─────────────────────────────────────────────────────────────\n');
+    console.log('\n');
 
     const modelAtributos = Usuario.rawAttributes;
     if (modelAtributos.disciplina_colaborador) {
@@ -119,9 +119,9 @@ async function diagnosticar() {
     }
 
     // 6. Resumo
-    console.log('\n═══════════════════════════════════════════════════════════════');
+    console.log('\n');
     console.log('📊 RESUMO');
-    console.log('═══════════════════════════════════════════════════════════════\n');
+    console.log('\n');
 
     const comDisciplina = colaboradores.filter(u => u.disciplina_colaborador).length;
     const semDisciplina = colaboradores.filter(u => !u.disciplina_colaborador).length;
@@ -139,7 +139,7 @@ async function diagnosticar() {
       console.log('  4. Base de dados tem valor padrão NULL');
     }
 
-    console.log('\n═══════════════════════════════════════════════════════════════\n');
+    console.log('\n\n');
 
   } catch (err) {
     console.error('❌ ERRO:', err.message);

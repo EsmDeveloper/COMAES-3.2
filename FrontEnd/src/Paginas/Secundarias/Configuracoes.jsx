@@ -1,9 +1,9 @@
-﻿/**
+/**
  * Configuracoes.jsx
- * PÃ¡gina de configuraÃ§Ãµes pessoais â€” experiÃªncia de uso da conta.
+ * Página de configuraçÁµes pessoais â€” experiÁªncia de uso da conta.
  *
- * CONTÃ‰M:  alteraÃ§Ã£o de senha, seguranÃ§a, idioma, notificaÃ§Ãµes, privacidade
- * NÃƒO CONTÃ‰M: nome, foto, biografia, escola, telefone â†’ estÃ£o no Perfil (/perfil)
+ * CONTÉM:  alteração de senha, segurança, idioma, notificaçÁµes, privacidade
+ * NÁO CONTÉM: nome, foto, biografia, escola, telefone â†’ estão no Perfil (/perfil)
  */
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -19,12 +19,12 @@ import { validatePassword } from '../../utils/validators';
 
 const API = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
-/* â”€â”€â”€ SecÃ§Ãµes da sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* â”€â”€â”€ SecçÁµes da sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const SECTIONS = [
-  { id: 'seguranca',    label: 'SeguranÃ§a',    icon: <Lock size={15} /> },
+  { id: 'seguranca',    label: 'Segurança',    icon: <Lock size={15} /> },
   { id: 'preferencias', label: 'Idioma', icon: <Globe size={15} /> },
   { id: 'privacidade',  label: 'Privacidade',  icon: <Shield size={15} /> },
-  { id: 'notificacoes', label: 'NotificaÃ§Ãµes', icon: <Bell size={15} /> },
+  { id: 'notificacoes', label: 'NotificaçÁµes', icon: <Bell size={15} /> },
 ];
 
 /* â”€â”€â”€ Toast â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
@@ -114,14 +114,14 @@ function AlterarSenhaForm({ token, onSuccess, onError }) {
 
   const validate = () => {
     const e = {};
-    if (!form.senhaAtual) e.senhaAtual = 'ObrigatÃ³rio';
-    if (!form.novaSenha)  e.novaSenha  = 'ObrigatÃ³rio';
+    if (!form.senhaAtual) e.senhaAtual = 'Obrigatório';
+    if (!form.novaSenha)  e.novaSenha  = 'Obrigatório';
     else {
       const r = validatePassword(form.novaSenha);
       if (!r.valid) e.novaSenha = r.error;
     }
-    if (!form.confirmar) e.confirmar = 'ObrigatÃ³rio';
-    else if (form.novaSenha !== form.confirmar) e.confirmar = 'As senhas nÃ£o coincidem';
+    if (!form.confirmar) e.confirmar = 'Obrigatório';
+    else if (form.novaSenha !== form.confirmar) e.confirmar = 'As senhas não coincidem';
     return e;
   };
 
@@ -180,8 +180,8 @@ function AlterarSenhaForm({ token, onSuccess, onError }) {
       </div>
       <div>
         <label className="block text-xs font-semibold text-gray-500 mb-1.5">Nova senha</label>
-        <PasswordInput field="novaSenha" placeholder="MÃ­nimo 8 caracteres" />
-        <p className="text-xs text-gray-400 mt-1">Deve conter maiÃºsculas, minÃºsculas, nÃºmero e sÃ­mbolo.</p>
+        <PasswordInput field="novaSenha" placeholder="Mínimo 8 caracteres" />
+        <p className="text-xs text-gray-400 mt-1">Deve conter maiÁºsculas, minÁºsculas, nÁºmero e símbolo.</p>
       </div>
       <div>
         <label className="block text-xs font-semibold text-gray-500 mb-1.5">Confirmar nova senha</label>
@@ -207,9 +207,9 @@ function AlterarSenhaForm({ token, onSuccess, onError }) {
   );
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    MAIN COMPONENT
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 export default function Configuracoes() {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
@@ -250,7 +250,7 @@ export default function Configuracoes() {
   }, [user, token]);
 
   /* â”€â”€ Persist helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-     O backend faz merge profundo â€” sÃ³ enviar a secÃ§Ã£o alterada.
+     O backend faz merge profundo â€” só enviar a secção alterada.
      Estrutura: { seguranca: {...} } | { tema: '...' } | etc.
   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const persist = async (patch) => {
@@ -262,7 +262,7 @@ export default function Configuracoes() {
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || 'Erro ao guardar');
-      showToast('success', 'PreferÃªncia guardada.');
+      showToast('success', 'PreferÁªncia guardada.');
     } catch (err) {
       showToast('error', err.message || 'Erro ao guardar');
     }
@@ -271,7 +271,7 @@ export default function Configuracoes() {
   const toggleSave = (section, setter, key) => (val) => {
     setter(s => {
       const next = { ...s, [key]: val };
-      // Enviar apenas a secÃ§Ã£o alterada â€” backend faz merge
+      // Enviar apenas a secção alterada â€” backend faz merge
       persist({ [section]: { [key]: val } });
       return next;
     });
@@ -293,11 +293,11 @@ export default function Configuracoes() {
   /* â”€â”€â”€ Panels â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const panels = {
 
-    /* â”€â”€ SeguranÃ§a â”€â”€ */
+    /* â”€â”€ Segurança â”€â”€ */
     seguranca: (
       <div className="flex flex-col gap-4">
 
-        {/* Aviso de separaÃ§Ã£o com Perfil */}
+        {/* Aviso de separação com Perfil */}
         <div className="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-xl p-4">
           <User size={16} className="text-blue-500 mt-0.5 flex-shrink-0" />
           <p className="text-sm text-blue-700">
@@ -315,11 +315,11 @@ export default function Configuracoes() {
           />
         </SectionCard>
 
-        {/* VerificaÃ§Ã£o */}
-        <SectionCard title="VerificaÃ§Ã£o" desc="Camadas adicionais de seguranÃ§a para a sua conta.">
+        {/* Verificação */}
+        <SectionCard title="Verificação" desc="Camadas adicionais de segurança para a sua conta.">
           <ToggleRow
-            label="AutenticaÃ§Ã£o em dois fatores"
-            desc="Exige um cÃ³digo adicional ao fazer login."
+            label="Autenticação em dois fatores"
+            desc="Exige um código adicional ao fazer login."
             active={seg.twoFactor}
             onChange={toggleSave('seguranca', setSeg, 'twoFactor')}
           />
@@ -332,8 +332,8 @@ export default function Configuracoes() {
           />
         </SectionCard>
 
-        {/* SessÃµes */}
-        <SectionCard title="SessÃµes Ativas" desc="Dispositivos com acesso activo Ã  sua conta.">
+        {/* SessÁµes */}
+        <SectionCard title="SessÁµes Ativas" desc="Dispositivos com acesso activo Á  sua conta.">
           <div className="py-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
@@ -341,7 +341,7 @@ export default function Configuracoes() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-800">Este dispositivo</p>
-                <p className="text-xs text-gray-400 mt-0.5">SessÃ£o atual</p>
+                <p className="text-xs text-gray-400 mt-0.5">Sessão atual</p>
               </div>
               <span className="text-xs font-semibold text-green-700 bg-green-50 px-2.5 py-0.5 rounded-full">
                 Ativo
@@ -353,23 +353,23 @@ export default function Configuracoes() {
               onClick={() => { logout(); navigate('/login'); }}
               className="flex items-center gap-2 text-sm font-semibold text-red-600 hover:text-red-700"
             >
-              <LogOut size={14} /> Terminar sessÃ£o
+              <LogOut size={14} /> Terminar sessão
             </button>
             <button
-              onClick={() => showToast('success', 'Outras sessÃµes encerradas.')}
+              onClick={() => showToast('success', 'Outras sessÁµes encerradas.')}
               className="text-xs text-gray-500 hover:text-gray-700 underline"
             >
-              Encerrar outras sessÃµes
+              Encerrar outras sessÁµes
             </button>
           </div>
         </SectionCard>
       </div>
     ),
 
-    /* â”€â”€ PreferÃªncias â”€â”€ */
+    /* â”€â”€ PreferÁªncias â”€â”€ */
     preferencias: (
       <div className="flex flex-col gap-4">
-        <SectionCard title="Idioma" desc="Escolha o idioma de apresentaÃ§Ã£o da plataforma.">
+        <SectionCard title="Idioma" desc="Escolha o idioma de apresentação da plataforma.">
           <div className="py-4">
             <p className="text-xs font-semibold text-gray-500 mb-3">Idioma</p>
             <select
@@ -377,10 +377,10 @@ export default function Configuracoes() {
               onChange={e => { const v = e.target.value; setPref(p => ({ ...p, idioma: v })); persist({ idioma: v }); }}
               className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-xs w-full"
             >
-              <option value="pt-PT">PortuguÃªs (Angola)</option>
-              <option value="pt-BR">PortuguÃªs (Brasil)</option>
+              <option value="pt-PT">PortuguÁªs (Angola)</option>
+              <option value="pt-BR">PortuguÁªs (Brasil)</option>
               <option value="en-US">English (US)</option>
-              <option value="es">EspaÃ±ol</option>
+              <option value="es">EspaÁ±ol</option>
             </select>
           </div>
         </SectionCard>
@@ -391,26 +391,26 @@ export default function Configuracoes() {
     privacidade: (
       <SectionCard title="Privacidade" desc="Controle o que outros utilizadores podem ver sobre si.">
         <ToggleRow
-          label="Perfil pÃºblico"
+          label="Perfil pÁºblico"
           desc="Permite que outros utilizadores encontrem e visualizem o seu perfil."
           active={priv.perfilPublico}
           onChange={toggleSave('privacidade', setPriv, 'perfilPublico')}
         />
         <ToggleRow
-          label="Exibir posiÃ§Ã£o no ranking"
-          desc="Mostra a sua posiÃ§Ã£o no ranking pÃºblico da plataforma."
+          label="Exibir posição no ranking"
+          desc="Mostra a sua posição no ranking pÁºblico da plataforma."
           active={priv.mostrarRanking}
           onChange={toggleSave('privacidade', setPriv, 'mostrarRanking')}
         />
         <ToggleRow
           label="Exibir certificados"
-          desc="Torna os seus certificados visÃ­veis no perfil pÃºblico."
+          desc="Torna os seus certificados visíveis no perfil pÁºblico."
           active={priv.mostrarCertificados}
           onChange={toggleSave('privacidade', setPriv, 'mostrarCertificados')}
         />
         <ToggleRow
           label="Exibir actividade recente"
-          desc="Mostra participaÃ§Ãµes e conquistas recentes no perfil."
+          desc="Mostra participaçÁµes e conquistas recentes no perfil."
           active={priv.mostrarAtividade}
           onChange={toggleSave('privacidade', setPriv, 'mostrarAtividade')}
           last
@@ -418,30 +418,30 @@ export default function Configuracoes() {
       </SectionCard>
     ),
 
-    /* â”€â”€ NotificaÃ§Ãµes â”€â”€ */
+    /* â”€â”€ NotificaçÁµes â”€â”€ */
     notificacoes: (
-      <SectionCard title="NotificaÃ§Ãµes" desc="Escolha quais alertas deseja receber.">
+      <SectionCard title="NotificaçÁµes" desc="Escolha quais alertas deseja receber.">
         <ToggleRow
-          label="NotificaÃ§Ãµes por e-mail"
-          desc="Receba notificaÃ§Ãµes gerais no seu e-mail."
+          label="NotificaçÁµes por e-mail"
+          desc="Receba notificaçÁµes gerais no seu e-mail."
           active={notif.email}
           onChange={toggleSave('notificacoes', setNotif, 'email')}
         />
         <ToggleRow
-          label="CompetiÃ§Ãµes e torneios"
+          label="CompetiçÁµes e torneios"
           desc="Alertas sobre torneios, resultados e convites."
           active={notif.competicoes}
           onChange={toggleSave('notificacoes', setNotif, 'competicoes')}
         />
         <ToggleRow
           label="Certificados"
-          desc="Aviso quando um novo certificado estiver disponÃ­vel."
+          desc="Aviso quando um novo certificado estiver disponível."
           active={notif.certificados}
           onChange={toggleSave('notificacoes', setNotif, 'certificados')}
         />
         <ToggleRow
           label="Novidades da plataforma"
-          desc="ActualizaÃ§Ãµes e comunicados da COMAES."
+          desc="ActualizaçÁµes e comunicados da COMAES."
           active={notif.novidades}
           onChange={toggleSave('notificacoes', setNotif, 'novidades')}
           last
@@ -462,9 +462,9 @@ export default function Configuracoes() {
 
         {/* Page header */}
         <div className="mb-7">
-          <h1 className="text-2xl font-bold text-gray-900">ConfiguraÃ§Ãµes</h1>
+          <h1 className="text-2xl font-bold text-gray-900">ConfiguraçÁµes</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Gerencie a sua seguranÃ§a, preferÃªncias e privacidade.
+            Gerencie a sua segurança, preferÁªncias e privacidade.
           </p>
         </div>
 

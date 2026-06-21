@@ -110,7 +110,7 @@ export default function ComaesModal({
   return createPortal(modal, document.body);
 }
 
-// ─── Button variants ──────────────────────────────────────────────
+//  Button variants 
 
 export function ModalBtnPrimary({ children, onClick, disabled, type = 'button', form, className = '' }) {
   return (

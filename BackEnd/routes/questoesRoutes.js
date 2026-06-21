@@ -27,13 +27,13 @@ import { QuestoesController } from '../controllers/QuestoesController.js';
 
 const router = express.Router();
 
-// ─── ROTAS PÚBLICAS ──────────────────────────────────────────────
+//  ROTAS PÚBLICAS 
 
 // Carregar questões para quiz (PÚBLICA) — suporta torneio_id opcional
 import { carregarQuizComBlocos } from '../controllers/BlocosController.js';
 router.get('/quiz/:area', carregarQuizComBlocos);
 
-// ─── ROTAS COLABORADOR (Wave 3) ──────────────────────────────────
+//  ROTAS COLABORADOR (Wave 3) 
 
 // Task 4.1: Criar questão como colaborador
 router.post('/colaborador/criar', canManageQuestoes, QuestoesController.createQuestao);
@@ -47,7 +47,7 @@ router.put('/colaborador/:id', canManageQuestoes, QuestoesController.updateQuest
 // Task 4.4: Deletar minha questão
 router.delete('/colaborador/:id', canManageQuestoes, QuestoesController.deleteQuestao);
 
-// ─── ROTAS ADMIN (Wave 4) ────────────────────────────────────────
+//  ROTAS ADMIN (Wave 4) 
 
 // Task 5.1: Listar questões pendentes de aprovação
 router.get('/admin/pendentes', isAdmin, QuestoesController.getPendingQuestoes);
@@ -58,7 +58,7 @@ router.put('/:id/aprovar', isAdmin, QuestoesController.approveQuestao);
 // Task 5.3: Rejeitar questão
 router.put('/:id/rejeitar', isAdmin, QuestoesController.rejectQuestao);
 
-// ─── ROTAS PROTEGIDAS (ADMIN OU COLABORADOR) ─────────────────────
+//  ROTAS PROTEGIDAS (ADMIN OU COLABORADOR) 
 
 // Listar todas as questões
 router.get('/', canManageQuestoes, QuestoesController.listarTodas);

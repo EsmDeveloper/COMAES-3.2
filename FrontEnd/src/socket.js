@@ -1,12 +1,12 @@
 ﻿import { io } from 'socket.io-client';
 
-// ConexÃ£o singleton para Socket.IO â€” criada uma vez no carregamento do bundle
+// Conexão singleton para Socket.IO â€” criada uma vez no carregamento do bundle
 const SOCKET_URL = `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}`;
 
 const socket = io(SOCKET_URL, {
   autoConnect: true,
   reconnectionAttempts: 5,
-  transports: ['websocket'] // forÃ§a websocket (evita xhr polling que estÃ¡ retornando 404)
+  transports: ['websocket'] // força websocket (evita xhr polling que está retornando 404)
 });
 
 socket.on('connect', () => {

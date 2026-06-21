@@ -21,13 +21,13 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function criarBlocosMatematica() {
   try {
-    console.log('═══════════════════════════════════════════════════════════');
+    console.log('');
     console.log('🧪 TEST: Criar Blocos de Questões de Matemática');
-    console.log('═══════════════════════════════════════════════════════════\n');
+    console.log('\n');
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // 
     // PASSO 1: Encontrar colaborador aprovado de Matemática
-    // ─────────────────────────────────────────────────────────────────────────
+    // 
     
     console.log('1️⃣  Buscando colaborador aprovado de Matemática...\n');
     
@@ -84,9 +84,9 @@ async function criarBlocosMatematica() {
 
 async function criarBlocosComColaborador(colaborador) {
   try {
-    // ─────────────────────────────────────────────────────────────────────────
+    // 
     // PASSO 2: Criar questões de Matemática
-    // ─────────────────────────────────────────────────────────────────────────
+    // 
     
     console.log('2️⃣  Criando questões de Matemática...\n');
 
@@ -190,9 +190,9 @@ async function criarBlocosComColaborador(colaborador) {
 
     console.log(`\n✅ Total de questões criadas: ${questoesCriadas.length}\n`);
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // 
     // PASSO 3: Criar blocos de questões
-    // ─────────────────────────────────────────────────────────────────────────
+    // 
     
     console.log('3️⃣  Criando blocos de questões...\n');
 
@@ -272,9 +272,9 @@ async function criarBlocosComColaborador(colaborador) {
       console.log(`   Status: ${bloco.status}\n`);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // 
     // PASSO 4: Verificar fluxo
-    // ─────────────────────────────────────────────────────────────────────────
+    // 
     
     console.log('4️⃣  Verificando fluxo de aprovação...\n');
 
@@ -295,13 +295,13 @@ async function criarBlocosComColaborador(colaborador) {
     console.log(`   Total de questões (Matemática): ${questoesPublicadas}`);
     console.log(`   Colaborador: ${colaborador.nome} (ID: ${colaborador.id})\n`);
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // 
     // PASSO 5: Resumo Final
-    // ─────────────────────────────────────────────────────────────────────────
+    // 
     
-    console.log('═══════════════════════════════════════════════════════════');
+    console.log('');
     console.log('✅ TESTE CONCLUÍDO COM SUCESSO');
-    console.log('═══════════════════════════════════════════════════════════\n');
+    console.log('\n');
 
     console.log('📋 RESUMO:');
     console.log(`   ✅ Questões criadas: ${questoesCriadas.length}`);

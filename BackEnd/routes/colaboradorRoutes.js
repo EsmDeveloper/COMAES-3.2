@@ -41,7 +41,7 @@ const verificarColaboradorAprovado = (req, res, next) => {
 router.use(canManageQuestoes);
 router.use(verificarColaboradorAprovado);
 
-// ── Endpoints de Questões ────────────────────────────────────────────────
+// ── Endpoints de Questões 
 // O CRUD de /questoes fica em colaboradorBlocosQuestoesRoutes, que tem o fluxo
 // completo de aprovacao, edicao, exclusao e submissao.
 router.get('/estatisticas', ColaboradorController.estatisticas);
@@ -49,7 +49,7 @@ router.get('/questoes', ColaboradorController.minhasQuestoes);
 router.post('/questoes', ColaboradorController.criarQuestao);
 router.get('/perfil', ColaboradorController.perfil);
 
-// ── Endpoints de Blocos (NOVO) ───────────────────────────────────────────
+// ── Endpoints de Blocos (NOVO) 
 router.post('/blocos', criarBlocoColaborador);
 router.get('/blocos', listarBlocosColaborador);
 router.get('/blocos/:id', obterBlocoColaborador);

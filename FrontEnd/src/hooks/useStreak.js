@@ -3,7 +3,7 @@
  *
  * Uso:
  *   const { streak, maximo, ativa, loading, registar } = useStreak();
- *   // Chamar registar() apÃ³s qualquer atividade educativa para atualizar o streak
+ *   // Chamar registar() após qualquer atividade educativa para atualizar o streak
  */
 
 import { useState, useEffect, useCallback } from 'react';

@@ -5,7 +5,7 @@ import cornelioImg from '../../assets/cornelio.jpg';
 import esmImg from '../../assets/esm.png';
 import maricheImg from '../../assets/mariche.png';
 
-/* ─── Design tokens ──────────────────────────────────────────── */
+/*  Design tokens  */
 const t = {
   primary:     '#4F6EF7',
   primarySoft: '#EEF1FE',
@@ -32,7 +32,7 @@ const card = {
   boxShadow: '0 2px 12px rgba(15,17,23,0.05)',
 };
 
-/* ─── Data ───────────────────────────────────────────────────── */
+/*  Data  */
 const offerings = [
   { emoji: '📚', title: 'Testes Diversificados',       description: 'Questões em múltiplas áreas do conhecimento, desde programação até história, com diferentes níveis de dificuldade.', accent: t.primary,  soft: t.primarySoft },
   { emoji: '📊', title: 'Acompanhamento de Progresso', description: 'Dashboard completo com gráficos e estatísticas para monitorar seu desenvolvimento ao longo do tempo.',                accent: t.success,  soft: t.successSoft },
@@ -82,7 +82,7 @@ const values = [
   { title: 'Excelência Técnica', desc: 'Utilizar tecnologias modernas (React, Node, MySQL) e boas práticas de engenharia de software.', accent: t.primary },
 ];
 
-/* ─── Section header helper ──────────────────────────────────── */
+/*  Section header helper  */
 function SectionHeader({ title, subtitle, center = true }) {
   return (
     <div style={{  textAlign: center ? 'center' : 'left', marginBottom: 36  }}>
@@ -92,7 +92,7 @@ function SectionHeader({ title, subtitle, center = true }) {
   );
 }
 
-/* ─── Component ──────────────────────────────────────────────── */
+/*  Component  */
 export default function About() {
   return (
     <Layout>

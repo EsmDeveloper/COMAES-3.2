@@ -12,9 +12,9 @@ import BlocoQuestoes from '../models/BlocoQuestoes.js';
 import Usuario from '../models/User.js';
 import { Op } from 'sequelize';
 
-// ────────────────────────────────────────────────────────────────────────────
+// 
 // HELPER FUNCTIONS
-// ────────────────────────────────────────────────────────────────────────────
+// 
 
 /**
  * Resposta padrão de sucesso
@@ -181,9 +181,9 @@ const validarDadosBloco = (dados, isEdicao = false) => {
   return erros;
 };
 
-// ════════════════════════════════════════════════════════════════════════════
+// 
 // BLOCOS - ENDPOINTS DO COLABORADOR
-// ════════════════════════════════════════════════════════════════════════════
+// 
 
 /**
  * POST /api/colaborador/blocos
@@ -519,11 +519,11 @@ export const adicionarQuestaoAoBlocoColaborador = async (req, res) => {
     });
 
     if (!bloco) {
-      console.error(`❌ Bloco não encontrado: id=${id}, criado_por=${req.user.id}, disciplina=${req.user.disciplina_colaborador}`);
+      console.error(`[ERROR] Bloco não encontrado: id=${id}, criado_por=${req.user.id}, disciplina=${req.user.disciplina_colaborador}`);
       return respostaErro(res, 404, 'Bloco não encontrado');
     }
 
-    console.log(`✅ Bloco encontrado: ${bloco.id}, status: ${bloco.status}`);
+    console.log(`[SUCCESS] Bloco encontrado: ${bloco.id}, status: ${bloco.status}`);
 
     // ⚠️ Pode adicionar questões apenas se bloco está em 'pendente'
     if (bloco.status !== 'pendente') {
@@ -541,16 +541,16 @@ export const adicionarQuestaoAoBlocoColaborador = async (req, res) => {
     });
 
     if (!questao) {
-      console.error(`❌ Questão não encontrada: id=${questaoId}, autor_id=${req.user.id}, disciplina=${req.user.disciplina_colaborador}`);
+      console.error(`[ERROR] Questão não encontrada: id=${questaoId}, autor_id=${req.user.id}, disciplina=${req.user.disciplina_colaborador}`);
       return respostaErro(res, 404, 'Questão não encontrada ou não pertence a você');
     }
 
-    console.log(`✅ Questão encontrada: ${questao.id}, bloco_id atual: ${questao.bloco_id}`);
+    console.log(`[SUCCESS] Questão encontrada: ${questao.id}, bloco_id atual: ${questao.bloco_id}`);
 
     // ⚠️ Questão já está em um bloco diferente? Se sim, remover de lá primeiro
     // (Permitir reasociação entre blocos)
     if (questao.bloco_id && questao.bloco_id !== parseInt(id)) {
-      console.warn(`⚠️ Questão já estava associada ao bloco ${questao.bloco_id}, reassociando para ${id}`);
+      console.warn(`[WARNING] Questão já estava associada ao bloco ${questao.bloco_id}, reassociando para ${id}`);
       // Continuar e reasociar
     }
 
@@ -568,10 +568,10 @@ export const adicionarQuestaoAoBlocoColaborador = async (req, res) => {
     questao.bloco_id = id;
     await questao.save();
 
-    console.log(`✅ Questão adicionada ao bloco com sucesso: questão_id=${questao.id}, bloco_id=${id}`);
+    console.log(`[SUCCESS] Questão adicionada ao bloco com sucesso: questão_id=${questao.id}, bloco_id=${id}`);
     respostaSucesso(res, 200, questao, 'Questão adicionada ao bloco com sucesso');
   } catch (error) {
-    console.error('❌ Erro ao adicionar questão ao bloco:', error);
+    console.error('[ERROR] Erro ao adicionar questão ao bloco:', error);
     respostaErro(res, 500, 'Erro ao adicionar questão', { detalhes: error.message });
   }
 };
@@ -629,9 +629,9 @@ export const removerQuestaoDoBlocoColaborador = async (req, res) => {
   }
 };
 
-// ════════════════════════════════════════════════════════════════════════════
+// 
 // QUESTÕES - ENDPOINTS DO COLABORADOR
-// ════════════════════════════════════════════════════════════════════════════
+// 
 
 /**
  * POST /api/colaborador/questoes
@@ -991,9 +991,9 @@ export const submeterQuestaoColaborador = async (req, res) => {
   }
 };
 
-// ════════════════════════════════════════════════════════════════════════════
+// 
 // ADMIN - ENDPOINTS DE APROVAÇÃO
-// ════════════════════════════════════════════════════════════════════════════
+// 
 
 /**
  * GET /api/admin/blocos-colaboradores-pendentes
@@ -1440,7 +1440,7 @@ export const listarQuestoesColaboradorAdmin = async (req, res) => {
       'Questões do colaborador listadas com sucesso'
     );
   } catch (error) {
-    console.error('❌ Erro ao listar questões do colaborador:', error);
+    console.error('[ERROR] Erro ao listar questões do colaborador:', error);
     return respostaErro(res, 500, 'Erro ao listar questões do colaborador', { detalhes: error.message });
   }
 };

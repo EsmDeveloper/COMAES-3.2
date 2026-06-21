@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import CertificatePreview from '../preview/CertificatePreview';
 import { Award, Loader2 } from 'lucide-react';
@@ -30,7 +30,7 @@ const MeusCertificados = () => {
           setError(data.error || 'Erro ao carregar certificados');
         }
       } catch (err) {
-        setError('Erro de conexÃ£o ao carregar certificados');
+        setError('Erro de conexão ao carregar certificados');
       } finally {
         setLoading(false);
       }
@@ -102,10 +102,10 @@ const MeusCertificados = () => {
                     <div>
                       <h4 className="font-bold text-lg mb-1">{cert.torneio?.titulo || 'Torneio'}</h4>
                       <p className={`text-sm ${selectedCert?.id === cert.id ? 'text-blue-100' : 'text-gray-500'}`}>
-                        Ãrea: {cert.disciplina}
+                        Ãrea: {cert.disciplina}
                       </p>
                       <p className={`text-sm font-medium mt-2 ${selectedCert?.id === cert.id ? 'text-white' : 'text-gray-700'}`}>
-                        {cert.ranking_position}Âº Lugar â€¢ {cert.score} pts
+                        {cert.ranking_position}º Lugar • {cert.score} pts
                       </p>
                     </div>
                   </div>

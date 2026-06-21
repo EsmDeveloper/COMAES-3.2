@@ -3,7 +3,7 @@ import sequelize from './config/db.js';
 (async () => {
   try {
     await sequelize.authenticate();
-    console.log('✅ Conectado ao banco de dados\n');
+    console.log('[SUCCESS] Conectado ao banco de dados\n');
 
     // Tabelas principais
     const tables = [
@@ -17,7 +17,7 @@ import sequelize from './config/db.js';
       'roles'
     ];
 
-    console.log('📊 Status da Base de Dados:\n');
+    console.log('[CHART] Status da Base de Dados:\n');
 
     for (const table of tables) {
       try {
@@ -28,11 +28,11 @@ import sequelize from './config/db.js';
         const status = total > 0 ? '✅' : '❌';
         console.log(`${status} ${table.padEnd(20)} → ${total} registos`);
       } catch (err) {
-        console.log(`❌ ${table.padEnd(20)} → Tabela não existe`);
+        console.log(`[ERROR] ${table.padEnd(20)} → Tabela não existe`);
       }
     }
 
-    console.log('\n📋 Detalhes específicos:\n');
+    console.log('\n[LIST] Detalhes específicos:\n');
 
     // Usuários
     const [users] = await sequelize.query('SELECT COUNT(*) as total FROM usuarios');
@@ -41,7 +41,7 @@ import sequelize from './config/db.js';
     // Disciplinas
     try {
       const [disc] = await sequelize.query('SELECT COUNT(*) as total FROM disciplinas');
-      console.log(`📚 Total de Disciplinas: ${disc[0].total}`);
+      console.log(`[BOOK] Total de Disciplinas: ${disc[0].total}`);
       
       if (disc[0].total > 0) {
         const [disciplinas] = await sequelize.query('SELECT id, nome FROM disciplinas');
@@ -51,7 +51,7 @@ import sequelize from './config/db.js';
         });
       }
     } catch (err) {
-      console.log(`📚 Disciplinas: Tabela não existe`);
+      console.log(`[BOOK] Disciplinas: Tabela não existe`);
     }
 
     // Blocos
@@ -81,7 +81,7 @@ import sequelize from './config/db.js';
     // Torneios
     try {
       const [torn] = await sequelize.query('SELECT COUNT(*) as total FROM torneios');
-      console.log(`🏆 Total de Torneios: ${torn[0].total}`);
+      console.log(`[TROPHY] Total de Torneios: ${torn[0].total}`);
       
       if (torn[0].total > 0) {
         const [torns] = await sequelize.query('SELECT id, nome, status FROM torneios LIMIT 3');
@@ -91,21 +91,21 @@ import sequelize from './config/db.js';
         });
       }
     } catch (err) {
-      console.log(`🏆 Torneios: Tabela não existe`);
+      console.log(`[TROPHY] Torneios: Tabela não existe`);
     }
 
     // Notificações
     try {
       const [notif] = await sequelize.query('SELECT COUNT(*) as total FROM notificacoes');
-      console.log(`🔔 Total de Notificações: ${notif[0].total}`);
+      console.log(`[NOTIFY] Total de Notificações: ${notif[0].total}`);
     } catch (err) {
-      console.log(`🔔 Notificações: Tabela não existe`);
+      console.log(`[NOTIFY] Notificações: Tabela não existe`);
     }
 
-    console.log('\n✅ Verificação completa!');
+    console.log('\n[SUCCESS] Verificação completa!');
     process.exit(0);
   } catch (err) {
-    console.error('❌ Erro:', err.message);
+    console.error('[ERROR] Erro:', err.message);
     process.exit(1);
   }
 })();

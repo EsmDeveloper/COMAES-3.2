@@ -367,7 +367,7 @@ function AuthContainer({ initialMode = "login" }) {
     return telefone;
   };
 
-  // ── Modos especiais (colaborador e aprovação pendente) ──────────
+  // ── Modos especiais (colaborador e aprovação pendente) 
   if (showWaitingScreen) {
     return (
       <WaitingScreen

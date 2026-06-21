@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import ComaesModal, { ModalBtnCancel, ModalBtnPrimary, ModalBtnDanger } from '../components/ComaesModal';
 
-// ── Password strength ─────────────────────────────────────────
+// ── Password strength 
 function getPasswordStrength(pwd) {
   if (!pwd) return { score: 0, label: '', color: '', pct: 0 };
   let score = 0;
@@ -31,7 +31,7 @@ function getPasswordStrength(pwd) {
   return             { score, label: 'Forte', color: '#10B981', pct: 100 };
 }
 
-// ── Field wrapper ─────────────────────────────────────────────
+// ── Field wrapper 
 function Field({ label, required, error, hint, children }) {
   return (
     <div className="space-y-1">
@@ -61,7 +61,7 @@ const ESCOLAS = [
   'Instituto Médio Politécnico Alda Lara - IMPAL',
 ];
 
-// ── Account-type toggle (only shown on create mode) ───────────
+// ── Account-type toggle (only shown on create mode) 
 function AccountTypeToggle({ value, onChange, disabled }) {
   const opts = [
     {
@@ -123,7 +123,7 @@ function AccountTypeToggle({ value, onChange, disabled }) {
   );
 }
 
-// ── Password field with show/hide + strength bar ──────────────
+// ── Password field with show/hide + strength bar 
 function PwdField({ label, name, value, onChange, onBlur, touched, error, showPwd, onToggleShow, required, placeholder }) {
   const strength = getPasswordStrength(value);
   return (
@@ -159,7 +159,7 @@ function PwdField({ label, name, value, onChange, onBlur, touched, error, showPw
   );
 }
 
-// ── Main component ────────────────────────────────────────────
+// ── Main component 
 export default function UserModal({ mode, item, currentUser, onClose, onSubmit }) {
   const isCreate = mode === 'create';
   const isEdit   = mode === 'edit';
@@ -222,7 +222,7 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
     setForm(prev => ({ ...prev, role: type === 'user' ? 'estudante' : type, password: '', confirmPassword: '' }));
   };
 
-  // ── Per-field validation ──────────────────────────────────
+  // ── Per-field validation 
   const validateField = useCallback((name, value, formState = form) => {
     const isAdminCreate = isCreate && accountType === 'admin';
     switch (name) {
@@ -275,7 +275,7 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
     setErrors(prev => ({ ...prev, [name]: validateField(name, value) }));
   };
 
-  // ── Full form validation ──────────────────────────────────
+  // ── Full form validation 
   const validateAll = () => {
     let fields;
     if (isReset) {
@@ -300,7 +300,7 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
     return Object.keys(newErrors).length === 0;
   };
 
-  // ── Submit ────────────────────────────────────────────────
+  // ── Submit 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -372,7 +372,7 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
     }
   };
 
-  // ── Modal meta ────────────────────────────────────────────
+  // ── Modal meta 
   const isAdminCreate = isCreate && accountType === 'admin';
   const isColaboradorCreate = isCreate && accountType === 'colaborador';
 
@@ -444,7 +444,7 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
     </>
   );
 
-  // ── Render ────────────────────────────────────────────────
+  // ── Render 
   return (
     <ComaesModal
       isOpen

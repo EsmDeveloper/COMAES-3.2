@@ -184,7 +184,7 @@ try {
   );
 
   // Test 7.1.6: Disciplina must exist in database
-  console.log('\n🗂️  Test 7.1.6: Validate disciplina exists in database');
+  console.log('\n  Test 7.1.6: Validate disciplina exists in database');
   const mockStudentUser = {
     id: 5,
     nome: 'Student User',

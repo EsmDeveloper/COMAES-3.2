@@ -1,4 +1,4 @@
-﻿/**
+/**
  * AdminBlocosColaboradoresPendentesTab.jsx - FASE 3
  * 
  * Admin interface for reviewing and approving/rejecting blocos created by colaboradores
@@ -18,9 +18,9 @@ import {
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // STATUS BADGE COMPONENT
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 const StatusBadge = ({ status }) => {
   switch (status) {
@@ -47,9 +47,9 @@ const StatusBadge = ({ status }) => {
   }
 };
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // APPROVAL MODAL
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 const ApprovalModal = ({ bloco, onApprove, onCancel, carregando }) => {
   const [observacoes, setObservacoes] = useState('');
@@ -76,12 +76,12 @@ const ApprovalModal = ({ bloco, onApprove, onCancel, carregando }) => {
           {/* Observations Field */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              ObservaÃ§Ãµes (Opcional)
+              ObservaçÃµes (Opcional)
             </label>
             <textarea
               value={observacoes}
               onChange={e => setObservacoes(e.target.value)}
-              placeholder="Digite suas observaÃ§Ãµes sobre este bloco..."
+              placeholder="Digite suas observaçÃµes sobre este bloco..."
               rows="4"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
             />
@@ -111,9 +111,9 @@ const ApprovalModal = ({ bloco, onApprove, onCancel, carregando }) => {
   );
 };
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // REJECTION MODAL
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 const RejectionModal = ({ bloco, onReject, onCancel, carregando }) => {
   const [motivo, setMotivo] = useState('');
@@ -122,7 +122,7 @@ const RejectionModal = ({ bloco, onReject, onCancel, carregando }) => {
 
   const handleReject = () => {
     if (!motivo.trim()) {
-      setErro('O motivo da rejeiÃ§Ã£o Ã© obrigatÃ³rio');
+      setErro('O motivo da rejeição é obrigatório');
       return;
     }
     onReject(bloco.id, motivo, observacoes);
@@ -153,7 +153,7 @@ const RejectionModal = ({ bloco, onReject, onCancel, carregando }) => {
           {/* Motivo Field (Required) */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              Motivo da RejeiÃ§Ã£o <span className="text-red-600">*</span>
+              Motivo da Rejeição <span className="text-red-600">*</span>
             </label>
             <textarea
               value={motivo}
@@ -161,21 +161,21 @@ const RejectionModal = ({ bloco, onReject, onCancel, carregando }) => {
                 setMotivo(e.target.value);
                 setErro(null);
               }}
-              placeholder="Explique por que este bloco estÃ¡ sendo rejeitado..."
+              placeholder="Explique por que este bloco está sendo rejeitado..."
               rows="3"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
             />
           </div>
 
-          {/* ObservaÃ§Ãµes Field (Optional) */}
+          {/* ObservaçÃµes Field (Optional) */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              ObservaÃ§Ãµes Adicionais (Opcional)
+              ObservaçÃµes Adicionais (Opcional)
             </label>
             <textarea
               value={observacoes}
               onChange={e => setObservacoes(e.target.value)}
-              placeholder="Deixe sugestÃµes ou comentÃ¡rios adicionais..."
+              placeholder="Deixe sugestÃµes ou comentários adicionais..."
               rows="2"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
             />
@@ -205,9 +205,9 @@ const RejectionModal = ({ bloco, onReject, onCancel, carregando }) => {
   );
 };
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // DETAILS MODAL
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 const DetailsModal = ({ bloco, onClose }) => {
   return (
@@ -217,15 +217,15 @@ const DetailsModal = ({ bloco, onClose }) => {
           <h3 className="text-lg font-bold text-slate-900 mb-4">Detalhes do Bloco</h3>
 
           <div className="space-y-4">
-            {/* TÃ­tulo */}
+            {/* Título */}
             <div>
-              <p className="text-sm font-medium text-slate-700">TÃ­tulo</p>
+              <p className="text-sm font-medium text-slate-700">Título</p>
               <p className="text-slate-900">{bloco.titulo}</p>
             </div>
 
-            {/* DescriÃ§Ã£o */}
+            {/* Descrição */}
             <div>
-              <p className="text-sm font-medium text-slate-700">DescriÃ§Ã£o</p>
+              <p className="text-sm font-medium text-slate-700">Descrição</p>
               <p className="text-slate-900 whitespace-pre-wrap">{bloco.descricao}</p>
             </div>
 
@@ -247,9 +247,9 @@ const DetailsModal = ({ bloco, onClose }) => {
               <p className="text-slate-900">{bloco.criador?.name} ({bloco.criador?.email})</p>
             </div>
 
-            {/* Data CriaÃ§Ã£o */}
+            {/* Data Criação */}
             <div>
-              <p className="text-sm font-medium text-slate-700">Data de CriaÃ§Ã£o</p>
+              <p className="text-sm font-medium text-slate-700">Data de Criação</p>
               <p className="text-slate-900">{new Date(bloco.created_at).toLocaleString('pt-BR')}</p>
             </div>
 
@@ -259,18 +259,18 @@ const DetailsModal = ({ bloco, onClose }) => {
               <StatusBadge status={bloco.status} />
             </div>
 
-            {/* Motivo de RejeiÃ§Ã£o */}
+            {/* Motivo de Rejeição */}
             {bloco.motivo_rejeicao && (
               <div className="p-3 bg-red-50 rounded-lg border border-red-200">
-                <p className="text-sm font-medium text-red-900 mb-1">Motivo da RejeiÃ§Ã£o</p>
+                <p className="text-sm font-medium text-red-900 mb-1">Motivo da Rejeição</p>
                 <p className="text-sm text-red-800">{bloco.motivo_rejeicao}</p>
               </div>
             )}
 
-            {/* ObservaÃ§Ãµes Admin */}
+            {/* ObservaçÃµes Admin */}
             {bloco.observacoes_admin && (
               <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm font-medium text-blue-900 mb-1">ObservaÃ§Ãµes do Admin</p>
+                <p className="text-sm font-medium text-blue-900 mb-1">ObservaçÃµes do Admin</p>
                 <p className="text-sm text-blue-800">{bloco.observacoes_admin}</p>
               </div>
             )}
@@ -291,9 +291,9 @@ const DetailsModal = ({ bloco, onClose }) => {
   );
 };
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // MAIN COMPONENT
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 const AdminBlocosColaboradoresPendentesTab = ({ token }) => {
   const [blocos, setBlocos] = useState([]);
@@ -405,7 +405,7 @@ const AdminBlocosColaboradoresPendentesTab = ({ token }) => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-slate-800">Blocos de Colaboradores - RevisÃ£o</h2>
+        <h2 className="text-2xl font-bold text-slate-800">Blocos de Colaboradores - Revisão</h2>
         <p className="text-gray-600">Revise e aprove/rejeite blocos criados por colaboradores</p>
       </div>
 
@@ -459,9 +459,9 @@ const AdminBlocosColaboradoresPendentesTab = ({ token }) => {
           className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Todas as Disciplinas</option>
-          <option value="matematica">MatemÃ¡tica</option>
+          <option value="matematica">Matemática</option>
           <option value="ingles">InglÃªs</option>
-          <option value="programacao">ProgramaÃ§Ã£o</option>
+          <option value="programacao">Programação</option>
         </select>
 
         {/* Search */}
@@ -469,7 +469,7 @@ const AdminBlocosColaboradoresPendentesTab = ({ token }) => {
           <Search size={18} className="absolute left-3 top-3 text-gray-400" />
           <input
             type="text"
-            placeholder="Buscar por tÃ­tulo..."
+            placeholder="Buscar por título..."
             value={busca}
             onChange={e => {
               setBusca(e.target.value);
@@ -494,12 +494,12 @@ const AdminBlocosColaboradoresPendentesTab = ({ token }) => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">TÃ­tulo</th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">Título</th>
                 <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">Colaborador</th>
                 <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">Disciplina</th>
                 <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">Status</th>
                 <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">Data</th>
-                <th className="px-6 py-3 text-right text-sm font-medium text-slate-700">AÃ§Ãµes</th>
+                <th className="px-6 py-3 text-right text-sm font-medium text-slate-700">AçÃµes</th>
               </tr>
             </thead>
             <tbody>

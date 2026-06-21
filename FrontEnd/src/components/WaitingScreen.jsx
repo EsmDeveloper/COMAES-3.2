@@ -14,14 +14,14 @@ const WaitingScreen = ({ userEmail, onApproved, onRejected }) => {
   useSocketColaboradorStatus({
     userId: userData?.id,
     onAprovado: (data) => {
-      console.log('✅ Aprovação recebida via Socket.IO:', data);
+      console.log('[SUCCESS] Aprovação recebida via Socket.IO:', data);
       setStatus('approved');
       setTimeout(() => {
         onApproved?.();
       }, 2000);
     },
     onRejeitado: (data) => {
-      console.log('❌ Rejeição recebida via Socket.IO:', data);
+      console.log('[ERROR] Rejeição recebida via Socket.IO:', data);
       setStatus('rejected');
       setMessage('Sua solicitação foi rejeitada. Entre em contato com o administrador.');
       setTimeout(() => {
@@ -131,7 +131,7 @@ const WaitingScreen = ({ userEmail, onApproved, onRejected }) => {
             {userData && (
               <div className="user-data-section">
                 <div className="user-data-header">
-                  <h3 className="user-data-title">📋 Seus Dados Registados</h3>
+                  <h3 className="user-data-title">[LIST] Seus Dados Registados</h3>
                   <button 
                     onClick={() => setShowDetails(!showDetails)}
                     className="user-data-toggle"
@@ -256,7 +256,7 @@ const WaitingScreen = ({ userEmail, onApproved, onRejected }) => {
 
             {/* Tips */}
             <div className="tips-box">
-              <p className="tips-title">💡 Dica</p>
+              <p className="tips-title">[IDEA] Dica</p>
               <p className="tips-text">
                 Mantenha esta página aberta. Você será redirecionado automaticamente
                 assim que sua solicitação for aprovada.
@@ -271,7 +271,7 @@ const WaitingScreen = ({ userEmail, onApproved, onRejected }) => {
               <CheckCircle className="success-icon" />
             </div>
 
-            <h1 className="success-title">🎉 Parabéns!</h1>
+            <h1 className="success-title">[CELEBRATE] Parabéns!</h1>
             <p className="success-subtitle">
               Sua solicitação foi aprovada pelo administrador
             </p>

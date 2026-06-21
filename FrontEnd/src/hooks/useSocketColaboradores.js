@@ -1,8 +1,8 @@
-﻿/**
+/**
  * useSocketColaboradores.js
  *
  * Hook customizado para escutar eventos de Socket.IO relacionados a colaboradores
- * Permite que o admin receba atualizaÃ§Ãµes em tempo real sem fazer polling
+ * Permite que o admin receba atualizaçÃµes em tempo real sem fazer polling
  *
  * Eventos:
  * - novo_colaborador_pendente: Um novo colaborador se registou
@@ -42,18 +42,18 @@ export const useSocketColaboradores = ({
           transports: ['websocket', 'polling']
         });
 
-        // Eventos de conexÃ£o
+        // Eventos de conexão
         socket.on('connect', () => {
           console.log('âœ… Socket.IO conectado (colaboradores)');
         });
 
         socket.on('disconnect', () => {
-          console.log('âŒ Socket.IO desconectado');
+          console.log('âŒ Socket.IO desconectado');
         });
 
         // Evento: Novo colaborador pendente
         socket.on('novo_colaborador_pendente', (data) => {
-          console.log('ðŸ“¢ Novo colaborador pendente:', data);
+          console.log(' Novo colaborador pendente:', data);
           if (onNovoColaborador) {
             onNovoColaborador(data);
           }
@@ -69,7 +69,7 @@ export const useSocketColaboradores = ({
 
         // Evento: Colaborador rejeitado
         socket.on('colaborador_rejeitado', (data) => {
-          console.log('âŒ Colaborador rejeitado:', data);
+          console.log('âŒ Colaborador rejeitado:', data);
           if (onRejeitado) {
             onRejeitado(data);
           }
@@ -77,15 +77,15 @@ export const useSocketColaboradores = ({
 
         // Evento: Colaborador suspenso
         socket.on('colaborador_suspenso', (data) => {
-          console.log('ðŸš« Colaborador suspenso:', data);
+          console.log(' Colaborador suspenso:', data);
           if (onSuspenso) {
             onSuspenso(data);
           }
         });
 
-        // Evento: AtualizaÃ§Ã£o geral de colaboradores
+        // Evento: Atualização geral de colaboradores
         socket.on('atualizacao_colaboradores', (data) => {
-          console.log('ðŸ”„ AtualizaÃ§Ã£o de colaboradores:', data);
+          console.log(' Atualização de colaboradores:', data);
           if (onAtualizacao) {
             onAtualizacao(data);
           }
@@ -93,7 +93,7 @@ export const useSocketColaboradores = ({
 
         // Tratamento de erros
         socket.on('error', (error) => {
-          console.error('âŒ Erro Socket.IO:', error);
+          console.error('âŒ Erro Socket.IO:', error);
         });
       }
     } catch (err) {
@@ -105,7 +105,7 @@ export const useSocketColaboradores = ({
     if (socket?.connected) {
       socket.disconnect();
       socket = null;
-      console.log('ðŸ”Œ Socket.IO desconectado');
+      console.log(' Socket.IO desconectado');
     }
   }, []);
 
@@ -114,8 +114,8 @@ export const useSocketColaboradores = ({
       connect();
     }
     return () => {
-      // NÃ£o desconectar ao unmount para evitar reconexÃµes contÃ­nuas
-      // A desconexÃ£o manual pode ser chamada quando necessÃ¡rio
+      // Não desconectar ao unmount para evitar reconexÃµes contínuas
+      // A desconexão manual pode ser chamada quando necessário
     };
   }, [enabled, connect]);
 

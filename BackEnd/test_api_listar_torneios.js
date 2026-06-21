@@ -23,7 +23,7 @@ async function testarAPIListarTorneios() {
     });
 
     // Converter para JSON (como a API faz)
-    console.log('\n════════════════════════════════════════════════════════════');
+    console.log('\n');
     console.log('📤 Response JSON (como a API retorna):\n');
     const jsonResponse = torneos.map(t => {
       const json = typeof t.toJSON === 'function' ? t.toJSON() : { ...t };

@@ -1,7 +1,7 @@
 ﻿/**
  * AdminQuestionsColaboradorPendentesTab.jsx - FASE 3
  * 
- * Admin interface for reviewing and approving/rejecting questÃµes created by colaboradores
+ * Admin interface for reviewing and approving/rejecting questões created by colaboradores
  * Similar structure to AdminBlocosColaboradoresPendentesTab but for questions
  */
 
@@ -44,18 +44,18 @@ const ApprovalModal = ({ questao, onApprove, onCancel, carregando }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-96 overflow-y-auto">
         <div className="p-6">
-          <h3 className="text-lg font-bold text-slate-900 mb-4">Aprovar QuestÃ£o</h3>
+          <h3 className="text-lg font-bold text-slate-900 mb-4">Aprovar Questão</h3>
           <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-sm font-medium text-blue-900 mb-2">{questao.titulo}</p>
             <p className="text-xs text-blue-800 mb-2">Tipo: <span className="capitalize">{questao.tipo}</span></p>
             <p className="text-xs text-blue-700">Por: <span className="font-semibold">{questao.autor?.name}</span></p>
           </div>
           <div className="mb-6">
-            <label className="block text-sm font-medium text-slate-700 mb-2">ObservaÃ§Ãµes (Opcional)</label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Observações (Opcional)</label>
             <textarea
               value={observacoes}
               onChange={e => setObservacoes(e.target.value)}
-              placeholder="Digite suas observaÃ§Ãµes..."
+              placeholder="Digite suas observações..."
               rows="4"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
             />
@@ -92,7 +92,7 @@ const RejectionModal = ({ questao, onReject, onCancel, carregando }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-96 overflow-y-auto">
         <div className="p-6">
-          <h3 className="text-lg font-bold text-slate-900 mb-4">Rejeitar QuestÃ£o</h3>
+          <h3 className="text-lg font-bold text-slate-900 mb-4">Rejeitar Questão</h3>
           <div className="mb-6 p-4 bg-red-50 rounded-lg border border-red-200">
             <p className="text-sm font-medium text-red-900 mb-2">{questao.titulo}</p>
             <p className="text-xs text-red-800">Por: <span className="font-semibold">{questao.autor?.name}</span></p>
@@ -100,22 +100,22 @@ const RejectionModal = ({ questao, onReject, onCancel, carregando }) => {
           {erro && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-800 rounded text-sm">{erro}</div>}
           <div className="mb-4">
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              Motivo da RejeiÃ§Ã£o <span className="text-red-600">*</span>
+              Motivo da Rejeição <span className="text-red-600">*</span>
             </label>
             <textarea
               value={motivo}
               onChange={e => { setMotivo(e.target.value); setErro(null); }}
-              placeholder="Explique por que esta questÃ£o estÃ¡ sendo rejeitada..."
+              placeholder="Explique por que esta questão está sendo rejeitada..."
               rows="3"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
             />
           </div>
           <div className="mb-6">
-            <label className="block text-sm font-medium text-slate-700 mb-2">ObservaÃ§Ãµes (Opcional)</label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Observações (Opcional)</label>
             <textarea
               value={observacoes}
               onChange={e => setObservacoes(e.target.value)}
-              placeholder="Deixe sugestÃµes..."
+              placeholder="Deixe sugestões..."
               rows="2"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
             />
@@ -123,7 +123,7 @@ const RejectionModal = ({ questao, onReject, onCancel, carregando }) => {
           <div className="flex gap-3">
             <button
               onClick={() => {
-                if (!motivo.trim()) { setErro('Motivo Ã© obrigatÃ³rio'); return; }
+                if (!motivo.trim()) { setErro('Motivo é obrigatório'); return; }
                 onReject(questao.id, motivo, observacoes);
               }}
               disabled={carregando}
@@ -151,17 +151,17 @@ const DetailsModal = ({ questao, onClose }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-96 overflow-y-auto">
         <div className="p-6">
-          <h3 className="text-lg font-bold text-slate-900 mb-4">Detalhes da QuestÃ£o</h3>
+          <h3 className="text-lg font-bold text-slate-900 mb-4">Detalhes da Questão</h3>
           <div className="space-y-4">
-            <div><p className="text-sm font-medium text-slate-700">TÃ­tulo</p><p className="text-slate-900">{questao.titulo}</p></div>
-            <div><p className="text-sm font-medium text-slate-700">DescriÃ§Ã£o</p><p className="text-slate-900 whitespace-pre-wrap">{questao.descricao}</p></div>
+            <div><p className="text-sm font-medium text-slate-700">Título</p><p className="text-slate-900">{questao.titulo}</p></div>
+            <div><p className="text-sm font-medium text-slate-700">Descrição</p><p className="text-slate-900 whitespace-pre-wrap">{questao.descricao}</p></div>
             <div><p className="text-sm font-medium text-slate-700">Tipo</p><p className="text-slate-900 capitalize">{questao.tipo}</p></div>
             <div><p className="text-sm font-medium text-slate-700">Dificuldade</p><p className="text-slate-900 capitalize">{questao.dificuldade}</p></div>
             <div><p className="text-sm font-medium text-slate-700">Pontos</p><p className="text-slate-900">{questao.pontos}</p></div>
             <div><p className="text-sm font-medium text-slate-700">Colaborador</p><p className="text-slate-900">{questao.autor?.name}</p></div>
             {questao.motivo_rejeicao && (
               <div className="p-3 bg-red-50 rounded-lg border border-red-200">
-                <p className="text-sm font-medium text-red-900 mb-1">Motivo da RejeiÃ§Ã£o</p>
+                <p className="text-sm font-medium text-red-900 mb-1">Motivo da Rejeição</p>
                 <p className="text-sm text-red-800">{questao.motivo_rejeicao}</p>
               </div>
             )}
@@ -216,7 +216,7 @@ const AdminQuestionsColaboradorPendentesTab = ({ token }) => {
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
-      if (!response.ok) throw new Error('Falha ao carregar questÃµes');
+      if (!response.ok) throw new Error('Falha ao carregar questões');
 
       const data = await response.json();
       setQuestoes(data.dados?.questoes || []);
@@ -267,8 +267,8 @@ const AdminQuestionsColaboradorPendentesTab = ({ token }) => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-800">QuestÃµes de Colaboradores - RevisÃ£o</h2>
-        <p className="text-gray-600">Revise e aprove/rejeite questÃµes criadas por colaboradores</p>
+        <h2 className="text-2xl font-bold text-slate-800">Questões de Colaboradores - Revisão</h2>
+        <p className="text-gray-600">Revise e aprove/rejeite questões criadas por colaboradores</p>
       </div>
 
       {erro && <div className="p-4 bg-red-100 border border-red-400 text-red-800 rounded-lg">{erro}</div>}
@@ -298,30 +298,30 @@ const AdminQuestionsColaboradorPendentesTab = ({ token }) => {
 
         <select value={filtroDisciplina} onChange={e => { setFiltroDisciplina(e.target.value); setPagina(1); }} className="px-4 py-2 border border-gray-300 rounded-lg">
           <option value="">Todas as Disciplinas</option>
-          <option value="matematica">MatemÃ¡tica</option>
-          <option value="ingles">InglÃªs</option>
-          <option value="programacao">ProgramaÃ§Ã£o</option>
+          <option value="matematica">Matemática</option>
+          <option value="ingles">Inglês</option>
+          <option value="programacao">Programação</option>
         </select>
 
         <select value={filtroDificuldade} onChange={e => { setFiltroDificuldade(e.target.value); setPagina(1); }} className="px-4 py-2 border border-gray-300 rounded-lg">
           <option value="">Todas as Dificuldades</option>
-          <option value="facil">FÃ¡cil</option>
-          <option value="medio">MÃ©dio</option>
-          <option value="dificil">DifÃ­cil</option>
+          <option value="facil">Fácil</option>
+          <option value="medio">Médio</option>
+          <option value="dificil">Difícil</option>
         </select>
 
         <select value={filtroTipo} onChange={e => { setFiltroTipo(e.target.value); setPagina(1); }} className="px-4 py-2 border border-gray-300 rounded-lg">
           <option value="">Todos os Tipos</option>
-          <option value="multipla_escolha">MÃºltipla Escolha</option>
+          <option value="multipla_escolha">Múltipla Escolha</option>
           <option value="texto">Texto</option>
-          <option value="codigo">CÃ³digo</option>
+          <option value="codigo">Código</option>
         </select>
 
         <div className="flex-1 min-w-64 relative">
           <Search size={18} className="absolute left-3 top-3 text-gray-400" />
           <input
             type="text"
-            placeholder="Buscar por tÃ­tulo..."
+            placeholder="Buscar por título..."
             value={busca}
             onChange={e => { setBusca(e.target.value); setPagina(1); }}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
@@ -332,17 +332,17 @@ const AdminQuestionsColaboradorPendentesTab = ({ token }) => {
       {carregando ? (
         <div className="text-center py-12"><Loader className="animate-spin mx-auto" size={32} /></div>
       ) : questoes.length === 0 ? (
-        <div className="text-center py-12 text-gray-600">Nenhuma questÃ£o encontrada</div>
+        <div className="text-center py-12 text-gray-600">Nenhuma questão encontrada</div>
       ) : (
         <div className="bg-white rounded-lg shadow-lg overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">TÃ­tulo</th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">Título</th>
                 <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">Tipo</th>
                 <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">Dificuldade</th>
                 <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">Status</th>
-                <th className="px-6 py-3 text-right text-sm font-medium text-slate-700">AÃ§Ãµes</th>
+                <th className="px-6 py-3 text-right text-sm font-medium text-slate-700">Ações</th>
               </tr>
             </thead>
             <tbody>

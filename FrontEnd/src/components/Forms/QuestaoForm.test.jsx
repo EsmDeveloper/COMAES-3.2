@@ -12,11 +12,11 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import QuestaoForm from './QuestaoForm';
 
-// ── Mocks ─────────────────────────────────────────────────────────────────────
+// ── Mocks 
 const mockOnSubmit = vi.fn();
 const mockOnCancel = vi.fn();
 
-// ── Fixtures ──────────────────────────────────────────────────────────────────
+// ── Fixtures 
 const questaoExemplo = {
   id: 1,
   titulo: 'Qual é a capital de Portugal?',
@@ -30,7 +30,7 @@ const questaoExemplo = {
   disciplina: 'historia',
 };
 
-// ── Testes de Renderização ────────────────────────────────────────────────────
+// ── Testes de Renderização 
 describe('QuestaoForm - Renderização', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -112,7 +112,7 @@ describe('QuestaoForm - Renderização', () => {
   });
 });
 
-// ── Testes de Validação ───────────────────────────────────────────────────────
+// ── Testes de Validação 
 describe('QuestaoForm - Validação', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -297,7 +297,7 @@ describe('QuestaoForm - Validação', () => {
   });
 });
 
-// ── Testes de Tipos de Questão ────────────────────────────────────────────────
+// ── Testes de Tipos de Questão 
 describe('QuestaoForm - Tipos de Questão', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -376,7 +376,7 @@ describe('QuestaoForm - Tipos de Questão', () => {
   });
 });
 
-// ── Testes de Comportamento ───────────────────────────────────────────────────
+// ── Testes de Comportamento 
 describe('QuestaoForm - Comportamento', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -504,7 +504,7 @@ describe('QuestaoForm - Comportamento', () => {
   });
 });
 
-// ── Testes de Edge Cases ──────────────────────────────────────────────────────
+// ── Testes de Edge Cases 
 describe('QuestaoForm - Edge Cases', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -612,7 +612,7 @@ describe('QuestaoForm - Edge Cases', () => {
   });
 });
 
-// ── Property-Based Tests ──────────────────────────────────────────────────────
+// ── Property-Based Tests 
 describe('QuestaoForm - Property-Based Tests', () => {
   /**
    * **Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 4.4**

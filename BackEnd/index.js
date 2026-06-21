@@ -69,6 +69,8 @@ import { sendResetEmail, sendWelcomeEmail } from './services/emailService.js';
 import { setIO } from './services/socketService.js';
 import { setupEncerramentoScheduler } from './jobs/verificarEncerramentosScheduler.js';
 import auth from './middlewares/auth.js';
+import { authenticate } from './middlewares/auth.js';
+import { requireAdmin } from './middlewares/authorize.js';
 import isAdmin from './middlewares/isAdmin.js';
 import isNotColaborador from './middlewares/isNotColaborador.js';
 import { baseSanitizer } from './middlewares/security/sanitizer.js';
@@ -232,8 +234,8 @@ app.post(
 app.use(baseSanitizer);
 
 // ADMIN — documentos e suspensão de colaboradores
-app.get('/api/admin/colaboradores/:id/documentos', isAdmin, getDocumentosColaborador);
-app.patch('/api/admin/colaboradores/:id/suspender', isAdmin, suspenderColaborador);
+app.get('/api/admin/colaboradores/:id/documentos', authenticate, requireAdmin, getDocumentosColaborador);
+app.patch('/api/admin/colaboradores/:id/suspender', authenticate, requireAdmin, suspenderColaborador);
 
 // Registrar rotas de certificados
 app.use('/api/certificates', certificatesRoutes);
@@ -245,16 +247,16 @@ app.use('/api/tournaments', tournamentsRoutes);
 // Registrar rotas de questões (especializado - REFATORADO para Questao.js)
 app.use('/api/questoes', questoesRoutes);
 
-// ─── Task 8.1: Registrar rotas de questões para colaboradores ───
+//  Task 8.1: Registrar rotas de questões para colaboradores 
 app.use('/api/questoes', questoesColaboradorRoutes);
 
-// ─── Task 8.2: Registrar rotas de questões para admin (aprovação/rejeição) ───
+//  Task 8.2: Registrar rotas de questões para admin (aprovação/rejeição) 
 app.use('/api/questoes', questoesAdminRoutes);
 
-// ─── Task 8.2: Registrar rotas de disciplinas para admin ───
+//  Task 8.2: Registrar rotas de disciplinas para admin 
 app.use('/api/disciplinas', disciplinasAdminRoutes);
 
-// ─── Task 8.2: Registrar rotas de usuários para admin (atribuir colaborador) ───
+//  Task 8.2: Registrar rotas de usuários para admin (atribuir colaborador) 
 app.use('/api/usuarios', usuariosAdminRoutes);
 
 // Registrar rotas de Blocos de Questões
@@ -333,7 +335,7 @@ app.get("/api/test-email", async (req, res) => {
       FRONTEND_URL: process.env.FRONTEND_URL || 'não configurado'
     };
 
-    console.log('📋 Configuração de email:', config);
+    console.log('[LIST] Configuração de email:', config);
 
     // Tentar enviar email de teste
     try {
@@ -347,7 +349,7 @@ app.get("/api/test-email", async (req, res) => {
         config
       });
     } catch (sendError) {
-      console.error('❌ Erro ao enviar email de teste:', sendError);
+      console.error('[ERROR] Erro ao enviar email de teste:', sendError);
       
       res.json({
         success: false,
@@ -386,7 +388,7 @@ app.post('/auth/login', validate(rules.login), async (req, res) => {
     try {
       // Query SQL direta para evitar problemas com o modelo
       const [results] = await sequelize.query(
-        `SELECT id, nome, telefone, email, nascimento, sexo, password, escola, imagem, biografia, isAdmin, role, disciplina_colaborador, status_colaborador, createdAt, updatedAt, funcao_id 
+        `SELECT id, nome, telefone, email, nascimento, sexo, password, escola, imagem, biografia, role, disciplina_colaborador, status_colaborador, createdAt, updatedAt
          FROM usuarios 
          WHERE email = :email OR telefone = :telefone 
          LIMIT 1`,
@@ -410,13 +412,11 @@ app.post('/auth/login', validate(rules.login), async (req, res) => {
         escola: results.escola,
         imagem: results.imagem,
         biografia: results.biografia,
-        isAdmin: results.isAdmin,
-        role: results.role || (results.isAdmin ? 'admin' : 'estudante'),
+        role: results.role || 'estudante',
         disciplina_colaborador: results.disciplina_colaborador || null,
         status_colaborador: results.status_colaborador || 'aprovado',
         createdAt: results.createdAt,
         updatedAt: results.updatedAt,
-        funcao_id: results.funcao_id,
         // Métodos simulados para compatibilidade
         get: (options) => ({ 
           plain: options?.plain ? {
@@ -429,13 +429,11 @@ app.post('/auth/login', validate(rules.login), async (req, res) => {
             escola: results.escola,
             imagem: results.imagem,
             biografia: results.biografia,
-            isAdmin: results.isAdmin,
-            role: results.role || (results.isAdmin ? 'admin' : 'estudante'),
+            role: results.role || 'estudante',
             disciplina_colaborador: results.disciplina_colaborador || null,
             status_colaborador: results.status_colaborador || 'aprovado',
             createdAt: results.createdAt,
-            updatedAt: results.updatedAt,
-            funcao_id: results.funcao_id
+            updatedAt: results.updatedAt
           } : this
         })
       } : null;
@@ -484,14 +482,11 @@ app.post('/auth/login', validate(rules.login), async (req, res) => {
       }
     }
 
-    // Gerar token JWT
+    // Gerar token JWT - APENAS id e role (DB authoritative)
     const token = jwt.sign(
       {
         id: user.id,
-        email: user.email,
-        role: user.role || (user.isAdmin ? 'admin' : 'estudante'),
-        disciplina_colaborador: user.disciplina_colaborador || null,
-        status_colaborador: user.status_colaborador || 'aprovado'
+        role: user.role || 'estudante'
       },
       process.env.JWT_SECRET || 'secret',
       { expiresIn: '24h' }
@@ -534,6 +529,106 @@ app.post('/auth/login', validate(rules.login), async (req, res) => {
     });
   } catch (error) {
     console.error('Erro inesperado no login:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno no servidor.'
+    });
+  }
+});
+
+// TOKEN REFRESH - Refresh an existing JWT token
+app.get('/auth/refresh', async (req, res) => {
+  try {
+    const authHeader = req.headers['authorization'] || '';
+    const token = authHeader.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: 'Token não fornecido.'
+      });
+    }
+
+    // Verify the current token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    } catch (err) {
+      console.log('Token refresh - invalid token:', err.message);
+      return res.status(401).json({
+        success: false,
+        error: 'Token inválido ou expirado.'
+      });
+    }
+
+    // Get fresh user data from database
+    let user;
+    try {
+      const [results] = await sequelize.query(
+        `SELECT id, nome, telefone, email, nascimento, sexo, password, escola, imagem, biografia, role, disciplina_colaborador, status_colaborador, createdAt, updatedAt
+         FROM usuarios 
+         WHERE id = :id
+         LIMIT 1`,
+        {
+          replacements: { id: decoded.id },
+          type: sequelize.QueryTypes.SELECT
+        }
+      );
+      
+      if (!results) {
+        return res.status(401).json({
+          success: false,
+          error: 'Utilizador não encontrado.'
+        });
+      }
+
+      user = {
+        id: results.id,
+        nome: results.nome,
+        telefone: results.telefone,
+        email: results.email,
+        nascimento: results.nascimento,
+        sexo: results.sexo,
+        password: results.password,
+        escola: results.escola,
+        imagem: results.imagem,
+        biografia: results.biografia,
+        role: results.role || 'estudante',
+        disciplina_colaborador: results.disciplina_colaborador || null,
+        status_colaborador: results.status_colaborador || 'aprovado',
+        createdAt: results.createdAt,
+        updatedAt: results.updatedAt
+      };
+    } catch (dbError) {
+      console.error('Erro de banco de dados ao refrescar token:', dbError.message);
+      return res.status(503).json({
+        success: false,
+        error: 'Serviço temporariamente indisponível. Tente novamente.'
+      });
+    }
+
+    // Generate new token with fresh user data - APENAS id e role
+    const newToken = jwt.sign(
+      {
+        id: user.id,
+        role: user.role || 'estudante'
+      },
+      process.env.JWT_SECRET || 'secret',
+      { expiresIn: '24h' }
+    );
+
+    // Return user data without password
+    const { password: _pw, ...userSafe } = user;
+
+    console.log('Token refrescado para:', user.email);
+
+    res.json({
+      success: true,
+      data: userSafe,
+      token: newToken
+    });
+  } catch (error) {
+    console.error('Erro inesperado ao refrescar token:', error);
     res.status(500).json({
       success: false,
       error: 'Erro interno no servidor.'
@@ -630,7 +725,6 @@ app.post('/auth/registro', validate(rules.register), async (req, res) => {
       sexo,
       escola: escola || null,
       password: hash_senha,
-      isAdmin: false,
       role: finalRole,
       disciplina_colaborador: finalDisciplina,
       status_colaborador: statusColaborador,
@@ -640,7 +734,7 @@ app.post('/auth/registro', validate(rules.register), async (req, res) => {
 
     // Se for colaborador pendente, não gerar token automaticamente
     if (finalRole === 'colaborador' && statusColaborador === 'pendente') {
-      console.log('✅ Colaborador criado com sucesso (pendente de aprovação):', novoUsuario.email);
+      console.log('[SUCCESS] Colaborador criado com sucesso (pendente de aprovação):', novoUsuario.email);
 
       // Notificar administradores sobre novo colaborador pendente
       if (io) {
@@ -675,7 +769,7 @@ app.post('/auth/registro', validate(rules.register), async (req, res) => {
       // Remover senha do retorno
       const { password: _, ...userSafe } = novoUsuario.get({ plain: true });
 
-      console.log('✅ Usuário criado com sucesso:', novoUsuario.email);
+      console.log('[SUCCESS] Usuário criado com sucesso:', novoUsuario.email);
 
       // Emitir atualização de total de usuários
       if (io) {
@@ -691,7 +785,7 @@ app.post('/auth/registro', validate(rules.register), async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('❌ Erro no registro:', error);
+    console.error('[ERROR] Erro no registro:', error);
     res.status(500).json({
       success: false,
       error: 'Erro interno no servidor.'
@@ -706,7 +800,7 @@ app.post('/auth/recover', validate(rules.passwordRecover), async (req, res) => {
   try {
     const { email } = req.body;
 
-    console.log('🔄 Solicitação de recuperação recebida para:', email);
+    console.log('[REFRESH] Solicitação de recuperação recebida para:', email);
 
     if (!email) {
       return res.status(400).json({
@@ -718,14 +812,14 @@ app.post('/auth/recover', validate(rules.passwordRecover), async (req, res) => {
     // Procurar usuário
     const user = await Usuario.findOne({ where: { email } });
     if (!user) {
-      console.log('❌ Usuário não encontrado:', email);
+      console.log('[ERROR] Usuário não encontrado:', email);
       return res.status(404).json({
         success: false,
         error: 'Conta não encontrada.'
       });
     }
 
-    console.log('✅ Usuário encontrado:', user.email, '| ID:', user.id);
+    console.log('[SUCCESS] Usuário encontrado:', user.email, '| ID:', user.id);
 
     // Gerar token de reset
     const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -739,15 +833,15 @@ app.post('/auth/recover', validate(rules.passwordRecover), async (req, res) => {
       expira_em: expiresAt
     });
 
-    console.log('✅ Token de reset criado e salvo no banco');
+    console.log('[SUCCESS] Token de reset criado e salvo no banco');
 
     // Enviar email com token
     try {
       console.log('📧 Iniciando envio de email...');
       const result = await sendResetEmail(email, token);
-      console.log('✅ Email de recuperação enviado para:', email, '| Result:', result);
+      console.log('[SUCCESS] Email de recuperação enviado para:', email, '| Result:', result);
     } catch (emailError) {
-      console.error('❌ Erro ao enviar email:', {
+      console.error('[ERROR] Erro ao enviar email:', {
         message: emailError.message,
         code: emailError.code,
         command: emailError.command,
@@ -768,7 +862,7 @@ app.post('/auth/recover', validate(rules.passwordRecover), async (req, res) => {
       message: 'Enviámos um código de confirmação para o seu email.'
     });
   } catch (error) {
-    console.error('❌ Erro na recuperação:', {
+    console.error('[ERROR] Erro na recuperação:', {
       message: error.message,
       stack: error.stack
     });
@@ -810,20 +904,20 @@ app.get('/auth/verify-reset-token/:token', async (req, res) => {
     }
 
     if (!validToken) {
-      console.log('❌ Token inválido ou expirado:', token.substring(0, 10) + '...');
+      console.log('[ERROR] Token inválido ou expirado:', token.substring(0, 10) + '...');
       return res.status(401).json({
         success: false,
         error: 'Token inválido ou expirado.'
       });
     }
 
-    console.log('✅ Token válido para usuário ID:', validToken.usuario_id);
+    console.log('[SUCCESS] Token válido para usuário ID:', validToken.usuario_id);
     res.json({
       success: true,
       message: 'Token válido'
     });
   } catch (error) {
-    console.error('❌ Erro ao verificar token:', error);
+    console.error('[ERROR] Erro ao verificar token:', error);
     res.status(500).json({
       success: false,
       error: 'Erro ao verificar token.'
@@ -862,7 +956,7 @@ app.post('/auth/reset-password', validate(rules.passwordReset), async (req, res)
     }
 
     if (!validToken) {
-      console.log('❌ Token inválido ou expirado para reset');
+      console.log('[ERROR] Token inválido ou expirado para reset');
       return res.status(401).json({
         success: false,
         error: 'Token inválido ou expirado.'
@@ -879,14 +973,14 @@ app.post('/auth/reset-password', validate(rules.passwordReset), async (req, res)
     // Marcar token como usado
     await validToken.update({ usado_em: new Date() });
 
-    console.log('✅ Senha redefinida para usuário ID:', validToken.usuario_id);
+    console.log('[SUCCESS] Senha redefinida para usuário ID:', validToken.usuario_id);
 
     res.json({
       success: true,
       message: 'Senha redefinida com sucesso.'
     });
   } catch (error) {
-    console.error('❌ Erro ao redefinir senha:', error);
+    console.error('[ERROR] Erro ao redefinir senha:', error);
     res.status(500).json({
       success: false,
       error: 'Erro ao redefinir senha.'
@@ -911,7 +1005,7 @@ app.get('/api/torneios/ativo', async (req, res) => {
       order: [['inicia_em', 'DESC']]
     });
 
-    console.log('🏆 Torneio encontrado:', torneio ?
+    console.log('[TROPHY] Torneio encontrado:', torneio ?
       `ID: ${torneio.id}, Título: "${torneio.titulo}", Status: ${torneio.status}` :
       'Nenhum');
 
@@ -934,7 +1028,7 @@ app.get('/api/torneios/ativo', async (req, res) => {
 
     // ✅ NOVO: Verificar expiração automática
     if (agora > fim) {
-      console.log('⏰ Torneio expirou automaticamente. Finalizando...');
+      console.log('[TIME] Torneio expirou automaticamente. Finalizando...');
       await torneio.update({ status: 'finalizado' });
       
       // Congelar rankings de todas as disciplinas
@@ -981,7 +1075,7 @@ app.get('/api/torneios/ativo', async (req, res) => {
         'Torneio marcado como ativo mas fora do período programado'
     });
   } catch (error) {
-    console.error('❌ Erro ao verificar torneio ativo:', error);
+    console.error('[ERROR] Erro ao verificar torneio ativo:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -998,7 +1092,7 @@ app.get('/api/torneios/ativo/disciplinas', async (req, res) => {
     });
 
     if (!torneio) {
-      console.log('ℹ️  Nenhum torneio ativo encontrado');
+      console.log('[INFO]  Nenhum torneio ativo encontrado');
       return res.json({
         success: true,
         disciplinas: [],
@@ -1026,7 +1120,7 @@ app.get('/api/torneios/ativo/disciplinas', async (req, res) => {
     });
 
     if (agora > fim) {
-      console.log('⏰ Torneio expirou');
+      console.log('[TIME] Torneio expirou');
       return res.json({
         success: true,
         disciplinas: [],
@@ -1037,7 +1131,7 @@ app.get('/api/torneios/ativo/disciplinas', async (req, res) => {
     }
 
     if (agora < inicio) {
-      console.log('⏰ Torneio ainda não iniciou');
+      console.log('[TIME] Torneio ainda não iniciou');
       return res.json({
         success: true,
         disciplinas: [],
@@ -1081,14 +1175,14 @@ app.get('/api/torneios/ativo/disciplinas', async (req, res) => {
         limit: 1
       });
 
-      console.log(`  📋 Disciplina "${disciplina}": ${blocos.length} bloco(s) publicado(s)`);
+      console.log(`  [LIST] Disciplina "${disciplina}": ${blocos.length} bloco(s) publicado(s)`);
 
       if (blocos.length > 0) {
         disciplinasComBlocos.push(disciplina);
       }
     }
 
-    console.log('✅ Disciplinas com blocos:', disciplinasComBlocos);
+    console.log('[SUCCESS] Disciplinas com blocos:', disciplinasComBlocos);
 
     res.json({
       success: true,
@@ -1099,7 +1193,7 @@ app.get('/api/torneios/ativo/disciplinas', async (req, res) => {
       message: `${disciplinasComBlocos.length} disciplina(s) disponível(eis)`
     });
   } catch (error) {
-    console.error('❌ Erro ao obter disciplinas:', error);
+    console.error('[ERROR] Erro ao obter disciplinas:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -1240,7 +1334,7 @@ app.get('/api/participantes/ranking/:disciplina', async (req, res) => {
     // Se algum participante n�o tem posi��o calculada, recalcular o ranking
     const temPosicaoNula = participantes.some(p => p.posicao === null || p.posicao === undefined);
     if (temPosicaoNula) {
-      console.log('⚠️ Detectadas posi��es nulas, recalculando ranking...');
+      console.log('[WARNING] Detectadas posi��es nulas, recalculando ranking...');
       await ParticipanteTorneio.calcularRanking(torneio.id, disciplinaFormatada);
       
       // Buscar novamente com posi��es atualizadas
@@ -1468,7 +1562,7 @@ app.post('/api/participantes/atualizar-pontuacao', async (req, res) => {
       message: 'Pontuação atualizada com sucesso'
     });
   } catch (error) {
-    console.error('❌ Erro ao atualizar pontuação:', error);
+    console.error('[ERROR] Erro ao atualizar pontuação:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -1521,7 +1615,7 @@ app.get('/api/torneios/estatisticas', async (req, res) => {
 
     res.json({ success: true, stats });
   } catch (error) {
-    console.error('❌ Erro ao buscar estatísticas do torneio:', error);
+    console.error('[ERROR] Erro ao buscar estatísticas do torneio:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -1711,7 +1805,7 @@ app.get('/api/torneios/dashboard', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('❌ Erro no dashboard:', error);
+    console.error('[ERROR] Erro no dashboard:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -2241,7 +2335,7 @@ app.get('/torneios/:id/top3/:disciplina', async (req, res) => {
 
     res.json({ success: true, data: vencedores });
   } catch (error) {
-    console.error('❌ Erro ao buscar top 3:', error);
+    console.error('[ERROR] Erro ao buscar top 3:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -2272,7 +2366,7 @@ app.get('/torneios/:id/ranking', async (req, res) => {
 // - GET /api/quiz/:area (usava modelo Pergunta descontinuado)
 // Substituídas por: GET /api/questoes/quiz/:area (usa Questao.js)
 
-app.post('/noticias', auth, isAdmin, async (req, res) => {
+app.post('/noticias', auth, authenticate, requireAdmin, async (req, res) => {
   try {
     const { titulo, resumo, conteudo, tags, url_capa, publicado = true } = req.body;
 
@@ -2326,7 +2420,7 @@ app.post('/noticias', auth, isAdmin, async (req, res) => {
   }
 });
 
-app.post('/notificacoes', auth, isAdmin, async (req, res) => {
+app.post('/notificacoes', auth, authenticate, requireAdmin, async (req, res) => {
   try {
     const { usuario_id, tipo = 'geral', titulo, mensagem, todos = false, extras = {} } = req.body;
 
@@ -2398,7 +2492,7 @@ app.post('/api/torneios/:id/finalizar', async (req, res) => {
     torneio.ativo = false;
     await torneio.save();
 
-    console.log(`🏆 Torneio ${torneio.titulo} (ID: ${id}) marcado como finalizado`);
+    console.log(`[TROPHY] Torneio ${torneio.titulo} (ID: ${id}) marcado como finalizado`);
 
     // Gerar certificados para cada disciplina usando o gerador correto
     const certificados = [];
@@ -2412,12 +2506,12 @@ app.post('/api/torneios/:id/finalizar', async (req, res) => {
           
           if (result.success) {
             certificados.push(...(result.details || []));
-            console.log(`✅ Certificados gerados para ${disciplina}: ${result.certificatesGenerated} certificados`);
+            console.log(`[SUCCESS] Certificados gerados para ${disciplina}: ${result.certificatesGenerated} certificados`);
           } else {
-            console.warn(`⚠️ Falha ao gerar certificados para ${disciplina}:`, result.message || result.error);
+            console.warn(`[WARNING] Falha ao gerar certificados para ${disciplina}:`, result.message || result.error);
           }
         } catch (err) {
-          console.error(`❌ Erro ao gerar certificados para ${disciplina}:`, err.message);
+          console.error(`[ERROR] Erro ao gerar certificados para ${disciplina}:`, err.message);
         }
       }
     }
@@ -2458,10 +2552,10 @@ async function startServer() {
           const [cols] = await sequelize.query("SHOW COLUMNS FROM `noticias` LIKE 'visualizacoes'");
           if (cols.length === 0) {
             await sequelize.query("ALTER TABLE `noticias` ADD COLUMN `visualizacoes` INT NOT NULL DEFAULT 0");
-            console.log("✅ Coluna 'visualizacoes' adicionada à tabela noticias");
+            console.log("[SUCCESS] Coluna 'visualizacoes' adicionada à tabela noticias");
           }
         } catch (migErr) {
-          console.warn("⚠️ Não foi possível verificar/adicionar coluna visualizacoes:", migErr?.message);
+          console.warn("[WARNING] Não foi possível verificar/adicionar coluna visualizacoes:", migErr?.message);
         }
 
         // Garantir colunas do sistema de níveis na tabela usuarios (migração segura)
@@ -2469,15 +2563,15 @@ async function startServer() {
           const [xpCol] = await sequelize.query("SHOW COLUMNS FROM `usuarios` LIKE 'xp_total'");
           if (xpCol.length === 0) {
             await sequelize.query("ALTER TABLE `usuarios` ADD COLUMN `xp_total` INT NOT NULL DEFAULT 0 COMMENT 'XP acumulado por desempenho académico'");
-            console.log("✅ Coluna 'xp_total' adicionada à tabela usuarios");
+            console.log("[SUCCESS] Coluna 'xp_total' adicionada à tabela usuarios");
           }
           const [nivelCol] = await sequelize.query("SHOW COLUMNS FROM `usuarios` LIKE 'nivel_atual'");
           if (nivelCol.length === 0) {
             await sequelize.query("ALTER TABLE `usuarios` ADD COLUMN `nivel_atual` INT NOT NULL DEFAULT 1 COMMENT 'Nível actual do utilizador (1-10)'");
-            console.log("✅ Coluna 'nivel_atual' adicionada à tabela usuarios");
+            console.log("[SUCCESS] Coluna 'nivel_atual' adicionada à tabela usuarios");
           }
         } catch (migErr) {
-          console.warn("⚠️ Não foi possível verificar/adicionar colunas de nível:", migErr?.message);
+          console.warn("[WARNING] Não foi possível verificar/adicionar colunas de nível:", migErr?.message);
         }
 
         // Garantir tabela sequencias_aprendizagem para o sistema de streak
@@ -2494,10 +2588,10 @@ async function startServer() {
               \`atualizado_em\` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
               CONSTRAINT \`fk_seq_usuario\` FOREIGN KEY (\`usuario_id\`) REFERENCES \`usuarios\`(\`id\`) ON DELETE CASCADE ON UPDATE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
-            console.log("✅ Tabela 'sequencias_aprendizagem' criada com sucesso");
+            console.log("[SUCCESS] Tabela 'sequencias_aprendizagem' criada com sucesso");
           }
         } catch (migErr) {
-          console.warn("⚠️ Não foi possível verificar/criar tabela sequencias_aprendizagem:", migErr?.message);
+          console.warn("[WARNING] Não foi possível verificar/criar tabela sequencias_aprendizagem:", migErr?.message);
         }
         try {
           const [nivelRows] = await sequelize.query("SHOW TABLES LIKE 'niveis'");
@@ -2524,10 +2618,10 @@ async function startServer() {
               (8,'Coruja Sábia',8000,'🌟','A sabedoria acumulada transforma conhecimento em excelência.','#F59E0B'),
               (9,'Coruja Mestre',12000,'👑','Atingiste um domínio raro que poucos alcançam. És uma referência.','#EF4444'),
               (10,'Coruja Lendária',18000,'🔥','O topo da excelência académica COMAES. A tua jornada inspira outros.','#7C3AED')`);
-            console.log("✅ Tabela 'niveis' criada e populada com os 10 níveis COMAES");
+            console.log("[SUCCESS] Tabela 'niveis' criada e populada com os 10 níveis COMAES");
           }
         } catch (migErr) {
-          console.warn("⚠️ Não foi possível verificar/criar tabela niveis:", migErr?.message);
+          console.warn("[WARNING] Não foi possível verificar/criar tabela niveis:", migErr?.message);
         }
       } else {
         console.warn("Banco de dados indisponivel - iniciando em modo degradado (sem sincronizacao)");
@@ -2562,9 +2656,9 @@ async function startServer() {
       // Registrar instância no socketService
       setIO(io);
       
-      console.log('✅ Socket.IO inicializado (realtime habilitado)');
+      console.log('[SUCCESS] Socket.IO inicializado (realtime habilitado)');
     } catch (e) {
-      console.warn('⚠️ Socket.IO não disponível — realtime desativado. Instale "socket.io" para habilitar.');
+      console.warn('[WARNING] Socket.IO não disponível — realtime desativado. Instale "socket.io" para habilitar.');
       io = null;
     }
 
@@ -2572,38 +2666,38 @@ async function startServer() {
     try {
       const { iniciarCronJobsRanking } = await import('./scripts/rankingCron.js');
       iniciarCronJobsRanking();
-      console.log('✅ Cron jobs do sistema de rankings iniciados');
+      console.log('[SUCCESS] Cron jobs do sistema de rankings iniciados');
     } catch (error) {
-      console.warn('⚠️ Não foi possível iniciar cron jobs de ranking:', error.message);
+      console.warn('[WARNING] Não foi possível iniciar cron jobs de ranking:', error.message);
     }
 
     // Configurar hooks automáticos de ranking
     try {
       const { setupRankingHooks } = await import('./middlewares/rankingEvents.js');
       setupRankingHooks(app);
-      console.log('✅ Hooks automáticos de ranking configurados');
+      console.log('[SUCCESS] Hooks automáticos de ranking configurados');
     } catch (error) {
-      console.warn('⚠️ Não foi possível configurar hooks de ranking:', error.message);
+      console.warn('[WARNING] Não foi possível configurar hooks de ranking:', error.message);
     }
 
     // Iniciar scheduler de encerramentos de torneios
     try {
       setupEncerramentoScheduler();
-      console.log('✅ Scheduler de encerramentos de torneios iniciado');
+      console.log('[SUCCESS] Scheduler de encerramentos de torneios iniciado');
     } catch (error) {
-      console.warn('⚠️ Não foi possível iniciar scheduler de encerramentos:', error.message);
+      console.warn('[WARNING] Não foi possível iniciar scheduler de encerramentos:', error.message);
     }
 
     server.listen(port, '0.0.0.0', () => {
-      console.log(`🚀 Servidor rodando: http://0.0.0.0:${port}`);
+      console.log(`[ROCKET] Servidor rodando: http://0.0.0.0:${port}`);
       console.log(`📡 Health: http://localhost:${port}/health`);
-      console.log(`🏆 Torneio Ativo: http://localhost:${port}/api/torneios/ativo`);
-      console.log(`📊 Dashboard: http://localhost:${port}/api/torneios/dashboard`);
-      console.log(`🏅 Rankings: http://localhost:${port}/api/rankings/public`);
+      console.log(`[TROPHY] Torneio Ativo: http://localhost:${port}/api/torneios/ativo`);
+      console.log(`[CHART] Dashboard: http://localhost:${port}/api/torneios/dashboard`);
+      console.log(`[MEDAL] Rankings: http://localhost:${port}/api/rankings/public`);
       console.log(`🐛 Debug Torneios: http://localhost:${port}/api/debug/torneios`);
     });
   } catch (error) {
-    console.error("❌ Erro na inicialização:", error?.message || error);
+    console.error("[ERROR] Erro na inicialização:", error?.message || error);
     console.error('O servidor não será finalizado automaticamente — verifique logs.');
   }
 }

@@ -1,6 +1,6 @@
-﻿/**
+/**
  * test_criar_questao.js
- * Script para testar criaÃ§Ã£o de questÃ£o via API
+ * Script para testar criação de questão via API
  */
 
 import db from './config/db.js';
@@ -10,30 +10,30 @@ import jwt from 'jsonwebtoken';
 async function test() {
   try {
     console.log('='.repeat(80));
-    console.log('ðŸ§ª TESTE: Criar QuestÃ£o via API');
+    console.log(' TESTE: Criar Questão via API');
     console.log('='.repeat(80));
 
     // 1. Conectar ao banco
-    console.log('\n1ï¸âƒ£ Conectando ao banco...');
+    console.log('\n1â£ Conectando ao banco...');
     await db.authenticate();
     console.log('âœ… Banco conectado!');
 
     // 2. Encontrar colaborador
-    console.log('\n2ï¸âƒ£ Encontrando colaborador aprovado...');
+    console.log('\n2â£ Encontrando colaborador aprovado...');
     const colaborador = await Usuario.findOne({
       where: { role: 'colaborador', status_colaborador: 'aprovado' },
       attributes: ['id', 'nome', 'email', 'disciplina_colaborador']
     });
 
     if (!colaborador) {
-      console.error('âŒ Nenhum colaborador encontrado!');
+      console.error('âŒ Nenhum colaborador encontrado!');
       process.exit(1);
     }
 
     console.log(`âœ… Encontrado: ${colaborador.nome} (ID=${colaborador.id})`);
 
     // 3. Gerar token JWT
-    console.log('\n3ï¸âƒ£ Gerando JWT token...');
+    console.log('\n3â£ Gerando JWT token...');
     const token = jwt.sign(
       {
         id: colaborador.id,
@@ -47,25 +47,25 @@ async function test() {
     console.log('âœ… Token gerado!');
     console.log(`Token (primeiros 30 chars): ${token.substring(0, 30)}...`);
 
-    // 4. Construir payload de questÃ£o
+    // 4. Construir payload de questão
     const questaoPayload = {
-      titulo: 'Teste QuestÃ£o MatemÃ¡tica',
-      enunciado: 'Qual Ã© a resposta correta?',
-      descricao: 'Esta Ã© uma questÃ£o de teste criada via script',
+      titulo: 'Teste Questão Matemática',
+      enunciado: 'Qual é a resposta correta?',
+      descricao: 'Esta é uma questão de teste criada via script',
       tipo: 'multipla_escolha',
       dificuldade: 'facil',
       disciplina: colaborador.disciplina_colaborador,
       opcoes: ['A', 'B', 'C', 'D'],
       resposta_correta: 'B',
       pontos: 10,
-      explicacao: 'A resposta correta Ã© B porque...'
+      explicacao: 'A resposta correta é B porque...'
     };
 
-    console.log('\n4ï¸âƒ£ Payload da questÃ£o:');
+    console.log('\n4â£ Payload da questão:');
     console.log(JSON.stringify(questaoPayload, null, 2));
 
     // 5. Fazer request POST
-    console.log('\n5ï¸âƒ£ Fazendo POST para /api/colaborador/questoes...');
+    console.log('\n5â£ Fazendo POST para /api/colaborador/questoes...');
     const response = await fetch('http://localhost:3002/api/colaborador/questoes', {
       method: 'POST',
       headers: {
@@ -83,15 +83,15 @@ async function test() {
 
     if (response.ok) {
       console.log('\nâœ… TESTE SUCESSO!');
-      console.log(`QuestÃ£o criada com ID: ${data.dados?.id}`);
+      console.log(`Questão criada com ID: ${data.dados?.id}`);
     } else {
-      console.error('\nâŒ TESTE FALHOU!');
+      console.error('\nâŒ TESTE FALHOU!');
       console.error(`Erro: ${data.mensagem}`);
     }
 
     process.exit(response.ok ? 0 : 1);
   } catch (error) {
-    console.error('\nâŒ ERRO:');
+    console.error('\nâŒ ERRO:');
     console.error('Mensagem:', error.message);
     console.error('Stack:', error.stack);
     process.exit(1);

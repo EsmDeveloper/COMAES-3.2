@@ -39,13 +39,13 @@ async function test(name, fn) {
 
 async function runValidation() {
   try {
-    console.log('\n╔════════════════════════════════════════════════════════════════╗');
+    console.log('\n');
     console.log('║           VALIDAÇÃO DE PRODUÇÃO - SISTEMA DE QUESTÕES          ║');
-    console.log('╚════════════════════════════════════════════════════════════════╝\n');
+    console.log('\n');
 
     // ========== TESTE 1: MODELO QUESTAO.JS ==========
     console.log('\n📋 TESTE 1: MODELO QUESTAO.JS');
-    console.log('─────────────────────────────────────────────────────────────────');
+    console.log('');
 
     await test('Questao.js carregado corretamente', async () => {
       if (!Questao) throw new Error('Modelo Questao não carregado');
@@ -80,7 +80,7 @@ async function runValidation() {
 
     // ========== TESTE 2: INTEGRIDADE DE DADOS ==========
     console.log('\n📋 TESTE 2: INTEGRIDADE DE DADOS');
-    console.log('─────────────────────────────────────────────────────────────────');
+    console.log('');
 
     await test('Verificar campos obrigatórios', async () => {
       const missing = await sequelize.query(
@@ -120,7 +120,7 @@ async function runValidation() {
 
     // ========== TESTE 3: MODELO PARTICIPANTE TORNEIO ==========
     console.log('\n📋 TESTE 3: MODELO PARTICIPANTE TORNEIO');
-    console.log('─────────────────────────────────────────────────────────────────');
+    console.log('');
 
     await test('ParticipanteTorneio carregado corretamente', async () => {
       if (!ParticipanteTorneio) throw new Error('Modelo ParticipanteTorneio não carregado');
@@ -148,7 +148,7 @@ async function runValidation() {
 
     // ========== TESTE 4: MODELO TENTATIVA RESPOSTA ==========
     console.log('\n📋 TESTE 4: MODELO TENTATIVA RESPOSTA');
-    console.log('─────────────────────────────────────────────────────────────────');
+    console.log('');
 
     await test('TentativaResposta carregado corretamente', async () => {
       if (!TentativaResposta) throw new Error('Modelo TentativaResposta não carregado');
@@ -161,7 +161,7 @@ async function runValidation() {
 
     // ========== TESTE 5: QUERIES CRÍTICAS ==========
     console.log('\n📋 TESTE 5: QUERIES CRÍTICAS');
-    console.log('─────────────────────────────────────────────────────────────────');
+    console.log('');
 
     await test('Query: Questões por torneio e disciplina', async () => {
       const q = await Questao.findAll({
@@ -193,7 +193,7 @@ async function runValidation() {
 
     // ========== TESTE 6: DEPENDÊNCIAS DE MODELOS LEGADOS ==========
     console.log('\n📋 TESTE 6: VERIFICAR DEPENDÊNCIAS DE MODELOS LEGADOS');
-    console.log('─────────────────────────────────────────────────────────────────');
+    console.log('');
 
     await test('Verificar se Questao.js é usado em runtime', async () => {
       // Procurar por referências ativas a questao_id
@@ -220,7 +220,7 @@ async function runValidation() {
 
     // ========== TESTE 7: ENDPOINTS SIMULADOS ==========
     console.log('\n📋 TESTE 7: ENDPOINTS SIMULADOS');
-    console.log('─────────────────────────────────────────────────────────────────');
+    console.log('');
 
     await test('Simular: GET /api/questoes/quiz/matematica', async () => {
       const q = await Questao.findAll({
@@ -251,7 +251,7 @@ async function runValidation() {
 
     // ========== TESTE 8: INTEGRIDADE REFERENCIAL ==========
     console.log('\n📋 TESTE 8: INTEGRIDADE REFERENCIAL');
-    console.log('─────────────────────────────────────────────────────────────────');
+    console.log('');
 
     await test('Verificar foreign keys de questoes', async () => {
       const orphans = await sequelize.query(
@@ -279,7 +279,7 @@ async function runValidation() {
 
     // ========== RESUMO ==========
     console.log('\n📊 RESUMO DOS TESTES');
-    console.log('─────────────────────────────────────────────────────────────────');
+    console.log('');
 
     const passed = results.tests.filter(t => t.status === 'OK').length;
     const failed = results.tests.filter(t => t.status === 'FALHA').length;
@@ -305,7 +305,7 @@ async function runValidation() {
       status: failed === 0 && results.risks.length === 0 ? 'OK' : 'FALHA'
     };
 
-    console.log('\n╔════════════════════════════════════════════════════════════════╗');
+    console.log('\n');
     if (results.summary.status === 'OK') {
       console.log('║                  ✅ SISTEMA VALIDADO COM SUCESSO              ║');
       console.log('║                   PRONTO PARA PRODUÇÃO                        ║');
@@ -313,7 +313,7 @@ async function runValidation() {
       console.log('║                  ❌ FALHAS DETECTADAS NO SISTEMA              ║');
       console.log('║                   REVISAR ANTES DE PRODUÇÃO                   ║');
     }
-    console.log('╚════════════════════════════════════════════════════════════════╝\n');
+    console.log('\n');
 
     // Salvar resultados
     const fs = await import('fs').then(m => m.promises);

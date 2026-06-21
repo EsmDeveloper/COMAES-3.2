@@ -1,5 +1,6 @@
 import React from 'react';
 import CertificadoBase from './CertificadoBase';
+import { getIconForEmoji } from '../utils/iconMapper';
 
 const config = {
   1: { frase: "Resolveu os problemas mais complexos com maestria", icone: "🧮" },
@@ -24,7 +25,9 @@ export default function CertMatematica({ isOpen, onClose, participante, posicao,
       torneio={torneio}
     >
       <div className="bg-yellow-50 rounded-lg p-4 text-center border border-yellow-200">
-        <div className="text-4xl mb-2">{icone}</div>
+        <div className="text-4xl mb-2">
+          {getIconForEmoji(icone, 40)}
+        </div>
         <p className="text-yellow-800 font-semibold">“{frase}”</p>
       </div>
     </CertificadoBase>

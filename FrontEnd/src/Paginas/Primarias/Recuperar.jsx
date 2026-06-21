@@ -20,7 +20,7 @@ function Recuperar() {
     } else {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        newErrors.email = "Digite um email vÃ¡lido";
+        newErrors.email = "Digite um email válido";
       }
     }
 
@@ -38,14 +38,14 @@ function Recuperar() {
         });
         const body = await res.json();
         if (!res.ok) {
-          setErrors({ geral: body.error || 'Conta nÃ£o encontrada' });
+          setErrors({ geral: body.error || 'Conta não encontrada' });
           return;
         }
-        setSucesso(body.message || 'Enviamos um cÃ³digo de confirmaÃ§Ã£o para o seu email.');
-        // ApÃ³s recuperaÃ§Ã£o bem-sucedida, redirecionar para login â€” nÃ£o para Home
+        setSucesso(body.message || 'Enviamos um código de confirmação para o seu email.');
+        // Após recuperação bem-sucedida, redirecionar para login â€” não para Home
         setTimeout(() => navigate('/login'), 2000);
       } catch (err) {
-        setErrors({ geral: 'Erro ao processar recuperaÃ§Ã£o. Tente novamente.' });
+        setErrors({ geral: 'Erro ao processar recuperação. Tente novamente.' });
       }
     })();
   };
@@ -84,7 +84,7 @@ function Recuperar() {
           transition={{ duration: 0.5 }}
           className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-gray-200"
         >
-          {/* Logo no formulÃ¡rio */}
+          {/* Logo no formulário */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -115,7 +115,7 @@ function Recuperar() {
             transition={{ delay: 0.3 }}
             className="text-center text-gray-700 mb-6"
           >
-            Digite o seu <b>Email</b> para receber o cÃ³digo de confirmaÃ§Ã£o.
+            Digite o seu <b>Email</b> para receber o código de confirmação.
           </motion.p>
 
           {/* FORM */}
@@ -163,7 +163,7 @@ function Recuperar() {
               >
                 {sucesso}
                 <br />
-                <span className="text-gray-600">Redirecionando para a pÃ¡gina inicial...</span>
+                <span className="text-gray-600">Redirecionando para a página inicial...</span>
               </motion.div>
             )}
 
@@ -175,7 +175,7 @@ function Recuperar() {
               className="w-full mt-2 p-3 bg-blue-600 text-white rounded-xl text-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={sucesso}
             >
-              {sucesso ? "Enviado âœ“" : "Enviar CÃ³digo"}
+              {sucesso ? "Enviado âœ“" : "Enviar Código"}
             </motion.button>
           </form>
 

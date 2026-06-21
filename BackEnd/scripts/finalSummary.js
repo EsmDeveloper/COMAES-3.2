@@ -2,9 +2,9 @@ import sequelize from '../config/db.js';
 
 async function finalSummary() {
   try {
-    console.log('\n╔════════════════════════════════════════════════════════════════╗');
+    console.log('\n');
     console.log('║         CONSOLIDAÇÃO FINAL DO BANCO DE DADOS - RESUMO          ║');
-    console.log('╚════════════════════════════════════════════════════════════════╝\n');
+    console.log('\n');
 
     // Contar dados
     const perguntas = await sequelize.query('SELECT COUNT(*) as count FROM perguntas', { type: sequelize.QueryTypes.SELECT });
@@ -25,7 +25,7 @@ async function finalSummary() {
     console.log(`    ❌ questoes_matematica          ${qm} registros`);
     console.log(`    ❌ questoes_programacao         ${qp} registros`);
     console.log(`    ❌ questoes_ingles              ${qi} registros`);
-    console.log('    ─────────────────────────────────────────');
+    console.log('    ');
     console.log(`    Total legado:                   ${p + qm + qp + qi} registros\n`);
 
     console.log('  Tabela Nova (ATIVA):');
@@ -88,9 +88,9 @@ async function finalSummary() {
     console.log('🎉 MIGRAÇÃO CONCLUÍDA COM SUCESSO!\n');
     console.log('Próxima ação: Executar scripts/drop-legacy-tables.sql\n');
 
-    console.log('╔════════════════════════════════════════════════════════════════╗');
+    console.log('');
     console.log('║                    PRONTO PARA PRODUÇÃO                        ║');
-    console.log('╚════════════════════════════════════════════════════════════════╝\n');
+    console.log('\n');
 
     process.exit(0);
   } catch (err) {

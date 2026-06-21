@@ -1,397 +1,465 @@
-# Checklist de Implementação - Sistema de Tentativas Integrado
+# ✅ CHECKLIST DE IMPLEMENTAÇÃO - REESTRUTURAÇÃO COMAES 3.2
 
-**Data de Início**: 22 de Maio de 2026  
-**Data de Conclusão**: 22 de Maio de 2026  
-**Status**: ✅ COMPLETO
+**IMPORTANTE**: Seguir esta ordem EXATAMENTE. Não pular etapas.
 
 ---
 
-## 📋 Fase 1: Análise e Planejamento
+## 📋 PRÉ-REQUISITOS
 
-- [x] Entender requisitos
-- [x] Analisar código existente
-- [x] Identificar lógica local a remover
-- [x] Planejar integração
-- [x] Documentar mudanças
-
----
-
-## 📋 Fase 2: Modificação do Frontend
-
-### Teste.jsx
-
-- [x] Remover cálculo local de pontuação
-- [x] Remover validação de resposta no frontend
-- [x] Remover lógica de "correto/incorreto" local
-- [x] Remover armazenamento de resposta correta
-- [x] Remover comparação de respostas
-- [x] Integrar com `enviarTentativa()`
-- [x] Atualizar estado com dados do backend
-- [x] Exibir feedback visual do backend
-- [x] Manter interface visual
-- [x] Manter temporizador
-- [x] Manter carregamento de questões
-- [x] Manter navegação
-
-### tentativasService.js
-
-- [x] Verificar implementação
-- [x] Validar função `enviarTentativa()`
-- [x] Validar função `obterHistorico()`
-- [x] Validar função `obterEstatisticas()`
-- [x] Verificar tratamento de erros
-- [x] Verificar autenticação
+- [ ] Fazer backup completo da database:
+  ```bash
+  mysqldump -u root -p comaes_db > backup_$(date +%Y%m%d_%H%M%S).sql
+  ```
+- [ ] Criar branch git:
+  ```bash
+  git checkout -b restructure/auth-system-unified
+  ```
+- [ ] Verificar que sistema funciona atualmente:
+  ```bash
+  cd BackEnd && npm run dev
+  cd FrontEnd && npm run dev
+  ```
 
 ---
 
-## 📋 Fase 3: Verificação do Backend
+## 🔧 FASE 1: BACKEND CORE (2 horas)
 
-### TentativasController.js
+### 1.1 Atualizar index.js (login endpoint)
 
-- [x] Verificar função `salvarTentativa()`
-- [x] Verificar validações
-- [x] Verificar cálculo de pontos
-- [x] Verificar armazenamento
-- [x] Verificar cálculo de resumo
-- [x] Verificar função `obterHistorico()`
-- [x] Verificar função `obterEstatisticas()`
+- [ ] Abrir `BackEnd/index.js`
+- [ ] Encontrar o endpoint `POST /auth/login`
+- [ ] REMOVER do payload JWT:
+  ```javascript
+  // ❌ REMOVER
+  isAdmin: user.isAdmin,
+  ```
+- [ ] JWT deve conter APENAS:
+  ```javascript
+  const token = jwt.sign(
+    {
+      id: user.id,
+      role: user.role || 'estudante'
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: '24h' }
+  );
+  ```
+- [ ] REMOVER do SELECT SQL qualquer referência a `isAdmin`
+- [ ] Mudar:
+  ```javascript
+  // ❌ ANTES
+  role: user.role || (user.isAdmin ? 'admin' : 'estudante')
+  
+  // ✅ DEPOIS
+  role: user.role || 'estudante'
+  ```
 
-### tentativasRoutes.js
+### 1.2 Atualizar UserController.js
 
-- [x] Verificar rota POST /api/tentativas
-- [x] Verificar rota GET /api/tentativas/:torneio_id/:disciplina
-- [x] Verificar rota GET /api/tentativas/stats/:torneio_id
-- [x] Verificar middleware de autenticação
+- [ ] Abrir `BackEnd/controllers/UserController.js`
+- [ ] REMOVER todas referências a `isAdmin`:
+  - [ ] Linha ~108: `role = data.role || (data.isAdmin ? 'admin' : 'estudante')`
+  - [ ] Linha ~148: `const requestedRole = body.isAdmin ? 'admin' : ...`
+  - [ ] Linha ~149: `if ((body.isAdmin || requestedRole === 'admin') && !requestingUser?.isAdmin)`
+  - [ ] Linha ~152: `fieldErrors: { isAdmin: '...' }`
+  - [ ] Linha ~179: `isAdmin: requestingUser?.isAdmin ? ...`
+  - [ ] Linha ~180: `role: requestingUser?.isAdmin ? ...`
+  - [ ] Linha ~213: `if (!requestingUser?.isAdmin)`
+  - [ ] Linha ~261: `isAdmin: true`
+  - [ ] Linha ~287: `if (String(requestingUser?.id) === String(id) && body.isAdmin !== undefined)`
+  - [ ] Linha ~294: `if ((body.isAdmin !== undefined ...) && !requestingUser?.isAdmin)`
+  - [ ] Linha ~297: `fieldErrors: { isAdmin: '...' }`
+  - [ ] E TODAS as outras (grep isAdmin no arquivo)
 
-### TentativaResposta.js
+- [ ] Substituir lógica:
+  ```javascript
+  // ❌ REMOVER
+  if (!requestingUser?.isAdmin) { ... }
+  
+  // ✅ USAR
+  if (requestingUser?.role !== 'admin') { ... }
+  ```
 
-- [x] Verificar modelo
-- [x] Verificar campos
-- [x] Verificar relacionamentos
+### 1.3 Atualizar adminStatsController.js
 
----
+- [ ] Abrir `BackEnd/controllers/adminStatsController.js`
+- [ ] Linha 17:
+  ```javascript
+  // ❌ ANTES
+  const totalAdmins = await Usuario.count({ where: { isAdmin: true } });
+  
+  // ✅ DEPOIS
+  const totalAdmins = await Usuario.count({ where: { role: 'admin' } });
+  ```
 
-## 📋 Fase 4: Testes de Compilação
+### 1.4 Atualizar QuestoesController.js
 
-- [x] Compilar frontend
-- [x] Verificar erros TypeScript
-- [x] Verificar warnings
-- [x] Verificar imports
-- [x] Verificar exports
-- [x] Verificar dependências
+- [ ] Abrir `BackEnd/controllers/QuestoesController.js`
+- [ ] Encontrar TODAS as linhas com `isAdmin`:
+  - [ ] Linha ~113: `const isAdmin = req.user?.isAdmin || req.user?.role === 'admin';`
+  - [ ] Linha ~750: `} else if (req.user.isAdmin || req.user.role === 'admin') {`
+  - [ ] Linha ~773: `if (req.user.isAdmin) {`
+  - [ ] Linha ~785: `...(req.user.isAdmin && { porDisciplina: disciplinas }),`
+  - [ ] Linha ~1139: `const isAdmin = req.user?.isAdmin || req.user?.role === 'admin';`
+  - [ ] Linha ~1140: `if (!isAdmin) {`
+  - [ ] Linha ~1241: `const isAdmin = req.user?.isAdmin || req.user?.role === 'admin';`
+  - [ ] Linha ~1242: `if (!isAdmin) {`
+  - [ ] Linha ~1323: `const isAdmin = req.user?.isAdmin || req.user?.role === 'admin';`
+  - [ ] Linha ~1324: `if (!isAdmin) {`
 
----
+- [ ] Substituir TODAS por:
+  ```javascript
+  // ✅ USAR
+  const isAdmin = req.user?.role === 'admin';
+  if (req.user.role === 'admin') { ... }
+  ```
 
-## 📋 Fase 5: Testes de Lógica
+### 1.5 Atualizar rankingController.js
 
-### Frontend
+- [ ] Abrir `BackEnd/controllers/rankingController.js`
+- [ ] Linha ~103: `if (!req.user?.isAdmin)`
+- [ ] Linha ~114: `if (!req.user?.isAdmin)`
+- [ ] Substituir por:
+  ```javascript
+  if (req.user?.role !== 'admin')
+  ```
 
-- [x] Teste: Resposta correta
-  - [x] Botão fica verde
-  - [x] Ícone ✓ aparece
-  - [x] Pontos aumentam
-  - [x] Acertos aumentam
-  - [x] Sidebar atualiza
+### 1.6 Atualizar colaboradorRegistroController.js
 
-- [x] Teste: Resposta incorreta
-  - [x] Botão fica vermelho
-  - [x] Ícone ✗ aparece
-  - [x] Resposta correta destacada
-  - [x] Pontos não aumentam
-  - [x] Erros aumentam
+- [ ] Abrir `BackEnd/controllers/colaboradorRegistroController.js`
+- [ ] Linha ~142: `isAdmin: false,`
+- [ ] ✅ REMOVER linha completamente
 
-- [x] Teste: Múltiplas questões
-  - [x] Resumo atualiza
-  - [x] Totais corretos
-  - [x] Progresso visual
+### 1.7 Atualizar TODAS as rotas
 
-- [x] Teste: Progresso visual
-  - [x] Números aparecem
-  - [x] Cores corretas
-  - [x] Borda na questão atual
+- [ ] Listar todos arquivos em `BackEnd/routes/`:
+  ```bash
+  ls BackEnd/routes/*.js
+  ```
+- [ ] Para CADA arquivo:
+  - [ ] REMOVER: `import isAdmin from '../middlewares/isAdmin.js';`
+  - [ ] ADICIONAR:
+    ```javascript
+    import { authenticate } from '../middlewares/auth.js';
+    import { requireAdmin } from '../middlewares/authorize.js';
+    ```
+  - [ ] Substituir em TODAS as rotas admin:
+    ```javascript
+    // ❌ ANTES
+    router.get('/admin/...',  isAdmin, controller);
+    
+    // ✅ DEPOIS
+    router.get('/admin/...', authenticate, requireAdmin, controller);
+    ```
 
-- [x] Teste: Tempo gasto
-  - [x] Tempo registrado
-  - [x] Tempo entre 0-30s
+### 1.8 Verificar imports
 
-### Backend
+- [ ] Grep para verificar que nenhum import antigo ficou:
+  ```bash
+  grep -r "import.*isAdmin.*from.*middlewares/isAdmin" BackEnd/
+  # Deve retornar vazio
+  ```
 
-- [x] Teste: Validação de autenticação
-- [x] Teste: Validação de usuário
-- [x] Teste: Validação de torneio
-- [x] Teste: Validação de inscrição
-- [x] Teste: Validação de questão
-- [x] Teste: Validação de disciplina
-- [x] Teste: Validação de resposta
-- [x] Teste: Cálculo de pontos
-- [x] Teste: Armazenamento
-- [x] Teste: Cálculo de resumo
-
----
-
-## 📋 Fase 6: Testes de Segurança
-
-- [x] Teste: Sem autenticação
-  - [x] Retorna 401 Unauthorized
-  - [x] Mensagem de erro correta
-
-- [x] Teste: Usuário não inscrito
-  - [x] Retorna 403 Forbidden
-  - [x] Mensagem de erro correta
-
-- [x] Teste: Resposta vazia
-  - [x] Retorna 400 Bad Request
-  - [x] Mensagem de erro correta
-
-- [x] Teste: Resposta com espaços
-  - [x] Espaços ignorados
-  - [x] Resposta aceita
-
-- [x] Teste: Case-insensitive
-  - [x] Maiúsculas ignoradas
-  - [x] Minúsculas ignoradas
-
-- [x] Teste: Pontos corretos
-  - [x] Pontos calculados corretamente
-  - [x] Pontos armazenados corretamente
-
----
-
-## 📋 Fase 7: Testes de Integração
-
-- [x] Teste: Fluxo completo
-  - [x] Usuário faz login
-  - [x] Seleciona disciplina
-  - [x] Carrega questões
-  - [x] Responde questão
-  - [x] Recebe resultado
-  - [x] Vê feedback visual
-  - [x] Vai para próxima questão
-
-- [x] Teste: Histórico
-  - [x] Tentativas salvas
-  - [x] Histórico recuperado
-  - [x] Dados corretos
-
-- [x] Teste: Estatísticas
-  - [x] Estatísticas calculadas
-  - [x] Taxa de acerto correta
-  - [x] Tempo total correto
-
----
-
-## 📋 Fase 8: Documentação
-
-- [x] INTEGRATION_SUMMARY.md
-  - [x] Resumo executivo
-  - [x] Mudanças realizadas
-  - [x] Responsabilidades
-  - [x] Fluxo completo
-
-- [x] BACKEND_INTEGRATION_GUIDE.md
-  - [x] Fluxo de dados
-  - [x] Validações backend
-  - [x] Endpoints
-  - [x] Exemplos de código
-  - [x] Testes de integração
-
-- [x] TESTING_INSTRUCTIONS.md
-  - [x] 13 testes manuais
-  - [x] Testes de segurança
-  - [x] Testes de bugs comuns
-  - [x] Troubleshooting
-  - [x] Checklist de testes
-
-- [x] ARCHITECTURE_DIAGRAM.md
-  - [x] Diagrama de componentes
-  - [x] Fluxo de requisição
-  - [x] Fluxo de segurança
-  - [x] Comparação antes/depois
-
-- [x] INTEGRATION_COMPLETE.md
-  - [x] Visão geral completa
-  - [x] Checklist final
-  - [x] Próximos passos
-  - [x] Conclusão
-
-- [x] EXECUTIVE_SUMMARY.md
-  - [x] Resumo para stakeholders
-  - [x] Benefícios
-  - [x] ROI
-  - [x] Status final
-
-- [x] IMPLEMENTATION_CHECKLIST.md (este arquivo)
-  - [x] Checklist de implementação
-  - [x] Fases do projeto
-  - [x] Tarefas completadas
+- [ ] Verificar lint:
+  ```bash
+  cd BackEnd && npm run lint
+  ```
 
 ---
 
-## 📋 Fase 9: Validação Final
+## 🗄️ FASE 2: DATABASE MIGRATION (30 min)
 
-### Código
+### 2.1 Backup OBRIGATÓRIO
 
-- [x] Sem erros de compilação
-- [x] Sem warnings
-- [x] Imports corretos
-- [x] Exports corretos
-- [x] Dependências corretas
-- [x] Código limpo
-- [x] Comentários úteis
+- [ ] Fazer backup:
+  ```bash
+  mysqldump -u root -p comaes_db > backup_before_drop_isAdmin.sql
+  ```
+- [ ] Verificar que backup foi criado:
+  ```bash
+  ls -lh backup_before_drop_isAdmin.sql
+  ```
 
-### Funcionalidade
+### 2.2 Executar Migration
 
-- [x] Frontend funciona
-- [x] Backend funciona
-- [x] Integração funciona
-- [x] Segurança garantida
-- [x] Dados consistentes
-- [x] Performance aceitável
+- [ ] Abrir MySQL:
+  ```bash
+  mysql -u root -p comaes_db
+  ```
+- [ ] Executar:
+  ```bash
+  source MIGRATION_DATABASE.sql
+  ```
+- [ ] OU copiar/colar commands do arquivo `MIGRATION_DATABASE.sql`
 
-### Documentação
+### 2.3 Verificações Pós-Migration
 
-- [x] Completa
-- [x] Precisa
-- [x] Atualizada
-- [x] Fácil de entender
-- [x] Exemplos inclusos
+- [ ] Verificar que coluna foi removida:
+  ```sql
+  DESCRIBE usuarios;
+  -- Não deve ter isAdmin
+  ```
 
----
+- [ ] Verificar admin master:
+  ```sql
+  SELECT id, nome, email, role FROM usuarios WHERE id = 1;
+  -- Deve ter role='admin'
+  ```
 
-## 📋 Fase 10: Aprovação
-
-- [x] Objetivo alcançado
-- [x] Requisitos atendidos
-- [x] Testes passando
-- [x] Documentação completa
-- [x] Código revisado
-- [x] Segurança validada
-- [x] Pronto para produção
-
----
-
-## 📊 Resumo de Tarefas
-
-| Fase | Tarefas | Completas | Status |
-|------|---------|-----------|--------|
-| 1. Análise | 5 | 5 | ✅ |
-| 2. Frontend | 12 | 12 | ✅ |
-| 3. Backend | 7 | 7 | ✅ |
-| 4. Compilação | 6 | 6 | ✅ |
-| 5. Lógica | 20 | 20 | ✅ |
-| 6. Segurança | 18 | 18 | ✅ |
-| 7. Integração | 12 | 12 | ✅ |
-| 8. Documentação | 35 | 35 | ✅ |
-| 9. Validação | 13 | 13 | ✅ |
-| 10. Aprovação | 7 | 7 | ✅ |
-| **TOTAL** | **135** | **135** | **✅** |
+- [ ] Verificar todos admins:
+  ```sql
+  SELECT id, nome, email, role FROM usuarios WHERE role='admin';
+  ```
 
 ---
 
-## 🎯 Objetivos Alcançados
+## 🎨 FASE 3: FRONTEND (1 hora)
 
-### Objetivo Principal
-- [x] Transformar frontend em sistema dependente do backend
+### 3.1 Atualizar AuthContext.jsx
 
-### Objetivos Secundários
-- [x] Remover validação local
-- [x] Remover cálculo de pontos local
-- [x] Integrar com backend
-- [x] Garantir segurança
-- [x] Documentar mudanças
-- [x] Testar integração
+- [ ] Abrir `FrontEnd/src/context/AuthContext.jsx`
+- [ ] REMOVER todas referências a `isAdmin`:
+  - [ ] Função `getPostLoginRoute`: remover check `user.isAdmin`
+  - [ ] Função `normalize`: remover `isAdmin` do objeto
 
-### Objetivos Terciários
-- [x] Melhorar segurança
-- [x] Melhorar confiabilidade
-- [x] Melhorar manutenibilidade
-- [x] Melhorar escalabilidade
+- [ ] Substituir:
+  ```javascript
+  // ❌ ANTES
+  const role = user.role || (user.isAdmin ? 'admin' : 'estudante');
+  if (role === 'admin' || user.isAdmin === true) return '/administrador';
+  
+  // ✅ DEPOIS
+  const role = user.role || 'estudante';
+  if (role === 'admin') return '/administrador';
+  ```
 
----
+### 3.2 Atualizar TableManager.jsx
 
-## 📈 Métricas de Sucesso
+- [ ] Abrir `FrontEnd/src/Administrador/TableManager.jsx`
+- [ ] REMOVER completamente a função `buildTableInfoFromData`
+- [ ] Remover o uso dela (linha ~290):
+  ```javascript
+  // ❌ REMOVER
+  } else {
+    const built = buildTableInfoFromData(rows);
+    setTableInfo(built);
+  }
+  
+  // ✅ SUBSTITUIR
+  } else {
+    setError('Tabela não tem definição estática. Configure STATIC_TABLE_DEFS.');
+    setTableInfo(null);
+  }
+  ```
 
-| Métrica | Antes | Depois | Status |
-|---------|-------|--------|--------|
-| Validação no Backend | 0% | 100% | ✅ |
-| Segurança | Baixa | Alta | ✅ |
-| Confiabilidade | Baixa | Alta | ✅ |
-| Auditoria | Nenhuma | Completa | ✅ |
-| Erros de Compilação | 0 | 0 | ✅ |
-| Testes Passando | N/A | 100% | ✅ |
+### 3.3 Atualizar todos componentes admin
 
----
+- [ ] Grep em FrontEnd:
+  ```bash
+  grep -r "isAdmin" FrontEnd/src/Administrador/
+  ```
+- [ ] Para CADA ocorrência:
+  - [ ] Substituir `user.isAdmin` por `user.role === 'admin'`
+  - [ ] Substituir `isAdmin || role === 'admin'` por `role === 'admin'`
 
-## 🚀 Próximas Fases
+### 3.4 Build do frontend
 
-### Fase 11: Deploy em Staging
-- [ ] Fazer deploy em staging
-- [ ] Executar testes de aceitação
-- [ ] Validar com stakeholders
-- [ ] Corrigir issues encontradas
-
-### Fase 12: Deploy em Produção
-- [ ] Fazer backup do banco
-- [ ] Fazer deploy em produção
-- [ ] Monitorar logs
-- [ ] Validar funcionamento
-
-### Fase 13: Monitoramento
-- [ ] Monitorar performance
-- [ ] Monitorar erros
-- [ ] Coletar feedback
-- [ ] Fazer otimizações
-
-### Fase 14: Expansão
-- [ ] Integrar com ranking
-- [ ] Integrar com certificados
-- [ ] Adicionar notificações
-- [ ] Adicionar analytics
+- [ ] Testar build:
+  ```bash
+  cd FrontEnd && npm run build
+  ```
+- [ ] Deve passar sem erros
 
 ---
 
-## 📝 Notas Importantes
+## 🧪 FASE 4: TESTING (1 hora)
 
-### O que foi feito
-✅ Frontend modificado para depender do backend
-✅ Validação local removida
-✅ Cálculo de pontos removido
-✅ Integração com backend completa
-✅ Segurança garantida
-✅ Documentação completa
+### 4.1 Testes de Autenticação
 
-### O que NÃO foi feito
-❌ Ranking (não foi solicitado)
-❌ Certificados (sistema separado)
-❌ Alterações no banco (estrutura mantida)
-❌ Alterações no modelo Pergunta (mantido)
+- [ ] Iniciar backend:
+  ```bash
+  cd BackEnd && npm run dev
+  ```
 
-### Próximos passos
-1. Executar testes manuais
-2. Deploy em staging
-3. Validação com stakeholders
-4. Deploy em produção
-5. Monitoramento
+- [ ] Iniciar frontend:
+  ```bash
+  cd FrontEnd && npm run dev
+  ```
+
+- [ ] Login como admin:
+  - [ ] Email: admin@comaes.com
+  - [ ] Verificar que login funciona
+  - [ ] Verificar que redireciona para `/administrador`
+
+### 4.2 Testes do Painel Admin
+
+- [ ] Acessar: http://localhost:3001/administrador
+- [ ] Verificar cada aba:
+  - [ ] ✅ Visão Geral (dashboard)
+  - [ ] ✅ Gerenciar Torneios
+  - [ ] ✅ Gerenciar Certificados
+  - [ ] ✅ Questões de Torneios
+  - [ ] ✅ Questões dos Testes
+  - [ ] ✅ Questões Pendentes
+  - [ ] ✅ Questões dos Colaboradores
+  - [ ] ✅ Gerenciar Usuários
+  - [ ] ✅ Pedidos de Colaboradores
+  - [ ] ✅ Todos os Colaboradores
+  - [ ] ✅ Gerenciar Notícias
+  - [ ] ✅ Centro de Notificações
+
+### 4.3 Testes de Segurança
+
+- [ ] Tentar acessar modelo não autorizado:
+  - [ ] Modificar URL: `?table=redefinicaosenha`
+  - [ ] Deve mostrar erro: "Tabela não permitida"
+
+- [ ] Verificar que não há erros 403 inconsistentes:
+  - [ ] Navegar entre abas múltiplas vezes
+  - [ ] Refresh da página
+  - [ ] Voltar e avançar no browser
+
+- [ ] Verificar console do browser:
+  - [ ] Não deve ter erros JavaScript
+  - [ ] Não deve ter avisos de CORS
+
+### 4.4 Testes de Roles
+
+- [ ] Logout do admin
+- [ ] Login como estudante:
+  - [ ] Tentar acessar `/administrador`
+  - [ ] Deve redirecionar ou mostrar 403
+
+- [ ] Login como colaborador:
+  - [ ] Tentar acessar `/administrador`
+  - [ ] Deve redirecionar ou mostrar 403
 
 ---
 
-## ✅ Assinatura
+## ✅ VERIFICAÇÃO FINAL
 
-**Desenvolvedor**: Kiro  
-**Data de Conclusão**: 22 de Maio de 2026  
-**Status**: ✅ COMPLETO E PRONTO PARA PRODUÇÃO
+### Checklist de Código
+
+- [ ] ❌ Zero referências a `isAdmin` no código:
+  ```bash
+  grep -r "isAdmin" BackEnd/ --exclude-dir=node_modules | grep -v "// ❌" | grep -v "deprecated"
+  grep -r "isAdmin" FrontEnd/src/ --exclude-dir=node_modules | grep -v "// ❌"
+  ```
+
+- [ ] ✅ JWT contém apenas `{id, role}`:
+  ```bash
+  grep -A 10 "jwt.sign" BackEnd/index.js
+  # Verificar payload
+  ```
+
+- [ ] ✅ Database não tem coluna `isAdmin`:
+  ```sql
+  DESCRIBE usuarios;
+  ```
+
+- [ ] ✅ Todos middlewares usam sistema novo:
+  ```bash
+  grep -r "from.*auth.js" BackEnd/routes/
+  grep -r "from.*authorize.js" BackEnd/routes/
+  ```
+
+### Checklist de Funcionalidade
+
+- [ ] Login funciona
+- [ ] Painel admin acessível
+- [ ] Todas as abas funcionam
+- [ ] Nenhum erro 403 inconsistente
+- [ ] UI não muda inesperadamente
+- [ ] Modelos não autorizados são rejeitados
+- [ ] Build do frontend passa
+- [ ] Lint do backend passa
 
 ---
 
-## 📚 Documentação Relacionada
+## 🚀 DEPLOY
 
-1. INTEGRATION_SUMMARY.md
-2. BACKEND_INTEGRATION_GUIDE.md
-3. TESTING_INSTRUCTIONS.md
-4. ARCHITECTURE_DIAGRAM.md
-5. INTEGRATION_COMPLETE.md
-6. EXECUTIVE_SUMMARY.md
+### Preparação
+
+- [ ] Commit das mudanças:
+  ```bash
+  git add .
+  git commit -m "refactor: unify auth system, remove isAdmin, implement whitelist"
+  ```
+
+- [ ] Push para repositório:
+  ```bash
+  git push origin restructure/auth-system-unified
+  ```
+
+- [ ] Criar Pull Request com:
+  - [ ] Link para RESTRUCTURE_COMPLETE_SUMMARY.md
+  - [ ] Checklist de testing completo
+  - [ ] Screenshots do painel funcionando
+
+### Produção (APENAS após aprovação)
+
+- [ ] Fazer backup da database de produção
+- [ ] Aplicar migration em produção
+- [ ] Deploy do backend
+- [ ] Deploy do frontend
+- [ ] Testar em produção
+- [ ] Monitorar logs por 24h
 
 ---
 
-**Implementação Completa com Sucesso! 🎉**
+## 📞 TROUBLESHOOTING
+
+### Problema: Build falha
+
+**Solução**:
+```bash
+# Limpar cache
+rm -rf FrontEnd/node_modules/.vite
+rm -rf FrontEnd/dist
+
+# Rebuild
+cd FrontEnd && npm run build
+```
+
+### Problema: Erros 403 após migration
+
+**Solução**:
+- Verificar que role está correto no DB
+- Verificar que JWT está sendo gerado corretamente
+- Limpar localStorage do browser
+- Fazer logout e login novamente
+
+### Problema: "Tabela não permitida"
+
+**Solução**:
+- Verificar ALLOWED_ADMIN_MODELS em:
+  - `BackEnd/utils/modelMapperSecure.js`
+  - `FrontEnd/src/Administrador/adminService.js`
+- Adicionar modelo à whitelist se necessário
+
+### Rollback Completo
+
+Se algo der muito errado:
+
+```bash
+# 1. Restaurar database
+mysql -u root -p comaes_db < backup_before_drop_isAdmin.sql
+
+# 2. Voltar código
+git checkout main
+git branch -D restructure/auth-system-unified
+
+# 3. Restart servers
+```
+
+---
+
+**CONCLUSÃO**: Após completar TODAS as etapas, o sistema estará completamente reestruturado com:
+- ✅ UMA fonte de verdade (role)
+- ✅ UMA forma de autorização (authenticate + requireRole)
+- ✅ Whitelist estrita de modelos
+- ✅ Zero inconsistências
+- ✅ Zero erros 403 inesperados
+
+**Tempo estimado total**: 4-5 horas
+

@@ -53,7 +53,7 @@ export const evaluateOpenAnswer = (
       'Muito bom! Você identificou a maior parte dos conceitos, porém falta algum detalhe. 🤔';
   } else if (score >= 4) {
     feedback +=
-      'Parcialmente correto. Alguns conceitos importantes estão ausentes ou incompletos. 🛠️';
+      'Parcialmente correto. Alguns conceitos importantes estão ausentes ou incompletos. ';
   } else {
     feedback +=
       'Resposta distante do esperado. Vamos revisar o conteúdo e tentar novamente. 📚';

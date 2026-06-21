@@ -56,7 +56,7 @@ const TesteConhecimentoManager = () => {
     carregarQuestoes();
   }, [filterCategoria, filterDificuldade]);
 
-  // Deletar questÃ£o
+  // Deletar questão
   const handleDeleteClick = (questao) => {
     setQuestionToDelete(questao);
     setShowDeleteModal(true);
@@ -70,16 +70,16 @@ const TesteConhecimentoManager = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      setSuccess('QuestÃ£o deletada com sucesso');
+      setSuccess('Questão deletada com sucesso');
       setTimeout(() => setSuccess(''), 3000);
       carregarQuestoes();
     } catch (err) {
-      setError('Erro ao deletar questÃ£o');
+      setError('Erro ao deletar questão');
       console.error('Erro:', err);
     }
   };
 
-  // Editar questÃ£o
+  // Editar questão
   const handleEdit = (questao) => {
     setSelectedQuestion(questao);
     setShowEditForm(true);
@@ -91,16 +91,16 @@ const TesteConhecimentoManager = () => {
   );
 
   const categoriaLabels = {
-    matematica: 'MatemÃ¡tica',
-    programacao: 'ProgramaÃ§Ã£o',
+    matematica: 'Matemática',
+    programacao: 'Programação',
     ingles: 'InglÃªs',
     cultura_geral: 'Cultura Geral'
   };
 
   const dificuldadeLabels = {
-    facil: 'FÃ¡cil',
-    medio: 'MÃ©dio',
-    dificil: 'DifÃ­cil'
+    facil: 'Fácil',
+    medio: 'Médio',
+    dificil: 'Difícil'
   };
 
   return (
@@ -124,7 +124,7 @@ const TesteConhecimentoManager = () => {
             className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2 whitespace-nowrap"
           >
             <Plus className="w-5 h-5" />
-            <span>Nova QuestÃ£o</span>
+            <span>Nova Questão</span>
           </button>
         </div>
       </div>
@@ -174,8 +174,8 @@ const TesteConhecimentoManager = () => {
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               <option value="">Todas</option>
-              <option value="matematica">MatemÃ¡tica</option>
-              <option value="programacao">ProgramaÃ§Ã£o</option>
+              <option value="matematica">Matemática</option>
+              <option value="programacao">Programação</option>
               <option value="ingles">InglÃªs</option>
               <option value="cultura_geral">Cultura Geral</option>
             </select>
@@ -193,9 +193,9 @@ const TesteConhecimentoManager = () => {
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               <option value="">Todas</option>
-              <option value="facil">FÃ¡cil</option>
-              <option value="medio">MÃ©dio</option>
-              <option value="dificil">DifÃ­cil</option>
+              <option value="facil">Fácil</option>
+              <option value="medio">Médio</option>
+              <option value="dificil">Difícil</option>
             </select>
           </div>
         </div>
@@ -211,8 +211,8 @@ const TesteConhecimentoManager = () => {
         ) : questoesFiltradas.length === 0 ? (
           <div className="p-8 text-center">
             <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-500 font-medium">Nenhuma questÃ£o encontrada</p>
-            <p className="text-slate-400 text-sm">Crie uma nova questÃ£o para comeÃ§ar</p>
+            <p className="text-slate-500 font-medium">Nenhuma questão encontrada</p>
+            <p className="text-slate-400 text-sm">Crie uma nova questão para começar</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -223,8 +223,8 @@ const TesteConhecimentoManager = () => {
                   <th className="px-6 py-4 text-left font-semibold text-slate-700">Categoria</th>
                   <th className="px-6 py-4 text-left font-semibold text-slate-700">Dificuldade</th>
                   <th className="px-6 py-4 text-left font-semibold text-slate-700">Pontos</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">OpÃ§Ãµes</th>
-                  <th className="px-6 py-4 text-right font-semibold text-slate-700">AÃ§Ãµes</th>
+                  <th className="px-6 py-4 text-left font-semibold text-slate-700">OpçÃµes</th>
+                  <th className="px-6 py-4 text-right font-semibold text-slate-700">AçÃµes</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -253,7 +253,7 @@ const TesteConhecimentoManager = () => {
                       {questao.pontos}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-700">
-                      {Array.isArray(questao.opcoes) ? questao.opcoes.length : 0} opÃ§Ãµes
+                      {Array.isArray(questao.opcoes) ? questao.opcoes.length : 0} opçÃµes
                     </td>
                     <td className="px-6 py-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-2">
@@ -289,7 +289,7 @@ const TesteConhecimentoManager = () => {
           onClose={() => setShowCreateForm(false)}
           onSuccess={() => {
             setShowCreateForm(false);
-            setSuccess('QuestÃ£o criada com sucesso!');
+            setSuccess('Questão criada com sucesso!');
             setTimeout(() => setSuccess(''), 3000);
             carregarQuestoes();
           }}
@@ -307,7 +307,7 @@ const TesteConhecimentoManager = () => {
           onSuccess={() => {
             setShowEditForm(false);
             setSelectedQuestion(null);
-            setSuccess('QuestÃ£o atualizada com sucesso!');
+            setSuccess('Questão atualizada com sucesso!');
             setTimeout(() => setSuccess(''), 3000);
             carregarQuestoes();
           }}
@@ -322,8 +322,8 @@ const TesteConhecimentoManager = () => {
           setQuestionToDelete(null);
         }}
         onConfirm={confirmDelete}
-        title="Confirmar ExclusÃ£o"
-        message={`Tem certeza que deseja deletar a questÃ£o "${questionToDelete?.enunciado?.substring(0, 50)}..."? Esta aÃ§Ã£o nÃ£o pode ser desfeita.`}
+        title="Confirmar Exclusão"
+        message={`Tem certeza que deseja deletar a questão "${questionToDelete?.enunciado?.substring(0, 50)}..."? Esta ação não pode ser desfeita.`}
         confirmText="Deletar"
         cancelText="Cancelar"
         type="danger"

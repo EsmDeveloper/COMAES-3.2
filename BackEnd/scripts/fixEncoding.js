@@ -6,7 +6,7 @@
  * Root cause: files were originally UTF-8, but at some point the UTF-8 bytes
  * were interpreted as Windows-1252 (cp1252) and then re-saved as UTF-8.
  * This causes emojis and accented chars to appear as garbled sequences like:
- *   ðŸ§ª  instead of  🧪
+ *     instead of  🧪
  *   configuração  instead of  configuração
  * 
  * Fix: reverse the Windows-1252 → Unicode mapping to recover the original bytes.
@@ -40,11 +40,11 @@ for (const [byte, cp] of Object.entries(WIN1252_MAP)) {
 
 /**
  * Detects if a string contains double-encoded UTF-8 characters.
- * Heuristic: presence of sequences like ðŸ (U+00F0 + U+0178) which are
+ * Heuristic: presence of sequences like  (U+00F0 + U+0178) which are
  * the double-encoded form of 4-byte emoji sequences starting with 0xF0.
  */
 function isDoubleEncoded(str) {
-  // ð = U+00F0 followed by Ÿ = U+0178 is a strong indicator
+  // 🏅 = U+00F0 followed by Ÿ = U+0178 is a strong indicator
   return str.includes('\u00F0\u0178') ||
          str.includes('\u00C3\u00A7') || // ç double-encoded
          str.includes('\u00C3\u00A3') || // ã double-encoded

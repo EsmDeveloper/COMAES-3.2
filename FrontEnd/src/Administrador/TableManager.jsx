@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import adminService from './adminService';
 import TableModal from './TableModal';
 import UserModal from './UserModal';
@@ -41,62 +41,62 @@ export const STATIC_TABLE_DEFS = {
         ]
     },
     noticia: {
-        title: 'NotÃ­cias',
+        title: 'Notícias',
         icon: Newspaper,
         columns: ['id', 'titulo', 'autor_id', 'publicado_em'],
-        displayColumns: ['ID', 'TÃ­tulo', 'Autor', 'Publicado em'],
+        displayColumns: ['ID', 'Título', 'Autor', 'Publicado em'],
         fields: [
-            { name: 'titulo', label: 'TÃ­tulo', type: 'text', required: true },
+            { name: 'titulo', label: 'Título', type: 'text', required: true },
             { name: 'resumo', label: 'Resumo', type: 'textarea' },
-            { name: 'conteudo', label: 'ConteÃºdo', type: 'textarea', required: true },
+            { name: 'conteudo', label: 'Conteúdo', type: 'textarea', required: true },
             { name: 'url_capa', label: 'URL da Capa', type: 'text' },
             { name: 'publicado', label: 'Publicado', type: 'checkbox' },
-            { name: 'publicado_em', label: 'Data de PublicaÃ§Ã£o', type: 'datetime-local' },
-            { name: 'tags', label: 'Tags (separadas por vÃ­rgula)', type: 'text' }
+            { name: 'publicado_em', label: 'Data de Publicação', type: 'datetime-local' },
+            { name: 'tags', label: 'Tags (separadas por vírgula)', type: 'text' }
         ]
     },
     ticketsuporte: {
         title: 'Suporte',
         icon: Ticket,
         columns: ['id', 'titulo', 'status', 'prioridade'],
-        displayColumns: ['ID', 'TÃ­tulo', 'Status', 'Prioridade'],
+        displayColumns: ['ID', 'Título', 'Status', 'Prioridade'],
         fields: [
-            { name: 'titulo', label: 'TÃ­tulo', type: 'text', required: true },
-            { name: 'descricao', label: 'DescriÃ§Ã£o', type: 'textarea', required: true },
+            { name: 'titulo', label: 'Título', type: 'text', required: true },
+            { name: 'descricao', label: 'Descrição', type: 'textarea', required: true },
             { name: 'status', label: 'Status', type: 'select', options: ['aberto', 'em_andamento', 'resolvido', 'fechado'] },
             { name: 'prioridade', label: 'Prioridade', type: 'select', options: ['baixa', 'media', 'alta', 'urgente'] },
-            { name: 'usuario_id', label: 'UsuÃ¡rio ID', type: 'number', required: true }
+            { name: 'usuario_id', label: 'Usuário ID', type: 'number', required: true }
         ]
     },
     funcao: {
-        title: 'FunÃ§Ãµes',
+        title: 'Funções',
         icon: Briefcase,
         columns: ['id', 'nome', 'descricao'],
-        displayColumns: ['ID', 'Nome', 'DescriÃ§Ã£o'],
+        displayColumns: ['ID', 'Nome', 'Descrição'],
         fields: [
             { name: 'nome', label: 'Nome', type: 'text', required: true },
-            { name: 'descricao', label: 'DescriÃ§Ã£o', type: 'textarea' }
+            { name: 'descricao', label: 'Descrição', type: 'textarea' }
         ]
     },
     redefinicaosenha: {
-        title: 'RedefiniÃ§Ãµes de Senha',
+        title: 'Redefinições de Senha',
         icon: Key,
         columns: ['id', 'usuario_id', 'token', 'expira_em'],
-        displayColumns: ['ID', 'UsuÃ¡rio', 'Token', 'Expira em'],
+        displayColumns: ['ID', 'Usuário', 'Token', 'Expira em'],
         fields: [
-            { name: 'usuario_id', label: 'UsuÃ¡rio ID', type: 'number', required: true },
+            { name: 'usuario_id', label: 'Usuário ID', type: 'number', required: true },
             { name: 'token', label: 'Token', type: 'text', required: true },
             { name: 'expira_em', label: 'Expira em', type: 'datetime-local', required: true },
             { name: 'usado', label: 'Usado', type: 'checkbox' }
         ]
     },
     configuracaousuario: {
-        title: 'ConfiguraÃ§Ãµes de UsuÃ¡rio',
+        title: 'Configurações de Usuário',
         icon: Settings,
         columns: ['id', 'usuario_id', 'chave', 'valor'],
-        displayColumns: ['ID', 'UsuÃ¡rio', 'Chave', 'Valor'],
+        displayColumns: ['ID', 'Usuário', 'Chave', 'Valor'],
         fields: [
-            { name: 'usuario_id', label: 'UsuÃ¡rio ID', type: 'number', required: true },
+            { name: 'usuario_id', label: 'Usuário ID', type: 'number', required: true },
             { name: 'chave', label: 'Chave', type: 'text', required: true },
             { name: 'valor', label: 'Valor', type: 'text', required: true }
         ]
@@ -105,18 +105,18 @@ export const STATIC_TABLE_DEFS = {
         title: 'Perguntas',
         icon: HelpCircle,
         columns: ['id', 'titulo', 'tipo', 'dificuldade'],
-        displayColumns: ['ID', 'TÃ­tulo', 'Tipo', 'Dificuldade'],
+        displayColumns: ['ID', 'Título', 'Tipo', 'Dificuldade'],
         fields: [
-            { name: 'titulo', label: 'TÃ­tulo', type: 'text', required: true },
-            { name: 'descricao', label: 'DescriÃ§Ã£o', type: 'textarea' },
+            { name: 'titulo', label: 'Título', type: 'text', required: true },
+            { name: 'descricao', label: 'Descrição', type: 'textarea' },
             { name: 'tipo', label: 'Tipo', type: 'select', options: ['matematica', 'programacao', 'ingles'] },
             { name: 'dificuldade', label: 'Dificuldade', type: 'select', options: ['facil', 'medio', 'dificil'] },
-            { name: 'pontuacao', label: 'PontuaÃ§Ã£o', type: 'number' },
+            { name: 'pontuacao', label: 'Pontuação', type: 'number' },
             { name: 'tempo_limite', label: 'Tempo Limite (min)', type: 'number' }
         ]
     },
     questaomatematica: {
-        title: 'QuestÃµes de MatemÃ¡tica',
+        title: 'Questões de Matemática',
         icon: Calculator,
         columns: ['id', 'pergunta_id', 'enunciado', 'resposta_correta'],
         displayColumns: ['ID', 'Pergunta', 'Enunciado', 'Resposta Correta'],
@@ -124,12 +124,12 @@ export const STATIC_TABLE_DEFS = {
             { name: 'pergunta_id', label: 'Pergunta ID', type: 'number', required: true },
             { name: 'enunciado', label: 'Enunciado', type: 'textarea', required: true },
             { name: 'resposta_correta', label: 'Resposta Correta', type: 'text', required: true },
-            { name: 'opcoes', label: 'OpÃ§Ãµes (JSON)', type: 'textarea' },
+            { name: 'opcoes', label: 'OpçÃães (JSON)', type: 'textarea' },
             { name: 'dicas', label: 'Dicas', type: 'textarea' }
         ]
     },
     questoes_programacao: {
-        title: 'QuestÃµes de ProgramaÃ§Ã£o',
+        title: 'Questões de Programação',
         icon: Code,
         columns: ['id', 'pergunta_id', 'enunciado', 'linguagem'],
         displayColumns: ['ID', 'Pergunta', 'Enunciado', 'Linguagem'],
@@ -137,35 +137,35 @@ export const STATIC_TABLE_DEFS = {
             { name: 'pergunta_id', label: 'Pergunta ID', type: 'number', required: true },
             { name: 'enunciado', label: 'Enunciado', type: 'textarea', required: true },
             { name: 'linguagem', label: 'Linguagem', type: 'select', options: ['javascript', 'python', 'java', 'cpp'] },
-            { name: 'codigo_inicial', label: 'CÃ³digo Inicial', type: 'textarea' },
+            { name: 'codigo_inicial', label: 'Código Inicial', type: 'textarea' },
             { name: 'testes', label: 'Testes (JSON)', type: 'textarea' },
-            { name: 'solucao', label: 'SoluÃ§Ã£o', type: 'textarea' }
+            { name: 'solucao', label: 'Solução', type: 'textarea' }
         ]
     },
     questaoingles: {
-        title: 'QuestÃµes de InglÃªs',
+        title: 'Questões de Inglês',
         icon: Globe,
         columns: ['id', 'pergunta_id', 'enunciado', 'tipo_questao'],
         displayColumns: ['ID', 'Pergunta', 'Enunciado', 'Tipo'],
         fields: [
             { name: 'pergunta_id', label: 'Pergunta ID', type: 'number', required: true },
             { name: 'enunciado', label: 'Enunciado', type: 'textarea', required: true },
-            { name: 'tipo_questao', label: 'Tipo de QuestÃ£o', type: 'select', options: ['traduÃ§Ã£o', 'gramatica', 'vocabulÃ¡rio', 'compreensÃ£o'] },
+            { name: 'tipo_questao', label: 'Tipo de Questão', type: 'select', options: ['tradução', 'gramatica', 'vocabulário', 'compreensão'] },
             { name: 'resposta_correta', label: 'Resposta Correta', type: 'text', required: true },
-            { name: 'opcoes', label: 'OpÃ§Ãµes (JSON)', type: 'textarea' },
-            { name: 'explicacao', label: 'ExplicaÃ§Ã£o', type: 'textarea' }
+            { name: 'opcoes', label: 'OpçÃães (JSON)', type: 'textarea' },
+            { name: 'explicacao', label: 'Explicação', type: 'textarea' }
         ]
     },
     tentativateste: {
         title: 'Tentativas de Teste',
         icon: FileText,
         columns: ['id', 'usuario_id', 'pergunta_id', 'pontuacao'],
-        displayColumns: ['ID', 'UsuÃ¡rio', 'Pergunta', 'PontuaÃ§Ã£o'],
+        displayColumns: ['ID', 'Usuário', 'Pergunta', 'Pontuação'],
         fields: [
-            { name: 'usuario_id', label: 'UsuÃ¡rio ID', type: 'number', required: true },
+            { name: 'usuario_id', label: 'Usuário ID', type: 'number', required: true },
             { name: 'pergunta_id', label: 'Pergunta ID', type: 'number', required: true },
             { name: 'resposta', label: 'Resposta', type: 'textarea' },
-            { name: 'pontuacao', label: 'PontuaÃ§Ã£o', type: 'number' },
+            { name: 'pontuacao', label: 'Pontuação', type: 'number' },
             { name: 'tempo_gasto', label: 'Tempo Gasto (seg)', type: 'number' },
             { name: 'data_tentativa', label: 'Data da Tentativa', type: 'datetime-local' }
         ]
@@ -174,24 +174,24 @@ export const STATIC_TABLE_DEFS = {
         title: 'Participantes de Torneio',
         icon: Target,
         columns: ['id', 'usuario_id', 'torneio_id', 'pontuacao_total'],
-        displayColumns: ['ID', 'UsuÃ¡rio', 'Torneio', 'PontuaÃ§Ã£o Total'],
+        displayColumns: ['ID', 'Usuário', 'Torneio', 'Pontuação Total'],
         fields: [
-            { name: 'usuario_id', label: 'UsuÃ¡rio ID', type: 'number', required: true },
+            { name: 'usuario_id', label: 'Usuário ID', type: 'number', required: true },
             { name: 'torneio_id', label: 'Torneio ID', type: 'number', required: true },
-            { name: 'pontuacao_total', label: 'PontuaÃ§Ã£o Total', type: 'number' },
-            { name: 'posicao_final', label: 'PosiÃ§Ã£o Final', type: 'number' },
-            { name: 'data_inscricao', label: 'Data de InscriÃ§Ã£o', type: 'datetime-local' },
+            { name: 'pontuacao_total', label: 'Pontuação Total', type: 'number' },
+            { name: 'posicao_final', label: 'Posição Final', type: 'number' },
+            { name: 'data_inscricao', label: 'Data de Inscrição', type: 'datetime-local' },
             { name: 'status', label: 'Status', type: 'select', options: ['inscrito', 'ativo', 'desclassificado', 'finalizado'] }
         ]
     },
     notificacao: {
-        title: 'NotificaÃ§Ãµes',
+        title: 'Notificações',
         icon: Bell,
         columns: ['id', 'usuario_id', 'titulo', 'lido'],
-        displayColumns: ['ID', 'UsuÃ¡rio', 'TÃ­tulo', 'Lido'],
+        displayColumns: ['ID', 'Usuário', 'Título', 'Lido'],
         fields: [
-            { name: 'usuario_id', label: 'UsuÃ¡rio ID', type: 'number', required: true },
-            { name: 'titulo', label: 'TÃ­tulo', type: 'text', required: true },
+            { name: 'usuario_id', label: 'Usuário ID', type: 'number', required: true },
+            { name: 'titulo', label: 'Título', type: 'text', required: true },
             { name: 'mensagem', label: 'Mensagem', type: 'textarea', required: true },
             { name: 'tipo', label: 'Tipo', type: 'select', options: ['geral', 'torneio', 'resultado', 'sistema'] },
             { name: 'lido', label: 'Lido', type: 'checkbox' },
@@ -202,29 +202,29 @@ export const STATIC_TABLE_DEFS = {
         title: 'Conquistas',
         icon: Award,
         columns: ['id', 'nome', 'descricao', 'pontuacao'],
-        displayColumns: ['ID', 'Nome', 'DescriÃ§Ã£o', 'PontuaÃ§Ã£o'],
+        displayColumns: ['ID', 'Nome', 'Descrição', 'Pontuação'],
         fields: [
             { name: 'nome', label: 'Nome', type: 'text', required: true },
-            { name: 'descricao', label: 'DescriÃ§Ã£o', type: 'textarea', required: true },
-            { name: 'icone', label: 'Ãcone', type: 'text' },
-            { name: 'pontuacao', label: 'PontuaÃ§Ã£o', type: 'number', required: true },
+            { name: 'descricao', label: 'Descrição', type: 'textarea', required: true },
+            { name: 'icone', label: 'Ícone', type: 'text' },
+            { name: 'pontuacao', label: 'Pontuação', type: 'number', required: true },
             { name: 'categoria', label: 'Categoria', type: 'select', options: ['participacao', 'desempenho', 'conquista', 'especial'] },
-            { name: 'criterios', label: 'CritÃ©rios (JSON)', type: 'textarea' }
+            { name: 'criterios', label: 'Critérios (JSON)', type: 'textarea' }
         ]
     },
     conquistausuario: {
-        title: 'Conquistas de UsuÃ¡rio',
+        title: 'Conquistas de Usuário',
         icon: Medal,
         columns: ['id', 'usuario_id', 'conquista_id', 'data_conquista'],
-        displayColumns: ['ID', 'UsuÃ¡rio', 'Conquista', 'Data'],
+        displayColumns: ['ID', 'Usuário', 'Conquista', 'Data'],
         fields: [
-            { name: 'usuario_id', label: 'UsuÃ¡rio ID', type: 'number', required: true },
+            { name: 'usuario_id', label: 'Usuário ID', type: 'number', required: true },
             { name: 'conquista_id', label: 'Conquista ID', type: 'number', required: true },
             { name: 'data_conquista', label: 'Data da Conquista', type: 'datetime-local', required: true },
             { name: 'progresso', label: 'Progresso', type: 'number' }
         ]
     }
-    // ... outros modelos podem ser adicionados conforme necessÃ¡rio
+    // ... outros modelos podem ser adicionados conforme necessário
 };
 
 const TableManager = ({ table }) => {
@@ -247,30 +247,6 @@ const TableManager = ({ table }) => {
         return tableInfo.columns.includes('id') ? 'id' : tableInfo.columns[0];
     }, [tableInfo]);
 
-    const buildTableInfoFromData = (rows) => {
-        const first = Array.isArray(rows) && rows.length > 0 ? rows[0] : {};
-        const cols = Object.keys(first);
-        const displayColumns = cols.map(c => c.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
-        const fields = cols.filter(c => c !== 'id').map(c => {
-            const sample = first[c];
-            let type = 'text';
-            if (typeof sample === 'number') type = 'number';
-            else if (typeof sample === 'string') {
-                if (/^\d{4}-\d{2}-\d{2}T?/.test(sample)) type = 'datetime-local';
-                else if (sample.length > 200) type = 'textarea';
-            }
-            return { name: c, label: c.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), type };
-        });
-
-        return {
-            tableName: table,
-            title: table.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-            columns: cols,
-            displayColumns,
-            fields
-        };
-    };
-
     const fetchData = useCallback(async () => {
         if (!tableService) {
             setLoading(false);
@@ -282,13 +258,14 @@ const TableManager = ({ table }) => {
             const result = await tableService.getAll();
             const rows = Array.isArray(result) ? result : (result ? [result] : []);
             setData(rows);
-            setLoading(false);
 
             if (STATIC_TABLE_DEFS[table]) {
                 setTableInfo(STATIC_TABLE_DEFS[table]);
+                setLoading(false);
             } else {
-                const built = buildTableInfoFromData(rows);
-                setTableInfo(built);
+                setError(`Definição de tabela "${table}" não encontrada. Configure STATIC_TABLE_DEFS ou schema backend.`);
+                setTableInfo(null);
+                setLoading(false);
             }
         } catch (err) {
             const status = err.response?.status;
@@ -306,7 +283,7 @@ const TableManager = ({ table }) => {
         fetchData();
     }, [table, fetchData]);
 
-    // CORREÃ‡ÃƒO: definir valores padrÃ£o para torneio
+    // CORREO: definir valores padrão para torneio
     const handleAdd = () => {
         setModalMode('create');
         if (table === 'torneio') {
@@ -345,15 +322,15 @@ const TableManager = ({ table }) => {
                 await tableService.create(formData);
             } else if (modalMode === 'edit') {
                 const idValue = selectedItem ? selectedItem[pkField] : null;
-                if (!idValue) { setError('Identificador invÃ¡lido para operaÃ§Ã£o'); return; }
+                if (!idValue) { setError('Identificador inválido para operação'); return; }
                 await tableService.update(idValue, formData);
             } else if (modalMode === 'delete') {
                 const idValue = selectedItem ? selectedItem[pkField] : null;
-                if (!idValue) { setError('Identificador invÃ¡lido para operaÃ§Ã£o'); return; }
+                if (!idValue) { setError('Identificador inválido para operação'); return; }
                 await tableService.delete(idValue);
             } else if (modalMode === 'reset-password' && isUserTable) {
                 const idValue = selectedItem ? selectedItem[pkField] : null;
-                if (!idValue) { setError('Identificador invÃ¡lido para operaÃ§Ã£o'); return; }
+                if (!idValue) { setError('Identificador inválido para operação'); return; }
                 const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
                 const res = await fetch(`${apiBase}/api/admin/users/${idValue}/reset-password`, {
                     method: 'PATCH',
@@ -368,7 +345,7 @@ const TableManager = ({ table }) => {
                 }
             } else if (modalMode === 'toggle-admin' && isUserTable) {
                 const idValue = selectedItem ? selectedItem[pkField] : null;
-                if (!idValue) { setError('Identificador invÃ¡lido para operaÃ§Ã£o'); return; }
+                if (!idValue) { setError('Identificador inválido para operação'); return; }
                 const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
                 const res = await fetch(`${apiBase}/api/admin/users/${idValue}/toggle-admin`, {
                     method: 'PATCH',
@@ -376,26 +353,26 @@ const TableManager = ({ table }) => {
                 });
                 if (!res.ok) {
                     const body = await res.json();
-                    const err = new Error(body.message || 'Erro ao alterar privilÃ©gios');
+                    const err = new Error(body.message || 'Erro ao alterar privilégios');
                     err.response = { data: body };
                     throw err;
                 }
             }
             handleModalClose();
-            setSuccess('OperaÃ§Ã£o realizada com sucesso');
+            setSuccess('Operação realizada com sucesso');
             setTimeout(() => setSuccess(''), 5000);
             await fetchData();
         } catch (err) {
             const message = err.response?.data?.message || err.response?.data?.error || err.message;
             // Re-throw so UserModal can handle fieldErrors
             if (err.response?.data?.fieldErrors) throw err;
-            setError(`Erro ao processar operaÃ§Ã£o: ${message}`);
+            setError(`Erro ao processar operação: ${message}`);
             console.error('handleModalSubmit error', err);
         }
     };
 
     if (!tableService && table) {
-        return <div className="p-8 text-center text-gray-500">Tabela nÃ£o disponÃ­vel. Selecione outro item no menu.</div>;
+        return <div className="p-8 text-center text-gray-500">Tabela não disponível. Selecione outro item no menu.</div>;
     }
 
     if (loading && (!tableInfo || data.length === 0)) {
@@ -405,25 +382,25 @@ const TableManager = ({ table }) => {
     const info = tableInfo || { title: 'Tabela', columns: [], displayColumns: [], fields: [] };
 
     const isUserTable = table === 'user' || table === 'users';
-    // Admin master = id 1. SÃ³ ele pode criar admins e ver todos os utilizadores.
+    // Admin master = id 1. Só ele pode criar admins e ver todos os utilizadores.
     const isMasterAdmin = String(user?.id) === '1';
 
     const filteredData = data.filter(item => {
-        // Admin secundÃ¡rio nÃ£o vÃª o admin master (id=1) na lista
+        // Admin secundário não vê o admin master (id=1) na lista
         if (isUserTable && !isMasterAdmin && String(item.id) === '1') return false;
         
-        // Aplicar filtro de tipo de usuÃ¡rio
+        // Aplicar filtro de tipo de usuário
         if (isUserTable && userTypeFilter !== 'todos') {
             if (userTypeFilter === 'estudante') {
-                // Estudante: nÃ£o Ã© admin e nÃ£o Ã© colaborador
+                // Estudante: não é admin e não é colaborador
                 return !item.isAdmin && item.role !== 'colaborador';
             }
             if (userTypeFilter === 'colaborador') {
-                // Professor/Colaborador: role Ã© 'colaborador'
+                // Professor/Colaborador: role é 'colaborador'
                 return item.role === 'colaborador';
             }
             if (userTypeFilter === 'admin') {
-                // Administrador: isAdmin Ã© true ou role Ã© 'admin'
+                // Administrador: isAdmin é true ou role é 'admin'
                 return item.isAdmin || item.role === 'admin';
             }
         }
@@ -443,10 +420,10 @@ const TableManager = ({ table }) => {
                             Gerenciamento de {info.title}
                         </h2>
                         <p className="text-slate-600">
-                            Gerencie registros, visualize dados e execute operaÃ§Ãµes CRUD
+                            Gerencie registros, visualize dados e execute operações CRUD
                         </p>
                     </div>
-                    {/* BotÃ£o Adicionar: na tabela de users, sÃ³ o admin master pode criar */}
+                    {/* Botão Adicionar: na tabela de users, só o admin master pode criar */}
                     {(!isUserTable || isMasterAdmin) && (
                     <button
                         onClick={handleAdd}
@@ -475,7 +452,7 @@ const TableManager = ({ table }) => {
                             className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md"
                         />
                     </div>
-                    {/* Filtro de tipo de usuÃ¡rio - apenas para tabela de usuÃ¡rios */}
+                    {/* Filtro de tipo de usuário - apenas para tabela de usuários */}
                     {isUserTable && (
                         <div className="w-full sm:w-auto sm:min-w-64">
                             <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -487,10 +464,10 @@ const TableManager = ({ table }) => {
                                 onChange={(e) => setUserTypeFilter(e.target.value)}
                                 className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md bg-white font-medium text-slate-700"
                             >
-                                <option value="todos">ðŸ“‹ Todos os tipos ({data.length})</option>
-                                <option value="estudante">ðŸ‘¨â€ðŸŽ“ Estudante ({data.filter(u => !u.isAdmin && u.role !== 'colaborador').length})</option>
-                                <option value="colaborador">ðŸ‘¨â€ðŸ« Professor/Colaborador ({data.filter(u => u.role === 'colaborador').length})</option>
-                                <option value="admin">ðŸ‘‘ Administrador ({data.filter(u => u.isAdmin || u.role === 'admin').length})</option>
+                                <option value="todos"> Todos os tipos ({data.length})</option>
+                                <option value="estudante">â Estudante ({data.filter(u => !u.isAdmin && u.role !== 'colaborador').length})</option>
+                                <option value="colaborador">â Professor/Colaborador ({data.filter(u => u.role === 'colaborador').length})</option>
+                                <option value="admin"> Administrador ({data.filter(u => u.isAdmin || u.role === 'admin').length})</option>
                             </select>
                         </div>
                     )}
@@ -540,7 +517,7 @@ const TableManager = ({ table }) => {
                                         </th>
                                     ))}
                                     <th className="px-6 py-4 text-right font-semibold text-slate-700 whitespace-nowrap border-b border-slate-200">
-                                        AÃ§Ãµes
+                                        Ações
                                     </th>
                                 </tr>
                             </thead>
@@ -578,13 +555,13 @@ const TableManager = ({ table }) => {
                                                         <Edit className="w-4 h-4" />
                                                         <span className="hidden sm:inline">Editar</span>
                                                     </button>
-                                                    {/* Excluir: nunca para o prÃ³prio utilizador nem para o admin master (id=1) */}
+                                                    {/* Excluir: nunca para o próprio utilizador nem para o admin master (id=1) */}
                                                     {!(isUserTable && String(item.id) === '1') && (
                                                         <button
                                                             onClick={() => handleDelete(item)}
                                                             disabled={String(user?.id) === String(item.id)}
                                                             className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-1.5 text-xs font-medium disabled:opacity-40 disabled:cursor-not-allowed"
-                                                            title={String(user?.id) === String(item.id) ? 'NÃ£o pode excluir a prÃ³pria conta' : 'Excluir'}
+                                                            title={String(user?.id) === String(item.id) ? 'Não pode excluir a própria conta' : 'Excluir'}
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                             <span className="hidden sm:inline">Excluir</span>

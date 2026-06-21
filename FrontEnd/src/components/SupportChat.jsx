@@ -1,23 +1,27 @@
 ﻿// components/SupportChat.jsx
-// Componente unificado: botÃ£o flutuante + modal compacto + modo tela cheia
-// Usado tanto no Layout (flutuante) quanto na pÃ¡gina /suporte (tela cheia)
+// Componente unificado: botão flutuante + modal compacto + modo tela cheia
+// Usado tanto no Layout (flutuante) quanto na página /suporte (tela cheia)
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import {
+  Trophy, Award, Users, BarChart3, ChevronDown, ChevronRight,
+  Send, Trash2, MessageSquare, Bot, X, Maximize2
+} from 'lucide-react';
 
-// â”€â”€ FAQ estÃ¡tico â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  FAQ estático 
 export const FAQ_ITEMS = [
   {
     category: 'Torneios',
-    icon: 'ðŸ†',
+    icon: Trophy,
     questions: [
       {
         q: 'Como participar de um torneio?',
-        a: 'Aceda a "Entrar no Torneio", escolha a disciplina e clique em "Inscrever-me". A participaÃ§Ã£o Ã© confirmada automaticamente.',
+        a: 'Aceda a "Entrar no Torneio", escolha a disciplina e clique em "Inscrever-me". A participação é confirmada automaticamente.',
       },
       {
-        q: 'Quais disciplinas estÃ£o disponÃ­veis?',
-        a: 'MatemÃ¡tica, InglÃªs e ProgramaÃ§Ã£o. Cada torneio pode ter uma ou mais disciplinas activas.',
+        q: 'Quais disciplinas estão disponíveis?',
+        a: 'Matemática, Inglês e Programação. Cada torneio pode ter uma ou mais disciplinas activas.',
       },
       {
         q: 'Como criar um torneio?',
@@ -27,51 +31,51 @@ export const FAQ_ITEMS = [
   },
   {
     category: 'Certificados',
-    icon: 'ðŸŽ“',
+    icon: Award,
     questions: [
       {
         q: 'Como obter o meu certificado?',
-        a: 'Certificados sÃ£o emitidos automaticamente para os 3 primeiros colocados apÃ³s o encerramento do torneio. Aceda ao seu perfil para descarregar.',
+        a: 'Certificados são emitidos automaticamente para os 3 primeiros colocados após o encerramento do torneio. Aceda ao seu perfil para descarregar.',
       },
       {
         q: 'Posso validar um certificado?',
-        a: 'Sim. Cada certificado tem um cÃ³digo Ãºnico. Aceda a /validador/[cÃ³digo] para verificar a autenticidade.',
+        a: 'Sim. Cada certificado tem um código único. Aceda a /validador/[código] para verificar a autenticidade.',
       },
     ],
   },
   {
-    category: 'Perfis e PermissÃµes',
-    icon: 'ðŸ‘¤',
+    category: 'Perfis e Permissões',
+    icon: Users,
     questions: [
       {
-        q: 'Qual a diferenÃ§a entre colaborador e admin?',
-        a: 'Colaboradores podem criar e gerir questÃµes. Administradores tÃªm acesso total: criam torneios, gerem utilizadores e emitem certificados.',
+        q: 'Qual a diferença entre colaborador e admin?',
+        a: 'Colaboradores podem criar e gerir questões. Administradores têm acesso total: criam torneios, gerem utilizadores e emitem certificados.',
       },
       {
         q: 'O que pode fazer um estudante?',
-        a: 'Estudantes participam de torneios, respondem quizzes, visualizam o ranking e obtÃªm certificados ao terminar no pÃ³dio.',
+        a: 'Estudantes participam de torneios, respondem quizzes, visualizam o ranking e obtêm certificados ao terminar no pódio.',
       },
     ],
   },
   {
     category: 'Ranking',
-    icon: 'ðŸ“Š',
+    icon: BarChart3,
     questions: [
       {
-        q: 'Como Ã© calculado o ranking?',
-        a: 'O ranking Ã© calculado pela pontuaÃ§Ã£o total obtida nas respostas. QuestÃµes difÃ­ceis valem mais pontos. Ã‰ actualizado em tempo real.',
+        q: 'Como é calculado o ranking?',
+        a: 'O ranking é calculado pela pontuação total obtida nas respostas. Questões difíceis valem mais pontos. É actualizado em tempo real.',
       },
     ],
   },
 ];
 
-// â”€â”€ Hook de chat reutilizÃ¡vel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  Hook de chat reutilizável 
 export function useSupportChat() {
   const { token } = useAuth();
   const [messages, setMessages] = useState([
     {
       role: 'model',
-      text: 'OlÃ¡! Sou o assistente virtual da COMAES. Como posso ajudar?',
+      text: 'Olá! Sou o assistente virtual da COMAES. Como posso ajudar?',
       ts: Date.now(),
     },
   ]);
@@ -132,7 +136,7 @@ export function useSupportChat() {
         ...prev,
         {
           role: 'model',
-          text: 'ServiÃ§o indisponÃ­vel. Tente novamente mais tarde.',
+          text: 'Serviço indisponível. Tente novamente mais tarde.',
           ts: Date.now(),
           isError: true,
         },
@@ -151,71 +155,74 @@ export function useSupportChat() {
   return { messages, input, setInput, loading, sendMessage, clearChat };
 }
 
-// â”€â”€ Painel de FAQ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  Painel de FAQ 
 export function FaqPanel({ onAskAssistant, compact = false }) {
   const [expandedFaq, setExpandedFaq] = useState(null);
 
   return (
     <div className={`overflow-y-auto ${compact ? 'p-3 space-y-2' : 'p-4 space-y-3'}`}>
-      {FAQ_ITEMS.map((cat, ci) => (
-        <div key={ci} className="rounded-xl border border-gray-100 overflow-hidden">
-          <div className="bg-gray-50 px-3 py-2 flex items-center gap-2">
-            <span className={compact ? 'text-base' : 'text-lg'}>{cat.icon}</span>
-            <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">
-              {cat.category}
-            </span>
+      {FAQ_ITEMS.map((cat, ci) => {
+        const IconComponent = cat.icon;
+        return (
+          <div key={ci} className="rounded-xl border border-gray-100 overflow-hidden">
+            <div className="bg-gray-50 px-3 py-2 flex items-center gap-2">
+              <IconComponent className={compact ? 'w-5 h-5' : 'w-6 h-6'} />
+              <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                {cat.category}
+              </span>
+            </div>
+            {cat.questions.map((item, qi) => {
+              const key = `${ci}-${qi}`;
+              const isExpanded = expandedFaq === key;
+              return (
+                <div key={qi} className="border-t border-gray-50">
+                  <button
+                    onClick={() => setExpandedFaq(isExpanded ? null : key)}
+                    className="w-full text-left px-3 py-2.5 flex items-start gap-2 hover:bg-gray-50 transition-colors"
+                  >
+                    <span className="text-blue-500 mt-0.5 flex-shrink-0">
+                      {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                    </span>
+                    <span className={`font-medium text-gray-800 ${compact ? 'text-xs' : 'text-sm'}`}>
+                      {item.q}
+                    </span>
+                  </button>
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-3 pb-3 pt-1 bg-blue-50/40">
+                          <p className={`text-gray-600 leading-relaxed ${compact ? 'text-xs' : 'text-sm'}`}>
+                            {item.a}
+                          </p>
+                          {onAskAssistant && (
+                            <button
+                              onClick={() => onAskAssistant(item.q)}
+                              className="mt-2 text-[11px] text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
+                            >
+                              Perguntar ao assistente <ChevronRight className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
           </div>
-          {cat.questions.map((item, qi) => {
-            const key = `${ci}-${qi}`;
-            const isExpanded = expandedFaq === key;
-            return (
-              <div key={qi} className="border-t border-gray-50">
-                <button
-                  onClick={() => setExpandedFaq(isExpanded ? null : key)}
-                  className="w-full text-left px-3 py-2.5 flex items-start gap-2 hover:bg-gray-50 transition-colors"
-                >
-                  <span className="text-blue-500 mt-0.5 flex-shrink-0 text-xs">
-                    {isExpanded ? 'â–¼' : 'â–¶'}
-                  </span>
-                  <span className={`font-medium text-gray-800 ${compact ? 'text-xs' : 'text-sm'}`}>
-                    {item.q}
-                  </span>
-                </button>
-                <AnimatePresence>
-                  {isExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-3 pb-3 pt-1 bg-blue-50/40">
-                        <p className={`text-gray-600 leading-relaxed ${compact ? 'text-xs' : 'text-sm'}`}>
-                          {item.a}
-                        </p>
-                        {onAskAssistant && (
-                          <button
-                            onClick={() => onAskAssistant(item.q)}
-                            className="mt-2 text-[11px] text-blue-600 hover:text-blue-800 font-semibold underline"
-                          >
-                            Perguntar ao assistente â†’
-                          </button>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            );
-          })}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
-// â”€â”€ Painel de Chat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  Painel de Chat 
 export function ChatPanel({ chat, compact = false, inputRef: externalInputRef }) {
   const { messages, input, setInput, loading, sendMessage, clearChat } = chat;
   const internalRef = useRef(null);
@@ -244,7 +251,7 @@ export function ChatPanel({ chat, compact = false, inputRef: externalInputRef })
           >
             {msg.role === 'model' && (
               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs mr-2 flex-shrink-0 mt-0.5 select-none">
-                ðŸ¤–
+                <Bot className="w-3.5 h-3.5 text-white" />
               </div>
             )}
             <div
@@ -263,11 +270,11 @@ export function ChatPanel({ chat, compact = false, inputRef: externalInputRef })
           </div>
         ))}
 
-        {/* Indicador de digitaÃ§Ã£o */}
+        {/* Indicador de digitação */}
         {loading && (
           <div className="flex justify-start">
             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs mr-2 flex-shrink-0 select-none">
-              ðŸ¤–
+              <Bot className="w-3.5 h-3.5 text-white" />
             </div>
             <div className="bg-gray-100 px-3 py-2.5 rounded-2xl rounded-bl-sm flex items-center gap-1">
               <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -287,7 +294,7 @@ export function ChatPanel({ chat, compact = false, inputRef: externalInputRef })
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Escreva a sua dÃºvida..."
+            placeholder="Escreva a sua dúvida..."
             rows={1}
             maxLength={500}
             disabled={loading}
@@ -302,20 +309,18 @@ export function ChatPanel({ chat, compact = false, inputRef: externalInputRef })
             className="w-9 h-9 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center transition-colors flex-shrink-0"
             aria-label="Enviar"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-              <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
-            </svg>
+            <Send className="w-4 h-4" />
           </button>
         </div>
         <div className="flex items-center justify-between mt-1.5">
           <p className="text-[10px] text-gray-400">
-            Enter para enviar Â· Shift+Enter para nova linha
+            Enter para enviar · Shift+Enter para nova linha
           </p>
           <button
             onClick={clearChat}
-            className="text-[10px] text-gray-400 hover:text-red-500 transition-colors"
+            className="text-[10px] text-gray-400 hover:text-red-500 transition-colors flex items-center gap-1"
           >
-            Limpar chat
+            <Trash2 className="w-3 h-3" /> Limpar chat
           </button>
         </div>
       </div>
@@ -323,7 +328,7 @@ export function ChatPanel({ chat, compact = false, inputRef: externalInputRef })
   );
 }
 
-// â”€â”€ Componente flutuante (usado no Layout) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  Componente flutuante (usado no Layout) 
 export default function SupportChat() {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -331,7 +336,7 @@ export default function SupportChat() {
   const inputRef = useRef(null);
   const chat = useSupportChat();
 
-  // Ao montar E a cada mudanÃ§a de rota: verificar se voltou da pÃ¡gina /suporte
+  // Ao montar E a cada mudança de rota: verificar se voltou da página /suporte
   // useEffect com location.pathname garante que dispara quando navigate(-1) resolve
   useEffect(() => {
     const reopen = sessionStorage.getItem('support_reopen_modal');
@@ -340,7 +345,7 @@ export default function SupportChat() {
       const tab = sessionStorage.getItem('support_active_tab') || 'faq';
       sessionStorage.removeItem('support_active_tab');
       setActiveTab(tab);
-      // Pequeno delay para garantir que o componente estÃ¡ totalmente montado
+      // Pequeno delay para garantir que o componente está totalmente montado
       setTimeout(() => setIsOpen(true), 80);
     }
   });
@@ -363,7 +368,7 @@ export default function SupportChat() {
   // Expandir: guarda estado e navega para /suporte
   const handleExpand = () => {
     sessionStorage.setItem('support_active_tab', activeTab);
-    // navegar via window para nÃ£o precisar do hook useNavigate aqui
+    // navegar via window para não precisar do hook useNavigate aqui
     window.location.href = '/suporte';
   };
 
@@ -371,7 +376,7 @@ export default function SupportChat() {
 
   return (
     <>
-      {/* â”€â”€ BotÃ£o flutuante â”€â”€ */}
+      {/*  Botão flutuante  */}
       <motion.button
         onClick={() => isOpen ? handleClose() : setIsOpen(true)}
         whileHover={{ scale: 1.08 }}
@@ -382,27 +387,25 @@ export default function SupportChat() {
       >
         <AnimatePresence mode="wait">
           {isOpen ? (
-            <motion.span
+            <motion.div
               key="close"
               initial={{ rotate: -90, opacity: 0 }}
               animate={{ rotate: 0, opacity: 1 }}
               exit={{ rotate: 90, opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className="text-xl font-bold"
             >
-              âœ•
-            </motion.span>
+              <X className="w-5 h-5" />
+            </motion.div>
           ) : (
-            <motion.span
+            <motion.div
               key="open"
               initial={{ rotate: 90, opacity: 0 }}
               animate={{ rotate: 0, opacity: 1 }}
               exit={{ rotate: -90, opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className="text-2xl"
             >
-              ðŸ¤–
-            </motion.span>
+              <Bot className="w-6 h-6" />
+            </motion.div>
           )}
         </AnimatePresence>
         {!isOpen && (
@@ -410,7 +413,7 @@ export default function SupportChat() {
         )}
       </motion.button>
 
-      {/* â”€â”€ Modal compacto â”€â”€ */}
+      {/*  Modal compacto  */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -430,57 +433,61 @@ export default function SupportChat() {
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-4 py-3 flex items-center gap-3 flex-shrink-0">
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-base flex-shrink-0 select-none">
-                ðŸ¤–
+                <Bot className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-white font-bold text-sm leading-tight">Assistente COMAES</p>
-                <p className="text-blue-100 text-[11px]">Online Â· Responde em segundos</p>
+                <p className="text-blue-100 text-[11px]">Online · Responde em segundos</p>
               </div>
               <div className="flex items-center gap-1.5">
-                {/* BotÃ£o expandir â†’ abre pÃ¡gina /suporte */}
+                {/* Botão expandir → abre página /suporte */}
                 <button
                   onClick={handleExpand}
                   className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/25 text-white/80 hover:text-white transition-all flex items-center justify-center"
-                  title="Expandir para pÃ¡gina completa"
+                  title="Expandir para página completa"
                   aria-label="Abrir suporte em tela cheia"
                 >
-                  {/* Ã­cone expand */}
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clipRule="evenodd" />
-                  </svg>
+                  <Maximize2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={handleClose}
-                  className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/25 text-white/80 hover:text-white transition-all flex items-center justify-center text-sm font-bold"
+                  className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/25 text-white/80 hover:text-white transition-all flex items-center justify-center"
                   aria-label="Fechar"
                 >
-                  âœ•
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
             {/* Tabs */}
             <div className="flex border-b border-gray-100 flex-shrink-0">
-              {['faq', 'chat'].map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`flex-1 py-2.5 text-xs font-semibold transition-colors ${
-                    activeTab === tab
-                      ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  {tab === 'faq' ? 'ðŸ“‹ FAQ' : 'ðŸ’¬ Chat IA'}
-                </button>
-              ))}
+              {[
+                { key: 'faq', label: 'FAQ', icon: MessageSquare },
+                { key: 'chat', label: 'Chat IA', icon: Bot }
+              ].map(tab => {
+                const IconComponent = tab.icon;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`flex-1 py-2.5 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 ${
+                      activeTab === tab.key
+                        ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    <IconComponent className="w-3.5 h-3.5" />
+                    {tab.label}
+                  </button>
+                );
+              })}
             </div>
 
             {activeTab === 'faq' ? (
               <div className="flex-1 overflow-y-auto">
                 <FaqPanel onAskAssistant={handleFaqAsk} compact />
                 <p className="text-center text-[10px] text-gray-400 py-3">
-                  NÃ£o encontrou?{' '}
+                  Não encontrou?{' '}
                   <button onClick={() => setActiveTab('chat')} className="text-blue-500 underline font-medium">
                     Pergunte ao assistente
                   </button>
@@ -495,4 +502,3 @@ export default function SupportChat() {
     </>
   );
 }
-

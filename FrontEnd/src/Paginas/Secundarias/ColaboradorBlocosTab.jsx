@@ -1,10 +1,10 @@
-﻿/**
+/**
  * ColaboradorBlocosTab.jsx
- * GestÃ£o de Blocos de QuestÃµes para Colaboradores
+ * Gestão de Blocos de QuestÃµes para Colaboradores
  * - Criar blocos na sua disciplina
  * - Editar blocos pendentes
  * - Adicionar/remover questÃµes dos blocos
- * - Submeter para aprovaÃ§Ã£o do admin
+ * - Submeter para aprovação do admin
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -19,9 +19,9 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.
 const MAX_Q = 30;
 
 const DIFICULDADES = [
-  { id: 'facil', label: 'FÃ¡cil', cor: 'green' },
-  { id: 'medio', label: 'MÃ©dio', cor: 'yellow' },
-  { id: 'dificil', label: 'DifÃ­cil', cor: 'red' },
+  { id: 'facil', label: 'Fácil', cor: 'green' },
+  { id: 'medio', label: 'Médio', cor: 'yellow' },
+  { id: 'dificil', label: 'Difícil', cor: 'red' },
 ];
 
 const COR_DIF = {
@@ -30,7 +30,7 @@ const COR_DIF = {
   red: { bg: 'bg-red-100', text: 'text-red-800', dot: 'bg-red-500' },
 };
 
-// â”€â”€ Modal de criaÃ§Ã£o/ediÃ§Ã£o de bloco â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€ Modal de criação/edição de bloco â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function BlocoFormModal({ bloco, onClose, onSave, loading, disciplina }) {
   const [titulo, setTitulo] = useState(bloco?.titulo || '');
   const [dificuldade, setDificuldade] = useState(bloco?.dificuldade || 'facil');
@@ -39,7 +39,7 @@ function BlocoFormModal({ bloco, onClose, onSave, loading, disciplina }) {
 
   const handleSave = () => {
     if (!titulo.trim()) {
-      setErro('O tÃ­tulo Ã© obrigatÃ³rio.');
+      setErro('O título é obrigatório.');
       return;
     }
     onSave({
@@ -71,23 +71,23 @@ function BlocoFormModal({ bloco, onClose, onSave, loading, disciplina }) {
           )}
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">TÃ­tulo *</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Título *</label>
             <input
               type="text"
               value={titulo}
               onChange={(e) => setTitulo(e.target.value)}
-              placeholder="Ex: FunÃ§Ãµes AvanÃ§adas em Python"
+              placeholder="Ex: FunçÃµes Avançadas em Python"
               className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">DescriÃ§Ã£o</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Descrição</label>
             <textarea
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
               rows={2}
-              placeholder="DescriÃ§Ã£o opcional do bloco..."
+              placeholder="Descrição opcional do bloco..."
               className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             />
           </div>
@@ -109,10 +109,10 @@ function BlocoFormModal({ bloco, onClose, onSave, loading, disciplina }) {
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <p className="text-xs text-blue-700">
-              <strong>Disciplina:</strong> {disciplina?.name || 'NÃ£o definida'}
+              <strong>Disciplina:</strong> {disciplina?.name || 'Não definida'}
             </p>
             <p className="text-xs text-blue-600 mt-1">
-              Este bloco serÃ¡ enviado para aprovaÃ§Ã£o do administrador.
+              Este bloco será enviado para aprovação do administrador.
             </p>
           </div>
         </div>
@@ -165,9 +165,9 @@ function BlocoCard({ bloco, onEdit, onDelete, onAddQuestao, onRemoveQuestao, onS
                 bloco.status === 'aprovado' ? 'bg-green-100 text-green-700' :
                 'bg-red-100 text-red-700'
               }`}>
-                {bloco.status === 'pendente' ? 'â³ Pendente' :
+                {bloco.status === 'pendente' ? 'â³ Pendente' :
                  bloco.status === 'aprovado' ? 'âœ… Aprovado' :
-                 'âŒ Rejeitado'}
+                 'âŒ Rejeitado'}
               </span>
             </div>
             <h3 className="font-bold text-slate-800 truncate">{bloco.titulo}</h3>
@@ -202,7 +202,7 @@ function BlocoCard({ bloco, onEdit, onDelete, onAddQuestao, onRemoveQuestao, onS
               <button
                 onClick={() => onSubmit(bloco)}
                 className="p-1.5 rounded-lg text-blue-500 hover:bg-blue-100"
-                title="Enviar para aprovaÃ§Ã£o"
+                title="Enviar para aprovação"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -229,7 +229,7 @@ function BlocoCard({ bloco, onEdit, onDelete, onAddQuestao, onRemoveQuestao, onS
         <div className="border-t border-blue-200 bg-white/80">
           {questoes.length === 0 ? (
             <div className="px-4 py-6 text-center">
-              <p className="text-sm text-slate-400">Nenhuma questÃ£o neste bloco.</p>
+              <p className="text-sm text-slate-400">Nenhuma questão neste bloco.</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
@@ -268,7 +268,7 @@ function BlocoCard({ bloco, onEdit, onDelete, onAddQuestao, onRemoveQuestao, onS
                 }`}
               >
                 <Plus className="w-3.5 h-3.5" />
-                {cheio ? `Limite de ${MAX_Q} questÃµes atingido` : 'Adicionar questÃ£o'}
+                {cheio ? `Limite de ${MAX_Q} questÃµes atingido` : 'Adicionar questão'}
               </button>
             </div>
           )}
@@ -327,13 +327,13 @@ export default function ColaboradorBlocosTab({ token }) {
         }
       );
 
-      console.log('ðŸ“‹ Resposta da API /colaborador/blocos:', response.data);
+      console.log(' Resposta da API /colaborador/blocos:', response.data);
 
       const lista = response.data?.dados?.blocos || response.data?.blocos || [];
       console.log('âœ… Blocos carregados:', lista.length, 'blocos');
       setBlocos(lista);
     } catch (e) {
-      console.error('âŒ Erro ao carregar blocos:', e);
+      console.error('âŒ Erro ao carregar blocos:', e);
       console.error('Status:', e.response?.status);
       console.error('Mensagem:', e.response?.data);
       
@@ -422,7 +422,7 @@ export default function ColaboradorBlocosTab({ token }) {
 
       setBlocoParaDeletar(null);
       setShowDeleteBloco(false);
-      showMsg('Bloco excluÃ­do.');
+      showMsg('Bloco excluído.');
       carregarBlocos();
     } catch (e) {
       showMsg(e.response?.data?.mensagem || e.response?.data?.message || e.message, true);
@@ -446,7 +446,7 @@ export default function ColaboradorBlocosTab({ token }) {
         }
       );
 
-      showMsg('Bloco enviado para aprovaÃ§Ã£o!');
+      showMsg('Bloco enviado para aprovação!');
       carregarBlocos();
     } catch (e) {
       showMsg(e.response?.data?.mensagem || e.response?.data?.message || e.message, true);
@@ -469,7 +469,7 @@ export default function ColaboradorBlocosTab({ token }) {
         }
       );
 
-      showMsg('QuestÃ£o removida do bloco.');
+      showMsg('Questão removida do bloco.');
       carregarBlocos();
     } catch (e) {
       showMsg(e.response?.data?.mensagem || e.response?.data?.message || e.message, true);
@@ -532,9 +532,9 @@ export default function ColaboradorBlocosTab({ token }) {
             className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Todos os status</option>
-            <option value="pendente">â³ Pendentes</option>
+            <option value="pendente">â³ Pendentes</option>
             <option value="aprovado">âœ… Aprovados</option>
-            <option value="rejeitado">âŒ Rejeitados</option>
+            <option value="rejeitado">âŒ Rejeitados</option>
           </select>
         </div>
       </div>
@@ -549,10 +549,10 @@ export default function ColaboradorBlocosTab({ token }) {
         <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-12 text-center">
           <Layers className="w-12 h-12 text-slate-300 mx-auto mb-4" />
           <p className="text-slate-500 font-medium">
-            {filtroStatus ? 'Nenhum bloco encontrado' : 'VocÃª nÃ£o criou nenhum bloco ainda'}
+            {filtroStatus ? 'Nenhum bloco encontrado' : 'VocÃª não criou nenhum bloco ainda'}
           </p>
           <p className="text-slate-400 text-sm mt-1">
-            Crie seu primeiro bloco de questÃµes para comeÃ§ar.
+            Crie seu primeiro bloco de questÃµes para começar.
           </p>
           <button
             onClick={() => {
@@ -579,7 +579,7 @@ export default function ColaboradorBlocosTab({ token }) {
                 setShowDeleteBloco(true);
               }}
               onAddQuestao={() => {
-                // Implementado em prÃ³xima fase
+                // Implementado em próxima fase
                 showMsg('Funcionalidade em desenvolvimento', true);
               }}
               onRemoveQuestao={handleRemoverQuestao}
@@ -603,14 +603,14 @@ export default function ColaboradorBlocosTab({ token }) {
         />
       )}
 
-      {/* Modal de ConfirmaÃ§Ã£o - Deletar */}
+      {/* Modal de Confirmação - Deletar */}
       {showDeleteBloco && blocoParaDeletar && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
             <h3 className="text-lg font-bold text-slate-800 mb-2">Excluir bloco?</h3>
             <p className="text-sm text-slate-600 mb-6">
               Tem certeza que deseja excluir o bloco "<strong>{blocoParaDeletar.titulo}</strong>"?
-              Esta aÃ§Ã£o nÃ£o pode ser desfeita.
+              Esta ação não pode ser desfeita.
             </p>
             <div className="flex gap-3">
               <button

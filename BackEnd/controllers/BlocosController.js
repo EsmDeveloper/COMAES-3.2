@@ -26,7 +26,7 @@ import User from '../models/User.js';
 
 const MAX_QUESTOES_POR_BLOCO = 30;
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers 
 
 const ok = (res, data, msg = '', status = 200) =>
   res.status(status).json({ success: true, message: msg, data });
@@ -34,7 +34,7 @@ const ok = (res, data, msg = '', status = 200) =>
 const err = (res, msg, status = 400, details = null) =>
   res.status(status).json({ success: false, error: msg, ...(details && { details }) });
 
-// ── CRUD de Blocos ────────────────────────────────────────────────────────────
+// ── CRUD de Blocos 
 
 /**
  * GET /api/blocos
@@ -60,7 +60,7 @@ export const listarBlocos = async (req, res) => {
       // Colaborador vê apenas SEUS blocos e sua disciplina
       where.disciplina = req.user.disciplina_colaborador;
       where.criado_por = req.user.id;  // ✅ Filtrar para ver apenas seus blocos
-      console.log(`✅ Filtro aplicado: disciplina = "${req.user.disciplina_colaborador}", criado_por = ${req.user.id}`);
+      console.log(`[SUCCESS] Filtro aplicado: disciplina = "${req.user.disciplina_colaborador}", criado_por = ${req.user.id}`);
     } else {
       console.log(`🔎 Usuário ADMIN ${req.user.id} (${req.user.nome}) solicitou blocos`);
       // Admin vê:
@@ -72,14 +72,14 @@ export const listarBlocos = async (req, res) => {
         where: { role: 'admin' }  // ✅ Usar role = 'admin', não is_colaborador
       });
       const adminIds = admins.map(u => u.id);
-      console.log(`✅ Admin IDs encontrados: ${adminIds.join(', ')}`);
+      console.log(`[SUCCESS] Admin IDs encontrados: ${adminIds.join(', ')}`);
       
       // Usar OR: (criado por admin - qualquer status) OU (aprovado de colaborador)
       where[Op.or] = [
         { criado_por: { [Op.in]: adminIds } },  // Blocos do admin (todos os status)
         { status: 'aprovado' }  // Blocos aprovados (de colaboradores)
       ];
-      console.log(`✅ Filtro aplicado: (criado_por IN (${adminIds.join(', ')}) OR status = 'aprovado')`);
+      console.log(`[SUCCESS] Filtro aplicado: (criado_por IN (${adminIds.join(', ')}) OR status = 'aprovado')`);
     }
 
     if (disciplina && req.user?.isColaborador) {
@@ -164,7 +164,7 @@ export const listarBlocos = async (req, res) => {
       totalPages: Math.ceil(count / parseInt(limit)),
     });
   } catch (error) {
-    console.error('❌ Erro ao listar blocos:', error);
+    console.error('[ERROR] Erro ao listar blocos:', error);
     return err(res, 'Erro ao listar blocos', 500, error.message);
   }
 };
@@ -203,10 +203,10 @@ export const criarBloco = async (req, res) => {
       criado_por: req.user.id,
     });
 
-    console.log(`✅ Bloco criado: ID ${bloco.id} — "${bloco.titulo}" (contexto: ${contexto}, status: ${bloco.status})`);
+    console.log(`[SUCCESS] Bloco criado: ID ${bloco.id} — "${bloco.titulo}" (contexto: ${contexto}, status: ${bloco.status})`);
     return ok(res, { ...bloco.toJSON(), total_questoes: 0 }, 'Bloco criado com sucesso', 201);
   } catch (error) {
-    console.error('❌ Erro ao criar bloco:', error);
+    console.error('[ERROR] Erro ao criar bloco:', error);
     return err(res, 'Erro ao criar bloco', 500, error.message);
   }
 };
@@ -265,7 +265,7 @@ export const obterBloco = async (req, res) => {
 
     return ok(res, { ...bloco.toJSON(), questoes, total_questoes: questoes.length });
   } catch (error) {
-    console.error('❌ Erro ao obter bloco:', error);
+    console.error('[ERROR] Erro ao obter bloco:', error);
     return err(res, 'Erro ao obter bloco', 500, error.message);
   }
 };
@@ -300,10 +300,10 @@ export const editarBloco = async (req, res) => {
     await bloco.update(campos);
 
     const totalQuestoes = await BlocoQuestaoItem.count({ where: { bloco_id: id } });
-    console.log(`✅ Bloco atualizado: ID ${id}`);
+    console.log(`[SUCCESS] Bloco atualizado: ID ${id}`);
     return ok(res, { ...bloco.toJSON(), total_questoes: totalQuestoes }, 'Bloco atualizado com sucesso');
   } catch (error) {
-    console.error('❌ Erro ao editar bloco:', error);
+    console.error('[ERROR] Erro ao editar bloco:', error);
     return err(res, 'Erro ao editar bloco', 500, error.message);
   }
 };
@@ -331,15 +331,15 @@ export const deletarBloco = async (req, res) => {
     }
 
     await bloco.destroy();
-    console.log(`✅ Bloco deletado: ID ${id}`);
+    console.log(`[SUCCESS] Bloco deletado: ID ${id}`);
     return ok(res, null, 'Bloco deletado com sucesso');
   } catch (error) {
-    console.error('❌ Erro ao deletar bloco:', error);
+    console.error('[ERROR] Erro ao deletar bloco:', error);
     return err(res, 'Erro ao deletar bloco', 500, error.message);
   }
 };
 
-// ── Questões dentro de um bloco ───────────────────────────────────────────────
+// ── Questões dentro de um bloco 
 
 /**
  * POST /api/blocos/:id/questoes
@@ -359,47 +359,47 @@ export const adicionarQuestao = async (req, res) => {
     console.log(`   - questaoId RECEBIDO DO FRONTEND: ${questao_id}`);
 
     if (!questao_id) {
-      console.error(`❌ questao_id ausente`);
+      console.error(`[ERROR] questao_id ausente`);
       return err(res, 'questao_id é obrigatório');
     }
 
     const bloco = await BlocoQuestoes.findByPk(id);
     if (!bloco) {
-      console.error(`❌ Bloco ${id} não encontrado`);
+      console.error(`[ERROR] Bloco ${id} não encontrado`);
       return err(res, 'Bloco não encontrado', 404);
     }
-    console.log(`✅ Bloco encontrado:`, { id: bloco.id, titulo: bloco.titulo, disciplina: bloco.disciplina });
+    console.log(`[SUCCESS] Bloco encontrado:`, { id: bloco.id, titulo: bloco.titulo, disciplina: bloco.disciplina });
 
     // ✅ PRIORIZAR: Tentar PRIMEIRO com QuestaoTesteConhecimento (modelo mais novo para testes)
     // Porque o frontend chamou /api/teste-conhecimento/questoes, então a questão é desse modelo
     let questao = await QuestaoTesteConhecimento.findByPk(questao_id);
     
     if (questao) {
-      console.log(`✅ Questão encontrada no modelo QuestaoTesteConhecimento (PRIORIDADE)`);
+      console.log(`[SUCCESS] Questão encontrada no modelo QuestaoTesteConhecimento (PRIORIDADE)`);
       console.log(`   - ID: ${questao.id}, Categoria: ${questao.categoria}, Ativo: ${questao.ativo}`);
       console.log(`   - Enunciado: ${questao.enunciado?.substring(0, 50)}...`);
       console.log(`   - Bloco disciplina: ${bloco.disciplina}`);
 
       // Validar para QuestaoTesteConhecimento
       if (!questao.ativo) {
-        console.error(`❌ Questão inativa`);
+        console.error(`[ERROR] Questão inativa`);
         return err(res, 'Questão inativa não pode ser adicionada ao bloco', 422);
       }
       
       console.log(`🔍 VALIDAÇÃO: questao.categoria="${questao.categoria}" vs bloco.disciplina="${bloco.disciplina}"`);
       if (questao.categoria !== bloco.disciplina) {
         const msg = `Questão de categoria "${questao.categoria}" não pode ser adicionada a bloco de disciplina "${bloco.disciplina}"`;
-        console.error(`❌ ${msg}`);
+        console.error(`[ERROR] ${msg}`);
         return err(res, msg, 422);
       }
 
       // Verificar limite
       const count = await BlocoQuestaoItem.count({ where: { bloco_id: id } });
-      console.log(`📊 Bloco tem ${count} questões (modelo antigo)`);
+      console.log(`[CHART] Bloco tem ${count} questões (modelo antigo)`);
       
       if (count >= MAX_QUESTOES_POR_BLOCO) {
         const msg = `Limite de ${MAX_QUESTOES_POR_BLOCO} questões por bloco atingido`;
-        console.error(`❌ ${msg}`);
+        console.error(`[ERROR] ${msg}`);
         return err(res, msg, 422);
       }
 
@@ -408,7 +408,7 @@ export const adicionarQuestao = async (req, res) => {
         where: { bloco_id: id, questao_id },
       });
       if (jaExiste) {
-        console.error(`❌ Questão já está neste bloco`);
+        console.error(`[ERROR] Questão já está neste bloco`);
         return err(res, 'Questão já está neste bloco', 409);
       }
 
@@ -418,54 +418,54 @@ export const adicionarQuestao = async (req, res) => {
         ordem: ordem ?? count,
       });
 
-      console.log(`✅ Questão ${questao_id} adicionada ao bloco ${id} (modelo QuestaoTesteConhecimento)`);
+      console.log(`[SUCCESS] Questão ${questao_id} adicionada ao bloco ${id} (modelo QuestaoTesteConhecimento)`);
       return ok(res, item, 'Questão adicionada ao bloco', 201);
     } else {
-      console.log(`⚠️ Questão não encontrada no modelo QuestaoTesteConhecimento, tentando modelo Questao (novo)...`);
+      console.log(`[WARNING] Questão não encontrada no modelo QuestaoTesteConhecimento, tentando modelo Questao (novo)...`);
     }
 
     // ❌ Fallback: Tentar modelo antigo Questao se não encontrou em QuestaoTesteConhecimento
     questao = await Questao.findByPk(questao_id);
     
     if (!questao) {
-      console.error(`❌ Questão ${questao_id} não encontrada em nenhum modelo`);
+      console.error(`[ERROR] Questão ${questao_id} não encontrada em nenhum modelo`);
       return err(res, 'Questão não encontrada', 404);
     }
 
     // ✅ Questão do novo modelo unificado
-    console.log(`✅ Questão encontrada no modelo Questao`);
+    console.log(`[SUCCESS] Questão encontrada no modelo Questao`);
     console.log(`   - ID: ${questao.id}, Titulo: ${questao.titulo}, Disciplina ENCONTRADA: ${questao.disciplina}, BlocoID: ${questao.bloco_id}`);
     
     // Validar disciplina
     if (questao.disciplina !== bloco.disciplina) {
       const msg = `Questão de disciplina "${questao.disciplina}" não pode ser adicionada a bloco de disciplina "${bloco.disciplina}"`;
-      console.error(`❌ ${msg}`);
+      console.error(`[ERROR] ${msg}`);
       return err(res, msg, 422);
     }
 
     // Verificar se já está no bloco
     if (questao.bloco_id === parseInt(id)) {
-      console.error(`❌ Questão já está neste bloco`);
+      console.error(`[ERROR] Questão já está neste bloco`);
       return err(res, 'Questão já está neste bloco', 409);
     }
 
     // Contar questões existentes
     const count = await Questao.count({ where: { bloco_id: id } });
-    console.log(`📊 Bloco tem ${count} questões (modelo novo)`);
+    console.log(`[CHART] Bloco tem ${count} questões (modelo novo)`);
     
     if (count >= MAX_QUESTOES_POR_BLOCO) {
       const msg = `Limite de ${MAX_QUESTOES_POR_BLOCO} questões por bloco atingido`;
-      console.error(`❌ ${msg}`);
+      console.error(`[ERROR] ${msg}`);
       return err(res, msg, 422);
     }
 
     // Atualizar questão para apontar ao bloco
     await questao.update({ bloco_id: id });
-    console.log(`✅ Questão ${questao_id} adicionada ao bloco ${id} (modelo Questao novo)`);
+    console.log(`[SUCCESS] Questão ${questao_id} adicionada ao bloco ${id} (modelo Questao novo)`);
     
     return ok(res, questao, 'Questão adicionada ao bloco', 201);
   } catch (error) {
-    console.error(`\n❌ ERRO em adicionarQuestao:`, error);
+    console.error(`\n[ERROR] ERRO em adicionarQuestao:`, error);
     console.error(`   Stack:`, error.stack);
     
     if (error.name === 'SequelizeUniqueConstraintError') {
@@ -492,7 +492,7 @@ export const removerQuestao = async (req, res) => {
     if (questao) {
       // ✅ Removeu do novo modelo
       await questao.update({ bloco_id: null });
-      console.log(`✅ Questão ${qid} removida do bloco ${id} (novo modelo)`);
+      console.log(`[SUCCESS] Questão ${qid} removida do bloco ${id} (novo modelo)`);
       return ok(res, null, 'Questão removida do bloco');
     }
 
@@ -504,15 +504,15 @@ export const removerQuestao = async (req, res) => {
     if (!item) return err(res, 'Questão não encontrada neste bloco', 404);
 
     await item.destroy();
-    console.log(`✅ Questão ${qid} removida do bloco ${id} (modelo antigo)`);
+    console.log(`[SUCCESS] Questão ${qid} removida do bloco ${id} (modelo antigo)`);
     return ok(res, null, 'Questão removida do bloco');
   } catch (error) {
-    console.error('❌ Erro ao remover questão do bloco:', error);
+    console.error('[ERROR] Erro ao remover questão do bloco:', error);
     return err(res, 'Erro ao remover questão', 500, error.message);
   }
 };
 
-// ── Associação Torneio ↔ Bloco ────────────────────────────────────────────────
+// ── Associação Torneio ↔ Bloco 
 
 /**
  * GET /api/torneios/:id/blocos
@@ -584,7 +584,7 @@ export const listarBlocosDoTorneio = async (req, res) => {
 
     return ok(res, { torneio_id: parseInt(id), blocos, total: blocos.length });
   } catch (error) {
-    console.error('❌ Erro ao listar blocos do torneio:', error);
+    console.error('[ERROR] Erro ao listar blocos do torneio:', error);
     return err(res, 'Erro ao listar blocos do torneio', 500, error.message);
   }
 };
@@ -654,10 +654,10 @@ export const associarBlocoAoTorneio = async (req, res) => {
       ordem: ordem ?? totalBlocos,
     });
 
-    console.log(`✅ Bloco ${bloco_id} associado ao torneio ${id} (${totalQuestoes} questões)`);
+    console.log(`[SUCCESS] Bloco ${bloco_id} associado ao torneio ${id} (${totalQuestoes} questões)`);
     return ok(res, assoc, 'Bloco associado ao torneio com sucesso', 201);
   } catch (error) {
-    console.error('❌ Erro ao associar bloco ao torneio:', error);
+    console.error('[ERROR] Erro ao associar bloco ao torneio:', error);
     if (error.name === 'SequelizeUniqueConstraintError') {
       return err(res, 'Bloco já está associado a este torneio', 409);
     }
@@ -691,10 +691,10 @@ export const desassociarBlocoDoTorneio = async (req, res) => {
     if (!assoc) return err(res, 'Associação não encontrada', 404);
 
     await assoc.destroy();
-    console.log(`✅ Bloco ${bid} desassociado do torneio ${id}`);
+    console.log(`[SUCCESS] Bloco ${bid} desassociado do torneio ${id}`);
     return ok(res, null, 'Bloco desassociado do torneio');
   } catch (error) {
-    console.error('❌ Erro ao desassociar bloco do torneio:', error);
+    console.error('[ERROR] Erro ao desassociar bloco do torneio:', error);
     return err(res, 'Erro ao desassociar bloco', 500, error.message);
   }
 };
@@ -818,7 +818,7 @@ export const carregarQuizComBlocos = async (req, res) => {
 
     return res.json({ success: true, area: categoria, total: totalDisponivel, data: questoes });
   } catch (error) {
-    console.error('❌ Erro ao carregar quiz:', error);
+    console.error('[ERROR] Erro ao carregar quiz:', error);
     return res.status(500).json({ success: false, error: error.message || 'Erro ao carregar questões' });
   }
 };

@@ -207,7 +207,7 @@ async function criarTorneioTesteEspecifico() {
     
     await transaction.commit();
     
-    console.log('═══════════════════════════════════════════════════════════');
+    console.log('');
     console.log('✅ TORNEIO CRIADO COM SUCESSO!\n');
     console.log('📊 RESUMO:');
     console.log(`   Torneio ID: ${torneio.id}`);
@@ -216,7 +216,7 @@ async function criarTorneioTesteEspecifico() {
     console.log(`   Status: ATIVO`);
     console.log(`   Blocos: 2`);
     console.log(`   Questões: ${questoes1Criadas.length + questoes2Criadas.length}`);
-    console.log('═══════════════════════════════════════════════════════════\n');
+    console.log('\n');
     
     console.log('📝 INSTRUÇÕES PARA TESTAR:');
     console.log('   1. Acesse: http://localhost:5173/entrar-torneio');

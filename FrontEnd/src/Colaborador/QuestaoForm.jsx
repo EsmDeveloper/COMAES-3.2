@@ -1,14 +1,15 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   X, Save, AlertCircle, CheckCircle, Plus, Trash2, FileText,
-  Lock, Zap, BookOpen, Code as CodeIcon, HelpCircle
+  Lock, Zap, BookOpen, Code as CodeIcon, HelpCircle,
+  Check, Sparkles, Layers, ArrowRight, Star
 } from 'lucide-react';
 import axios from 'axios';
 
 /**
- * QuestaoForm - FormulÃ¡rio para criaÃ§Ã£o/ediÃ§Ã£o de questÃµes para colaboradores
+ * QuestaoForm - Formulário para criação/edição de questões para colaboradores
  * 
  * Modern Design (Matches AdminStats.jsx):
  * - Professional Tailwind CSS with rounded-2xl cards
@@ -20,8 +21,8 @@ import axios from 'axios';
  * 
  * Key Features:
  * - Disciplina is READ-ONLY (pre-selected from user's disciplina_colaborador)
- * - Points are auto-calculated based on difficulty (fÃ¡cil=5, mÃ©dio=10, difÃ­cil=20)
- * - After creation, shows "Pendente de aprovaÃ§Ã£o" status message
+ * - Points are auto-calculated based on difficulty (fácil=5, médio=10, difícil=20)
+ * - After creation, shows "Pendente de aprovação" status message
  * - Validates that disciplina matches collaborator's disciplina_colaborador
  * - Dynamic option fields for multiple choice with smooth animations
  * - Language selection for code questions
@@ -46,8 +47,8 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
     resposta_correta: '',
     pontos: 5, // Auto-calculated based on difficulty
     opcoes: [
-      { texto: 'OpÃ§Ã£o A', correta: true },
-      { texto: 'OpÃ§Ã£o B', correta: false }
+      { texto: 'Opção A', correta: true },
+      { texto: 'Opção B', correta: false }
     ],
     explicacao: '',
     linguagem: 'javascript'
@@ -73,14 +74,14 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
       
       // Validate that collaborator owns this question
       if (questao.autor_id !== user?.id) {
-        setError('VocÃª nÃ£o tem permissÃ£o para editar esta questÃ£o');
+        setError('Você não tem permissão para editar esta questão');
         setTimeout(() => onClose?.(), 2000);
         return;
       }
 
       // Validate that question is not already approved (Requirements 4.3)
       if (questao.status_aprovacao === 'aprovada') {
-        setError('QuestÃµes aprovadas nÃ£o podem ser editadas');
+        setError('Questões aprovadas não podem ser editadas');
         setTimeout(() => onClose?.(), 2000);
         return;
       }
@@ -100,15 +101,15 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
               correta: texto === questao.resposta_correta
             }))
           : [
-              { texto: 'OpÃ§Ã£o A', correta: true },
-              { texto: 'OpÃ§Ã£o B', correta: false }
+              { texto: 'Opção A', correta: true },
+              { texto: 'Opção B', correta: false }
             ],
         explicacao: questao.explicacao || '',
         linguagem: questao.linguagem || 'javascript'
       });
     } catch (err) {
-      console.error('Erro ao carregar questÃ£o:', err);
-      setError('Erro ao carregar questÃ£o');
+      console.error('Erro ao carregar questão:', err);
+      setError('Erro ao carregar questão');
     } finally {
       setLoading(false);
     }
@@ -172,8 +173,8 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
       const novasOpcoes = formData.opcoes.filter((_, i) => i !== index);
 
       // If removed correct option, mark first as correct
-      const tinhaCoretoRemovida = formData.opcoes[index]?.correta;
-      if (tinhaCoretoRemovida && novasOpcoes.length > 0 && !novasOpcoes.some(o => o.correta)) {
+      const tinhaCorretaRemovida = formData.opcoes[index]?.correta;
+      if (tinhaCorretaRemovida && novasOpcoes.length > 0 && !novasOpcoes.some(o => o.correta)) {
         novasOpcoes[0].correta = true;
         setFormData(prev => ({
           ...prev,
@@ -192,40 +193,40 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
 
     // Validate title
     if (!formData.titulo.trim()) {
-      erros.titulo = 'TÃ­tulo Ã© obrigatÃ³rio';
+      erros.titulo = 'Título é obrigatório';
       temErro = true;
     } else if (formData.titulo.length > 255) {
-      erros.titulo = 'TÃ­tulo nÃ£o pode exceder 255 caracteres';
+      erros.titulo = 'Título não pode exceder 255 caracteres';
       temErro = true;
     }
 
     // Validate description
     if (!formData.descricao.trim()) {
-      erros.descricao = 'DescriÃ§Ã£o Ã© obrigatÃ³ria';
+      erros.descricao = 'Descrição é obrigatória';
       temErro = true;
     }
 
     // Requirement 2.2: Validate discipline matches user's disciplina_colaborador
     if (formData.disciplina !== user?.disciplina_colaborador) {
-      erros.disciplina = 'VocÃª sÃ³ pode criar questÃµes para sua disciplina';
+      erros.disciplina = 'Você só pode criar questões para sua disciplina';
       temErro = true;
     }
 
     // Validate type
     if (!formData.tipo) {
-      erros.tipo = 'Tipo Ã© obrigatÃ³rio';
+      erros.tipo = 'Tipo é obrigatório';
       temErro = true;
     }
 
     // Validate difficulty
     if (!formData.dificuldade) {
-      erros.dificuldade = 'Dificuldade Ã© obrigatÃ³ria';
+      erros.dificuldade = 'Dificuldade é obrigatória';
       temErro = true;
     }
 
     // Validate answer
     if (!formData.resposta_correta || !formData.resposta_correta.trim()) {
-      erros.resposta_correta = 'Resposta correta Ã© obrigatÃ³ria';
+      erros.resposta_correta = 'Resposta correta é obrigatória';
       temErro = true;
     }
 
@@ -239,13 +240,13 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
     if (formData.tipo === 'multipla_escolha') {
       const opcoesComTexto = formData.opcoes.filter(o => o.texto.trim());
       if (opcoesComTexto.length < 2) {
-        erros.opcoes = 'MÃ­nimo 2 opÃ§Ãµes preenchidas para mÃºltipla escolha';
+        erros.opcoes = 'Mínimo 2 opções preenchidas para múltipla escolha';
         temErro = true;
       } else if (!formData.opcoes.some(o => o.correta)) {
-        erros.opcoes = 'Marque uma opÃ§Ã£o como correta';
+        erros.opcoes = 'Marque uma opção como correta';
         temErro = true;
       } else if (!opcoesComTexto.map(o => o.texto).includes(formData.resposta_correta)) {
-        erros.opcoes = 'Resposta correta deve ser uma das opÃ§Ãµes';
+        erros.opcoes = 'Resposta correta deve ser uma das opções';
         temErro = true;
       }
     }
@@ -256,7 +257,7 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
 
   const handleSave = async () => {
     if (!validarForm()) {
-      setError('Por favor, corrija os erros do formulÃ¡rio');
+      setError('Por favor, corrija os erros do formulário');
       return;
     }
 
@@ -279,7 +280,7 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
         linguagem: formData.tipo === 'codigo' ? formData.linguagem : null
       };
 
-      console.log('ðŸ“¤ Enviando questÃ£o:', dadosParaEnviar);
+      console.log('Enviando questão:', dadosParaEnviar);
 
       const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
       
@@ -300,13 +301,13 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
         timeout: 10000
       });
 
-      console.log('âœ… Resposta da API:', res.data);
+      console.log('Resposta da API:', res.data);
 
-      // Requirement 2.6: Show "Pendente de aprovaÃ§Ã£o" status message
+      // Requirement 2.6: Show "Pendente de aprovação" status message
       setSuccess(
         isEditMode
-          ? 'QuestÃ£o atualizada com sucesso! Aguarde a revisÃ£o do administrador.'
-          : 'QuestÃ£o criada com sucesso! Status: Pendente de aprovaÃ§Ã£o'
+          ? 'Questão atualizada com sucesso! Aguarde a revisão do administrador.'
+          : 'Questão criada com sucesso! Status: Pendente de aprovação'
       );
       setError('');
 
@@ -318,10 +319,10 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
         setTimeout(() => onClose?.(), 2000);
       }
     } catch (err) {
-      console.error('âŒ Erro ao salvar questÃ£o:', err);
+      console.error('Erro ao salvar questão:', err);
 
       // Improved error handling
-      let mensagem = 'Erro ao salvar questÃ£o';
+      let mensagem = 'Erro ao salvar questão';
 
       if (err.response?.data?.mensagem) {
         mensagem = err.response.data.mensagem;
@@ -330,7 +331,7 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
       } else if (err.response?.data?.erros && Array.isArray(err.response.data.erros)) {
         mensagem = err.response.data.erros.join(' | ');
       } else if (err.message === 'timeout of 10000ms exceeded') {
-        mensagem = 'Timeout: servidor nÃ£o respondeu em tempo';
+        mensagem = 'Timeout: servidor não respondeu em tempo';
       } else if (err.message) {
         mensagem = err.message;
       }
@@ -343,9 +344,9 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
   };
 
   const disciplinaLabel = {
-    'matematica': 'MatemÃ¡tica',
-    'ingles': 'InglÃªs',
-    'programacao': 'ProgramaÃ§Ã£o'
+    'matematica': 'Matemática',
+    'ingles': 'Inglês',
+    'programacao': 'Programação'
   }[formData.disciplina] || formData.disciplina;
 
   return createPortal(
@@ -358,7 +359,7 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
               <FileText className="w-6 h-6 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-white">
-              {isEditMode ? 'Editar QuestÃ£o' : 'Criar Nova QuestÃ£o'}
+              {isEditMode ? 'Editar Questão' : 'Criar Nova Questão'}
             </h2>
           </div>
           <button
@@ -377,7 +378,7 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
             <div className="bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-xl flex items-start gap-3 shadow-sm">
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-600" />
               <div>
-                <p className="font-semibold text-sm md:text-base">Erro na validaÃ§Ã£o</p>
+                <p className="font-semibold text-sm md:text-base">Erro na validação</p>
                 <p className="text-sm mt-1">{error}</p>
               </div>
             </div>
@@ -396,7 +397,7 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
             <HelpCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-blue-900">
-                <strong>InformaÃ§Ã£o:</strong> ApÃ³s a criaÃ§Ã£o, sua questÃ£o serÃ¡ marcada como <strong>"Pendente de aprovaÃ§Ã£o"</strong>. Um administrador precisarÃ¡ revisar antes de usar em torneios.
+                <strong>Informação:</strong> Após a criação, sua questão será marcada como <strong>"Pendente de aprovação"</strong>. Um administrador precisará revisar antes de usar em torneios.
               </p>
             </div>
           </div>
@@ -416,9 +417,9 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
                 disabled={loading}
                 className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 transition"
               >
-                <option value="multipla_escolha">ðŸ“‹ MÃºltipla Escolha</option>
-                <option value="texto">ðŸ“ Texto/Aberta</option>
-                <option value="codigo">ðŸ’» CÃ³digo</option>
+                <option value="multipla_escolha">Múltipla Escolha</option>
+                <option value="texto">Texto/Aberta</option>
+                <option value="codigo">Código</option>
               </select>
             </div>
 
@@ -429,17 +430,22 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
                 Disciplina
               </label>
               <div className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg bg-gray-50 text-gray-700 font-medium flex items-center justify-between">
-                <span>{disciplinaLabel}</span>
+                <span className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-indigo-500" />
+                  {disciplinaLabel}
+                </span>
                 <Lock className="w-4 h-4 text-gray-400" />
               </div>
-              <p className="text-xs text-gray-500 mt-1.5">ðŸ”’ Sua disciplina (nÃ£o pode ser alterada)</p>
+              <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
+                <Check className="w-3 h-3 text-green-500" /> Sua disciplina (não pode ser alterada)
+              </p>
             </div>
           </div>
 
-          {/* TÃ­tulo */}
+          {/* Título */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              TÃ­tulo * {formData.titulo.length > 0 && <span className="text-xs text-gray-500">({formData.titulo.length}/255)</span>}
+              Título * {formData.titulo.length > 0 && <span className="text-xs text-gray-500">({formData.titulo.length}/255)</span>}
             </label>
             <input
               type="text"
@@ -447,7 +453,7 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
               value={formData.titulo}
               onChange={handleInputChange}
               disabled={loading}
-              placeholder="Ex: Resolva a equaÃ§Ã£o quadrÃ¡tica"
+              placeholder="Ex: Resolva a equação quadrática"
               maxLength={255}
               className={`w-full px-4 py-2.5 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 transition ${
                 validationErrors.titulo ? 'border-red-300' : 'border-gray-200'
@@ -460,17 +466,17 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
             )}
           </div>
 
-          {/* DescriÃ§Ã£o */}
+          {/* Descrição */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              DescriÃ§Ã£o/Enunciado *
+              Descrição/Enunciado *
             </label>
             <textarea
               name="descricao"
               value={formData.descricao}
               onChange={handleInputChange}
               disabled={loading}
-              placeholder="Descreva a questÃ£o em detalhes..."
+              placeholder="Descreva a questão em detalhes..."
               rows={4}
               className={`w-full px-4 py-2.5 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 transition resize-none ${
                 validationErrors.descricao ? 'border-red-300' : 'border-gray-200'
@@ -499,31 +505,36 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
                   validationErrors.dificuldade ? 'border-red-300' : 'border-gray-200'
                 }`}
               >
-                <option value="facil">â­ FÃ¡cil (5 pontos)</option>
-                <option value="medio">â­â­ MÃ©dio (10 pontos)</option>
-                <option value="dificil">â­â­â­ DifÃ­cil (20 pontos)</option>
+                <option value="facil">Fácil (5 pontos)</option>
+                <option value="medio">Médio (10 pontos)</option>
+                <option value="dificil">Difícil (20 pontos)</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                <Lock className="w-4 h-4 text-orange-600" />
+                <Star className="w-4 h-4 text-orange-600" />
                 Pontos
               </label>
               <div className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg bg-gray-50 text-gray-700 font-bold text-lg flex items-center justify-between">
-                <span>{formData.pontos}</span>
+                <span className="flex items-center gap-2">
+                  <span className="text-2xl font-extrabold">{formData.pontos}</span>
+                  <span className="text-sm font-normal text-gray-500">pontos</span>
+                </span>
                 <Lock className="w-4 h-4 text-gray-400" />
               </div>
-              <p className="text-xs text-gray-500 mt-1.5">ðŸ”’ Auto-calculado: fÃ¡cil=5, mÃ©dio=10, difÃ­cil=20</p>
+              <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
+                <ArrowRight className="w-3 h-3" /> Auto-calculado: fácil=5, médio=10, difícil=20
+              </p>
             </div>
           </div>
 
-          {/* Linguagem (para cÃ³digo) */}
+          {/* Linguagem (para código) */}
           {formData.tipo === 'codigo' && (
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                 <CodeIcon className="w-4 h-4 text-purple-600" />
-                Linguagem de ProgramaÃ§Ã£o
+                Linguagem de Programação
               </label>
               <select
                 name="linguagem"
@@ -540,12 +551,12 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
             </div>
           )}
 
-          {/* OpÃ§Ãµes (para mÃºltipla escolha) */}
+          {/* Opções (para múltipla escolha) */}
           {formData.tipo === 'multipla_escolha' && (
             <div className="border-2 border-gray-200 rounded-xl p-5 bg-gray-50/50">
               <label className="block text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                <Plus className="w-4 h-4 text-blue-600" />
-                OpÃ§Ãµes * ({formData.opcoes.filter(o => o.texto.trim()).length} preenchidas)
+                <Layers className="w-4 h-4 text-blue-600" />
+                Opções * ({formData.opcoes.filter(o => o.texto.trim()).length} preenchidas)
               </label>
               <div className="space-y-3">
                 {formData.opcoes.map((opcao, index) => (
@@ -560,7 +571,13 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
                           disabled={loading}
                           className="w-4 h-4 cursor-pointer accent-green-600"
                         />
-                        <span className="text-xs font-semibold text-gray-700 bg-green-100 text-green-700 px-2 py-0.5 rounded">âœ“ Correta</span>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
+                          opcao.correta 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-gray-100 text-gray-500'
+                        }`}>
+                          {opcao.correta ? 'Correta' : 'Marcar como correta'}
+                        </span>
                       </label>
                       {formData.opcoes.length > 2 && (
                         <button
@@ -568,7 +585,7 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
                           onClick={() => handleRemoveOpcao(index)}
                           disabled={loading}
                           className="ml-auto text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded disabled:opacity-50 transition"
-                          title="Remover opÃ§Ã£o"
+                          title="Remover opção"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -579,7 +596,7 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
                       value={opcao.texto}
                       onChange={(e) => handleOpcaoChange(index, 'texto', e.target.value)}
                       disabled={loading}
-                      placeholder={`OpÃ§Ã£o ${index + 1}`}
+                      placeholder={`Opção ${index + 1}`}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 transition text-sm"
                     />
                   </div>
@@ -598,7 +615,7 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
                   className="mt-3 w-full py-2.5 border-2 border-dashed border-blue-300 text-blue-700 rounded-lg font-semibold hover:bg-blue-50 transition disabled:opacity-50 flex items-center justify-center gap-2 text-sm"
                 >
                   <Plus className="w-4 h-4" />
-                  Adicionar OpÃ§Ã£o
+                  Adicionar Opção
                 </button>
               )}
             </div>
@@ -615,7 +632,7 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
               value={formData.resposta_correta}
               onChange={handleInputChange}
               disabled={loading || formData.tipo === 'multipla_escolha'}
-              placeholder={formData.tipo === 'multipla_escolha' ? 'Auto-preenchida ao marcar opÃ§Ã£o' : 'Digite a resposta correta'}
+              placeholder={formData.tipo === 'multipla_escolha' ? 'Auto-preenchida ao marcar opção' : 'Digite a resposta correta'}
               className={`w-full px-4 py-2.5 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
                 loading || formData.tipo === 'multipla_escolha'
                   ? 'bg-gray-50 cursor-not-allowed border-gray-200'
@@ -623,7 +640,9 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
               } ${validationErrors.resposta_correta ? 'border-red-300' : ''}`}
             />
             {formData.tipo === 'multipla_escolha' && (
-              <p className="text-xs text-gray-500 mt-1.5">ðŸ“Œ Preenchida automaticamente quando vocÃª marca uma opÃ§Ã£o como correta</p>
+              <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
+                <Check className="w-3 h-3 text-green-500" /> Preenchida automaticamente quando você marca uma opção como correta
+              </p>
             )}
             {validationErrors.resposta_correta && (
               <p className="text-xs text-red-600 mt-1.5 flex items-center gap-1">
@@ -632,17 +651,17 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
             )}
           </div>
 
-          {/* ExplicaÃ§Ã£o */}
+          {/* Explicação */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              ExplicaÃ§Ã£o (Opcional)
+              Explicação (Opcional)
             </label>
             <textarea
               name="explicacao"
               value={formData.explicacao}
               onChange={handleInputChange}
               disabled={loading}
-              placeholder="Explique por que essa Ã© a resposta correta (ajuda no aprendizado)..."
+              placeholder="Explique por que essa é a resposta correta (ajuda no aprendizado)..."
               rows={3}
               className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 transition resize-none"
             />
@@ -665,7 +684,7 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
               className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg"
             >
               <Save className="w-5 h-5" />
-              {loading ? (isEditMode ? 'Atualizando...' : 'Salvando...') : (isEditMode ? 'Atualizar QuestÃ£o' : 'Criar QuestÃ£o')}
+              {loading ? (isEditMode ? 'Atualizando...' : 'Salvando...') : (isEditMode ? 'Atualizar Questão' : 'Criar Questão')}
             </button>
           </div>
         </div>
@@ -675,4 +694,3 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
 };
 
 export default QuestaoForm;
-

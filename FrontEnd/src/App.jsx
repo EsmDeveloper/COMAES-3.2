@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import PageTransition from "./components/PageTransition";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 import AuthContainer from "./Paginas/Primarias/AuthContainer";
 import Recuperar from "./Paginas/Primarias/Recuperar";
@@ -28,6 +29,7 @@ import RankingCompleto from "./Paginas/Secundarias/RankingCompleto";
 import RankingGlobal from "./Paginas/Secundarias/RankingGlobal";
 import NotificacoesPage from "./Paginas/Secundarias/NotificacoesPage";
 import MinhaJornada from "./Paginas/Secundarias/MinhaJornada";
+import Privacidade from "./Paginas/Secundarias/Privacidade";
 
 import MatematicaOriginal from "./Paginas/Tercearios.jsx/ModeloOriginal/MatematicaOriginal";
 import ProgramacaoOriginal from "./Paginas/Tercearios.jsx/ModeloOriginal/ProgramacaoOriginal";
@@ -67,13 +69,14 @@ function AnimatedRoutes() {
   return (
     <Routes location={location} key={location.pathname}>
 
-        {/* ── ROTAS PÚBLICAS ─────────────────────────────────────────── */}
+        {/* ── ROTAS PÚBLICAS  */}
         <Route path="/login"          element={<PageTransition><AuthContainer /></PageTransition>} />
         <Route path="/cadastro"       element={<PageTransition><AuthContainer initialMode="cadastro" /></PageTransition>} />
         <Route path="/cadastro-colaborador" element={<PageTransition><AuthContainer initialMode="colaborador" /></PageTransition>} />
         <Route path="/recuperar-senha" element={<PageTransition><Recuperar /></PageTransition>} />
         <Route path="/redefinir-senha" element={<PageTransition><ResetPasswordPage /></PageTransition>} />
         <Route path="/sobre-nos"      element={<PageTransition><Sobre /></PageTransition>} />
+        <Route path="/privacidade"    element={<PageTransition><Privacidade /></PageTransition>} />
         <Route path="/portal-de-noticias" element={<PageTransition><Noticias /></PageTransition>} />
 
         {/* Raiz inteligente — redireciona com base no papel */}
@@ -120,7 +123,7 @@ function AnimatedRoutes() {
         <Route path="/admin"           element={<Navigate to="/administrador" replace />} />
         <Route path="/admin/dashboard" element={<Navigate to="/administrador" replace />} />
 
-        {/* ── AMBIENTE DO COLABORADOR ───────────────────────────────── */}
+        {/* ── AMBIENTE DO COLABORADOR  */}
         <Route
           path="/colaborador/dashboard"
           element={
@@ -168,6 +171,9 @@ function AnimatedRoutes() {
         <Route path="/teste-seu-conhecimento"
           element={<ProtectedEstudanteRoute><PageTransition><Teste /></PageTransition></ProtectedEstudanteRoute>}
         />
+        <Route path="/torneios"
+          element={<ProtectedEstudanteRoute><PageTransition><EntrarTorneio /></PageTransition></ProtectedEstudanteRoute>}
+        />
         <Route path="/matematica-original/:username"
           element={<ProtectedEstudanteRoute><PageTransition><MatematicaOriginal /></PageTransition></ProtectedEstudanteRoute>}
         />
@@ -184,11 +190,11 @@ function AnimatedRoutes() {
         <Route path="/notificacoes"   element={<PageTransition><NotificacoesPage /></PageTransition>} />
         <Route path="/configuracoes"  element={<PageTransition><Configuracoes /></PageTransition>} />
 
-        {/* ── UTILITÁRIO ────────────────────────────────────────────── */}
+        {/* ── UTILITÁRIO  */}
         <Route path="/layout"         element={<PageTransition><Layout /></PageTransition>} />
         <Route path="/test-navbar"    element={<PageTransition><NavbarDemo /></PageTransition>} />
 
-        {/* ── ERROS ─────────────────────────────────────────────────── */}
+        {/* ── ERROS  */}
         <Route path="/404"            element={<PageTransition><NotFoundPage /></PageTransition>} />
         <Route path="*"               element={<PageTransition><NotFoundPage /></PageTransition>} />
 
@@ -198,10 +204,12 @@ function AnimatedRoutes() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AnimatedRoutes />
-      </BrowserRouter>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <BrowserRouter>
+          <AnimatedRoutes />
+        </BrowserRouter>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
