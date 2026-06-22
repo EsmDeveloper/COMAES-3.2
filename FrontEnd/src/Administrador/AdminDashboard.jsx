@@ -221,7 +221,7 @@ const AdminDashboard = () => {
         <div className="p-6 border-b border-slate-200 flex-shrink-0 bg-white">
           <div className="flex items-center gap-3">
             <img src={shortLogo} alt="COMAES" className="h-10 w-auto object-contain" />
-            <h1 className="text-xl font-bold text-gray-800">Painel Administrativo</h1>
+            <h1 className="text-base sm:text-lg font-bold text-gray-800">Painel Administrativo</h1>
           </div>
         </div>
 
@@ -256,7 +256,7 @@ const AdminDashboard = () => {
           {renderAvatarButton()}
         </div>
       </div>
-
+              
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
@@ -265,7 +265,7 @@ const AdminDashboard = () => {
             <div className="p-6 border-b border-slate-200 flex items-center justify-between flex-shrink-0 bg-white">
               <div className="flex items-center gap-3">
                 <img src={shortLogo} alt="COMAES" className="h-10 w-auto object-contain" />
-                <h1 className="text-xl font-bold text-gray-800">Painel do ADM</h1>
+                <h1 className="text-base sm:text-lg font-bold text-gray-800">Painel do ADM</h1>
               </div>
               <button 
                 onClick={() => setMobileSidebarOpen(false)} 

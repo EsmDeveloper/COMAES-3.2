@@ -5,6 +5,24 @@
     <link rel="icon" type="image/svg+xml" href="src/assets/iso_icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>COMAES - Sistema de Competições Educativas Online </title>
+    <style>
+      /* CSS crítico para garantir que o botão do assistente apareça */
+      button[title="Assistente COMAES"] {
+        position: fixed !important;
+        bottom: 24px !important;
+        right: 24px !important;
+        z-index: 2147483647 !important; /* Máximo z-index possível */
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+      }
+      
+      /* Prevenir que transforms criem novos contextos de stacking */
+      body, #root {
+        transform: none !important;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

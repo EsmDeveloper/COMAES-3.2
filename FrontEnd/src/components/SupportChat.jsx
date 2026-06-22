@@ -2,6 +2,7 @@
 // Componente unificado: botão flutuante + modal compacto + modo tela cheia
 // Usado tanto no Layout (flutuante) quanto na página /suporte (tela cheia)
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -336,27 +337,6 @@ export default function SupportChat() {
   const inputRef = useRef(null);
   const chat = useSupportChat();
 
-  // Ao montar E a cada mudança de rota: verificar se voltou da página /suporte
-  // useEffect com location.pathname garante que dispara quando navigate(-1) resolve
-  useEffect(() => {
-    const reopen = sessionStorage.getItem('support_reopen_modal');
-    if (reopen) {
-      sessionStorage.removeItem('support_reopen_modal');
-      const tab = sessionStorage.getItem('support_active_tab') || 'faq';
-      sessionStorage.removeItem('support_active_tab');
-      setActiveTab(tab);
-      // Pequeno delay para garantir que o componente está totalmente montado
-      setTimeout(() => setIsOpen(true), 80);
-    }
-  });
-
-  // Focar input ao mudar para aba chat
-  useEffect(() => {
-    if (isOpen && activeTab === 'chat') {
-      setTimeout(() => inputRef.current?.focus(), 150);
-    }
-  }, [isOpen, activeTab]);
-
   const handleClose = () => setIsOpen(false);
 
   const handleFaqAsk = (question) => {
@@ -365,53 +345,126 @@ export default function SupportChat() {
     setTimeout(() => inputRef.current?.focus(), 200);
   };
 
-  // Expandir: guarda estado e navega para /suporte
   const handleExpand = () => {
     sessionStorage.setItem('support_active_tab', activeTab);
-    // navegar via window para não precisar do hook useNavigate aqui
     window.location.href = '/suporte';
   };
 
-  if (!user) return null;
+  // Verificar papel ANTES de qualquer hook condicional
+  const isAdmin = user?.isAdmin === true || user?.isAdmin === 1 || user?.role === 'admin';
+  const isColaborador = user?.role === 'colaborador';
+  const shouldRender = user && !isAdmin && !isColaborador;
 
-  return (
-    <>
-      {/*  Botão flutuante  */}
-      <motion.button
-        onClick={() => isOpen ? handleClose() : setIsOpen(true)}
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.95 }}
-        className="fixed bottom-6 right-6 z-[45] w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl flex items-center justify-center"
-        aria-label={isOpen ? 'Fechar assistente' : 'Abrir assistente de suporte'}
-        title="Assistente COMAES"
-      >
-        <AnimatePresence mode="wait">
-          {isOpen ? (
-            <motion.div
-              key="close"
-              initial={{ rotate: -90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: 90, opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <X className="w-5 h-5" />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="open"
-              initial={{ rotate: 90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: -90, opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <Bot className="w-6 h-6" />
-            </motion.div>
-          )}
-        </AnimatePresence>
-        {!isOpen && (
-          <span className="absolute top-0.5 right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-white" />
-        )}
-      </motion.button>
+  // Criar botão nativo no body (sempre executado, mesmo se não renderizar)
+  useEffect(() => {
+    if (!shouldRender) return;
+
+    // Remover botão antigo se existir
+    const oldButton = document.getElementById('comaes-support-button');
+    if (oldButton) oldButton.remove();
+
+    // Criar novo botão
+    const button = document.createElement('button');
+    button.id = 'comaes-support-button';
+    button.title = 'Assistente COMAES';
+    button.innerHTML = `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="11" width="18" height="10" rx="2" />
+        <circle cx="12" cy="5" r="2" />
+        <path d="M12 7v4" />
+        <line x1="8" y1="16" x2="8" y2="16" />
+        <line x1="16" y1="16" x2="16" y2="16" />
+      </svg>
+    `;
+    
+    // Estilos inline
+    Object.assign(button.style, {
+      position: 'fixed',
+      bottom: '24px',
+      right: '24px',
+      width: '56px',
+      height: '56px',
+      borderRadius: '50%',
+      background: 'red', // TEMPORÁRIO: Fundo vermelho para debug visual
+      color: 'white',
+      border: '3px solid yellow', // TEMPORÁRIO: Borda amarela para debug
+      cursor: 'pointer',
+      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: '2147483647',
+      transition: 'transform 0.2s, box-shadow 0.2s',
+      padding: '0'
+    });
+
+    // Eventos
+    button.onmouseenter = () => {
+      button.style.transform = 'scale(1.1)';
+      button.style.boxShadow = '0 15px 30px -5px rgba(0, 0, 0, 0.4)';
+    };
+    button.onmouseleave = () => {
+      button.style.transform = 'scale(1)';
+      button.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.3)';
+    };
+    button.onclick = () => setIsOpen(prev => !prev);
+
+    // Adicionar ao body
+    document.body.appendChild(button);
+
+    console.log('🤖 Botão nativo criado no body');
+    
+    // Debug: verificar posição real do botão
+    setTimeout(() => {
+      const rect = button.getBoundingClientRect();
+      const computed = window.getComputedStyle(button);
+      console.log('📍 Posição do botão:', {
+        top: rect.top,
+        left: rect.left,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        visibility: computed.visibility,
+        display: computed.display,
+        zIndex: computed.zIndex,
+        position: computed.position,
+        isVisible: rect.width > 0 && rect.height > 0 && rect.top < window.innerHeight && rect.left < window.innerWidth
+      });
+      
+      // Se o botão estiver fora da tela, ajustar
+      if (rect.right < 0 || rect.left > window.innerWidth || rect.bottom < 0 || rect.top > window.innerHeight) {
+        console.warn('⚠️ BOTÃO FORA DA VIEWPORT! Ajustando...');
+        button.style.bottom = '24px';
+        button.style.right = '24px';
+        button.style.left = 'auto';
+        button.style.top = 'auto';
+      }
+    }, 100);
+
+    // Cleanup: remover ao desmontar
+    return () => {
+      const btn = document.getElementById('comaes-support-button');
+      if (btn) btn.remove();
+    };
+  }, [shouldRender]);
+
+  // Atualizar ícone do botão quando isOpen mudar
+  useEffect(() => {
+    if (!shouldRender) return;
+    
+    const button = document.getElementById('comaes-support-button');
+    if (button) {
+      button.innerHTML = isOpen 
+        ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>`
+        : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2" /><circle cx="12" cy="5" r="2" /><path d="M12 7v4" /><line x1="8" y1="16" x2="8" y2="16" /><line x1="16" y1="16" x2="16" y2="16" /></svg>`;
+    }
+  }, [isOpen, shouldRender]);
+
+  // Retornar null APÓS todos os hooks
+  if (!shouldRender) {
+    return null;
+  }
 
       {/*  Modal compacto  */}
       <AnimatePresence>
@@ -421,9 +474,28 @@ export default function SupportChat() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-            className="fixed right-6 z-[42] bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden"
             style={{
+              position: 'fixed',
+              right: '24px',
               bottom: '88px',
+              zIndex: 2147483646,
+              width: '360px',
+              maxWidth: 'calc(100vw - 48px)',
+              maxHeight: 'calc(100vh - 160px)',
+              minHeight: '320px'
+            }}
+            className="bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden"
+          >
+            initial={{ opacity: 0, y: 16, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+            className="bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden"
+            style={{
+              position: 'fixed',
+              right: '24px',
+              bottom: '88px',
+              zIndex: 99998,
               width: '360px',
               maxWidth: 'calc(100vw - 24px)',
               maxHeight: 'calc(100vh - 160px)',
@@ -501,4 +573,6 @@ export default function SupportChat() {
       </AnimatePresence>
     </>
   );
+
+  return ReactDOM.createPortal(content, document.body);
 }

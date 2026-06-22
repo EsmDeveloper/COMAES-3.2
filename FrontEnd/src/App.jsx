@@ -2,6 +2,9 @@ import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-route
 import PageTransition from "./components/PageTransition";
 import ErrorBoundary from "./components/ErrorBoundary";
 
+// CSS de responsividade mobile global
+import "./styles/mobile-responsive.css";
+
 import AuthContainer from "./Paginas/Primarias/AuthContainer";
 import Recuperar from "./Paginas/Primarias/Recuperar";
 import { AuthProvider, getPostLoginRoute } from './context/AuthContext';

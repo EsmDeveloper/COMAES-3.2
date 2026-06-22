@@ -185,7 +185,7 @@ export default function Layout({ children }) {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100 font-sans text-gray-900 overflow-x-hidden">
+    <div className="flex flex-col min-h-screen bg-gray-100 font-sans text-gray-900" style={{ position: 'relative', overflow: 'visible' }}>
       <LogoutModal
         isOpen={showLogoutModal}
         onConfirm={confirmLogout}
@@ -430,8 +430,8 @@ export default function Layout({ children }) {
         {children}
       </main>
 
-      {/* Support AI assistant */}
-      <SupportChat />
+      {/* Support Chat - APENAS para estudantes */}
+      {!isAdmin && !isColaborador && <SupportChat />}
 
       <footer className="bg-gray-900 text-gray-300 mt-auto w-full">
         <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8 flex flex-col items-center gap-5">
@@ -441,10 +441,10 @@ export default function Layout({ children }) {
             <Link to="/privacidade" className="text-gray-400 hover:text-blue-500 transition-colors duration-150">Privacidade</Link>
           </div>
           <div className="flex justify-center gap-5 text-lg">
-            <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-150"><FaFacebook /></a>
-            <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-150"><FaInstagram /></a>
-            <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-150"><FaWhatsapp /></a>
-            <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-150"><FaLinkedin /></a>
+            <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-150" aria-label="Facebook"><FaFacebook /></a>
+            <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-150" aria-label="Instagram"><FaInstagram /></a>
+            <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-150" aria-label="WhatsApp"><FaWhatsapp /></a>
+            <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors duration-150" aria-label="LinkedIn"><FaLinkedin /></a>
           </div>
           <p className="text-xs text-gray-500 text-center">
             &copy; {new Date().getFullYear()} COMAES Education. Todos os direitos reservados.
