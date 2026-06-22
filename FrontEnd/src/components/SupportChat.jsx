@@ -5,9 +5,10 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import assistenteImg from '../assets/assistente.png';
 import {
   Trophy, Award, Users, BarChart3, ChevronDown, ChevronRight,
-  Send, Trash2, MessageSquare, Bot, X, Maximize2
+  Send, Trash2, MessageSquare, X, Bot, Maximize2
 } from 'lucide-react';
 
 //  FAQ estático 
@@ -124,22 +125,27 @@ export function useSupportChat() {
           ...prev,
           {
             role: 'model',
-            text: 'Muitas mensagens enviadas. Aguarde um momento antes de continuar.',
+            text: 'Muitas mensagens enviadas. Aguarde um momento antes de continuar. 🕐',
             ts: Date.now(),
             isError: true,
           },
         ]);
       } else {
-        throw new Error(data.error || 'Erro desconhecido');
+        // Usar mensagem de erro específica da API
+        const errorMsg = data.error || 'Erro ao processar sua pergunta';
+        throw new Error(errorMsg);
       }
-    } catch {
+    } catch (error) {
+      const errorText = error.message || 'Erro ao conectar com o assistente';
+      
       setMessages(prev => [
         ...prev,
         {
           role: 'model',
-          text: 'Serviço indisponível. Tente novamente mais tarde.',
+          text: `${errorText} Tente novamente em alguns segundos. ⏳`,
           ts: Date.now(),
           isError: true,
+          canRetry: true,
         },
       ]);
     } finally {
@@ -251,9 +257,11 @@ export function ChatPanel({ chat, compact = false, inputRef: externalInputRef })
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {msg.role === 'model' && (
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs mr-2 flex-shrink-0 mt-0.5 select-none">
-                <Bot className="w-3.5 h-3.5 text-white" />
-              </div>
+              <img
+                src={assistenteImg}
+                alt="Assistente COMAES"
+                className="w-6 h-6 rounded-full mr-2 flex-shrink-0 mt-0.5 select-none object-cover"
+              />
             )}
             <div
               className={`max-w-[78%] px-3 py-2 rounded-2xl leading-relaxed whitespace-pre-wrap ${
@@ -274,9 +282,11 @@ export function ChatPanel({ chat, compact = false, inputRef: externalInputRef })
         {/* Indicador de digitação */}
         {loading && (
           <div className="flex justify-start">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs mr-2 flex-shrink-0 select-none">
-              <Bot className="w-3.5 h-3.5 text-white" />
-            </div>
+            <img
+              src={assistenteImg}
+              alt="Assistente COMAES"
+              className="w-6 h-6 rounded-full mr-2 flex-shrink-0 select-none object-cover"
+            />
             <div className="bg-gray-100 px-3 py-2.5 rounded-2xl rounded-bl-sm flex items-center gap-1">
               <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
               <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -332,6 +342,12 @@ export function ChatPanel({ chat, compact = false, inputRef: externalInputRef })
 //  Componente flutuante (usado no Layout) 
 export default function SupportChat() {
   const { user } = useAuth();
+  
+  // Verificar papel ANTES de qualquer hook condicional
+  const isAdmin = user?.isAdmin === true || user?.isAdmin === 1 || user?.role === 'admin';
+  const isColaborador = user?.role === 'colaborador';
+  const shouldRender = user && !isAdmin && !isColaborador;
+
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('faq');
   const inputRef = useRef(null);
@@ -345,128 +361,91 @@ export default function SupportChat() {
     setTimeout(() => inputRef.current?.focus(), 200);
   };
 
-  const handleExpand = () => {
-    sessionStorage.setItem('support_active_tab', activeTab);
-    window.location.href = '/suporte';
-  };
-
-  // Verificar papel ANTES de qualquer hook condicional
-  const isAdmin = user?.isAdmin === true || user?.isAdmin === 1 || user?.role === 'admin';
-  const isColaborador = user?.role === 'colaborador';
-  const shouldRender = user && !isAdmin && !isColaborador;
-
-  // Criar botão nativo no body (sempre executado, mesmo se não renderizar)
-  useEffect(() => {
-    if (!shouldRender) return;
-
-    // Remover botão antigo se existir
-    const oldButton = document.getElementById('comaes-support-button');
-    if (oldButton) oldButton.remove();
-
-    // Criar novo botão
-    const button = document.createElement('button');
-    button.id = 'comaes-support-button';
-    button.title = 'Assistente COMAES';
-    button.innerHTML = `
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="11" width="18" height="10" rx="2" />
-        <circle cx="12" cy="5" r="2" />
-        <path d="M12 7v4" />
-        <line x1="8" y1="16" x2="8" y2="16" />
-        <line x1="16" y1="16" x2="16" y2="16" />
-      </svg>
-    `;
-    
-    // Estilos inline
-    Object.assign(button.style, {
-      position: 'fixed',
-      bottom: '24px',
-      right: '24px',
-      width: '56px',
-      height: '56px',
-      borderRadius: '50%',
-      background: 'red', // TEMPORÁRIO: Fundo vermelho para debug visual
-      color: 'white',
-      border: '3px solid yellow', // TEMPORÁRIO: Borda amarela para debug
-      cursor: 'pointer',
-      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: '2147483647',
-      transition: 'transform 0.2s, box-shadow 0.2s',
-      padding: '0'
-    });
-
-    // Eventos
-    button.onmouseenter = () => {
-      button.style.transform = 'scale(1.1)';
-      button.style.boxShadow = '0 15px 30px -5px rgba(0, 0, 0, 0.4)';
-    };
-    button.onmouseleave = () => {
-      button.style.transform = 'scale(1)';
-      button.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.3)';
-    };
-    button.onclick = () => setIsOpen(prev => !prev);
-
-    // Adicionar ao body
-    document.body.appendChild(button);
-
-    console.log('🤖 Botão nativo criado no body');
-    
-    // Debug: verificar posição real do botão
-    setTimeout(() => {
-      const rect = button.getBoundingClientRect();
-      const computed = window.getComputedStyle(button);
-      console.log('📍 Posição do botão:', {
-        top: rect.top,
-        left: rect.left,
-        right: rect.right,
-        bottom: rect.bottom,
-        width: rect.width,
-        height: rect.height,
-        visibility: computed.visibility,
-        display: computed.display,
-        zIndex: computed.zIndex,
-        position: computed.position,
-        isVisible: rect.width > 0 && rect.height > 0 && rect.top < window.innerHeight && rect.left < window.innerWidth
-      });
-      
-      // Se o botão estiver fora da tela, ajustar
-      if (rect.right < 0 || rect.left > window.innerWidth || rect.bottom < 0 || rect.top > window.innerHeight) {
-        console.warn('⚠️ BOTÃO FORA DA VIEWPORT! Ajustando...');
-        button.style.bottom = '24px';
-        button.style.right = '24px';
-        button.style.left = 'auto';
-        button.style.top = 'auto';
-      }
-    }, 100);
-
-    // Cleanup: remover ao desmontar
-    return () => {
-      const btn = document.getElementById('comaes-support-button');
-      if (btn) btn.remove();
-    };
-  }, [shouldRender]);
-
-  // Atualizar ícone do botão quando isOpen mudar
-  useEffect(() => {
-    if (!shouldRender) return;
-    
-    const button = document.getElementById('comaes-support-button');
-    if (button) {
-      button.innerHTML = isOpen 
-        ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>`
-        : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2" /><circle cx="12" cy="5" r="2" /><path d="M12 7v4" /><line x1="8" y1="16" x2="8" y2="16" /><line x1="16" y1="16" x2="16" y2="16" /></svg>`;
-    }
-  }, [isOpen, shouldRender]);
-
-  // Retornar null APÓS todos os hooks
+  // Early return AFTER all hooks
   if (!shouldRender) {
     return null;
   }
 
-      {/*  Modal compacto  */}
+  console.log('🤖 SupportChat renderizado - usuário:', user?.name || user?.username);
+
+  const content = (
+    <>
+      {/* Botão flutuante */}
+      <motion.button
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center overflow-hidden"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        title="Assistente COMAES"
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          width: '56px',
+          height: '56px',
+          minWidth: '56px',
+          minHeight: '56px',
+          maxWidth: '56px',
+          maxHeight: '56px',
+          borderRadius: '50%',
+          aspectRatio: '1 / 1',
+          padding: '0',
+          zIndex: 2147483647,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+        }}
+      >
+        <AnimatePresence mode="wait">
+          {isOpen ? (
+            <motion.div
+              key="close"
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: 90, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-700 text-white"
+            >
+              <X className="w-8 h-8" />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="bot"
+              initial={{ rotate: 90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: -90, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 0,
+                margin: 0
+              }}
+            >
+              <img 
+                src={assistenteImg} 
+                alt="Assistente" 
+                style={{ 
+                  width: '100%',
+                  height: '100%',
+                  minWidth: '56px',
+                  minHeight: '56px',
+                  maxWidth: '56px',
+                  maxHeight: '56px',
+                  objectFit: 'cover',
+                  objectPosition: '60% center',
+                  borderRadius: '50%',
+                  display: 'block',
+                  aspectRatio: '1 / 1'
+                }} 
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.button>
+
+      {/* Modal compacto */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -476,51 +455,28 @@ export default function SupportChat() {
             transition={{ type: 'spring', stiffness: 320, damping: 30 }}
             style={{
               position: 'fixed',
-              right: '24px',
-              bottom: '88px',
+              right: '20px',
+              bottom: '84px',
               zIndex: 2147483646,
-              width: '360px',
-              maxWidth: 'calc(100vw - 48px)',
-              maxHeight: 'calc(100vh - 160px)',
+              width: 'calc(100vw - 40px)',
+              maxWidth: '360px',
+              maxHeight: 'calc(100vh - 140px)',
               minHeight: '320px'
             }}
-            className="bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden"
-          >
-            initial={{ opacity: 0, y: 16, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.96 }}
-            transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-            className="bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden"
-            style={{
-              position: 'fixed',
-              right: '24px',
-              bottom: '88px',
-              zIndex: 99998,
-              width: '360px',
-              maxWidth: 'calc(100vw - 24px)',
-              maxHeight: 'calc(100vh - 160px)',
-              minHeight: '320px',
-            }}
+            className="bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden pointer-events-auto"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-4 py-3 flex items-center gap-3 flex-shrink-0">
-              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-base flex-shrink-0 select-none">
-                <Bot className="w-5 h-5 text-white" />
-              </div>
+              <img
+                src={assistenteImg}
+                alt="Assistente COMAES"
+                className="w-8 h-8 rounded-full flex-shrink-0 select-none object-cover"
+              />
               <div className="flex-1 min-w-0">
                 <p className="text-white font-bold text-sm leading-tight">Assistente COMAES</p>
                 <p className="text-blue-100 text-[11px]">Online · Responde em segundos</p>
               </div>
               <div className="flex items-center gap-1.5">
-                {/* Botão expandir → abre página /suporte */}
-                <button
-                  onClick={handleExpand}
-                  className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/25 text-white/80 hover:text-white transition-all flex items-center justify-center"
-                  title="Expandir para página completa"
-                  aria-label="Abrir suporte em tela cheia"
-                >
-                  <Maximize2 className="w-4 h-4" />
-                </button>
                 <button
                   onClick={handleClose}
                   className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/25 text-white/80 hover:text-white transition-all flex items-center justify-center"
@@ -535,7 +491,7 @@ export default function SupportChat() {
             <div className="flex border-b border-gray-100 flex-shrink-0">
               {[
                 { key: 'faq', label: 'FAQ', icon: MessageSquare },
-                { key: 'chat', label: 'Chat IA', icon: Bot }
+                { key: 'chat', label: 'Chat IA', icon: Send }
               ].map(tab => {
                 const IconComponent = tab.icon;
                 return (

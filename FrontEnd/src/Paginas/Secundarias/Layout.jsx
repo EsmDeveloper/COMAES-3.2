@@ -13,7 +13,6 @@ import { Sliders } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import NotificacoesModal from "./Notificacoes";
 import LogoutModal from "../../components/LogoutModal";
-import SupportChat from "../../components/SupportChat";
 import logotipo from "../../assets/logotipo.png";
 import logo from "../../assets/logo.png";
 import logoShort from "../../assets/iso_icon.png";
@@ -185,7 +184,7 @@ export default function Layout({ children }) {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100 font-sans text-gray-900" style={{ position: 'relative', overflow: 'visible' }}>
+    <div className="flex flex-col min-h-screen bg-gray-100 font-sans text-gray-900" style={{ overflowX: 'hidden' }}>
       <LogoutModal
         isOpen={showLogoutModal}
         onConfirm={confirmLogout}
@@ -430,11 +429,8 @@ export default function Layout({ children }) {
         {children}
       </main>
 
-      {/* Support Chat - APENAS para estudantes */}
-      {!isAdmin && !isColaborador && <SupportChat />}
-
-      <footer className="bg-gray-900 text-gray-300 mt-auto w-full">
-        <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8 flex flex-col items-center gap-5">
+      <footer className="bg-gray-900 text-gray-300 mt-auto w-full overflow-x-hidden">
+        <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8 flex flex-col items-center gap-5 overflow-x-hidden">
           <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm">
             <Link to="/sobre-nos" className="text-gray-400 hover:text-blue-500 transition-colors duration-150">Sobre Nos</Link>
             <Link to="/suporte" className="text-gray-400 hover:text-blue-500 transition-colors duration-150">Suporte</Link>

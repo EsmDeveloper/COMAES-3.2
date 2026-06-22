@@ -79,11 +79,11 @@ router.post('/chat', auth, async (req, res) => {
           .slice(-6) // máx. 3 trocas
       : [];
 
-    // Chamar IA
+    // Chamar IA com retry automático
     const aiResponse = await askSupportAI(message.trim(), safeHistory);
 
     // Log anónimo para análise futura (sem dados pessoais)
-    console.log(`[SUPPORT_CHAT] user=${userId} | msg_len=${message.length} | resp_len=${aiResponse.length}`);
+    console.log(`[SUPPORT_CHAT] ✅ Sucesso | user=${userId} | msg_len=${message.length} | resp_len=${aiResponse.length}`);
 
     return res.json({
       success: true,
@@ -91,12 +91,30 @@ router.post('/chat', auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('[SUPPORT_CHAT] Erro:', error.message);
+    console.error('[SUPPORT_CHAT] ❌ Erro ao processar requisição');
+    console.error('   Mensagem:', error.message);
+    console.error('   Stack:', error.stack);
+    
+    // Retornar erro mais específico baseado no tipo
+    let statusCode = 503;
+    let errorMessage = 'Desculpe, a IA está temporariamente indisponível. Aguarde alguns segundos e tente novamente.';
+    
+    if (error.message?.includes('API key')) {
+      statusCode = 500;
+      errorMessage = 'Erro de configuração da plataforma. Contacte o administrador.';
+      console.error('[SUPPORT_CHAT] CRÍTICO: Problema com chave de API do Gemini');
+    } else if (error.message?.includes('Autenticação')) {
+      statusCode = 401;
+      errorMessage = 'Erro na autenticação com o serviço de IA.';
+    } else if (error.message?.includes('Timeout')) {
+      statusCode = 504;
+      errorMessage = 'A IA demorou muito para responder. Tente uma pergunta mais simples.';
+    }
 
-    // Mensagem padrão em caso de falha da API
-    return res.status(503).json({
+    return res.status(statusCode).json({
       success: false,
-      error: 'Serviço indisponível. Tente novamente mais tarde.',
+      error: errorMessage,
+      debug: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 });

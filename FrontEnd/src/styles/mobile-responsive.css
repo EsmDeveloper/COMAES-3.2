@@ -26,15 +26,88 @@ body {
 }
 
 /* Botão do assistente SEMPRE visível e fixo à viewport */
-#comaes-support-button {
+#comaes-support-button,
+button[title="Assistente COMAES"] {
   position: fixed !important;
-  bottom: 24px !important;
-  right: 24px !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  width: 56px !important;
+  height: 56px !important;
+  min-width: 56px !important;
+  min-height: 56px !important;
+  max-width: 56px !important;
+  max-height: 56px !important;
+  border-radius: 50% !important;
+  aspect-ratio: 1 / 1 !important;
+  padding: 0 !important;
   z-index: 2147483647 !important;
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
   pointer-events: auto !important;
+  overflow: hidden !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Garantir que a imagem dentro do botão ocupe todo o espaço e seja centralizada à direita */
+button[title="Assistente COMAES"] img {
+  width: 56px !important;
+  height: 56px !important;
+  min-width: 56px !important;
+  min-height: 56px !important;
+  max-width: 56px !important;
+  max-height: 56px !important;
+  object-fit: cover !important;
+  object-position: 60% center !important;
+  border-radius: 50% !important;
+  display: block !important;
+  aspect-ratio: 1 / 1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Container da imagem dentro do botão */
+button[title="Assistente COMAES"] > div {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Garantir que o botão seja perfeitamente circular e bem posicionado em mobile */
+@media (max-width: 640px) {
+  #comaes-support-button,
+  button[title="Assistente COMAES"] {
+    width: 56px !important;
+    height: 56px !important;
+    min-width: 56px !important;
+    min-height: 56px !important;
+    max-width: 56px !important;
+    max-height: 56px !important;
+    bottom: 16px !important;
+    right: 16px !important;
+    border-radius: 50% !important;
+    aspect-ratio: 1 / 1 !important;
+    /* Safe area para dispositivos com notch */
+    bottom: max(16px, env(safe-area-inset-bottom)) !important;
+    right: max(16px, env(safe-area-inset-right)) !important;
+  }
+}
+
+/* Ajuste extra para telas muito pequenas */
+@media (max-width: 375px) {
+  #comaes-support-button,
+  button[title="Assistente COMAES"] {
+    width: 52px !important;
+    height: 52px !important;
+    min-width: 52px !important;
+    min-height: 52px !important;
+    max-width: 52px !important;
+    max-height: 52px !important;
+    bottom: 12px !important;
+    right: 12px !important;
+  }
 }
 
 /* ========================================

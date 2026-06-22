@@ -7,7 +7,8 @@ import "./styles/mobile-responsive.css";
 
 import AuthContainer from "./Paginas/Primarias/AuthContainer";
 import Recuperar from "./Paginas/Primarias/Recuperar";
-import { AuthProvider, getPostLoginRoute } from './context/AuthContext';
+import { AuthProvider, getPostLoginRoute, useAuth } from './context/AuthContext';
+import SupportChat from './components/SupportChat';
 
 import Layout from "./Paginas/Secundarias/Layout";
 import AdminDashboard from './Administrador/AdminDashboard';
@@ -41,7 +42,6 @@ import InglesOriginal from "./Paginas/Tercearios.jsx/ModeloOriginal/InglesOrigin
 import NotFoundPage from "./Paginas/Secundarias/NotFoundPage";
 import NavbarDemo from "./components/ui/resizable-navbar-demo";
 
-import { useAuth } from './context/AuthContext';
 import DisciplinasAdmin from './Administrador/DisciplinasAdmin';
 import QuestoesPendentesTab from './Administrador/QuestoesPendentesTab';
 import ColaboradoresTab from './Administrador/ColaboradoresTab';
@@ -205,11 +205,27 @@ function AnimatedRoutes() {
   );
 }
 
+// Wrapper para SupportChat que usa Auth mas não Router
+function SupportChatWrapper() {
+  const { user } = useAuth();
+  
+  // APENAS estudantes
+  const isAdmin = user?.isAdmin === true || user?.isAdmin === 1 || user?.role === 'admin';
+  const isColaborador = user?.role === 'colaborador';
+  
+  if (!user || isAdmin || isColaborador) {
+    return null;
+  }
+  
+  return <SupportChat />;
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
         <BrowserRouter>
+          <SupportChatWrapper />
           <AnimatedRoutes />
         </BrowserRouter>
       </AuthProvider>
