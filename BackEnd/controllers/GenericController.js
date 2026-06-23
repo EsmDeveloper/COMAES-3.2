@@ -9,6 +9,8 @@
 
 import { getModel, getModelSchema } from '../utils/modelMapperSecure.js';
 import { validateNome, validateEmail, validatePassword, validateUserData } from '../utils/validators.js';
+import { sendNewsEmail } from '../services/emailService.js';
+import Usuario from '../models/User.js';
 
 /**
  * Middleware to get the model for the route
@@ -155,6 +157,30 @@ export const create = async (req, res) => {
         }
         
         const newRecord = await Model.create(body);
+
+        // ── Broadcast de email quando notícia é publicada ──────────────────
+        if (Model.name === 'Noticia' && body.publicado) {
+          // Disparar em background (não bloqueia a resposta)
+          setImmediate(async () => {
+            try {
+              const utilizadores = await Usuario.unscoped().findAll({
+                where: { role: ['estudante', 'colaborador'] },
+                attributes: ['email'],
+                raw: true,
+              });
+              const emails = utilizadores.map(u => u.email).filter(Boolean);
+              const categoria = (Array.isArray(body.tags) ? body.tags[0] : 'novidade') || 'novidade';
+              await sendNewsEmail(emails, {
+                titulo:    body.titulo,
+                resumo:    body.resumo || null,
+                categoria,
+              });
+            } catch (emailErr) {
+              console.error('[GenericController] Erro no broadcast de notícia:', emailErr.message);
+            }
+          });
+        }
+
         res.status(201).json(newRecord);
     } catch (error) {
         // Tratamento de erros de validação do Sequelize
@@ -246,6 +272,30 @@ export const update = async (req, res) => {
         const [updated] = await Model.update(req.body, { where });
         if (updated) {
             const record = await Model.findOne({ where });
+
+            // ── Broadcast quando notícia é publicada pela primeira vez via update ──
+            if (Model.name === 'Noticia' && req.body.publicado === true) {
+              setImmediate(async () => {
+                try {
+                  const utilizadores = await Usuario.unscoped().findAll({
+                    where: { role: ['estudante', 'colaborador'] },
+                    attributes: ['email'],
+                    raw: true,
+                  });
+                  const emails = utilizadores.map(u => u.email).filter(Boolean);
+                  const tagsArr = Array.isArray(record.tags) ? record.tags : [];
+                  const categoria = tagsArr[0] || 'novidade';
+                  await sendNewsEmail(emails, {
+                    titulo:    record.titulo,
+                    resumo:    record.resumo || null,
+                    categoria,
+                  });
+                } catch (emailErr) {
+                  console.error('[GenericController] Erro no broadcast (update):', emailErr.message);
+                }
+              });
+            }
+
             res.status(200).json(record);
         } else {
             res.status(404).json({ message: `${req.params.model} não encontrado` });
