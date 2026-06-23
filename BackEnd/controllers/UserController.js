@@ -8,6 +8,7 @@ import bcrypt from 'bcryptjs';
 import { Op } from 'sequelize';
 import Usuario from '../models/User.js';
 import Disciplina from '../models/Disciplina.js';
+import { sendWelcomeEmail } from '../services/emailService.js';
 import { uploadColaboradorDocs } from '../middlewares/security/colaboradorUpload.js';
 
 // ── Validation helpers (mirrors BackEnd/middlewares/validate.js) 
@@ -254,6 +255,17 @@ const createUser = async (req, res) => {
     });
 
     const { password: _, ...userSafe } = newUser.get({ plain: true });
+
+    // Enviar email de boas-vindas em background (não bloqueia resposta)
+    setImmediate(async () => {
+      try {
+        await sendWelcomeEmail(newUser.email, newUser.nome);
+        console.log('[email] Boas-vindas enviado (admin criou):', newUser.email);
+      } catch (emailErr) {
+        console.warn('[email] Falha ao enviar boas-vindas:', emailErr.message);
+      }
+    });
+
     res.status(201).json({ message: 'Usuário criado com sucesso.', data: userSafe });
   } catch (error) {
     if (error.name === 'SequelizeValidationError') {

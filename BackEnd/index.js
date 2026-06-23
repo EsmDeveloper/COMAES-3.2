@@ -512,15 +512,7 @@ app.post('/auth/login', validate(rules.login), async (req, res) => {
       }
     }
 
-    // Enviar e-mail de boas-vindas de forma assincrona (nao bloqueia o login)
-    setImmediate(async () => {
-      try {
-        await sendWelcomeEmail(user.email, user.nome);
-        console.log('Email de boas-vindas enviado para:', user.email);
-      } catch (emailError) {
-        console.warn('Erro ao enviar email de boas-vindas (nao afeta login):', emailError.message);
-      }
-    });
+    // Envio de email de boas-vindas removido do login (apenas no registo)
 
     res.json({
       success: true,
@@ -776,6 +768,16 @@ app.post('/auth/registro', validate(rules.register), async (req, res) => {
         const totalUsuarios = await Usuario.count();
         io.emit('stats_update', { totalUsuarios });
       }
+
+      // Enviar email de boas-vindas de forma assíncrona (não bloqueia a resposta)
+      setImmediate(async () => {
+        try {
+          await sendWelcomeEmail(novoUsuario.email, novoUsuario.nome);
+          console.log('[email] Boas-vindas enviado para novo utilizador:', novoUsuario.email);
+        } catch (emailError) {
+          console.warn('[email] Falha ao enviar boas-vindas (não afeta registo):', emailError.message);
+        }
+      });
 
       res.status(201).json({
         success: true,
