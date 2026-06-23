@@ -320,7 +320,8 @@ const CriarBlocosTab = ({ token, apiBase }) => {
         
         const data = await allResponse.json();
         const todasQuestoes = data.dados?.questoes || data.questoes || [];
-        const questoesBloco = todasQuestoes.filter(q => q.bloco_id === blocoId);
+        // Comparar como string para evitar mismatch number vs string
+        const questoesBloco = todasQuestoes.filter(q => String(q.bloco_id) === String(blocoId));
         
         setQuestoesPorBloco(prev => ({
           ...prev,
@@ -363,9 +364,14 @@ const CriarBlocosTab = ({ token, apiBase }) => {
       }
 
       const data = await response.json();
-      const questoes = data.dados?.questoes || data.questoes || [];
+      const todasQuestoes = data.dados?.questoes || data.questoes || [];
+      // Filtrar apenas questões que não estão em nenhum bloco E com dificuldade compatível
+      const questoes = todasQuestoes.filter(
+        q => !q.bloco_id && q.dificuldade === bloco.dificuldade
+      );
       setQuestoesDisponiveis(questoes);
-      console.log(`[SUCCESS] ${questoes.length} questões carregadas`);
+      console.log(`[SUCCESS] ${questoes.length} questões disponíveis (filtradas por bloco vazio + dificuldade "${bloco.dificuldade}")`);
+
     } catch (error) {
       console.error('Erro ao carregar questões:', error);
       showMessage('Erro ao carregar questões: ' + error.message, 'error');
@@ -404,8 +410,19 @@ const CriarBlocosTab = ({ token, apiBase }) => {
       // Remover questão da lista de disponíveis
       setQuestoesDisponiveis(prev => prev.filter(q => q.id !== questaoId));
       
-      // Recarregar blocos
-      setTimeout(() => carregarBlocos(), 500);
+      // Limpar cache do bloco para forçar recarga das questões ao expandir
+      setQuestoesPorBloco(prev => {
+        const novo = { ...prev };
+        delete novo[selectedBlocoForQuestoes.id];
+        return novo;
+      });
+
+      // Recarregar blocos e questões do bloco expandido
+      setTimeout(async () => {
+        await carregarBlocos();
+        // Se o bloco ainda estiver expandido, recarregar as questões imediatamente
+        carregarQuestoesDoBlocoExpandido(selectedBlocoForQuestoes.id);
+      }, 500);
     } catch (error) {
       console.error('Erro:', error);
       showMessage('Erro ao adicionar questão: ' + error.message, 'error');
@@ -601,8 +618,8 @@ const CriarBlocosTab = ({ token, apiBase }) => {
                               onClick={() => {
                                 const isExpanding = expandedBlocoId !== bloco.id;
                                 setExpandedBlocoId(isExpanding ? bloco.id : null);
-                                // Carregar questões se estiver expandindo e ainda não foram carregadas
-                                if (isExpanding && !questoesPorBloco[bloco.id]) {
+                                // Sempre recarregar questões ao expandir um bloco
+                                if (isExpanding) {
                                   carregarQuestoesDoBlocoExpandido(bloco.id);
                                 }
                               }}
@@ -827,7 +844,12 @@ const CriarBlocosTab = ({ token, apiBase }) => {
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-blue-50 rounded-t-2xl">
               <div>
                 <h2 className="text-lg font-bold text-slate-800">Adicionar Questões ao Bloco</h2>
-                <p className="text-xs text-slate-500 mt-1">{selectedBlocoForQuestoes.titulo}</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {selectedBlocoForQuestoes.titulo}
+                  <span className="ml-2 px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-semibold capitalize">
+                    {selectedBlocoForQuestoes.dificuldade}
+                  </span>
+                </p>
               </div>
               <button 
                 onClick={() => setShowAddQuestaoModal(false)} 
@@ -845,8 +867,11 @@ const CriarBlocosTab = ({ token, apiBase }) => {
                 </div>
               ) : questoesDisponiveis.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-slate-500">Nenhuma questão disponível</p>
-                  <p className="text-slate-400 text-sm mt-2">Crie questões primeiro para adicioná-las ao bloco</p>
+                  <p className="text-slate-500 font-medium">Nenhuma questão disponível</p>
+                  <p className="text-slate-400 text-sm mt-2">
+                    Apenas questões de nível <span className="font-semibold capitalize">{selectedBlocoForQuestoes?.dificuldade}</span> e sem bloco atribuído podem ser adicionadas.
+                  </p>
+                  <p className="text-slate-400 text-xs mt-1">Crie questões com o nível correto em "Minhas Questões".</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -983,7 +1008,7 @@ const ColaboradorDashboard = () => {
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
 
   useEffect(() => {
     if (token) {

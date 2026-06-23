@@ -104,36 +104,33 @@ export default function QuestoesColaboradoresTab() {
       // ✅ CORREÇÃO: Valor correto é 'aprovado' (não 'aprovada')
       let blocosData = [];
       try {
-        const response = await api.get('/api/blocos-colaboradores', { 
+        // Usar o endpoint admin que já retorna blocos com info do criador
+        const response = await api.get('/api/admin/blocos-colaboradores-pendentes', { 
           token,
-          params: { 
-            status: 'aprovado',  // ✅ CORRIGIDO: usar 'status' para blocos
-            contexto: 'colaborador'
-          }
+          params: { status: 'aprovado', limite: 100 }
         });
         
         if (response.success) {
-          blocosData = safeArray(safeGet(response, 'data.dados.blocos', safeGet(response, 'data.blocos', [])));
-        }
-        console.log('[QuestoesColaboradores] Blocos:', blocosData.length);
-      } catch (e1) {
-        console.log('[QuestoesColaboradores] Fallback /api/blocos');
-        try {
-          const response = await api.get('/api/blocos', { 
-            token,
-            params: {
-              status: 'aprovado',
-              contexto: 'colaborador'
-            }
+          const todos = safeArray(
+            safeGet(response, 'data.blocos') ||
+            safeGet(response, 'data.dados.blocos') ||
+            safeGet(response, 'dados.blocos') ||
+            []
+          );
+          console.log('[DEBUG] Blocos extraídos:', todos.length, '| criador sample:', safeGet(todos[0], 'criador'));
+          // Filtrar apenas blocos criados por colaboradores
+          blocosData = todos.filter(b => {
+            const criadorRole = safeGet(b, 'criador.role');
+            return !criadorRole || criadorRole === 'colaborador';
           });
-          if (response.success) {
-            const allBlocos = safeArray(safeGet(response, 'data.blocos', []));
-            blocosData = allBlocos.filter(b => safeGet(b, 'status') === 'aprovado');
+          // Se o filtro eliminou tudo (criador.role não vem na resposta), mostrar todos
+          if (blocosData.length === 0 && todos.length > 0) {
+            blocosData = todos;
           }
-          console.log('[QuestoesColaboradores] Blocos (fallback):', blocosData.length);
-        } catch (e2) {
-          console.log('[QuestoesColaboradores] Blocos falha:', e2.message);
         }
+        console.log('[QuestoesColaboradores] Blocos aprovados:', blocosData.length);
+      } catch (e1) {
+        console.log('[QuestoesColaboradores] Erro ao carregar blocos:', e1.message);
       }
 
       // Carregar questões aprovadas de colaboradores (contexto='colaborador' ou NULL)
@@ -443,7 +440,7 @@ export default function QuestoesColaboradoresTab() {
                   {safeMap(blocosFiltrados, (b, i, key) => {
                     const numQuestoes = safeArray(safeGet(b, 'questoes', [])).length || safeGet(b, 'total_questoes', 0);
                     return (
-                      <div key={key} className="bg-gradient-to-br from-blue-50 via-white to-cyan-50 rounded-xl shadow-sm border border-blue-200 p-5 hover:shadow-md transition-all">
+                      <div k1ey={key} className="bg-gradient-to-br from-blue-50 via-white to-cyan-50 rounded-xl shadow-sm border border-blue-200 p-5 hover:shadow-md transition-all">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
                             <div className="flex gap-2 mb-2 flex-wrap">
@@ -456,7 +453,7 @@ export default function QuestoesColaboradoresTab() {
                             {safeGet(b, 'descricao') && (
                               <p className="text-xs text-slate-600 line-clamp-2 mt-1">
                                 {safeString(safeGet(b, 'descricao'), '')}
-                              </p>
+                            </p>
                             )}
                           </div>
                         </div>
@@ -468,7 +465,7 @@ export default function QuestoesColaboradoresTab() {
                           </div>
                           {safeGet(b, 'autor_nome') && (
                             <div className="flex items-center gap-1 text-slate-600 text-xs">
-                              <span>📝 {safeString(safeGet(b, 'autor_nome'), 'Desconhecido')}</span>
+                              <span>📝 {safeString(safeGet(b, 'autor_nome') || safeGet(b, 'criador.nome'), 'Desconhecido')}</span>
                             </div>
                           )}
                         </div>

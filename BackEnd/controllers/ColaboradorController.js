@@ -159,10 +159,11 @@ export const ColaboradorController = {
         return respostaErro(res, 400, 'Resposta correta é obrigatória');
       }
 
-      // Processar opções
+      // Processar opções — aceita array de strings ou array de { texto, correta }
       let processedOpcoes = opcoes;
       if (Array.isArray(opcoes)) {
-        processedOpcoes = opcoes;
+        // Normalizar: se os itens forem objetos { texto, correta }, extrair só o texto
+        processedOpcoes = opcoes.map(o => (typeof o === 'object' && o !== null ? o.texto : o));
       } else if (typeof opcoes === 'string') {
         processedOpcoes = opcoes.split('|').map(o => o.trim()).filter(o => o);
       }
@@ -183,7 +184,11 @@ export const ColaboradorController = {
         disciplina,
         dificuldade,
         tipo,
-        opcoes: processedOpcoes,
+        // Guardar sempre como array de objetos { texto, correta }
+        opcoes: processedOpcoes.map(o => ({
+          texto: o,
+          correta: o === resposta_correta.trim()
+        })),
         resposta_correta: resposta_correta.trim(),
         explicacao: explicacao?.trim() || null,
         pontos: parseInt(pontos) || 10,

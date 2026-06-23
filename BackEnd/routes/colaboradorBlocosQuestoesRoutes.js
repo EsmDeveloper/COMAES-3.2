@@ -51,10 +51,12 @@ import {
   listarBlocosPendentesAdmin,
   aprovarBlocoAdmin,
   rejeitarBlocoAdmin,
+  atribuirBlocoAdmin,
   // Admin - Aprovação Questões
   listarQuestoesPendentesAdmin,
   aprovarQuestaoAdmin,
   rejeitarQuestaoAdmin,
+  atribuirQuestaoAdmin,
   // Admin - Listar questões de um colaborador específico
   listarQuestoesColaboradorAdmin
 } from '../controllers/ColaboradorBlocosQuestoesControllerV2.js';
@@ -250,6 +252,13 @@ router.post(
   rejeitarBlocoAdmin
 );
 
+router.patch(
+  '/blocos/:id/atribuir',
+  auth,
+  isAdmin,
+  atribuirBlocoAdmin
+);
+
 router.get(
   '/questoes-colaborador-pendentes',
   auth,
@@ -269,6 +278,13 @@ router.post(
   auth,
   isAdmin,
   rejeitarQuestaoAdmin
+);
+
+router.patch(
+  '/questoes/:id/atribuir',
+  auth,
+  isAdmin,
+  atribuirQuestaoAdmin
 );
 
 // 

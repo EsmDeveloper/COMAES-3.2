@@ -13,7 +13,10 @@ import {
   atualizarBlocoColaborador,
   deletarBlocoColaborador,
   submeterBlocoColaborador,
-  adicionarQuestaoAoBlocoColaborador
+  adicionarQuestaoAoBlocoColaborador,
+  removerQuestaoDoBlocoColaborador,
+  atualizarQuestaoColaborador,
+  deletarQuestaoColaborador
 } from '../controllers/ColaboradorBlocosQuestoesControllerV2.js';
 
 const router = express.Router();
@@ -42,11 +45,11 @@ router.use(canManageQuestoes);
 router.use(verificarColaboradorAprovado);
 
 // ── Endpoints de Questões 
-// O CRUD de /questoes fica em colaboradorBlocosQuestoesRoutes, que tem o fluxo
-// completo de aprovacao, edicao, exclusao e submissao.
 router.get('/estatisticas', ColaboradorController.estatisticas);
 router.get('/questoes', ColaboradorController.minhasQuestoes);
 router.post('/questoes', ColaboradorController.criarQuestao);
+router.put('/questoes/:id', atualizarQuestaoColaborador);
+router.delete('/questoes/:id', deletarQuestaoColaborador);
 router.get('/perfil', ColaboradorController.perfil);
 
 // ── Endpoints de Blocos (NOVO) 
@@ -57,5 +60,6 @@ router.put('/blocos/:id', atualizarBlocoColaborador);
 router.delete('/blocos/:id', deletarBlocoColaborador);
 router.post('/blocos/:id/submeter', submeterBlocoColaborador);
 router.post('/blocos/:id/questoes/:questaoId', adicionarQuestaoAoBlocoColaborador);
+router.delete('/blocos/:id/questoes/:questaoId', removerQuestaoDoBlocoColaborador);
 
 export default router;

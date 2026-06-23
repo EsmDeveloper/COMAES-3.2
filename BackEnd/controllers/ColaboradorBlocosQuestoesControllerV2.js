@@ -564,6 +564,13 @@ export const adicionarQuestaoAoBlocoColaborador = async (req, res) => {
         'Bloco atingiu o limite máximo de 30 questões.');
     }
 
+    // Validar compatibilidade de dificuldade
+    if (questao.dificuldade !== bloco.dificuldade) {
+      return respostaErro(res, 400,
+        `Incompatibilidade de nível: a questão é "${questao.dificuldade}" mas o bloco é "${bloco.dificuldade}". Apenas questões com o mesmo nível de dificuldade podem ser adicionadas.`
+      );
+    }
+
     // Associar questão ao bloco
     questao.bloco_id = id;
     await questao.save();
@@ -1442,5 +1449,90 @@ export const listarQuestoesColaboradorAdmin = async (req, res) => {
   } catch (error) {
     console.error('[ERROR] Erro ao listar questões do colaborador:', error);
     return respostaErro(res, 500, 'Erro ao listar questões do colaborador', { detalhes: error.message });
+  }
+};
+
+
+/**
+ * PATCH /api/admin/blocos/:id/atribuir
+ * Atribuir bloco aprovado para torneios ou testes (admin)
+ */
+export const atribuirBlocoAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { destino } = req.body;
+
+    // Validar destino
+    if (!destino || !['torneio', 'teste'].includes(destino)) {
+      return respostaErro(res, 400, 'Destino inválido. Deve ser "torneio" ou "teste"');
+    }
+
+    // Buscar bloco
+    const bloco = await BlocoQuestoes.findByPk(id);
+
+    if (!bloco) {
+      return respostaErro(res, 404, 'Bloco não encontrado');
+    }
+
+    // Verificar se bloco está aprovado
+    if (bloco.status !== 'aprovado') {
+      return respostaErro(res, 400, 
+        `Apenas blocos aprovados podem ser atribuídos. Status atual: ${bloco.status}`);
+    }
+
+    // Atualizar contexto do bloco
+    bloco.contexto = destino;
+    await bloco.save();
+
+    // Atualizar também todas as questões do bloco
+    await Questao.update(
+      { contexto: destino },
+      { where: { bloco_id: id } }
+    );
+
+    const destinoNome = destino === 'torneio' ? 'Torneios' : 'Testes de Conhecimento';
+    respostaSucesso(res, 200, bloco, `Bloco atribuído para ${destinoNome} com sucesso!`);
+  } catch (error) {
+    console.error('Erro ao atribuir bloco:', error);
+    respostaErro(res, 500, 'Erro ao atribuir bloco', { detalhes: error.message });
+  }
+};
+
+/**
+ * PATCH /api/admin/questoes/:id/atribuir
+ * Atribuir questão aprovada para torneios ou testes (admin)
+ */
+export const atribuirQuestaoAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { destino } = req.body;
+
+    // Validar destino
+    if (!destino || !['torneio', 'teste'].includes(destino)) {
+      return respostaErro(res, 400, 'Destino inválido. Deve ser "torneio" ou "teste"');
+    }
+
+    // Buscar questão
+    const questao = await Questao.findByPk(id);
+
+    if (!questao) {
+      return respostaErro(res, 404, 'Questão não encontrada');
+    }
+
+    // Verificar se questão está aprovada
+    if (questao.status_aprovacao !== 'aprovada') {
+      return respostaErro(res, 400, 
+        `Apenas questões aprovadas podem ser atribuídas. Status atual: ${questao.status_aprovacao}`);
+    }
+
+    // Atualizar contexto da questão
+    questao.contexto = destino;
+    await questao.save();
+
+    const destinoNome = destino === 'torneio' ? 'Torneios' : 'Testes de Conhecimento';
+    respostaSucesso(res, 200, questao, `Questão atribuída para ${destinoNome} com sucesso!`);
+  } catch (error) {
+    console.error('Erro ao atribuir questão:', error);
+    respostaErro(res, 500, 'Erro ao atribuir questão', { detalhes: error.message });
   }
 };

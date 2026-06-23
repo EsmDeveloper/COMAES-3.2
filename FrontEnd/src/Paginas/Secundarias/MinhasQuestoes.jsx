@@ -144,13 +144,25 @@ function QuestaoForm({ questao, isOpen, onClose, onSave, disciplina, saving: ext
   useEffect(() => {
     if (isOpen) {
       if (questao) {
+        // opcoes pode vir como array de strings ou array de { texto, correta }
+        const rawOpcoes = Array.isArray(questao.opcoes) ? questao.opcoes : [];
+        const opcoesStrings = rawOpcoes.map(o =>
+          typeof o === 'string' ? o : (o?.texto || '')
+        );
+        // garantir sempre 4 slots
+        while (opcoesStrings.length < 4) opcoesStrings.push('');
+
+        // resposta_correta pode ser string directa ou precisar ser derivada dos objetos
+        const respostaCorreta = questao.resposta_correta ||
+          (rawOpcoes.find(o => o?.correta)?.texto) || '';
+
         setFormData({
           titulo: questao.titulo || '',
-          enunciado: questao.enunciado || questao.descricao || '',
+          enunciado: questao.descricao || questao.enunciado || '',
           dificuldade: questao.dificuldade || 'medio',
           pontos: questao.pontos || 10,
-          opcoes: Array.isArray(questao.opcoes) ? [...questao.opcoes.slice(0, 4)] : ['', '', '', ''],
-          resposta_correta: questao.resposta_correta || ''
+          opcoes: opcoesStrings.slice(0, 4),
+          resposta_correta: respostaCorreta
         });
       } else {
         setFormData({
@@ -199,7 +211,7 @@ function QuestaoForm({ questao, isOpen, onClose, onSave, disciplina, saving: ext
     }
 
     // Validar enunciado
-    if (!formData.enunciado.trim()) {
+    if (!formData.enunciado?.trim()) {
       setError('Enunciado é obrigatório');
       return false;
     }
@@ -243,11 +255,15 @@ function QuestaoForm({ questao, isOpen, onClose, onSave, disciplina, saving: ext
     try {
       const dadosParaSalvar = {
         titulo: formData.titulo,
-        enunciado: formData.enunciado,
+        enunciado: formData.enunciado,         // para criarQuestao (ColaboradorController)
+        descricao: formData.enunciado,         // para atualizarQuestaoColaborador (V2)
         disciplina: disciplina.toLowerCase(),
         dificuldade: formData.dificuldade,
         tipo: 'multipla_escolha',
-        opcoes: formData.opcoes.filter(o => o.trim()),
+        // converter array de strings para array de objetos { texto, correta }
+        opcoes: formData.opcoes
+          .filter(o => o.trim())
+          .map(o => ({ texto: o.trim(), correta: o === formData.resposta_correta })),
         resposta_correta: formData.resposta_correta,
         pontos: formData.pontos
       };
