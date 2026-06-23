@@ -85,26 +85,8 @@ const AdminDashboardRestructured = () => {
         { id: 'noticia', label: 'Gerenciar Notícias', icon: FileText },
         { id: 'notificacao', label: 'Centro de Notificações', icon: Bell }
       ]
-    },
-    {
-      id: 'support',
-      title: 'Suporte & Operações',
-      icon: Zap,
-      color: 'from-orange-500 to-red-600',
-      items: [
-        { id: 'ticketsuporte', label: 'Tickets de Suporte', icon: Zap }
-      ]
-    },
-    {
-      id: 'system',
-      title: 'Sistema',
-      icon: Settings,
-      color: 'from-gray-500 to-slate-600',
-      items: [
-        { id: 'configuracaousuario', label: 'Configurações', icon: Settings },
-        { id: 'redefinicaosenha', label: 'Redefinições de Senha', icon: Database }
-      ]
     }
+    // REMOVIDO - 2026-06-22: Seções vazias de Suporte & Operações e Sistema
   ];
 
   const handleLogout = () => {

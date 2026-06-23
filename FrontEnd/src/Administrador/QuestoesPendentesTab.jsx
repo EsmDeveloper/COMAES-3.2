@@ -1,15 +1,19 @@
 ﻿/**
- * QuestoesPendentesTab.jsx (REFATORADO)
- * Aba para admin revisar questÃães pendentes de colaboradores
- * Separado em: Blocos Pendentes + QuestÃães Solo Pendentes
+ * QuestoesPendentesTab.jsx (REFATORADO COM VISUAL UNIFICADO)
+ * Aba para admin revisar questões pendentes de colaboradores
+ * Agora com a mesma estrutura visual do QuestoesColaboradoresTab
+ * ✅ DATA SAFETY: safeArray, safeMap, safeGet, safeString aplicados
  */
+
 import { useState, useEffect, useCallback, useReducer } from 'react';
 import questoesService from '../services/questoesService';
 import axios from 'axios';
 import {
   Search, Check, X, AlertCircle, BookOpen, Filter,
-  ChevronDown, Clock, Info, RefreshCw, Layers, FileText
+  ChevronDown, Clock, Info, RefreshCw, Layers, FileText,
+  Eye, Trash2, Package, User, Calendar, Star
 } from 'lucide-react';
+import { safeGet, safeArray, safeString, safeMap } from '../utils/dataSafety';
 import {
   DificuldadeBadge,
   StatusAprovaçãoBadge,
@@ -22,8 +26,9 @@ import {
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
-// â”€â”€â”€ REDUCER PARA ESTADO â”€â”€â”€
-
+// ============================================
+// REDUCER PARA ESTADO
+// ============================================
 const initialState = {
   blocosPendentes: [],
   questoesSoloPendentes: [],
@@ -62,8 +67,9 @@ function reducer(state, action) {
   }
 }
 
-// â”€â”€â”€ COMPONENTE PRINCIPAL â”€â”€â”€
-
+// ============================================
+// COMPONENTE PRINCIPAL
+// ============================================
 export default function QuestoesPendentesTab() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
@@ -71,21 +77,26 @@ export default function QuestoesPendentesTab() {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedQuestao, setSelectedQuestao] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
+  const [abaAtiva, setAbaAtiva] = useState('blocos');
   const token = localStorage.getItem('comaes_token');
 
-  // Carregar blocos pendentes
+  // ========== FUNÇÕES DE CARREGAMENTO ==========
   const carregarBlocosPendentes = useCallback(async () => {
     dispatch({ type: 'SET_LOADING_BLOCOS', payload: true });
     try {
       const params = { status_aprovacao: 'pendente' };
       if (state.filtros.disciplina) params.disciplina = state.filtros.disciplina;
       
+      console.log('[DEBUG] Buscando blocos pendentes com params:', params);
+      
       const response = await axios.get(`${apiBaseUrl}/api/admin/blocos-colaboradores-pendentes`, {
         params,
         headers: { Authorization: `Bearer ${token}` }
       });
       
+      // A resposta vem de respostaSucesso(), que tem a estrutura: { sucesso, mensagem, dados }
       const blocos = response.data?.dados?.blocos || [];
+      
       dispatch({ type: 'SET_BLOCOS_PENDENTES', payload: blocos });
     } catch (err) {
       console.error('Erro ao carregar blocos pendentes:', err);
@@ -95,19 +106,29 @@ export default function QuestoesPendentesTab() {
     }
   }, [state.filtros.disciplina, token]);
 
-  // Carregar questÃães solo pendentes
   const carregarQuestoesSoloPendentes = useCallback(async () => {
     dispatch({ type: 'SET_LOADING_QUESTOES', payload: true });
     try {
       const params = { status_aprovacao: 'pendente', sem_bloco: true };
       if (state.filtros.disciplina) params.disciplina = state.filtros.disciplina;
       
+      console.log('[DEBUG] Buscando questões pendentes com params:', params);
+      
       const response = await questoesService.listar(params);
-      const questoes = response?.dados?.questoes || response?.questoes || [];
+      console.log('[DEBUG] Resposta questões:', response);
+      
+      const questoes = response?.dados?.questoes || 
+                       response?.questoes || 
+                       response?.data?.questoes ||
+                       [];
+      
+      console.log('[DEBUG] Questões extraídas:', questoes);
+      console.log('[DEBUG] Quantidade de questões:', questoes.length);
+      
       dispatch({ type: 'SET_QUESTOES_SOLO_PENDENTES', payload: questoes });
     } catch (err) {
-      console.error('Erro ao carregar questÃães:', err);
-      dispatch({ type: 'SET_ERROR', payload: 'Erro ao carregar questÃães' });
+      console.error('Erro ao carregar questões:', err);
+      dispatch({ type: 'SET_ERROR', payload: 'Erro ao carregar questões' });
     } finally {
       dispatch({ type: 'SET_LOADING_QUESTOES', payload: false });
     }
@@ -118,14 +139,14 @@ export default function QuestoesPendentesTab() {
     carregarQuestoesSoloPendentes();
   }, [carregarBlocosPendentes, carregarQuestoesSoloPendentes]);
 
-  // Aprovar bloco
+  // ========== FUNÇÕES DE AÇÃO ==========
   const handleAprovarBloco = async (id) => {
     setActionLoading(id);
     try {
       await axios.post(`${apiBaseUrl}/api/admin/blocos/${id}/aprovar`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      mostrarToast('Bloco aprovado!', 'success');
+      mostrarToast('Bloco aprovado com sucesso!', 'success');
       dispatch({ type: 'REMOVE_BLOCO', payload: id });
     } catch (err) {
       mostrarToast(err.response?.data?.mensagem || 'Erro ao aprovar', 'error');
@@ -134,11 +155,10 @@ export default function QuestoesPendentesTab() {
     }
   };
 
-  // Rejeitar bloco
   const handleRejeitarBloco = async (id, motivo) => {
     setActionLoading(id);
     try {
-      await axios.post(`${apiBaseUrl}/api/admin/blocos/${id}/rejeitar`, { motivo }, {
+      await axios.post(`${apiBaseUrl}/api/admin/blocos/${id}/rejeitar`, { motivo_rejeicao: motivo }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setRejectModalOpen(false);
@@ -151,12 +171,11 @@ export default function QuestoesPendentesTab() {
     }
   };
 
-  // Aprovar questão solo
   const handleAprovarQuestao = async (id) => {
     setActionLoading(id);
     try {
       await questoesService.aprovar(id);
-      mostrarToast('Questão aprovada!', 'success');
+      mostrarToast('Questão aprovada com sucesso!', 'success');
       dispatch({ type: 'REMOVE_QUESTAO', payload: id });
     } catch (err) {
       mostrarToast(err.message, 'error');
@@ -165,7 +184,6 @@ export default function QuestoesPendentesTab() {
     }
   };
 
-  // Rejeitar questão solo
   const handleRejeitarQuestao = async (motivo) => {
     if (!questaoSelecionada) return;
     setActionLoading(questaoSelecionada.id);
@@ -192,245 +210,370 @@ export default function QuestoesPendentesTab() {
     setDetailModalOpen(true);
   };
 
-  // Filtrar questÃães solo
-  const questoesFiltradas = state.questoesSoloPendentes.filter(q => {
+  // ========== FILTRAGEM ==========
+  const questoesFiltradas = safeArray(state.questoesSoloPendentes).filter(q => {
     if (!state.filtros.busca) return true;
     const buscaLower = state.filtros.busca.toLowerCase();
     return (
-      q?.titulo?.toLowerCase().includes(buscaLower) ||
-      q?.descricao?.toLowerCase().includes(buscaLower)
+      safeString(safeGet(q, 'titulo'), '').toLowerCase().includes(buscaLower) ||
+      safeString(safeGet(q, 'descricao'), '').toLowerCase().includes(buscaLower)
     );
   });
 
-  // Filtrar blocos
-  const blocosFiltrados = state.blocosPendentes.filter(b => {
+  const blocosFiltrados = safeArray(state.blocosPendentes).filter(b => {
     if (!state.filtros.busca) return true;
     const buscaLower = state.filtros.busca.toLowerCase();
     return (
-      b?.titulo?.toLowerCase().includes(buscaLower) ||
-      b?.descricao?.toLowerCase().includes(buscaLower)
+      safeString(safeGet(b, 'titulo'), '').toLowerCase().includes(buscaLower) ||
+      safeString(safeGet(b, 'descricao'), '').toLowerCase().includes(buscaLower)
     );
   });
 
+  // ========== RENDERIZAÇÃO ==========
   return (
-    <div className="p-6 space-y-8">
-      {/* Header */}
+    <div className="space-y-6">
+      {/* ===== HEADER ===== */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+            <BookOpen className="w-8 h-8 text-blue-600" />
+            Revisão de Questões
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Revise e aprove blocos e questões criadas pelos colaboradores
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            carregarBlocosPendentes();
+            carregarQuestoesSoloPendentes();
+          }}
+          className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        >
+          <RefreshCw className="w-5 h-5" />
+          Atualizar
+        </button>
+      </div>
+
+      {/* ===== SEARCH + FILTROS ===== */}
+      <div className="flex flex-col md:flex-row gap-3">
+        <div className="flex-1 relative">
+          <Search className="absolute left-4 top-3 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Pesquisar blocos ou questões..."
+            value={state.filtros.busca}
+            onChange={(e) => dispatch({ type: 'UPDATE_FILTRO', key: 'busca', value: e.target.value })}
+            className="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <select
+          className="px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={state.filtros.disciplina}
+          onChange={(e) => dispatch({ type: 'UPDATE_FILTRO', key: 'disciplina', value: e.target.value })}
+        >
+          <option value="">Todas as disciplinas</option>
+          <option value="matematica">Matemática</option>
+          <option value="programacao">Programação</option>
+          <option value="ingles">Inglês</option>
+          <option value="portugues">Português</option>
+          <option value="historia">História</option>
+        </select>
+      </div>
+
+      {/* ===== SUB-ABAS ===== */}
+      <div className="flex gap-3 border-b border-gray-200">
+        <button
+          onClick={() => setAbaAtiva('blocos')}
+          className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${
+            abaAtiva === 'blocos'
+              ? 'text-blue-600 border-blue-600'
+              : 'text-gray-600 border-transparent hover:text-gray-900'
+          }`}
+        >
+          <Package className="w-5 h-5" />
+          Blocos Pendentes
+          <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+            {blocosFiltrados.length}
+          </span>
+        </button>
+        <button
+          onClick={() => setAbaAtiva('questoes')}
+          className={`px-6 py-3 font-semibold flex items-center gap-2 transition-colors border-b-2 ${
+            abaAtiva === 'questoes'
+              ? 'text-blue-600 border-blue-600'
+              : 'text-gray-600 border-transparent hover:text-gray-900'
+          }`}
+        >
+          <FileText className="w-5 h-5" />
+          Questões Pendentes
+          <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+            {questoesFiltradas.length}
+          </span>
+        </button>
+      </div>
+
+      {/* ===== CONTEÚDO DAS ABAS ===== */}
       <div>
-        <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2 mb-2">
-          <BookOpen className="w-6 h-6 text-blue-600" />
-          Revisão de QuestÃães Colaboradores
-        </h2>
-        <p className="text-slate-600">
-          Revise e aprove blocos e questÃães criadas pelos colaboradores
-        </p>
-      </div>
+        {/* ABA 1: BLOCOS PENDENTES */}
+        {abaAtiva === 'blocos' && (
+          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border-2 border-blue-300 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-blue-900 flex items-center gap-2">
+                <Layers className="w-7 h-7" />
+                Blocos Pendentes
+              </h2>
+              <span className="text-sm bg-blue-200 text-blue-800 px-3 py-1 rounded-full font-semibold">
+                Total: {blocosFiltrados.length}
+              </span>
+            </div>
 
-      {/* Filtros */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Buscar por título ou descrição..."
-              value={state.filtros.busca}
-              onChange={(e) => dispatch({ type: 'UPDATE_FILTRO', key: 'busca', value: e.target.value })}
-              className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Blocos de questões aguardando revisão e aprovação.
+            </p>
 
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-            <select
-              value={state.filtros.disciplina}
-              onChange={(e) => dispatch({ type: 'UPDATE_FILTRO', key: 'disciplina', value: e.target.value })}
-              className="pl-10 pr-8 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
-            >
-              <option value="">Todas as disciplinas</option>
-              <option value="matematica">Matemática</option>
-              <option value="ingles">Inglês</option>
-              <option value="programacao">Programação</option>
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
-          </div>
-
-          <button
-            onClick={() => {
-              carregarBlocosPendentes();
-              carregarQuestoesSoloPendentes();
-            }}
-            className="px-4 py-2.5 border border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50 flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Atualizar
-          </button>
-        </div>
-      </div>
-
-      {/* DUAS COLUNAS: BLOCOS E QUESTÃ•ES LADO A LADO */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* SEO 1: BLOCOS PENDENTES */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 sticky top-0 z-10 bg-white pb-2">
-            <Layers className="w-5 h-5 text-blue-600" />
-            <h3 className="text-lg font-bold text-slate-800">Blocos Pendentes</h3>
-            <span className="ml-auto text-sm font-semibold text-slate-600 bg-blue-50 px-3 py-1 rounded-lg">
-              {blocosFiltrados.length}
-            </span>
-          </div>
-
-        {state.loadingBlocos && state.blocosPendentes.length === 0 && (
-          <div className="bg-white rounded-xl p-8 text-center">
-            <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-slate-600">Carregando blocos...</p>
-          </div>
-        )}
-
-        {!state.loadingBlocos && blocosFiltrados.length === 0 && (
-          <div className="bg-white rounded-xl p-8 text-center border border-slate-200">
-            <Layers className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-600">Nenhum bloco pendente</p>
-          </div>
-        )}
-
-        {blocosFiltrados.length > 0 && (
-          <div className="space-y-3">
-            {blocosFiltrados.map((bloco) => (
-              <div key={bloco.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <DisciplinaBadge disciplina={bloco.disciplina} />
-                      <DificuldadeBadge dificuldade={bloco.dificuldade || 'medio'} />
-                      <span className="text-xs text-slate-500">({bloco.total_questoes || 0} questÃães)</span>
-                    </div>
-                    <h4 className="font-semibold text-slate-800">{bloco.titulo}</h4>
-                    {bloco.descricao && <p className="text-xs text-slate-600 mt-1">{bloco.descricao}</p>}
-                  </div>
+            {/* Cards de Blocos */}
+            <div className="bg-white rounded-lg border border-blue-200 p-4">
+              {state.loadingBlocos && blocosFiltrados.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-slate-600">Carregando blocos...</p>
                 </div>
-
-                <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
-                  <div className="flex-1" />
-                  <button
-                    onClick={() => openRejectModal(bloco, 'bloco')}
-                    disabled={actionLoading === bloco.id}
-                    className="px-3 py-1.5 text-sm border border-red-300 text-red-600 hover:bg-red-50 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-1"
-                  >
-                    <X className="w-4 h-4" />
-                    Rejeitar
-                  </button>
-                  <button
-                    onClick={() => handleAprovarBloco(bloco.id)}
-                    disabled={actionLoading === bloco.id}
-                    className="px-3 py-1.5 text-sm bg-green-600 text-white hover:bg-green-700 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-1"
-                  >
-                    <Check className="w-4 h-4" />
-                    Aprovar
-                  </button>
+              ) : blocosFiltrados.length === 0 ? (
+                <div className="text-center py-12">
+                  <Layers className="w-12 h-12 text-blue-300 mx-auto mb-3" />
+                  <p className="text-gray-600 font-semibold">Nenhum bloco pendente</p>
+                  <p className="text-sm text-gray-500 mt-2">Todos os blocos já foram revisados</p>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-        </div>
-
-        {/* SEO 2: QUESTÃ•ES SOLO PENDENTES */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 sticky top-0 z-10 bg-white pb-2">
-            <FileText className="w-5 h-5 text-indigo-600" />
-            <h3 className="text-lg font-bold text-slate-800">QuestÃães Solo Pendentes</h3>
-            <span className="ml-auto text-sm font-semibold text-slate-600 bg-indigo-50 px-3 py-1 rounded-lg">
-              {questoesFiltradas.length}
-            </span>
-          </div>
-
-        {state.loadingQuestoes && state.questoesSoloPendentes.length === 0 && (
-          <div className="bg-white rounded-xl p-8 text-center">
-            <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-slate-600">Carregando questÃães...</p>
-          </div>
-        )}
-
-        {!state.loadingQuestoes && questoesFiltradas.length === 0 && (
-          <div className="bg-white rounded-xl p-8 text-center border border-slate-200">
-            <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-600">Nenhuma questão solo pendente</p>
-          </div>
-        )}
-
-        {questoesFiltradas.length > 0 && (
-          <div className="space-y-3">
-            {questoesFiltradas.map((questao) => {
-              const opcoes = extrairOpcoes(questao);
-              return (
-                <div key={questao.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <DisciplinaBadge disciplina={questao.disciplina} />
-                      <DificuldadeBadge dificuldade={questao.dificuldade} />
-                      <span className="text-xs text-slate-500">{questao.pontos} pts</span>
-                    </div>
-                    <span className="text-xs text-slate-400">
-                      {new Date(questao.created_at).toLocaleDateString('pt-BR')}
-                    </span>
-                  </div>
-
-                  <h4 className="font-semibold text-slate-800 mb-1">{questao.titulo}</h4>
-                  <p className="text-sm text-slate-600 line-clamp-2 mb-3">{questao.descricao}</p>
-
-                  <div className="bg-slate-50 rounded-lg p-3 mb-3">
-                    <p className="text-xs font-semibold text-slate-500 mb-2">Alternativas:</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {opcoes.slice(0, 4).map((opcao, idx) => (
-                        <div
-                          key={idx}
-                          className={`text-sm px-2 py-1 rounded ${
-                            opcao === questao.resposta_correta
-                              ? 'bg-green-100 text-green-800 font-medium'
-                              : 'bg-white text-slate-600'
-                          }`}
-                        >
-                          {String.fromCharCode(65 + idx)}. {opcao}
-                          {opcao === questao.resposta_correta && ' âœ“'}
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {safeMap(blocosFiltrados, (b, i, key) => {
+                    const numQuestoes = safeArray(safeGet(b, 'questoes', [])).length || safeGet(b, 'total_questoes', 0);
+                    return (
+                      <div key={key} className="bg-gradient-to-br from-blue-50 via-white to-cyan-50 rounded-xl shadow-sm border border-blue-200 p-5 hover:shadow-md transition-all">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <div className="flex gap-2 mb-2 flex-wrap">
+                              <DisciplinaBadge disciplina={safeGet(b, 'disciplina')} />
+                              <DificuldadeBadge dificuldade={safeGet(b, 'dificuldade', 'medio')} />
+                              <StatusAprovaçãoBadge status="pendente" />
+                            </div>
+                            <h4 className="font-bold text-slate-900 text-base mb-1">
+                              {safeString(safeGet(b, 'titulo'), `Bloco ${i + 1}`)}
+                            </h4>
+                            {safeGet(b, 'descricao') && (
+                              <p className="text-xs text-slate-600 line-clamp-2 mt-1">
+                                {safeString(safeGet(b, 'descricao'), '')}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                        
+                        <div className="flex items-center gap-4 py-2 px-3 bg-blue-100/50 rounded-lg mb-3">
+                          <div className="flex items-center gap-2 text-blue-700">
+                            <FileText className="w-4 h-4" />
+                            <span className="text-sm font-semibold">{numQuestoes} questões</span>
+                          </div>
+                          {safeGet(b, 'autor_nome') && (
+                            <div className="flex items-center gap-1 text-slate-600 text-xs">
+                              <User className="w-3 h-3" />
+                              <span>{safeString(safeGet(b, 'autor_nome'), 'Desconhecido')}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-1 text-slate-400 text-xs ml-auto">
+                            <Calendar className="w-3 h-3" />
+                            <span>{new Date(safeGet(b, 'created_at')).toLocaleDateString('pt-BR')}</span>
+                          </div>
+                        </div>
 
-                  <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
-                    <button
-                      onClick={() => openDetails(questao)}
-                      className="px-3 py-1.5 text-sm text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
-                    >
-                      Ver detalhes
-                    </button>
-                    <div className="flex-1" />
-                    <button
-                      onClick={() => openRejectModal(questao, 'questao')}
-                      disabled={actionLoading === questao.id}
-                      className="px-3 py-1.5 text-sm border border-red-300 text-red-600 hover:bg-red-50 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-1"
-                    >
-                      <X className="w-4 h-4" />
-                      Rejeitar
-                    </button>
-                    <button
-                      onClick={() => handleAprovarQuestao(questao.id)}
-                      disabled={actionLoading === questao.id}
-                      className="px-3 py-1.5 text-sm bg-green-600 text-white hover:bg-green-700 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-1"
-                    >
-                      <Check className="w-4 h-4" />
-                      Aprovar
-                    </button>
-                  </div>
+                        {/* BOTÕES CORRIGIDOS - APENAS ÍCONES */}
+                        <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-slate-200 mt-3">
+                          <button 
+                            onClick={() => openDetails(b)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center justify-center"
+                            title="Visualizar detalhes"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <div className="flex gap-2 sm:flex-1">
+                            <button 
+                              onClick={() => openRejectModal(b, 'bloco')}
+                              disabled={actionLoading === b.id}
+                              className="flex-1 px-3 py-2 text-xs text-red-600 hover:bg-red-50 rounded-lg font-medium transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
+                            >
+                              <X className="w-3.5 h-3.5" /> Rejeitar
+                            </button>
+                            <button 
+                              onClick={() => handleAprovarBloco(b.id)}
+                              disabled={actionLoading === b.id}
+                              className="flex-1 px-3 py-2 text-xs text-green-600 hover:bg-green-50 rounded-lg font-medium transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
+                            >
+                              <Check className="w-3.5 h-3.5" /> Aprovar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
+              )}
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+              <div className="bg-blue-100 rounded p-3">
+                <p className="text-xs font-semibold text-blue-700">Total de Blocos</p>
+                <p className="text-2xl font-bold text-blue-900">{blocosFiltrados.length}</p>
+              </div>
+              <div className="bg-blue-200 rounded p-3">
+                <p className="text-xs font-semibold text-blue-800">Disciplinas</p>
+                <p className="text-2xl font-bold text-blue-900">
+                  {new Set(blocosFiltrados.map(b => safeGet(b, 'disciplina'))).size}
+                </p>
+              </div>
+              <div className="bg-blue-300 rounded p-3">
+                <p className="text-xs font-semibold text-blue-900">Total de Questões</p>
+                <p className="text-2xl font-bold text-blue-900">
+                  {blocosFiltrados.reduce((acc, b) => acc + safeArray(safeGet(b, 'questoes', [])).length, 0)}
+                </p>
+              </div>
+            </div>
           </div>
         )}
-        </div>
+
+        {/* ABA 2: QUESTÕES PENDENTES - EM TABELA */}
+        {abaAtiva === 'questoes' && (
+          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border-2 border-blue-300 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-blue-900 flex items-center gap-2">
+                <FileText className="w-7 h-7" />
+                Questões Pendentes
+              </h2>
+              <span className="text-sm bg-blue-200 text-blue-800 px-3 py-1 rounded-full font-semibold">
+                Total: {questoesFiltradas.length}
+              </span>
+            </div>
+
+            <p className="text-sm text-gray-600 mb-4">
+              Questões individuais aguardando revisão e aprovação.
+            </p>
+
+            {/* TABELA de Questões */}
+            <div className="overflow-x-auto bg-white rounded-lg border border-blue-200">
+              {state.loadingQuestoes && questoesFiltradas.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-slate-600">Carregando questões...</p>
+                </div>
+              ) : questoesFiltradas.length === 0 ? (
+                <div className="text-center py-12">
+                  <FileText className="w-12 h-12 text-blue-300 mx-auto mb-3" />
+                  <p className="text-gray-600 font-semibold">Nenhuma questão pendente</p>
+                  <p className="text-sm text-gray-500 mt-2">Todas as questões já foram revisadas</p>
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead className="bg-blue-100 border-b-2 border-blue-300">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-blue-900">Título</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-blue-900">Disciplina</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-blue-900">Dificuldade</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-blue-900">Autor</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-blue-900">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-blue-900">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-blue-100">
+                    {safeMap(questoesFiltradas, (q, i, key) => (
+                      <tr key={key} className="hover:bg-blue-50 transition-colors">
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900 max-w-xs truncate">
+                          {safeString(safeGet(q, 'titulo'), `Questão ${i + 1}`)}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <DisciplinaBadge disciplina={safeGet(q, 'disciplina')} />
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <DificuldadeBadge dificuldade={safeGet(q, 'dificuldade')} />
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          {safeGet(q, 'autor_nome') ? (
+                            <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-700 flex items-center gap-1">
+                              <User className="w-3 h-3" />
+                              {safeString(safeGet(q, 'autor_nome'), 'Desconhecido')}
+                            </span>
+                          ) : safeGet(q, 'criado_por') ? (
+                            <span className="px-2 py-1 text-xs font-semibold rounded bg-gray-100 text-gray-700 flex items-center gap-1">
+                              <User className="w-3 h-3" />
+                              {safeString(safeGet(q, 'criado_por'), 'Sistema')}
+                            </span>
+                          ) : (
+                            <span className="px-2 py-1 text-xs font-semibold rounded bg-gray-100 text-gray-700 flex items-center gap-1">
+                              <User className="w-3 h-3" />
+                              Sistema
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <StatusAprovaçãoBadge status="pendente" />
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => openDetails(q)}
+                              className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors" 
+                              title="Visualizar"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => openRejectModal(q, 'questao')}
+                              disabled={actionLoading === q.id}
+                              className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors disabled:opacity-50" 
+                              title="Rejeitar"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleAprovarQuestao(q.id)}
+                              disabled={actionLoading === q.id}
+                              className="p-1.5 text-green-600 hover:bg-green-100 rounded transition-colors disabled:opacity-50" 
+                              title="Aprovar"
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+              <div className="bg-blue-100 rounded p-3">
+                <p className="text-xs font-semibold text-blue-700">Total de Questões</p>
+                <p className="text-2xl font-bold text-blue-900">{questoesFiltradas.length}</p>
+              </div>
+              <div className="bg-blue-200 rounded p-3">
+                <p className="text-xs font-semibold text-blue-800">Disciplinas</p>
+                <p className="text-2xl font-bold text-blue-900">
+                  {new Set(questoesFiltradas.map(q => safeGet(q, 'disciplina'))).size}
+                </p>
+              </div>
+              <div className="bg-blue-300 rounded p-3">
+                <p className="text-xs font-semibold text-blue-900">Autores</p>
+                <p className="text-2xl font-bold text-blue-900">
+                  {new Set(questoesFiltradas.map(q => safeGet(q, 'autor_nome') || safeGet(q, 'criado_por') || 'Sistema')).size}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Modal de rejeição */}
+      {/* ===== MODAL: REJEITAR ===== */}
       <ConfirmarComMotivoModal
         isOpen={rejectModalOpen}
         onClose={() => {
@@ -451,7 +594,7 @@ export default function QuestoesPendentesTab() {
         loading={actionLoading === questaoSelecionada?.id}
       />
 
-      {/* Modal de detalhes */}
+      {/* ===== MODAL: DETALHES ===== */}
       <QuestaoDetailModal
         questao={selectedQuestao}
         isOpen={detailModalOpen}

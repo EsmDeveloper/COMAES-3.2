@@ -8,6 +8,7 @@ import bcrypt from 'bcryptjs';
 import { Op } from 'sequelize';
 import Usuario from '../models/User.js';
 import Disciplina from '../models/Disciplina.js';
+import { uploadColaboradorDocs } from '../middlewares/security/colaboradorUpload.js';
 
 // ── Validation helpers (mirrors BackEnd/middlewares/validate.js) 
 const RE = {
@@ -24,6 +25,10 @@ function validateAdminUserPayload(data, isCreate = true) {
   const errors = {};
   const rolesValidos = ['estudante', 'colaborador', 'admin'];
   const disciplinasValidas = ['matematica', 'ingles', 'programacao'];
+  const niveisAcademicosValidos = [
+    'estudante_universitario', 'tecnico', 'licenciado', 'mestre',
+    'doutor', 'professor', 'profissional', 'outro'
+  ];
 
   // nome
   if (isCreate || data.nome !== undefined) {
@@ -34,6 +39,21 @@ function validateAdminUserPayload(data, isCreate = true) {
       if (v.length < 2 || v.length > 100) errors.nome = 'O nome deve ter entre 2 e 100 caracteres.';
       else if (/\d/.test(v)) errors.nome = 'O nome não pode conter números.';
       else if (!RE.name.test(v)) errors.nome = 'O nome deve conter apenas letras e espaços.';
+    }
+  }
+
+  // username - obrigatório para colaborador
+  const role = data.role || 'estudante';
+  if (role === 'colaborador') {
+    if (isEmpty(data.username)) {
+      errors.username = 'O username é obrigatório para colaborador.';
+    } else {
+      const v = data.username.trim();
+      if (v.length < 3 || v.length > 30) {
+        errors.username = 'O username deve ter entre 3 e 30 caracteres.';
+      } else if (!/^[a-zA-Z0-9_-]+$/.test(v)) {
+        errors.username = 'O username pode conter apenas letras, números, _ e -.';
+      }
     }
   }
 
@@ -81,6 +101,29 @@ function validateAdminUserPayload(data, isCreate = true) {
     }
   }
 
+  // biografia - obrigatória para colaborador (30-500 caracteres)
+  if (role === 'colaborador') {
+    if (isEmpty(data.biografia)) {
+      errors.biografia = 'A biografia é obrigatória para colaborador.';
+    } else {
+      const v = data.biografia.trim();
+      if (v.length < 30) {
+        errors.biografia = 'A biografia deve ter pelo menos 30 caracteres.';
+      } else if (v.length > 500) {
+        errors.biografia = 'A biografia não pode ter mais de 500 caracteres.';
+      }
+    }
+  }
+
+  // nivel_academico - obrigatório para colaborador
+  if (role === 'colaborador') {
+    if (isEmpty(data.nivel_academico)) {
+      errors.nivel_academico = 'O nível académico é obrigatório para colaborador.';
+    } else if (!niveisAcademicosValidos.includes(data.nivel_academico)) {
+      errors.nivel_academico = 'Nível académico inválido.';
+    }
+  }
+
   // password (required on create, optional on update)
   if (isCreate) {
     if (isEmpty(data.password)) {
@@ -105,7 +148,6 @@ function validateAdminUserPayload(data, isCreate = true) {
     errors.role = 'Perfil inválido.';
   }
 
-  const role = data.role || 'estudante';
   if (data.disciplina_colaborador !== undefined && data.disciplina_colaborador !== null && data.disciplina_colaborador !== '') {
     if (!disciplinasValidas.includes(data.disciplina_colaborador)) {
       errors.disciplina_colaborador = 'Disciplina inválida.';
@@ -156,30 +198,57 @@ const createUser = async (req, res) => {
     }
 
     // Check uniqueness
+    const whereConditions = [
+      { email: body.email.trim().toLowerCase() },
+      { telefone: body.telefone.trim() }
+    ];
+    
+    // Adicionar username à verificação de unicidade se for colaborador
+    if (requestedRole === 'colaborador' && body.username) {
+      whereConditions.push({ username: body.username.trim() });
+    }
+    
     const existing = await Usuario.unscoped().findOne({
-      where: { [Op.or]: [{ email: body.email.trim().toLowerCase() }, { telefone: body.telefone.trim() }] },
+      where: { [Op.or]: whereConditions },
     });
     if (existing) {
       const dupes = {};
       if (existing.email === body.email.trim().toLowerCase()) dupes.email = 'Este e-mail já está registado.';
       if (existing.telefone === body.telefone.trim()) dupes.telefone = 'Este telefone já está registado.';
+      if (existing.username === body.username?.trim()) dupes.username = 'Este username já está em uso.';
       return res.status(409).json({ message: 'Dados já existentes.', fieldErrors: dupes });
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(body.password, 10);
 
+    // Processar documentos se houver (para colaboradores)
+    let documentosColaborador = null;
+    if (requestedRole === 'colaborador' && req.files && req.files.length > 0) {
+      documentosColaborador = req.files.map(f => ({
+        nome_original: f.originalname,
+        nome_arquivo: f.filename,
+        caminho: f.path,
+        tamanho: f.size,
+        tipo: f.mimetype,
+        data_upload: new Date().toISOString(),
+      }));
+    }
+
     const newUser = await Usuario.create({
       nome:       body.nome.trim(),
+      username:   requestedRole === 'colaborador' ? body.username?.trim() : null,
       email:      body.email.trim().toLowerCase(),
       telefone:   body.telefone.trim(),
       nascimento: body.nascimento,
       sexo:       body.sexo,
       escola:     body.escola?.trim() || null,
       biografia:  body.biografia?.trim() || '',
+      nivel_academico: requestedRole === 'colaborador' ? body.nivel_academico : null,
       password:   hashedPassword,
       role:       requestedRole,
       disciplina_colaborador: requestedRole === 'colaborador' ? body.disciplina_colaborador : null,
+      documentos_colaborador: documentosColaborador,
       // Admin cria colaboradores diretamente aprovados
       status_colaborador: requestedRole === 'colaborador' ? 'aprovado' : 'aprovado',
     });

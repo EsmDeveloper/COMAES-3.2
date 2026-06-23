@@ -4,14 +4,15 @@
  *   • "Usuário"       → full registration form (student)
  *   • "Administrador" → simplified form (email + password only)
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   validateNome, validateEmail, validatePassword,
-  validatePasswordConfirm, validatePhone, validateBirthDate,
+  validatePasswordConfirm, validatePhone, validateBirthDate, validateUsername,
 } from '../utils/validators.js';
 import {
   Eye, EyeOff, Crown, Lock, AlertCircle,
   User, ShieldCheck, Plus, Edit, Trash2, Key, Save, GraduationCap,
+  Upload, X, FileText, Image as ImageIcon,
 } from 'lucide-react';
 import ComaesModal, { ModalBtnCancel, ModalBtnPrimary, ModalBtnDanger } from '../components/ComaesModal';
 
@@ -29,6 +30,32 @@ function getPasswordStrength(pwd) {
   if (score <= 3) return { score, label: 'Média',  color: '#F59E0B', pct: 50 };
   if (score <= 4) return { score, label: 'Boa',    color: '#3B82F6', pct: 75 };
   return             { score, label: 'Forte', color: '#10B981', pct: 100 };
+}
+
+// ── File upload helpers 
+const ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png'];
+const MAX_FILE_SIZE_MB = 10;
+const MAX_FILES = 5;
+
+function validarArquivo(file) {
+  const ext = '.' + file.name.split('.').pop().toLowerCase();
+  if (!ALLOWED_EXTENSIONS.includes(ext))
+    return `Extensão "${ext}" não permitida. Use: PDF, DOC, DOCX, JPG, PNG.`;
+  if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024)
+    return `"${file.name}" excede o limite de ${MAX_FILE_SIZE_MB}MB.`;
+  return null;
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function fileIcon(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (['jpg', 'jpeg', 'png'].includes(ext)) return <ImageIcon size={14} className="text-blue-500 flex-shrink-0" />;
+  return <FileText size={14} className="text-gray-500 flex-shrink-0" />;
 }
 
 // ── Field wrapper 
@@ -59,6 +86,17 @@ const ESCOLAS = [
   'Instituto de Telecomunicações de Luanda - ITEL',
   'Instituto Médio Politécnico Nova Vida - IMP NV',
   'Instituto Médio Politécnico Alda Lara - IMPAL',
+];
+
+const NIVEIS_ACADEMICOS = [
+  { value: 'estudante_universitario', label: 'Estudante universitário' },
+  { value: 'tecnico',                 label: 'Técnico' },
+  { value: 'licenciado',              label: 'Licenciado' },
+  { value: 'mestre',                  label: 'Mestre' },
+  { value: 'doutor',                  label: 'Doutor' },
+  { value: 'professor',               label: 'Professor' },
+  { value: 'profissional',            label: 'Profissional da área' },
+  { value: 'outro',                   label: 'Outro' },
 ];
 
 // ── Account-type toggle (only shown on create mode) 
@@ -165,15 +203,28 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
   const isEdit   = mode === 'edit';
   const isDelete = mode === 'delete';
   const isReset  = mode === 'reset-password';
-  const isSuperAdmin = Boolean(currentUser?.isAdmin);
+  
+  const fileInputRef = useRef(null);
+  
+  // ✅ CORRIGIDO: Verificar se é Admin Master (ID=1) para mostrar opções de admin/colaborador
+  // Aceita tanto isAdmin quanto role='admin' e ID=1
+  const isSuperAdmin = (
+    String(currentUser?.id) === '1' || 
+    Boolean(currentUser?.isAdmin) || 
+    currentUser?.role === 'admin'
+  );
+  
+  // Debug log para verificar
+  console.log('[UserModal] currentUser:', currentUser);
+  console.log('[UserModal] isSuperAdmin:', isSuperAdmin);
 
   // "user" | "admin" — only relevant on create mode
   const [accountType, setAccountType] = useState('user');
 
   // Full form state (used for both user and admin modes)
   const [form, setForm] = useState({
-    nome: '', email: '', telefone: '', nascimento: '',
-    sexo: '', escola: '', biografia: '',
+    nome: '', username: '', email: '', telefone: '', nascimento: '',
+    sexo: '', escola: '', biografia: '', nivel_academico: '',
     role: 'estudante', disciplina_colaborador: '',
     password: '', confirmPassword: '',
   });
@@ -183,6 +234,10 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
   const [serverError, setServerError] = useState('');
   const [showPwd, setShowPwd]         = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  
+  // File upload state
+  const [files, setFiles] = useState([]);
+  const [fileErrors, setFileErrors] = useState([]);
 
   // Reset account type when modal opens
   useEffect(() => {
@@ -192,6 +247,8 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
     setServerError('');
     setShowPwd(false);
     setShowConfirm(false);
+    setFiles([]);
+    setFileErrors([]);
   }, [mode]);
 
   // Populate form when editing / deleting / resetting
@@ -200,12 +257,14 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
       setForm(prev => ({
         ...prev,
         nome:       item.nome       || '',
+        username:   item.username   || '',
         email:      item.email      || '',
         telefone:   item.telefone   || '',
         nascimento: item.nascimento ? item.nascimento.slice(0, 10) : '',
         sexo:       item.sexo       || '',
         escola:     item.escola     || '',
         biografia:  item.biografia  || '',
+        nivel_academico: item.nivel_academico || '',
         role:       item.role || (item.isAdmin ? 'admin' : 'estudante'),
         disciplina_colaborador: item.disciplina_colaborador || '',
         password: '', confirmPassword: '',
@@ -225,8 +284,15 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
   // ── Per-field validation 
   const validateField = useCallback((name, value, formState = form) => {
     const isAdminCreate = isCreate && accountType === 'admin';
+    const isColaboradorCreate = isCreate && accountType === 'colaborador';
+    
     switch (name) {
       case 'nome':       return validateNome(value).error || '';
+      case 'username': 
+        if (isColaboradorCreate || formState.role === 'colaborador') {
+          return validateUsername(value).error || '';
+        }
+        return '';
       case 'email':      return validateEmail(value).error || '';
       case 'telefone':
         if (isAdminCreate) return '';
@@ -239,9 +305,21 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
         return isCreate && !value ? 'O sexo é obrigatório.' : '';
       case 'role':
         return ['estudante', 'colaborador', 'admin'].includes(value) ? '' : 'Perfil inválido.';
+      case 'nivel_academico':
+        if (isColaboradorCreate || formState.role === 'colaborador') {
+          return value ? '' : 'O nível académico é obrigatório para colaborador.';
+        }
+        return '';
       case 'disciplina_colaborador':
-        if ((isCreate && accountType === 'colaborador') || formState.role === 'colaborador') {
+        if (isColaboradorCreate || formState.role === 'colaborador') {
           return value ? '' : 'A disciplina é obrigatória para colaborador.';
+        }
+        return '';
+      case 'biografia':
+        if (isColaboradorCreate || formState.role === 'colaborador') {
+          if (!value || !value.trim()) return 'A biografia é obrigatória para colaborador.';
+          if (value.trim().length < 30) return 'A biografia deve ter pelo menos 30 caracteres.';
+          if (value.trim().length > 500) return 'A biografia não pode ter mais de 500 caracteres.';
         }
         return '';
       case 'password':
@@ -275,6 +353,41 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
     setErrors(prev => ({ ...prev, [name]: validateField(name, value) }));
   };
 
+  // ── File upload handlers 
+  const handleFileDrop = (e) => {
+    e.preventDefault();
+    addFiles(Array.from(e.dataTransfer.files));
+  };
+
+  const handleFileInput = (e) => {
+    addFiles(Array.from(e.target.files));
+    // Reset input to allow re-selecting same file
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const addFiles = (newFiles) => {
+    const errs = [];
+    const valid = [];
+
+    for (const f of newFiles) {
+      if (files.length + valid.length >= MAX_FILES) {
+        errs.push(`Máximo de ${MAX_FILES} ficheiros.`);
+        break;
+      }
+      const err = validarArquivo(f);
+      if (err) errs.push(err);
+      else valid.push(f);
+    }
+
+    setFiles(prev => [...prev, ...valid]);
+    setFileErrors(errs);
+  };
+
+  const removeFile = (idx) => {
+    setFiles(prev => prev.filter((_, i) => i !== idx));
+    setFileErrors([]);
+  };
+
   // ── Full form validation 
   const validateAll = () => {
     let fields;
@@ -283,10 +396,12 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
     } else if (isCreate && accountType === 'admin') {
       fields = ['email', 'password', 'confirmPassword'];
     } else if (isCreate && accountType === 'colaborador') {
-      fields = ['nome', 'email', 'telefone', 'nascimento', 'sexo', 'disciplina_colaborador', 'password', 'confirmPassword'];
+      fields = ['nome', 'username', 'email', 'telefone', 'nascimento', 'sexo', 'nivel_academico', 'disciplina_colaborador', 'biografia', 'password', 'confirmPassword'];
     } else {
       fields = ['nome', 'email', 'telefone', 'nascimento', 'sexo', 'role', 'password', 'confirmPassword'];
-      if (form.role === 'colaborador') fields.push('disciplina_colaborador');
+      if (form.role === 'colaborador') {
+        fields.push('username', 'nivel_academico', 'disciplina_colaborador', 'biografia');
+      }
     }
     const newErrors = {};
     const newTouched = {};
@@ -322,7 +437,7 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
       if (isReset) {
         payload = { newPassword: form.password, confirmPassword: form.confirmPassword };
       } else if (isCreate && accountType === 'admin') {
-        // Admin creation — usa o mesmo endpoint POST /api/admin/users com isAdmin:true
+        // Admin creation - envia role: 'admin' para o backend
         // Gera dados mínimos obrigatórios a partir do email
         const emailLocal = form.email.trim().toLowerCase().split('@')[0];
         const nomeGerado = emailLocal
@@ -339,8 +454,46 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
           biografia:       '',
           password:        form.password,
           confirmPassword: form.confirmPassword,
-          isAdmin:         true,
+          role:            'admin',  // ✅ CORRIGIDO: enviar role ao invés de isAdmin
         };
+      } else if (isCreate && accountType === 'colaborador') {
+        // Colaborador creation - envia role: 'colaborador' + disciplina + campos completos
+        // Mapear disciplina para formato do backend (lowercase, sem acentos)
+        const disciplinaMap = {
+          'Matemática': 'matematica',
+          'Inglês': 'ingles',
+          'Programação': 'programacao'
+        };
+        
+        payload = {
+          nome:       form.nome.trim(),
+          username:   form.username.trim(),
+          email:      form.email.trim().toLowerCase(),
+          telefone:   form.telefone.trim(),
+          nascimento: form.nascimento,
+          sexo:       form.sexo,
+          escola:     form.escola || null,
+          biografia:  form.biografia.trim(),
+          nivel_academico: form.nivel_academico,
+          password:   form.password,
+          confirmPassword: form.confirmPassword,
+          role:       'colaborador',
+          disciplina_colaborador: disciplinaMap[form.disciplina_colaborador] || form.disciplina_colaborador.toLowerCase(),
+        };
+        
+        // Se houver arquivos, enviar como FormData
+        if (files.length > 0) {
+          const formData = new FormData();
+          Object.entries(payload).forEach(([key, value]) => {
+            if (value !== null && value !== undefined) {
+              formData.append(key, value);
+            }
+          });
+          files.forEach(file => {
+            formData.append('documentos', file);
+          });
+          payload = formData;
+        }
       } else {
         // Regular user creation / edit
         payload = {
@@ -585,12 +738,21 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
                 </div>
               </div>
 
+              {/* Campos pessoais */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="Nome Completo" required error={touched.nome && errors.nome}>
                   <input type="text" name="nome" value={form.nome}
                     onChange={handleChange} onBlur={handleBlur}
                     className={inputCls(touched.nome && errors.nome)}
                     placeholder="Ex: Maria Silva" maxLength={100} />
+                </Field>
+
+                <Field label="Username Público" required error={touched.username && errors.username}
+                  hint="Visível publicamente. 3-30 caracteres.">
+                  <input type="text" name="username" value={form.username}
+                    onChange={handleChange} onBlur={handleBlur}
+                    className={inputCls(touched.username && errors.username)}
+                    placeholder="prof_maria" maxLength={30} />
                 </Field>
 
                 <Field label="E-mail" required error={touched.email && errors.email}>
@@ -634,15 +796,97 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
                     <option value="Programação">Programação</option>
                   </select>
                 </Field>
+
+                <Field label="Nível Académico / Profissional" required error={touched.nivel_academico && errors.nivel_academico}>
+                  <select name="nivel_academico" value={form.nivel_academico}
+                    onChange={handleChange} onBlur={handleBlur}
+                    className={inputCls(touched.nivel_academico && errors.nivel_academico)}>
+                    <option value="">Selecione o nível</option>
+                    {NIVEIS_ACADEMICOS.map(n => (
+                      <option key={n.value} value={n.value}>{n.label}</option>
+                    ))}
+                  </select>
+                </Field>
               </div>
 
-              <Field label="Biografia">
+              {/* Biografia obrigatória com validação específica */}
+              <Field label="Biografia Profissional" required 
+                error={touched.biografia && errors.biografia}
+                hint={`${form.biografia.trim().length}/500 caracteres (mínimo 30)`}>
                 <textarea name="biografia" value={form.biografia}
-                  onChange={handleChange} rows={2}
-                  className={`${inputCls(false)} resize-none`}
-                  placeholder="Breve descrição (opcional)" maxLength={300} />
-                <p className="text-xs text-slate-400 text-right">{form.biografia.length}/300</p>
+                  onChange={handleChange} onBlur={handleBlur} rows={3}
+                  className={`${inputCls(touched.biografia && errors.biografia)} resize-none`}
+                  placeholder="Descreva brevemente a sua experiência profissional e académica..."
+                  maxLength={500} />
               </Field>
+
+              {/* Upload de documentos (opcional) */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700">
+                  Documentos (opcional)
+                  <span className="ml-2 text-xs font-normal text-slate-400">
+                    PDF, DOC, DOCX, JPG, PNG · max. 10MB cada · até {MAX_FILES} ficheiros
+                  </span>
+                </label>
+                <p className="text-xs text-teal-600 flex items-center gap-1 mb-2">
+                  <FileText size={12} />
+                  Adicione certificados, portfólio ou documentos relevantes.
+                </p>
+
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept={ALLOWED_EXTENSIONS.join(',')}
+                  onChange={handleFileInput}
+                  className="hidden"
+                />
+
+                {/* Zona de drop */}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleFileDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors hover:bg-teal-50 hover:border-teal-400 ${
+                    files.length >= MAX_FILES ? 'opacity-50 pointer-events-none bg-slate-50' : 'border-slate-300 bg-white'
+                  }`}
+                >
+                  <Upload size={20} className="mx-auto text-slate-400 mb-2" />
+                  <p className="text-sm text-slate-500">
+                    {files.length >= MAX_FILES
+                      ? `Limite de ${MAX_FILES} ficheiros atingido`
+                      : 'Clique ou arraste ficheiros aqui'}
+                  </p>
+                </div>
+
+                {/* Erros de upload */}
+                {fileErrors.map((e, i) => (
+                  <p key={i} className="text-red-600 text-xs mt-1 flex items-center gap-1">
+                    <AlertCircle size={12} /> {e}
+                  </p>
+                ))}
+
+                {/* Lista de ficheiros */}
+                {files.length > 0 && (
+                  <ul className="mt-2 space-y-1.5">
+                    {files.map((f, i) => (
+                      <li key={i} className="flex flex-wrap items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+                        {fileIcon(f)}
+                        <span className="flex-1 truncate font-medium min-w-[100px]">{f.name}</span>
+                        <span className="text-slate-400 flex-shrink-0">{formatBytes(f.size)}</span>
+                        <button type="button" onClick={() => removeFile(i)}
+                          className="text-slate-400 hover:text-red-500 transition-colors flex-shrink-0 ml-auto sm:ml-0">
+                          <X size={14} />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
 
               {/* Password section */}
               <div className="border-t border-slate-100 pt-4">

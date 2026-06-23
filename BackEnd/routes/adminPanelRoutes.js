@@ -3,6 +3,7 @@ import isAdmin from '../middlewares/isAdmin.js';
 import * as GenericController from '../controllers/GenericController.js';
 import { getModelNames, getModel } from '../utils/modelMapper.js';
 import UserController from '../controllers/UserController.js';
+import { uploadColaboradorDocs, handleColaboradorUploadErrors } from '../middlewares/security/colaboradorUpload.js';
 import TorneoController from '../controllers/TorneoController.js';
 import { getStats, getUsuariosPorDia, getAtividadesRecentes } from '../controllers/adminStatsController.js';
 
@@ -25,7 +26,7 @@ router.get('/models', isAdmin, (req, res) => {
 
 // ===== ROTAS ESPECÍFICAS (modelos com controladores dedicados) =====
 router.get('/users', isAdmin, UserController.getAllUsers);
-router.post('/users', isAdmin, UserController.createUser);
+router.post('/users', isAdmin, uploadColaboradorDocs.array('documentos', 5), handleColaboradorUploadErrors, UserController.createUser);
 router.post('/users/create-admin', isAdmin, UserController.createAdminUser);
 router.put('/users/:id', isAdmin, UserController.updateUser);
 router.delete('/users/:id', isAdmin, UserController.deleteUser);

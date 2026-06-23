@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { BookOpen, Plus, Edit2, Trash2, Search, ChevronDown, Layers, X, Package, CheckCircle, AlertCircle } from 'lucide-react';
 import BlocoQuestoesManager from './BlocoQuestoesManager';
 import CreateQuestaoTesteForm from './CreateQuestaoTesteForm';
@@ -74,10 +74,10 @@ const QuestoesTestesTab = () => {
       const token = localStorage.getItem('comaes_token');
       const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
       
-      console.log(' Buscando blocos para testes...');
+      console.log('📚 Buscando blocos para TESTES (contexto=teste)...');
       
-      // Tentar endpoint SEM filtro de status primeiro
-      let response = await fetch(`${apiBase}/api/blocos`, {
+      // Buscar blocos com contexto='teste' e status='aprovado'
+      const response = await fetch(`${apiBase}/api/blocos?contexto=teste&status=aprovado`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -99,24 +99,24 @@ const QuestoesTestesTab = () => {
       // Validar que é um array
       if (!Array.isArray(blocosData)) {
         console.warn('â  blocosData não é um array:', typeof blocosData, blocosData);
-        console.warn('[MEDAL] Resposta completa:', data);
+        console.warn('[TESTES] Resposta completa:', data);
         setBlocos([]);
         return;
       }
       
-      console.log('â Blocos encontrados:', blocosData.length);
+      console.log('✅ Blocos encontrados para TESTES:', blocosData.length);
       if (blocosData.length > 0) {
         blocosData.forEach(b => {
           console.log(`  - ${b.titulo} (${b.questoes?.length || 0} questões)`);
         });
       } else {
-        console.log('  Nenhum bloco disponável');
+        console.log('⚠️ Nenhum bloco disponível para TESTES');
       }
       
       setBlocos(blocosData);
     } catch (error) {
-      console.error('â Erro ao buscar blocos:', error);
-      console.error('[MEDAL] Detalhes do erro:', error.message);
+      console.error('❌ Erro ao buscar blocos:', error);
+      console.error('[TESTES] Detalhes do erro:', error.message);
       setBlocos([]);
     }
   };

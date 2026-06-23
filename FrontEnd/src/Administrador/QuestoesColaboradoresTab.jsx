@@ -8,7 +8,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Search, BookOpen, Trash2, Eye, Layers, X,
   AlertCircle, RefreshCw, FileText, Loader,
-  CheckCircle, Package, Edit2, Plus
+  CheckCircle, Package, Edit2, Plus, Send
 } from 'lucide-react';
 import { safeGet, safeArray, safeString, safeMap } from '../utils/dataSafety';
 import { api } from '../utils/safeApi';
@@ -76,6 +76,8 @@ export default function QuestoesColaboradoresTab() {
   const [itemSelecionado, setItemSelecionado] = useState(null);
   const [tipoItem, setTipoItem] = useState(''); // 'bloco' | 'questao'
   const [modalDeletarAberto, setModalDeletarAberto] = useState(false);
+  const [modalAtribuirAberto, setModalAtribuirAberto] = useState(false);
+  const [destinoSelecionado, setDestinoSelecionado] = useState(''); // 'torneio' | 'teste'
   const [feedback, setFeedback] = useState(null);
   const [salvando, setSalvando] = useState(false);
 
@@ -97,12 +99,17 @@ export default function QuestoesColaboradoresTab() {
 
       console.log('[QuestoesColaboradores] Iniciando carregamento...');
 
-      // Carregar blocos
+      // Carregar blocos aprovados de colaboradores
+      // ✅ CORREÇÃO: Blocos usam campo 'status' (não 'status_aprovacao')
+      // ✅ CORREÇÃO: Valor correto é 'aprovado' (não 'aprovada')
       let blocosData = [];
       try {
         const response = await api.get('/api/blocos-colaboradores', { 
           token,
-          params: { status_aprovacao: 'aprovada' }
+          params: { 
+            status: 'aprovado',  // ✅ CORRIGIDO: usar 'status' para blocos
+            contexto: 'colaborador'
+          }
         });
         
         if (response.success) {
@@ -112,10 +119,16 @@ export default function QuestoesColaboradoresTab() {
       } catch (e1) {
         console.log('[QuestoesColaboradores] Fallback /api/blocos');
         try {
-          const response = await api.get('/api/blocos', { token });
+          const response = await api.get('/api/blocos', { 
+            token,
+            params: {
+              status: 'aprovado',
+              contexto: 'colaborador'
+            }
+          });
           if (response.success) {
             const allBlocos = safeArray(safeGet(response, 'data.blocos', []));
-            blocosData = allBlocos.filter(b => safeGet(b, 'status_aprovacao') === 'aprovada');
+            blocosData = allBlocos.filter(b => safeGet(b, 'status') === 'aprovado');
           }
           console.log('[QuestoesColaboradores] Blocos (fallback):', blocosData.length);
         } catch (e2) {
@@ -123,12 +136,15 @@ export default function QuestoesColaboradoresTab() {
         }
       }
 
-      // Carregar questões
+      // Carregar questões aprovadas de colaboradores (contexto='colaborador' ou NULL)
       let questoesData = [];
       try {
         const response = await api.get('/api/questoes', { 
           token,
-          params: { status_aprovacao: 'aprovada' }
+          params: { 
+            status_aprovacao: 'aprovada',
+            contexto: 'colaborador'
+          }
         });
         
         if (response.success) {
@@ -210,6 +226,53 @@ export default function QuestoesColaboradoresTab() {
     setItemSelecionado(item);
     setTipoItem(tipo);
     setModalDeletarAberto(true);
+  };
+
+  const abrirModalAtribuir = (item, tipo) => {
+    setItemSelecionado(item);
+    setTipoItem(tipo);
+    setDestinoSelecionado('');
+    setModalAtribuirAberto(true);
+  };
+
+  const handleAtribuirItem = async () => {
+    if (!itemSelecionado || !destinoSelecionado) {
+      showFeedback('error', '❌ Por favor, selecione um destino');
+      return;
+    }
+    
+    setSalvando(true);
+    try {
+      // API endpoint para atribuir bloco/questão a torneio ou teste
+      const endpoint = tipoItem === 'bloco'
+        ? `/api/admin/blocos/${safeGet(itemSelecionado, 'id')}/atribuir`
+        : `/api/admin/questoes/${safeGet(itemSelecionado, 'id')}/atribuir`;
+      
+      const response = await api.patch(endpoint, {
+        destino: destinoSelecionado // 'torneio' ou 'teste'
+      }, { token });
+
+      if (response.success) {
+        showFeedback('success', `✅ ${tipoItem === 'bloco' ? 'Bloco' : 'Questão'} atribuído a ${destinoSelecionado === 'torneio' ? 'Torneios' : 'Testes'} com sucesso!`);
+        setModalAtribuirAberto(false);
+        setItemSelecionado(null);
+        setDestinoSelecionado('');
+        
+        // Remover item da lista atual (foi movido para outra categoria)
+        if (tipoItem === 'bloco') {
+          setBlocos(prev => prev.filter(b => safeGet(b, 'id') !== safeGet(itemSelecionado, 'id')));
+        } else {
+          setQuestoes(prev => prev.filter(q => safeGet(q, 'id') !== safeGet(itemSelecionado, 'id')));
+        }
+      } else {
+        showFeedback('error', `❌ Erro ao atribuir: ${response.message || 'Erro desconhecido'}`);
+      }
+    } catch (err) {
+      console.error(`Erro ao atribuir ${tipoItem}:`, err);
+      showFeedback('error', `❌ Erro: ${err.message}`);
+    } finally {
+      setSalvando(false);
+    }
   };
 
   const handleDeletarItem = async () => {
@@ -410,20 +473,29 @@ export default function QuestoesColaboradoresTab() {
                           )}
                         </div>
 
-                        <div className="flex gap-2 pt-2 border-t border-slate-200">
-                          <button 
-                            onClick={() => abrirVisualizacao(b, 'bloco')}
-                            className="flex-1 px-3 py-2 text-xs text-blue-600 hover:bg-blue-50 rounded-lg font-medium transition-colors flex items-center justify-center gap-1"
-                          >
-                            <Eye className="w-3.5 h-3.5" /> Visualizar
-                          </button>
-                          <button 
-                            onClick={() => abrirConfirmacaoDeletar(b, 'bloco')}
-                            className="px-3 py-2 text-xs text-red-600 hover:bg-red-50 rounded-lg font-medium transition-colors flex items-center gap-1"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" /> Deletar
-                          </button>
-                        </div>
+                        <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-slate-200 mt-3">
+  <button 
+    onClick={() => abrirVisualizacao(b, 'bloco')}
+    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center justify-center"
+    title="Visualizar detalhes"
+  >
+    <Eye className="w-4 h-4" />
+  </button>
+  <div className="flex gap-2 sm:flex-1">
+    <button 
+      onClick={() => abrirModalAtribuir(b, 'bloco')}
+      className="flex-1 px-3 py-2 text-xs text-green-600 hover:bg-green-50 rounded-lg font-medium transition-colors flex items-center justify-center gap-1"
+    >
+      <Send className="w-3.5 h-3.5" /> Atribuir
+    </button>
+    <button 
+      onClick={() => abrirConfirmacaoDeletar(b, 'bloco')}
+      className="flex-1 px-3 py-2 text-xs text-red-600 hover:bg-red-50 rounded-lg font-medium transition-colors flex items-center justify-center gap-1"
+    >
+      <Trash2 className="w-3.5 h-3.5" /> Deletar
+    </button>
+  </div>
+</div>
                       </div>
                     );
                   })}
@@ -528,9 +600,16 @@ export default function QuestoesColaboradoresTab() {
                             <button 
                               onClick={() => abrirVisualizacao(q, 'questao')}
                               className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors" 
-                              title="Editar"
+                              title="Visualizar"
                             >
                               <Eye className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => abrirModalAtribuir(q, 'questao')}
+                              className="p-1.5 text-purple-600 hover:bg-purple-100 rounded transition-colors" 
+                              title="Atribuir a Torneio/Teste"
+                            >
+                              <Send className="w-4 h-4" />
                             </button>
                             <button 
                               onClick={() => abrirConfirmacaoDeletar(q, 'questao')}
@@ -715,6 +794,108 @@ export default function QuestoesColaboradoresTab() {
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
               >
                 {salvando ? 'Deletando...' : 'Deletar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== MODAL: ATRIBUIR A TORNEIO/TESTE ===== */}
+      {modalAtribuirAberto && itemSelecionado && (
+        <div className="fixed inset-0 top-0 left-0 w-full h-screen bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Send className="w-5 h-5 text-green-600" />
+              Atribuir {tipoItem === 'bloco' ? 'Bloco' : 'Questão'}
+            </h2>
+
+            <div className="mb-6">
+              <p className="text-gray-600 mb-4">
+                Selecione para onde deseja atribuir {tipoItem === 'bloco' ? 'o bloco' : 'a questão'} <strong>
+                  "{safeString(safeGet(itemSelecionado, 'titulo'), 'item')}"
+                </strong>:
+              </p>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => setDestinoSelecionado('torneio')}
+                  className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                    destinoSelecionado === 'torneio'
+                      ? 'border-blue-600 bg-blue-50'
+                      : 'border-gray-200 hover:border-blue-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      destinoSelecionado === 'torneio'
+                        ? 'border-blue-600 bg-blue-600'
+                        : 'border-gray-300'
+                    }`}>
+                      {destinoSelecionado === 'torneio' && (
+                        <CheckCircle className="w-3 h-3 text-white" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">Torneios</p>
+                      <p className="text-sm text-gray-600">Será usado em competições e torneios</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setDestinoSelecionado('teste')}
+                  className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                    destinoSelecionado === 'teste'
+                      ? 'border-purple-600 bg-purple-50'
+                      : 'border-gray-200 hover:border-purple-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      destinoSelecionado === 'teste'
+                        ? 'border-purple-600 bg-purple-600'
+                        : 'border-gray-300'
+                    }`}>
+                      {destinoSelecionado === 'teste' && (
+                        <CheckCircle className="w-3 h-3 text-white" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">Testes de Conhecimento</p>
+                      <p className="text-sm text-gray-600">Será usado em testes públicos e avaliações</p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setModalAtribuirAberto(false);
+                  setItemSelecionado(null);
+                  setDestinoSelecionado('');
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleAtribuirItem}
+                disabled={salvando || !destinoSelecionado}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {salvando ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    Atribuindo...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    Atribuir
+                  </>
+                )}
               </button>
             </div>
           </div>

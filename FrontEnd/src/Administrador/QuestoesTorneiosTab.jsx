@@ -37,11 +37,15 @@ const QuestoesTorneiosTab = () => {
       const token = localStorage.getItem('comaes_token');
       const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
       
-      const response = await fetch(`${apiBase}/api/questoes?status_aprovacao=aprovada`, {
+      // Buscar questões aprovadas, sem bloco, e com contexto='torneio'
+      const response = await fetch(`${apiBase}/api/questoes?status_aprovacao=aprovada&contexto=torneio`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await response.json();
       const questoesIndividuais = (data.dados?.questoes || data.dados || []).filter(q => !q.bloco_id);
+      
+      console.log('🏆 Questões individuais para TORNEIOS:', questoesIndividuais.length);
+      
       setQuestoesIndividuais(questoesIndividuais);
       setLoading(false);
     } catch (error) {
@@ -55,19 +59,12 @@ const QuestoesTorneiosTab = () => {
       const token = localStorage.getItem('comaes_token');
       const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
       
-      console.log(' Buscando blocos para torneios...');
+      console.log('🏆 Buscando blocos para TORNEIOS (contexto=torneio)...');
       
-      // Tentar endpoint SEM filtro de status primeiro
-      let response = await fetch(`${apiBase}/api/blocos`, {
+      // Buscar blocos com contexto='torneio' e status='aprovado'
+      const response = await fetch(`${apiBase}/api/blocos?contexto=torneio&status=aprovado`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
-      if (!response.ok) {
-        console.warn('Endpoint /api/blocos falhou, tentando com status=publicado');
-        response = await fetch(`${apiBase}/api/blocos?status=publicado`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-      }
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -80,25 +77,25 @@ const QuestoesTorneiosTab = () => {
       
       // Validar que é um array
       if (!Array.isArray(blocosData)) {
-        console.warn('blocosData não é um array:', typeof blocosData, blocosData);
-        console.warn('[MEDAL] Resposta completa:', data);
+        console.warn('❌ blocosData não é um array:', typeof blocosData, blocosData);
+        console.warn('[TORNEIOS] Resposta completa:', data);
         setBlocos([]);
         return;
       }
       
-      console.log('Blocos encontrados:', blocosData.length);
+      console.log('✅ Blocos encontrados para TORNEIOS:', blocosData.length);
       if (blocosData.length > 0) {
         blocosData.forEach(b => {
           console.log(`  - ${b.titulo} (${b.questoes?.length || 0} questões)`);
         });
       } else {
-        console.log('Nenhum bloco disponível');
+        console.log('⚠️ Nenhum bloco disponível para TORNEIOS');
       }
       
       setBlocos(blocosData);
     } catch (error) {
-      console.error('Erro ao buscar blocos:', error);
-      console.error('[MEDAL] Detalhes do erro:', error.message);
+      console.error('❌ Erro ao buscar blocos:', error);
+      console.error('[TORNEIOS] Detalhes do erro:', error.message);
       setBlocos([]);
     }
   };
@@ -563,10 +560,7 @@ const QuestoesTorneiosTab = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option>MATEMÁTICA</option>
-                  <option>PORTUGUÊS</option>
-                  <option>HISTÓRIA</option>
-                  <option>GEOGRAFIA</option>
-                  <option>CIÊNCIAS</option>
+                  <option>PROGRAMAÇÃO</option>
                   <option>INGLÊS</option>
                 </select>
               </div>

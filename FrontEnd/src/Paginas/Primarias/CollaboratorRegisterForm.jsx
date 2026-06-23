@@ -1,22 +1,24 @@
 /**
  * CollaboratorRegisterForm.jsx
  *
- * Formulário de registo de colaborador/professor â subcomponente do AuthContainer.
+ * Formulário de registo de colaborador/professor - subcomponente do AuthContainer.
  * Totalmente modular, reutiliza validators.js e estilos do sistema existente.
  */
 
 import { useState, useRef } from 'react';
-import { Eye, EyeOff, Upload, X, FileText, Image, Loader2, ChevronDown } from 'lucide-react';
+import { Eye, EyeOff, Upload, X, FileText, Image, Loader2, ChevronDown, CheckCircle, AlertCircle, User, Mail, Phone, Calendar, BookOpen, GraduationCap, FileCheck } from 'lucide-react';
 import {
   validateNome, validateEmail, validatePassword, validatePasswordConfirm,
   validateUsername,
 } from '../../utils/validators';
 
-/* âââ Constantes ââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ============================================
+   CONSTANTES
+   ============================================ */
 const ESPECIALIDADES = [
   { value: 'matematica',  label: 'Matemática' },
   { value: 'programacao', label: 'Programação' },
-  { value: 'ingles',      label: 'InglÃªs' },
+  { value: 'ingles',      label: 'Inglês' },
 ];
 
 const NIVEIS_ACADEMICOS = [
@@ -43,9 +45,11 @@ const MAX_FILES          = 5;
 const API_BASE = () =>
   (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`);
 
-/* âââ helpers âââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ============================================
+   HELPERS
+   ============================================ */
 function validarBio(bio) {
-  if (!bio || !bio.trim()) return null; // opcional
+  if (!bio || !bio.trim()) return null;
   if (bio.trim().length < 30) return 'A biografia deve ter pelo menos 30 caracteres.';
   if (bio.trim().length > 500) return 'A biografia não pode ter mais de 500 caracteres.';
   return null;
@@ -68,11 +72,13 @@ function formatBytes(bytes) {
 
 function fileIcon(file) {
   const ext = file.name.split('.').pop().toLowerCase();
-  if (['jpg', 'jpeg', 'png'].includes(ext)) return <Image size={14} className="text-blue-500" />;
-  return <FileText size={14} className="text-gray-500" />;
+  if (['jpg', 'jpeg', 'png'].includes(ext)) return <Image size={14} className="text-blue-500 flex-shrink-0" />;
+  return <FileText size={14} className="text-gray-500 flex-shrink-0" />;
 }
 
-/* âââ Campo reutilizável ââââââââââââââââââââââââââââââââââââââââ */
+/* ============================================
+   CAMPO REUTILIZÁVEL
+   ============================================ */
 function Field({ label, error, touched, valid, children, required, hint }) {
   return (
     <div className="w-full">
@@ -81,8 +87,16 @@ function Field({ label, error, touched, valid, children, required, hint }) {
       </label>
       {children}
       {hint && !error && <p className="text-xs text-gray-400 mt-0.5">{hint}</p>}
-      {error && touched && <p className="text-red-600 text-xs mt-0.5">{error}</p>}
-      {valid && !error && <p className="text-green-600 text-xs mt-0.5">â Válido</p>}
+      {error && touched && (
+        <p className="text-red-600 text-xs mt-0.5 flex items-center gap-1">
+          <AlertCircle size={12} /> {error}
+        </p>
+      )}
+      {valid && !error && touched && (
+        <p className="text-green-600 text-xs mt-0.5 flex items-center gap-1">
+          <CheckCircle size={12} /> Válido
+        </p>
+      )}
     </div>
   );
 }
@@ -97,7 +111,9 @@ function InputWrapper({ children, error, touched }) {
   );
 }
 
-/* âââ Componente principal ââââââââââââââââââââââââââââââââââââââ */
+/* ============================================
+   COMPONENTE PRINCIPAL
+   ============================================ */
 export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin }) {
   const fileInputRef = useRef(null);
 
@@ -116,7 +132,7 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
   const [loading, setLoading]     = useState(false);
   const [globalError, setGlobalError] = useState('');
 
-  /* ââ Validação individual ââ */
+  /* ===== Validação individual ===== */
   function getFieldError(name, value, formState = form) {
     switch (name) {
       case 'nome':            return validateNome(value).error;
@@ -148,18 +164,11 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
     return touched[name] && !errors[name] && form[name];
   }
 
-  /* ââ Handlers ââ */
+  /* ===== Handlers ===== */
   const handleChange = (e) => {
     let { name, value } = e.target;
     
-    //  Debug area_especialidade changes
-    if (name === 'area_especialidade') {
-      console.log(` MUDANÃA DETECTADA: area_especialidade = "${value}"`);
-      console.log(`   Tipo do valor: ${typeof value}`);
-      console.log(`   Valor está vazio? ${value === ''}`);
-    }
-    
-    // Formatar telefone: apenas nÃºmeros, máximo 9
+    // Formatar telefone: apenas números, máximo 9
     if (name === 'telefone') {
       value = value.replace(/\D/g, '').slice(0, 9);
     }
@@ -183,7 +192,7 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
     setErrors(prev => ({ ...prev, [name]: getFieldError(name, form[name]) }));
   };
 
-  /* ââ Upload ââ */
+  /* ===== Upload ===== */
   const handleFileDrop = (e) => {
     e.preventDefault();
     addFiles(Array.from(e.dataTransfer.files));
@@ -214,7 +223,7 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
     setFileErrors([]);
   };
 
-  /* ââ Submit ââ */
+  /* ===== Submit ===== */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setGlobalError('');
@@ -237,31 +246,17 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
     try {
       const formData = new FormData();
       
-      // DEBUG: Log cada campo sendo adicionado
-      console.log(' ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ');
-      console.log(' PREPARANDO FORMDATA PARA ENVIO:');
-      console.log(' Form State ANTES:', JSON.stringify(form, null, 2));
-      
       Object.entries(form).forEach(([k, v]) => {
-        console.log(`   â Adicionando: ${k} = "${v}"`);
         formData.append(k, v);
       });
       
       files.forEach(f => {
-        console.log(`   â Adicionando ficheiro: ${f.name}`);
         formData.append('documentos', f);
       });
-      
-      console.log('🏅 FormData construído. Campos:');
-      for (let pair of formData.entries()) {
-        console.log(`   - ${pair[0]}: ${pair[1]}`);
-      }
-      console.log('ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ\n');
 
       const res = await fetch(`${API_BASE()}/auth/registro-colaborador`, {
         method: 'POST',
         body: formData,
-        // Não definir Content-Type: o browser define automaticamente com o boundary do multipart
       });
 
       const json = await res.json();
@@ -277,7 +272,6 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
         return;
       }
 
-      // Sucesso â notificar componente pai
       onSuccess && onSuccess(json);
 
     } catch (err) {
@@ -288,134 +282,160 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
     }
   };
 
-  /* ââ Render ââ */
+  /* ===== Render ===== */
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full max-w-2xl" noValidate>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full max-w-2xl px-4 sm:px-0" noValidate>
 
+      {/* ===== ERRO GLOBAL ===== */}
       {globalError && (
-        <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
-          {globalError}
+        <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm flex items-center gap-2">
+          <AlertCircle size={16} className="flex-shrink-0" />
+          <span>{globalError}</span>
         </div>
       )}
 
-      {/* Nome completo */}
+      {/* ===== NOME COMPLETO ===== */}
       <Field label="Nome completo" required error={errors.nome} touched={touched.nome} valid={isValid('nome')}>
         <InputWrapper error={errors.nome} touched={touched.nome}>
-          <input
-            name="nome" type="text" placeholder="Cornelio Mbongo"
-            value={form.nome} onChange={handleChange} onBlur={handleBlur}
-            disabled={loading}
-            className="w-full px-3 py-3 bg-transparent outline-none text-sm"
-          />
+          <div className="flex items-center px-3">
+            <User size={16} className="text-gray-400 flex-shrink-0 mr-2" />
+            <input
+              name="nome" type="text" placeholder="Cornelio Mbongo"
+              value={form.nome} onChange={handleChange} onBlur={handleBlur}
+              disabled={loading}
+              className="w-full py-3 bg-transparent outline-none text-sm"
+            />
+          </div>
         </InputWrapper>
       </Field>
 
-      {/* Username */}
-      <Field label="Username pÃºblico" required error={errors.username} touched={touched.username} valid={isValid('username')}
-        hint="Visível publicamente. Apenas letras, nÃºmeros, _ e - (3-30 caracteres).">
+      {/* ===== USERNAME ===== */}
+      <Field label="Username público" required error={errors.username} touched={touched.username} valid={isValid('username')}
+        hint="Visível publicamente. Apenas letras, números, _ e - (3-30 caracteres).">
         <InputWrapper error={errors.username} touched={touched.username}>
-          <input
-            name="username" type="text" placeholder="prof_cornelio"
-            value={form.username} onChange={handleChange} onBlur={handleBlur}
-            disabled={loading}
-            className="w-full px-3 py-3 bg-transparent outline-none text-sm"
-          />
+          <div className="flex items-center px-3">
+            <User size={16} className="text-gray-400 flex-shrink-0 mr-2" />
+            <input
+              name="username" type="text" placeholder="prof_cornelio"
+              value={form.username} onChange={handleChange} onBlur={handleBlur}
+              disabled={loading}
+              className="w-full py-3 bg-transparent outline-none text-sm"
+            />
+          </div>
         </InputWrapper>
       </Field>
 
-      {/* Email */}
+      {/* ===== EMAIL ===== */}
       <Field label="E-mail" required error={errors.email} touched={touched.email} valid={isValid('email')}>
         <InputWrapper error={errors.email} touched={touched.email}>
-          <input
-            name="email" type="email" placeholder="professor@email.com"
-            value={form.email} onChange={handleChange} onBlur={handleBlur}
-            disabled={loading}
-            className="w-full px-3 py-3 bg-transparent outline-none text-sm"
-          />
+          <div className="flex items-center px-3">
+            <Mail size={16} className="text-gray-400 flex-shrink-0 mr-2" />
+            <input
+              name="email" type="email" placeholder="professor@email.com"
+              value={form.email} onChange={handleChange} onBlur={handleBlur}
+              disabled={loading}
+              className="w-full py-3 bg-transparent outline-none text-sm"
+            />
+          </div>
         </InputWrapper>
       </Field>
 
-      {/* Telefone */}
+      {/* ===== TELEFONE ===== */}
       <Field label="Telefone (opcional)" error={errors.telefone} touched={touched.telefone} valid={isValid('telefone')}
         hint="9 dígitos (ex: 923456789)">
         <InputWrapper error={errors.telefone} touched={touched.telefone}>
-          <input
-            name="telefone" type="tel" placeholder="923456789"
-            value={form.telefone} onChange={handleChange} onBlur={handleBlur}
-            disabled={loading}
-            className="w-full px-3 py-3 bg-transparent outline-none text-sm"
-            maxLength={9}
-          />
+          <div className="flex items-center px-3">
+            <Phone size={16} className="text-gray-400 flex-shrink-0 mr-2" />
+            <input
+              name="telefone" type="tel" placeholder="923456789"
+              value={form.telefone} onChange={handleChange} onBlur={handleBlur}
+              disabled={loading}
+              className="w-full py-3 bg-transparent outline-none text-sm"
+              maxLength={9}
+            />
+          </div>
         </InputWrapper>
       </Field>
 
-      {/* Ãrea de especialidade */}
-      <Field label="Ãrea de especialidade" required error={errors.area_especialidade} touched={touched.area_especialidade}>
+      {/* ===== ÁREA DE ESPECIALIDADE ===== */}
+      <Field label="Área de especialidade" required error={errors.area_especialidade} touched={touched.area_especialidade}>
         <div className={`relative border rounded-xl transition-colors focus-within:ring-2 focus-within:ring-blue-500 ${
           errors.area_especialidade && touched.area_especialidade ? 'border-red-400' : 'border-gray-300'
         }`}>
-          <select
-            name="area_especialidade"
-            value={form.area_especialidade} onChange={handleChange} onBlur={handleBlur}
-            disabled={loading}
-            className="w-full px-3 py-3 bg-transparent outline-none text-sm appearance-none pr-8"
-          >
-            <option value="">Selecione a área</option>
-            {ESPECIALIDADES.map(e => <option key={e.value} value={e.value}>{e.label}</option>)}
-          </select>
+          <div className="flex items-center px-3">
+            <BookOpen size={16} className="text-gray-400 flex-shrink-0 mr-2" />
+            <select
+              name="area_especialidade"
+              value={form.area_especialidade} onChange={handleChange} onBlur={handleBlur}
+              disabled={loading}
+              className="w-full py-3 bg-transparent outline-none text-sm appearance-none pr-8"
+            >
+              <option value="">Selecione a área</option>
+              {ESPECIALIDADES.map(e => <option key={e.value} value={e.value}>{e.label}</option>)}
+            </select>
+          </div>
           <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
         </div>
       </Field>
 
-      {/* Género */}
+      {/* ===== GÉNERO ===== */}
       <Field label="Género" required error={errors.sexo} touched={touched.sexo}>
         <div className={`relative border rounded-xl transition-colors focus-within:ring-2 focus-within:ring-blue-500 ${
           errors.sexo && touched.sexo ? 'border-red-400' : 'border-gray-300'
         }`}>
-          <select
-            name="sexo"
-            value={form.sexo} onChange={handleChange} onBlur={handleBlur}
-            disabled={loading}
-            className="w-full px-3 py-3 bg-transparent outline-none text-sm appearance-none pr-8"
-          >
-            <option value="">Selecione o género</option>
-            {GENEROS.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
-          </select>
+          <div className="flex items-center px-3">
+            <User size={16} className="text-gray-400 flex-shrink-0 mr-2" />
+            <select
+              name="sexo"
+              value={form.sexo} onChange={handleChange} onBlur={handleBlur}
+              disabled={loading}
+              className="w-full py-3 bg-transparent outline-none text-sm appearance-none pr-8"
+            >
+              <option value="">Selecione o género</option>
+              {GENEROS.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
+            </select>
+          </div>
           <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
         </div>
       </Field>
 
-      {/* Data de Nascimento */}
+      {/* ===== DATA DE NASCIMENTO ===== */}
       <Field label="Data de nascimento" required error={errors.nascimento} touched={touched.nascimento} valid={isValid('nascimento')}>
         <InputWrapper error={errors.nascimento} touched={touched.nascimento}>
-          <input
-            name="nascimento" type="date"
-            value={form.nascimento} onChange={handleChange} onBlur={handleBlur}
-            disabled={loading}
-            className="w-full px-3 py-3 bg-transparent outline-none text-sm"
-          />
+          <div className="flex items-center px-3">
+            <Calendar size={16} className="text-gray-400 flex-shrink-0 mr-2" />
+            <input
+              name="nascimento" type="date"
+              value={form.nascimento} onChange={handleChange} onBlur={handleBlur}
+              disabled={loading}
+              className="w-full py-3 bg-transparent outline-none text-sm"
+            />
+          </div>
         </InputWrapper>
       </Field>
 
-      {/* Nível académico */}
+      {/* ===== NÍVEL ACADÉMICO ===== */}
       <Field label="Nível académico / profissional" required error={errors.nivel_academico} touched={touched.nivel_academico}>
         <div className={`relative border rounded-xl transition-colors focus-within:ring-2 focus-within:ring-blue-500 ${
           errors.nivel_academico && touched.nivel_academico ? 'border-red-400' : 'border-gray-300'
         }`}>
-          <select
-            name="nivel_academico"
-            value={form.nivel_academico} onChange={handleChange} onBlur={handleBlur}
-            disabled={loading}
-            className="w-full px-3 py-3 bg-transparent outline-none text-sm appearance-none pr-8"
-          >
-            <option value="">Selecione o nível</option>
-            {NIVEIS_ACADEMICOS.map(n => <option key={n.value} value={n.value}>{n.label}</option>)}
-          </select>
+          <div className="flex items-center px-3">
+            <GraduationCap size={16} className="text-gray-400 flex-shrink-0 mr-2" />
+            <select
+              name="nivel_academico"
+              value={form.nivel_academico} onChange={handleChange} onBlur={handleBlur}
+              disabled={loading}
+              className="w-full py-3 bg-transparent outline-none text-sm appearance-none pr-8"
+            >
+              <option value="">Selecione o nível</option>
+              {NIVEIS_ACADEMICOS.map(n => <option key={n.value} value={n.value}>{n.label}</option>)}
+            </select>
+          </div>
           <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
         </div>
       </Field>
 
-      {/* Biografia */}
+      {/* ===== BIOGRAFIA ===== */}
       <Field label="Biografia profissional" error={errors.biografia} touched={touched.biografia}
         hint={`${form.biografia.trim().length}/500 caracteres (mínimo 30)`}>
         <div className={`border rounded-xl transition-colors focus-within:ring-2 focus-within:ring-blue-500 ${
@@ -425,13 +445,13 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
             name="biografia"
             value={form.biografia} onChange={handleChange} onBlur={handleBlur}
             disabled={loading} rows={3}
-            placeholder="Descreva brevemente a sua experiÃªncia profissional e académica..."
+            placeholder="Descreva brevemente a sua experiência profissional e académica..."
             className="w-full px-3 py-3 bg-transparent outline-none text-sm resize-none"
           />
         </div>
       </Field>
 
-      {/* Palavra-passe */}
+      {/* ===== PALAVRA-PASSE ===== */}
       <Field label="Palavra-passe" required error={errors.password} touched={touched.password} valid={isValid('password')}>
         <InputWrapper error={errors.password} touched={touched.password}>
           <input
@@ -449,7 +469,7 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
         </InputWrapper>
       </Field>
 
-      {/* Confirmar palavra-passe */}
+      {/* ===== CONFIRMAR PALAVRA-PASSE ===== */}
       <Field label="Confirmar palavra-passe" required error={errors.confirmPassword} touched={touched.confirmPassword}>
         <InputWrapper error={errors.confirmPassword} touched={touched.confirmPassword}>
           <input
@@ -467,16 +487,17 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
         </InputWrapper>
       </Field>
 
-      {/* Upload de documentos */}
+      {/* ===== UPLOAD DE DOCUMENTOS ===== */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Documentos (opcional)
           <span className="ml-1 text-xs font-normal text-gray-400">
-            â PDF, DOC, DOCX, JPG, PNG · máx. 10MB cada · até {MAX_FILES} ficheiros
+            PDF, DOC, DOCX, JPG, PNG · max. 10MB cada · até {MAX_FILES} ficheiros
           </span>
         </label>
-        <p className="text-xs text-blue-600 mb-2">
-           Adicione certificados, portfólio ou documentos relevantes para fortalecer a análise do seu perfil.
+        <p className="text-xs text-blue-600 mb-2 flex items-center gap-1">
+          <FileCheck size={12} />
+          Adicione certificados, portfólio ou documentos relevantes para fortalecer a análise do seu perfil.
         </p>
 
         {/* Zona de drop */}
@@ -487,38 +508,35 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
           onDrop={handleFileDrop}
           onClick={() => fileInputRef.current?.click()}
           onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors hover:bg-blue-50 hover:border-blue-400 ${
+          className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors hover:bg-blue-50 hover:border-blue-400 ${
             files.length >= MAX_FILES ? 'opacity-50 pointer-events-none' : 'border-gray-300'
           }`}
         >
-          <Upload size={20} className="mx-auto text-gray-400 mb-1" />
-          <p className="text-xs text-gray-500">
+          <Upload size={24} className="mx-auto text-gray-400 mb-2" />
+          <p className="text-sm text-gray-500">
             {files.length >= MAX_FILES
               ? `Limite de ${MAX_FILES} ficheiros atingido`
               : 'Clique ou arraste ficheiros aqui'}
           </p>
-          <input
-            ref={fileInputRef} type="file" className="hidden"
-            multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-            onChange={handleFileInput}
-          />
         </div>
 
         {/* Erros de upload */}
         {fileErrors.map((e, i) => (
-          <p key={i} className="text-red-600 text-xs mt-1">{e}</p>
+          <p key={i} className="text-red-600 text-xs mt-1 flex items-center gap-1">
+            <AlertCircle size={12} /> {e}
+          </p>
         ))}
 
         {/* Lista de ficheiros */}
         {files.length > 0 && (
           <ul className="mt-2 space-y-1.5">
             {files.map((f, i) => (
-              <li key={i} className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs">
+              <li key={i} className="flex flex-wrap items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs">
                 {fileIcon(f)}
-                <span className="flex-1 truncate font-medium">{f.name}</span>
+                <span className="flex-1 truncate font-medium min-w-[100px]">{f.name}</span>
                 <span className="text-gray-400 flex-shrink-0">{formatBytes(f.size)}</span>
                 <button type="button" onClick={() => removeFile(i)}
-                  className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0">
+                  className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-auto sm:ml-0">
                   <X size={14} />
                 </button>
               </li>
@@ -527,32 +545,32 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
         )}
       </div>
 
-      {/* Resumo antes de enviar */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 space-y-2 text-xs">
-        <p className="font-semibold text-blue-900">🏅 Resumo da sua candidatura:</p>
-        <div className="space-y-1 text-blue-800">
-          <p> <strong>Nome:</strong> {form.nome || '(vazio)'}</p>
-          <p> <strong>Email:</strong> {form.email || '(vazio)'}</p>
-          <p> <strong>Género:</strong> {GENEROS.find(g => g.value === form.sexo)?.label || '(vazio)'}</p>
-          <p> <strong>Nascimento:</strong> {form.nascimento ? new Date(form.nascimento).toLocaleDateString('pt-PT') : '(vazio)'}</p>
-          <p> <strong>Ãrea:</strong> {ESPECIALIDADES.find(e => e.value === form.area_especialidade)?.label || '(vazio)'}
-            <span className="text-red-600 ml-2">
-              {form.area_especialidade === '' && 'â NÃO PREENCHIDA'}
-              {form.area_especialidade !== '' && `â ${form.area_especialidade}`}
-            </span>
-          </p>
-          <p> <strong>Nível:</strong> {NIVEIS_ACADEMICOS.find(n => n.value === form.nivel_academico)?.label || '(vazio)'}</p>
-          <p> <strong>Documentos:</strong> {files.length > 0 ? `${files.length} ficheiro${files.length > 1 ? 's' : ''}` : 'Nenhum'}</p>
+      {/* ===== RESUMO DA CANDIDATURA ===== */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2 text-sm">
+        <p className="font-semibold text-blue-900 flex items-center gap-2">
+          <FileCheck size={16} />
+          Resumo da sua candidatura:
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-blue-800 text-xs">
+          <p><strong>Nome:</strong> {form.nome || '(vazio)'}</p>
+          <p><strong>Email:</strong> {form.email || '(vazio)'}</p>
+          <p><strong>Género:</strong> {GENEROS.find(g => g.value === form.sexo)?.label || '(vazio)'}</p>
+          <p><strong>Nascimento:</strong> {form.nascimento ? new Date(form.nascimento).toLocaleDateString('pt-PT') : '(vazio)'}</p>
+          <p><strong>Área:</strong> {ESPECIALIDADES.find(e => e.value === form.area_especialidade)?.label || '(vazio)'}</p>
+          <p><strong>Nível:</strong> {NIVEIS_ACADEMICOS.find(n => n.value === form.nivel_academico)?.label || '(vazio)'}</p>
+          <p><strong>Documentos:</strong> {files.length > 0 ? `${files.length} ficheiro${files.length > 1 ? 's' : ''}` : 'Nenhum'}</p>
         </div>
         {form.area_especialidade !== '' && (
-          <p className="text-blue-700 text-xs italic mt-2">â Disciplina preenchida! Pronto para submeter.</p>
+          <p className="text-blue-700 text-xs italic mt-2">Área de especialidade preenchida! Pronto para submeter.</p>
         )}
         {form.area_especialidade === '' && (
-          <p className="text-red-700 text-xs italic mt-2">â FALTA PREENCHER A DISCIPLINA!</p>
+          <p className="text-red-700 text-xs italic mt-2 flex items-center gap-1">
+            <AlertCircle size={12} /> Falta preencher a área de especialidade!
+          </p>
         )}
       </div>
 
-      {/* Submit */}
+      {/* ===== BOTÃO SUBMIT ===== */}
       <button
         type="submit"
         disabled={loading}
@@ -561,7 +579,7 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
         {loading ? (
           <><Loader2 size={18} className="animate-spin" /> Enviando candidatura...</>
         ) : (
-          'â Enviar Candidatura para Análise do Admin'
+          <><FileCheck size={18} /> Enviar Candidatura para Análise do Admin</>
         )}
       </button>
 
@@ -575,4 +593,3 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
     </form>
   );
 }
-

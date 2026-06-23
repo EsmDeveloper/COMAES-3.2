@@ -89,17 +89,6 @@ const AdminDashboard = () => {
         // REMOVIDO por alinhamento - 2026-05-26: funcao - CRUD genérico muito cru, sem matriz de permissões
       ]
     },
-    // REMOVIDO por alinhamento - 2026-05-26: seção gamificação inteira - conquista/conquistausuario não batem com model
-    // {
-    //   id: 'gamification',
-    //   title: 'Gamificação',
-    //   icon: Award,
-    //   color: 'from-red-500 to-pink-600',
-    //   items: [
-    //     { id: 'conquista', label: 'Gerenciar Conquistas', icon: Award },
-    //     { id: 'conquistausuario', label: 'Conquistas de Usuários', icon: Award }
-    //   ]
-    // },
     {
       id: 'communication',
       title: 'Comunicação',
@@ -109,26 +98,8 @@ const AdminDashboard = () => {
         { id: 'noticia', label: 'Gerenciar Notícias', icon: FileText },
         { id: 'notificacao', label: 'Centro de Notificações', icon: Bell }
       ]
-    },
-    {
-      id: 'support',
-      title: 'Suporte & Operações',
-      icon: Zap,
-      color: 'from-orange-500 to-red-600',
-      items: [
-        // REMOVIDO por alinhamento - 2026-05-26: ticketsuporte - campos não batem com model real
-      ]
-    },
-    {
-      id: 'system',
-      title: 'Sistema',
-      icon: Settings,
-      color: 'from-gray-500 to-slate-600',
-      items: [
-        // REMOVIDO por alinhamento - 2026-05-26: configuracaousuario - campos não batem (espera id/chave/valor, model tem usuario_id/preferencias)
-        // REMOVIDO por alinhamento - 2026-05-26: redefinicaosenha - expõe tokens internos de reset (risco de segurança)
-      ]
     }
+    // REMOVIDO - 2026-06-22: Seções vazias de Suporte & Operações e Sistema
   ];
 
   const handleLogout = () => {

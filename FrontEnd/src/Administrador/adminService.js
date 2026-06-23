@@ -60,7 +60,17 @@ const createCrudClient = (modelName, token) => {
             return res.data;
         }),
         getById: (id) => apiClient.get(`${url}/${id}`).then(res => res.data),
-        create: (data) => apiClient.post(url, data).then(res => res.data),
+        create: (data) => {
+            // Detectar se é FormData e ajustar headers automaticamente
+            const isFormData = data instanceof FormData;
+            const config = isFormData ? {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}`
+                }
+            } : {};
+            return apiClient.post(url, data, config).then(res => res.data);
+        },
         update: (id, data) => apiClient.put(`${url}/${id}`, data).then(res => res.data),
         delete: (id) => apiClient.delete(`${url}/${id}`).then(res => res.data)
     };

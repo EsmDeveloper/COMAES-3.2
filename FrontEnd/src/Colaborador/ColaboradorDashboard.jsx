@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FileText, Plus, Clock, AlertCircle, CheckCircle, LogOut, Menu, X, Settings, UserCircle, Layers, Trash2, ChevronDown, ChevronUp, Edit, RefreshCw, Send, Bell } from 'lucide-react';
 import NotificacoesModal from '../Paginas/Secundarias/Notificacoes';
+import ComaesModal, { ModalBtnCancel, ModalBtnDanger } from '../components/ComaesModal';
 import useNotificacoesRealtime from '../hooks/useNotificacoesRealtime';
 import './ColaboradorDashboard.css';
 
@@ -981,6 +982,7 @@ const ColaboradorDashboard = () => {
   const [loadingQuestoes, setLoadingQuestoes] = useState(true);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
 
   useEffect(() => {
@@ -1065,6 +1067,11 @@ const ColaboradorDashboard = () => {
     navigate('/login');
   };
 
+  const confirmLogout = () => {
+    setShowLogoutConfirm(true);
+    setProfileMenuOpen(false);
+  };
+
   const displayName = user?.name || user?.nome || 'Colaborador';
   const disciplinaField = user?.disciplina_colaborador || 'Não informado';
   const userEmail = user?.email || 'Email não disponível';
@@ -1138,7 +1145,7 @@ const ColaboradorDashboard = () => {
           </button>
           <button
             type="button"
-            onClick={() => { setProfileMenuOpen(false); handleLogout(); }}
+            onClick={() => { setProfileMenuOpen(false); confirmLogout(); }}
             className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
           >
             <LogOut className="w-4 h-4" />
@@ -1418,6 +1425,37 @@ const ColaboradorDashboard = () => {
         }}
         key={showNotificationsModal ? 'open' : 'closed'}
       />
+
+      {/* Modal de Confirmação de Saída */}
+      <ComaesModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        title="Sair da conta"
+        icon={<LogOut className="w-5 h-5" />}
+        iconBg="bg-red-100"
+        iconColor="text-red-600"
+        maxWidth="max-w-sm"
+        footer={
+          <>
+            <ModalBtnCancel onClick={() => setShowLogoutConfirm(false)}>
+              Cancelar
+            </ModalBtnCancel>
+            <ModalBtnDanger onClick={handleLogout}>
+              <LogOut className="w-4 h-4" />
+              <span>Sair</span>
+            </ModalBtnDanger>
+          </>
+        }
+      >
+        <div className="py-2 text-center">
+          <p className="text-slate-700 text-sm">
+            Tens a certeza que queres sair da conta?
+          </p>
+          <p className="text-slate-500 text-xs mt-1">
+            Terás de fazer login novamente para continuar.
+          </p>
+        </div>
+      </ComaesModal>
     </div>
   );
 };

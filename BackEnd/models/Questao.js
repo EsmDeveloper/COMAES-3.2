@@ -88,6 +88,12 @@ const Questao = sequelize.define('Questao', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  contexto: {
+    type: DataTypes.ENUM('torneio', 'teste', 'colaborador'),
+    allowNull: true,
+    defaultValue: 'colaborador',
+    comment: 'Contexto da questão: torneio (para competições), teste (para testes de conhecimento), colaborador (ainda não atribuída)',
+  },
 }, {
   tableName: 'questoes',
   timestamps: true,
@@ -100,6 +106,7 @@ const Questao = sequelize.define('Questao', {
     { fields: ['tipo'] },
     { fields: ['autor_id'] },
     { fields: ['status_aprovacao'] },
+    { fields: ['contexto'] },
   ]
 });
 
