@@ -126,7 +126,11 @@ export const create = async (req, res) => {
                 return res.status(400).json({ message: 'O título é obrigatório para criar uma notícia.' });
             }
 
-            // Normalizar tags para array
+            // Normalizar tags para array + injectar categoria como primeira tag
+            const categoriaValida = ['novidade', 'atualizacao', 'evento', 'dica'];
+            const categoriaTag = categoriaValida.includes(body.categoria) ? body.categoria : null;
+            delete body.categoria; // não existe coluna categoria no modelo
+
             if (body.tags !== undefined) {
                 if (Array.isArray(body.tags)) {
                     body.tags = body.tags.map(t => String(t).trim()).filter(Boolean);
@@ -135,6 +139,13 @@ export const create = async (req, res) => {
                 } else {
                     body.tags = [];
                 }
+            } else {
+                body.tags = [];
+            }
+
+            // Garantir que a categoria está sempre como primeira tag
+            if (categoriaTag) {
+                body.tags = [categoriaTag, ...body.tags.filter(t => !categoriaValida.includes(t))];
             }
 
             // Definir publicado_em se publicado=true e não foi fornecido
@@ -204,6 +215,34 @@ export const update = async (req, res) => {
         if (Model.rawAttributes && Model.rawAttributes.atualizado_em) {
             req.body = { ...req.body, atualizado_em: new Date() };
         }
+
+        // Tratamento especial para Noticia no update
+        if (Model.name === 'Noticia') {
+            const body = req.body;
+            const categoriaValida = ['novidade', 'atualizacao', 'evento', 'dica'];
+            const categoriaTag = categoriaValida.includes(body.categoria) ? body.categoria : null;
+            delete body.categoria;
+
+            if (body.tags !== undefined) {
+                if (Array.isArray(body.tags)) {
+                    body.tags = body.tags.map(t => String(t).trim()).filter(Boolean);
+                } else if (typeof body.tags === 'string' && body.tags.trim()) {
+                    body.tags = body.tags.split(',').map(t => t.trim()).filter(Boolean);
+                } else {
+                    body.tags = [];
+                }
+            } else {
+                body.tags = [];
+            }
+            if (categoriaTag) {
+                body.tags = [categoriaTag, ...body.tags.filter(t => !categoriaValida.includes(t))];
+            }
+            if (body.publicado && !body.publicado_em) {
+                body.publicado_em = new Date();
+            }
+            req.body = body;
+        }
+
         const [updated] = await Model.update(req.body, { where });
         if (updated) {
             const record = await Model.findOne({ where });

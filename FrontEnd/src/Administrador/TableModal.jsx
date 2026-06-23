@@ -50,10 +50,27 @@ const TableModal = ({ mode, item, tableInfo, onClose, onSubmit }) => {
         }
     };
 
+    const CATS_NOTICIA = ['novidade', 'atualizacao', 'evento', 'dica'];
+    const isNoticia = tableInfo?.tableName === 'noticia' || tableInfo?.title === 'Notícias';
+
     useEffect(() => {
         const newData = item ? { ...item } : {};
+
+        // Pré-preencher campo 'categoria' a partir das tags quando for notícia
+        if (isNoticia && newData.tags) {
+            const tagsArr = Array.isArray(newData.tags)
+                ? newData.tags
+                : typeof newData.tags === 'string'
+                    ? newData.tags.split(',').map(t => t.trim()).filter(Boolean)
+                    : [];
+            const cat = tagsArr.find(t => CATS_NOTICIA.includes(t)) || 'novidade';
+            newData.categoria = cat;
+            // Manter apenas as tags extras (sem a categoria)
+            newData.tags = tagsArr.filter(t => !CATS_NOTICIA.includes(t)).join(', ');
+        }
+
         setFormData(newData);
-        originalDataRef.current = newData; // atualiza o snapshot quando o item muda
+        originalDataRef.current = newData;
     }, [item]);
 
     const validateUserFields = () => {

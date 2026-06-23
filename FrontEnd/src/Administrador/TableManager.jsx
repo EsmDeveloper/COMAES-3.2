@@ -46,13 +46,19 @@ export const STATIC_TABLE_DEFS = {
         columns: ['id', 'titulo', 'autor_id', 'publicado_em'],
         displayColumns: ['ID', 'Título', 'Autor', 'Publicado em'],
         fields: [
-            { name: 'titulo', label: 'Título', type: 'text', required: true },
-            { name: 'resumo', label: 'Resumo', type: 'textarea' },
-            { name: 'conteudo', label: 'Conteúdo', type: 'textarea', required: true },
-            { name: 'url_capa', label: 'URL da Capa', type: 'text' },
-            { name: 'publicado', label: 'Publicado', type: 'checkbox' },
-            { name: 'publicado_em', label: 'Data de Publicação', type: 'datetime-local' },
-            { name: 'tags', label: 'Tags (separadas por vírgula)', type: 'text' }
+            { name: 'titulo',       label: 'Título',                        type: 'text',           required: true },
+            { name: 'resumo',       label: 'Resumo (subtítulo)',             type: 'textarea' },
+            { name: 'conteudo',     label: 'Conteúdo completo',             type: 'textarea',       required: true },
+            {
+                name: 'categoria',
+                label: 'Categoria',
+                type: 'select',
+                required: true,
+                options: ['novidade', 'atualizacao', 'evento', 'dica'],
+            },
+            { name: 'tags',         label: 'Tags extra (separadas por vírgula)', type: 'text' },
+            { name: 'publicado',    label: 'Publicado',                     type: 'checkbox' },
+            { name: 'publicado_em', label: 'Data de Publicação',            type: 'datetime-local' },
         ]
     },
     ticketsuporte: {
