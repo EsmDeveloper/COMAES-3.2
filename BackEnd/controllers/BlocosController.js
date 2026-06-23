@@ -89,7 +89,10 @@ export const listarBlocos = async (req, res) => {
     }
 
     if (dificuldade) where.dificuldade = dificuldade;
-    if (status) where.status = status;
+    if (status) {
+      // Aceitar aliases: 'publicado' = 'aprovado' (vocabulário usado pelo frontend do admin)
+      where.status = status === 'publicado' ? 'aprovado' : status;
+    }
 
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
@@ -184,22 +187,27 @@ export const criarBloco = async (req, res) => {
 
     const disciplinasValidas = ['matematica', 'ingles', 'programacao'];
     const dificuldadesValidas = ['facil', 'medio', 'dificil'];
-    const statusValidos = ['rascunho', 'publicado'];
+    // status aceita vocabulário do admin (rascunho/publicado) e do modelo (pendente/aprovado)
+    const statusValidos = ['rascunho', 'publicado', 'pendente', 'aprovado'];
 
     if (!disciplinasValidas.includes(disciplina))
       return err(res, `Disciplina inválida. Use: ${disciplinasValidas.join(', ')}`);
     if (!dificuldadesValidas.includes(dificuldade))
       return err(res, `Dificuldade inválida. Use: ${dificuldadesValidas.join(', ')}`);
     if (status && !statusValidos.includes(status))
-      return err(res, `Status inválido. Use: ${statusValidos.join(', ')}`);
+      return err(res, `Status inválido. Use: rascunho ou publicado`);
+
+    // Mapear vocabulário admin → modelo
+    const statusModel = { rascunho: 'pendente', publicado: 'aprovado' };
+    const statusFinal = statusModel[status] || status || 'pendente';
 
     const bloco = await BlocoQuestoes.create({
       titulo: titulo.trim(),
       descricao: descricao?.trim() || null,
       disciplina,
       dificuldade,
-      status: status || 'rascunho',
-      contexto: contexto || 'torneio',  // ✅ NOVO: Armazenar contexto
+      status: statusFinal,
+      contexto: contexto || 'torneio',
       criado_por: req.user.id,
     });
 
@@ -287,15 +295,18 @@ export const editarBloco = async (req, res) => {
       return err(res, 'Disciplina inválida');
     if (dificuldade && !['facil', 'medio', 'dificil'].includes(dificuldade))
       return err(res, 'Dificuldade inválida');
-    if (status && !['rascunho', 'publicado'].includes(status))
+    if (status && !['rascunho', 'publicado', 'pendente', 'aprovado', 'rejeitado'].includes(status))
       return err(res, 'Status inválido');
+
+    const statusModel = { rascunho: 'pendente', publicado: 'aprovado' };
 
     const campos = {};
     if (titulo !== undefined) campos.titulo = titulo.trim();
     if (descricao !== undefined) campos.descricao = descricao?.trim() || null;
     if (disciplina !== undefined) campos.disciplina = disciplina;
     if (dificuldade !== undefined) campos.dificuldade = dificuldade;
-    if (status !== undefined) campos.status = status;
+    // Mapear vocabulário admin → modelo
+    if (status !== undefined) campos.status = statusModel[status] || status;
 
     await bloco.update(campos);
 
@@ -611,9 +622,9 @@ export const associarBlocoAoTorneio = async (req, res) => {
     const bloco = await BlocoQuestoes.findByPk(bloco_id);
     if (!bloco) return err(res, 'Bloco não encontrado', 404);
 
-    // ✅ Verificar se bloco está publicado
-    if (bloco.status !== 'publicado') {
-      return err(res, 'Apenas blocos publicados podem ser associados a torneios', 422);
+    // ✅ Aceitar tanto 'publicado' (criados pelo admin) como 'aprovado' (aprovados pelo fluxo colaborador)
+    if (!['publicado', 'aprovado'].includes(bloco.status)) {
+      return err(res, 'Apenas blocos publicados ou aprovados podem ser associados a torneios', 422);
     }
 
     // ✅ NOVA: Contar questões no bloco - mínimo 5 obrigatório
