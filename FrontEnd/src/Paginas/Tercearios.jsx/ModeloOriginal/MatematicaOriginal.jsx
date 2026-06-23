@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
 window.TEST_MARKER = "MATEMATICA_LOADED_" + Date.now();
 console.log("MARKER SET:", window.TEST_MARKER);
 import { useNavigate } from "react-router-dom";

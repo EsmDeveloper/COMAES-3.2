@@ -2248,14 +2248,47 @@ app.get('/torneios/:id/participantes', async (req, res) => {
 app.get('/torneios/:id/questoes/matematica', async (req, res) => {
   try {
     const torneioId = req.params.id;
-    const questoes = await Questao.findAll({
-      where: { 
-        torneio_id: torneioId,
-        disciplina: 'matematica',
-        status_aprovacao: 'aprovada' // Apenas questões aprovadas
-      },
+
+    // 1. Tentar questões directas (modelo antigo: Questao com torneio_id)
+    let questoes = await Questao.findAll({
+      where: { torneio_id: torneioId, disciplina: 'matematica', status_aprovacao: 'aprovada' },
       attributes: ['id', 'titulo', 'descricao', 'dificuldade', 'pontos', 'opcoes', 'midia', 'tipo', 'resposta_correta', 'explicacao']
     });
+
+    // 2. Se não houver, buscar via blocos associados ao torneio
+    if (questoes.length === 0) {
+      const { default: TorneioBloco } = await import('./models/TorneioBloco.js');
+      const { default: BlocoQuestoes } = await import('./models/BlocoQuestoes.js');
+      const { default: BlocoQuestaoItem } = await import('./models/BlocoQuestaoItem.js');
+      const { default: QuestaoTesteConhecimento } = await import('./models/QuestaoTesteConhecimento.js');
+
+      const associacoes = await TorneioBloco.findAll({
+        where: { torneio_id: torneioId },
+        include: [{ model: BlocoQuestoes, as: 'bloco', where: { disciplina: 'matematica' }, required: true }]
+      });
+
+      const blocoIds = associacoes.map(a => a.bloco_id);
+
+      if (blocoIds.length > 0) {
+        const items = await BlocoQuestaoItem.findAll({
+          where: { bloco_id: blocoIds },
+          include: [{ model: QuestaoTesteConhecimento, as: 'questaoAntiga', where: { ativo: true }, required: true }]
+        });
+
+        questoes = items.map(item => ({
+          id: item.questaoAntiga.id,
+          titulo: item.questaoAntiga.enunciado.substring(0, 100),
+          descricao: item.questaoAntiga.enunciado,
+          dificuldade: item.questaoAntiga.dificuldade,
+          pontos: item.questaoAntiga.pontos,
+          opcoes: item.questaoAntiga.opcoes,
+          tipo: 'multipla_escolha',
+          resposta_correta: item.questaoAntiga.resposta_correta,
+          explicacao: null,
+        }));
+      }
+    }
+
     res.json({ success: true, data: questoes });
   } catch (error) {
     console.error('Erro ao buscar questões de matemática:', error);
@@ -2266,14 +2299,45 @@ app.get('/torneios/:id/questoes/matematica', async (req, res) => {
 app.get('/torneios/:id/questoes/programacao', async (req, res) => {
   try {
     const torneioId = req.params.id;
-    const questoes = await Questao.findAll({
-      where: { 
-        torneio_id: torneioId,
-        disciplina: 'programacao',
-        status_aprovacao: 'aprovada' // Apenas questões aprovadas
-      },
+
+    let questoes = await Questao.findAll({
+      where: { torneio_id: torneioId, disciplina: 'programacao', status_aprovacao: 'aprovada' },
       attributes: ['id', 'titulo', 'descricao', 'dificuldade', 'pontos', 'opcoes', 'midia', 'linguagem', 'tipo', 'resposta_correta', 'explicacao']
     });
+
+    if (questoes.length === 0) {
+      const { default: TorneioBloco } = await import('./models/TorneioBloco.js');
+      const { default: BlocoQuestoes } = await import('./models/BlocoQuestoes.js');
+      const { default: BlocoQuestaoItem } = await import('./models/BlocoQuestaoItem.js');
+      const { default: QuestaoTesteConhecimento } = await import('./models/QuestaoTesteConhecimento.js');
+
+      const associacoes = await TorneioBloco.findAll({
+        where: { torneio_id: torneioId },
+        include: [{ model: BlocoQuestoes, as: 'bloco', where: { disciplina: 'programacao' }, required: true }]
+      });
+
+      const blocoIds = associacoes.map(a => a.bloco_id);
+
+      if (blocoIds.length > 0) {
+        const items = await BlocoQuestaoItem.findAll({
+          where: { bloco_id: blocoIds },
+          include: [{ model: QuestaoTesteConhecimento, as: 'questaoAntiga', where: { ativo: true }, required: true }]
+        });
+
+        questoes = items.map(item => ({
+          id: item.questaoAntiga.id,
+          titulo: item.questaoAntiga.enunciado.substring(0, 100),
+          descricao: item.questaoAntiga.enunciado,
+          dificuldade: item.questaoAntiga.dificuldade,
+          pontos: item.questaoAntiga.pontos,
+          opcoes: item.questaoAntiga.opcoes,
+          tipo: 'multipla_escolha',
+          resposta_correta: item.questaoAntiga.resposta_correta,
+          explicacao: null,
+        }));
+      }
+    }
+
     res.json({ success: true, data: questoes });
   } catch (error) {
     console.error('Erro ao buscar questões de programação:', error);
@@ -2284,14 +2348,45 @@ app.get('/torneios/:id/questoes/programacao', async (req, res) => {
 app.get('/torneios/:id/questoes/ingles', async (req, res) => {
   try {
     const torneioId = req.params.id;
-    const questoes = await Questao.findAll({
-      where: { 
-        torneio_id: torneioId,
-        disciplina: 'ingles',
-        status_aprovacao: 'aprovada' // Apenas questões aprovadas
-      },
+
+    let questoes = await Questao.findAll({
+      where: { torneio_id: torneioId, disciplina: 'ingles', status_aprovacao: 'aprovada' },
       attributes: ['id', 'titulo', 'descricao', 'dificuldade', 'pontos', 'opcoes', 'midia', 'tipo', 'resposta_correta', 'explicacao']
     });
+
+    if (questoes.length === 0) {
+      const { default: TorneioBloco } = await import('./models/TorneioBloco.js');
+      const { default: BlocoQuestoes } = await import('./models/BlocoQuestoes.js');
+      const { default: BlocoQuestaoItem } = await import('./models/BlocoQuestaoItem.js');
+      const { default: QuestaoTesteConhecimento } = await import('./models/QuestaoTesteConhecimento.js');
+
+      const associacoes = await TorneioBloco.findAll({
+        where: { torneio_id: torneioId },
+        include: [{ model: BlocoQuestoes, as: 'bloco', where: { disciplina: 'ingles' }, required: true }]
+      });
+
+      const blocoIds = associacoes.map(a => a.bloco_id);
+
+      if (blocoIds.length > 0) {
+        const items = await BlocoQuestaoItem.findAll({
+          where: { bloco_id: blocoIds },
+          include: [{ model: QuestaoTesteConhecimento, as: 'questaoAntiga', where: { ativo: true }, required: true }]
+        });
+
+        questoes = items.map(item => ({
+          id: item.questaoAntiga.id,
+          titulo: item.questaoAntiga.enunciado.substring(0, 100),
+          descricao: item.questaoAntiga.enunciado,
+          dificuldade: item.questaoAntiga.dificuldade,
+          pontos: item.questaoAntiga.pontos,
+          opcoes: item.questaoAntiga.opcoes,
+          tipo: 'multipla_escolha',
+          resposta_correta: item.questaoAntiga.resposta_correta,
+          explicacao: null,
+        }));
+      }
+    }
+
     res.json({ success: true, data: questoes });
   } catch (error) {
     console.error('Erro ao buscar questões de inglês:', error);
