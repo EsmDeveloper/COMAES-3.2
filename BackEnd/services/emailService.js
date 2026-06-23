@@ -67,9 +67,20 @@ const getTransporter = async () => {
 // ─── Envio base ─────────────────────────────────────────────────────────────
 const send = async ({ to, subject, html, tag = 'email' }) => {
   const t    = await getTransporter();
-  const from = process.env.EMAIL_FROM || process.env.EMAIL_USER;
+  const from = `"COMAES Plataforma" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`;
   console.log(`[email] Enviando "${tag}" → ${to}`);
-  const info = await t.sendMail({ from: `"COMAES" <${from}>`, to, subject, html });
+  const info = await t.sendMail({
+    from,
+    to,
+    subject,
+    html,
+    // Headers anti-spam
+    headers: {
+      'X-Mailer': 'COMAES-Nodemailer',
+      'X-Priority': '3',
+      'Importance': 'Normal',
+    },
+  });
   console.log(`[email] Enviado (${tag}):`, info.messageId);
   return info;
 };
