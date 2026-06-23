@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+﻿import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaCheckCircle, FaCrown, FaMedal, FaStar, FaUsers, FaClock, FaChartLine, FaSpinner } from "react-icons/fa";
 import { IoClose, IoTrophy, IoSparkles } from "react-icons/io5";
@@ -11,7 +11,7 @@ import imageTorneio from "../../assets/celebring.jpeg";
 export default function EntrarTorneio() {
   const navigate = useNavigate();
   const { user, token } = useAuth();
-  const [disciplinaSelecionada, setDisciplinaSelecionada] = useState(null);
+  const [disciplinaselecionada, setDisciplinaselecionada] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [torneioAtivo, setTorneioAtivo] = useState(null);
@@ -22,27 +22,27 @@ export default function EntrarTorneio() {
   const [allDisciplinas] = useState([
     {
       id: "matematica",
-      nome: "Matemtica",
+      nome: "Matemática",
       imagem: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       cor: "from-blue-600 to-purple-600",
-      nivel: "Intermedirio",
-      descricao: "Desafie suas habilidades matemticas com problemas de lgebra, clculo e lgica"
+      nivel: "Intermediário",
+      descricao: "Desafie suas habilidades Matemáticas com problemas de álgebra, cálculo e lógica"
     },
     {
       id: "programacao",
-      nome: "Programao",
+      nome: "Programação",
       imagem: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       cor: "from-emerald-600 to-cyan-600",
-      nivel: "Avanado",
-      descricao: "Teste suas habilidades de codificao em algoritmos e estrutura de dados"
+      nivel: "Avançado",
+      descricao: "Teste suas habilidades de codificação em algoritmos e estrutura de dados"
     },
     {
       id: "ingles",
-      nome: "Ingls",
+      nome: "Inglês",
       imagem: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       cor: "from-rose-600 to-orange-500",
-      nivel: "Todos os nveis",
-      descricao: "Aprimore seu vocabulrio e compreenso da lngua inglesa"
+      nivel: "Todos os níveis",
+      descricao: "Aprimore seu vocabulário e compreensão da língua inglesa"
     }
   ]);
   const [disciplinasDisponiveis, setDisciplinasDisponiveis] = useState(allDisciplinas);
@@ -87,7 +87,7 @@ export default function EntrarTorneio() {
     };
   }, [apiBaseUrl]);
 
-  // Verificar participao atual do usurio logado no torneio ativo (para genricos)
+  // Verificar participação atual do usurio logado no torneio ativo (para genéricos)
   useEffect(() => {
     if (user && token && torneioAtivo && torneioAtivo.tipo_torneio === 'generico') {
       const verificarParticipacao = async () => {
@@ -109,7 +109,7 @@ export default function EntrarTorneio() {
             setDisciplinaUsuarioAtual(null);
           }
         } catch (err) {
-          console.error('Erro ao verificar participao:', err);
+          console.error('Erro ao verificar participação:', err);
           setDisciplinaUsuarioAtual(null);
         }
       };
@@ -119,16 +119,16 @@ export default function EntrarTorneio() {
     }
   }, [user, token, torneioAtivo, apiBaseUrl]);
 
-  // Carregar dados iniciais (Torneio e Estatsticas)
+  // Carregar dados iniciais (Torneio e estatísticas)
   useEffect(() => {
     const carregarDados = async () => {
       setIsVerifying(true);
       setError(null);
       try {
-        // 1. Buscar Status Geral (Total de Usurios)
+        // 1. Buscar Status Geral (Total de Usuários)
         const statsRes = await fetch(`${apiBaseUrl}/api/stats/global`);
         const statsData = await statsRes.json();
-        console.log('" Dados iniciais de usurios:', statsData);
+        console.log('" Dados iniciais de Usuários:', statsData);
         if (statsData.success && typeof statsData.totalUsers === 'number') {
           setTotalUsuarios(statsData.totalUsers);
         }
@@ -142,22 +142,22 @@ export default function EntrarTorneio() {
           
           //  NOVA L"GICA: Verificar tipo de torneio e aplicar visibilidade
           if (tourData.torneio.tipo_torneio === 'especifico') {
-            // Se for especfico: MOSTRAR TODAS AS 3 DISCIPLINAS
+            // Se for específico: MOSTRAR TODAS AS 3 DISCIPLINAS
             // Apenas a selecionada estar ATIVA (clicvel)
             const disciplinaEspecifica = tourData.torneio.disciplina_especifica;
             setDisciplinaEspecificaTorneio(disciplinaEspecifica);
             setDisciplinasDisponiveis(allDisciplinas);
-            console.log(' Torneio especfico para:', disciplinaEspecifica);
+            console.log(' Torneio específico para:', disciplinaEspecifica);
           } else {
-            // Genrico: Buscar disciplinas com blocos e filtrar
+            // genérico: Buscar disciplinas com blocos e filtrar
             try {
               const disciplinasRes = await fetch(`${apiBaseUrl}/api/torneios/ativo/disciplinas`);
               const disciplinasData = await disciplinasRes.json();
               
               const disponivelMap = {
-                'Matemtica': allDisciplinas[0],
-                'Ingls': allDisciplinas[2],
-                'Programao': allDisciplinas[1]
+                'Matemática': allDisciplinas[0],
+                'Inglês': allDisciplinas[2],
+                'Programação': allDisciplinas[1]
               };
               
               let disciplinasFiltradas = [];
@@ -169,7 +169,7 @@ export default function EntrarTorneio() {
               
               setDisciplinasDisponiveis(disciplinasFiltradas.length > 0 ? disciplinasFiltradas : allDisciplinas);
               setDisciplinaEspecificaTorneio(null);
-              console.log(' Disciplinas genricas disponveis:', disciplinasData.disciplinas);
+              console.log(' Disciplinas genricas disponíveis:', disciplinasData.disciplinas);
             } catch (discErr) {
               console.error('Erro ao carregar disciplinas:', discErr);
               setDisciplinasDisponiveis(allDisciplinas);
@@ -177,20 +177,20 @@ export default function EntrarTorneio() {
             }
           }
 
-          // 3. Buscar estatsticas reais de participantes do torneio ativo
+          // 3. Buscar estatísticas reais de participantes do torneio ativo
           try {
             const statsRes = await fetch(`${apiBaseUrl}/api/tournaments/${tourData.torneio.id}/participant-counts`);
             const statsData = await statsRes.json();
             if (statsData.success && statsData.counts) {
               setEstatisticasParticipantes(statsData.counts);
-              console.log('" Estatsticas de participantes carregadas:', statsData.counts);
+              console.log('" estatísticas de participantes carregadas:', statsData.counts);
             }
           } catch (sErr) {
-            console.error('Erro ao carregar estatsticas:', sErr);
+            console.error('Erro ao carregar estatísticas:', sErr);
           }
         } else {
           setTorneioAtivo(null);
-          setEstatisticasParticipantes({ 'Matemtica': 0, 'Ingls': 0, 'Programao': 0, total: 0 });
+          setEstatisticasParticipantes({ 'Matemática': 0, 'Inglês': 0, 'Programação': 0, total: 0 });
         }
       } catch (err) {
         console.error('Erro conexo:', err);
@@ -210,18 +210,18 @@ export default function EntrarTorneio() {
     
     // Verificar se a disciplina est disponvel baseado no tipo de torneio
     if (torneioAtivo.tipo_torneio === 'especifico') {
-      // Para especficos: apenas a disciplina selecionada  abrvel
+      // Para específicos: apenas a disciplina selecionada  abrvel
       if (disciplina.nome !== torneioAtivo.disciplina_especifica) {
-        alert(` Esta disciplina no est disponvel. Este torneio  especfico para ${torneioAtivo.disciplina_especifica}.`);
+        alert(` Esta disciplina no est disponvel. Este torneio  específico para ${torneioAtivo.disciplina_especifica}.`);
         return;
       }
     }
     
-    setDisciplinaSelecionada(disciplina);
+    setDisciplinaselecionada(disciplina);
   };
 
   const entrarNoTorneio = async () => {
-    if (!disciplinaSelecionada || !user) {
+    if (!disciplinaselecionada || !user) {
       setShowLoginModal(true);
       return;
     }
@@ -230,7 +230,7 @@ export default function EntrarTorneio() {
     setError(null);
 
     try {
-      //  Verificar participao ativa em outro torneio (totalmente diferente)
+      //  Verificar participação ativa em outro torneio (totalmente diferente)
       const verificarRes = await fetch(`${apiBaseUrl}/api/tournaments/usuario/${user.id}/participacao-ativa`, {
         method: 'GET',
         headers: {
@@ -245,18 +245,18 @@ export default function EntrarTorneio() {
         // Participando em OUTRO torneio diferente
         setLoading(false);
         setError(` Voc j est participando de outro torneio: "${verificarData.torneio.titulo}". Termine esse primeiro para participar deste.`);
-        setDisciplinaSelecionada(null);
+        setDisciplinaselecionada(null);
         return;
       }
 
-      //  Para TORNEIOS GENRICOS: Verificar participao em outra disciplina do MESMO torneio
+      //  Para TORNEIOS genéricoS: Verificar participação em outra disciplina do MESMO torneio
       if (torneioAtivo.tipo_torneio === 'generico' && verificarData.ativo && verificarData.torneio.id === torneioAtivo.id) {
-        // Usurio j est participando em outra disciplina deste torneio genrico
+        // Usurio Já está participando em outra disciplina deste torneio genérico
         const disciplinaAtual = verificarData.disciplina;
-        if (disciplinaAtual !== disciplinaSelecionada.nome) {
+        if (disciplinaAtual !== disciplinaselecionada.nome) {
           setLoading(false);
-          setError(` Voc j est participando de ${disciplinaAtual} neste torneio. Termine essa disciplina primeiro para participar em ${disciplinaSelecionada.nome}.`);
-          setDisciplinaSelecionada(null);
+          setError(` Voc j est participando de ${disciplinaAtual} neste torneio. Termine essa disciplina primeiro para participar em ${disciplinaselecionada.nome}.`);
+          setDisciplinaselecionada(null);
           return;
         }
       }
@@ -270,7 +270,7 @@ export default function EntrarTorneio() {
         },
         body: JSON.stringify({
           id_usuario: user.id, // ID do usurio
-          disciplina_competida: disciplinaSelecionada.nome // Nome da disciplina j padronizado
+          disciplina_competida: disciplinaselecionada.nome // Nome da disciplina j padronizado
         })
       });
 
@@ -280,14 +280,14 @@ export default function EntrarTorneio() {
         throw new Error(registroData.error || 'Erro ao registrar no torneio');
       }
 
-      // 2. Redirecionar para o torneio especfico
+      // 2. Redirecionar para o torneio específico
       const nomeUsuario = formatarNomeParaURL(
         user.nome || user.displayName || user.email?.split('@')[0] || "usuario"
       );
 
       // Definir a rota baseado na disciplina
       let rota = "";
-      switch (disciplinaSelecionada.id) {
+      switch (disciplinaselecionada.id) {
         case "matematica":
           rota = `/matematica-original/${nomeUsuario}`;
           break;
@@ -308,8 +308,8 @@ export default function EntrarTorneio() {
         email: user.email,
         id: user.uid || user.id,
         autenticado: true,
-        disciplina: disciplinaSelecionada.nome,
-        disciplinaId: disciplinaSelecionada.id,
+        disciplina: disciplinaselecionada.nome,
+        disciplinaId: disciplinaselecionada.id,
         torneio_id: torneioAtivo.id
       };
 
@@ -317,7 +317,7 @@ export default function EntrarTorneio() {
       navigate(rota, {
         state: {
           user: userData,
-          disciplina: disciplinaSelecionada,
+          disciplina: disciplinaselecionada,
           torneio: torneioAtivo
         }
       });
@@ -327,7 +327,7 @@ export default function EntrarTorneio() {
       setError(error.message || 'Erro ao entrar no torneio. Tente novamente.');
     } finally {
       setLoading(false);
-      setDisciplinaSelecionada(null);
+      setDisciplinaselecionada(null);
     }
   };
 
@@ -345,19 +345,19 @@ export default function EntrarTorneio() {
 
   const handleLoginRedirect = () => {
     setShowLoginModal(false);
-    setDisciplinaSelecionada(null);
+    setDisciplinaselecionada(null);
     navigate('/login');
   };
 
   const handleCadastroRedirect = () => {
     setShowLoginModal(false);
-    setDisciplinaSelecionada(null);
+    setDisciplinaselecionada(null);
     navigate('/cadastro');
   };
 
   useEffect(() => {
-    document.body.style.overflow = disciplinaSelecionada ? "hidden" : "auto";
-  }, [disciplinaSelecionada]);
+    document.body.style.overflow = disciplinaselecionada ? "hidden" : "auto";
+  }, [disciplinaselecionada]);
 
   return (
     <Layout>
@@ -465,9 +465,9 @@ export default function EntrarTorneio() {
                   <FaUsers className="text-blue-300 text-sm sm:text-base" />
                   <span className="text-xs sm:text-sm md:text-base font-semibold">
                     {(() => {
-                      // Mostrar estritamente o total de usurios da base de dados
+                      // Mostrar estritamente o total de Usuários da base de dados
                       return `+${(totalUsuarios || 0).toLocaleString()}`;
-                    })()} Usurios Cadastrados
+                    })()} Usuários Cadastrados
                   </span>
                 </div>
                 <div className="flex items-center gap-1 sm:gap-2 bg-white/20 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border border-white/30 shadow-lg">
@@ -524,14 +524,24 @@ export default function EntrarTorneio() {
 
             <div className="flex flex-col sm:flex-row justify-center items-center sm:items-stretch gap-4 sm:gap-6 max-w-6xl mx-auto">
               {disciplinasDisponiveis.map((disc, index) => {
-                // Se for torneio especfico, verificar se esta disciplina  a selecionada
+                // Se for torneio específico, verificar se esta disciplina é a selecionada
                 const isEspecifico = disciplinaEspecificaTorneio !== null;
-                const isDisciplinaEspecificaAtiva = !isEspecifico || disc.nome === disciplinaEspecificaTorneio;
+
+                // Mapeamento robusto: normaliza acentos para comparação
+                const normalizar = (str) => str
+                  ?.toLowerCase()
+                  .normalize('NFD')
+                  .replace(/[\u0300-\u036f]/g, '')
+                  .trim() || '';
+
+                const isDisciplinaEspecificaAtiva = !isEspecifico ||
+                  normalizar(disc.nome) === normalizar(disciplinaEspecificaTorneio) ||
+                  normalizar(disc.id) === normalizar(disciplinaEspecificaTorneio);
                 
-                // Para torneios genricos: verificar se usurio logado j est participando em outra disciplina
+                // Para torneios genéricos: verificar se usurio logado Já está participando em outra disciplina
                 let isDisciplinaDisponipelParaUsuario = true;
                 if (!isEspecifico && user && disciplinaUsuarioAtual) {
-                  // Usurio logado j participando em outra disciplina deste torneio genrico
+                  // Usurio logado Já participando em outra disciplina deste torneio genérico
                   isDisciplinaDisponipelParaUsuario = disc.nome === disciplinaUsuarioAtual;
                 }
                 
@@ -561,14 +571,14 @@ export default function EntrarTorneio() {
                     {(!torneioAtivo || !isDisciplinaAtiva) && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                         <span className="text-white font-semibold text-sm sm:text-base">
-                          {!torneioAtivo ? 'Torneio Indisponvel' : !isDisciplinaEspecificaAtiva ? 'Disciplina Indisponvel' : 'J est participando em outra'}
+                          {!torneioAtivo ? 'Torneio Indisponível' : !isDisciplinaEspecificaAtiva ? 'Disciplina Indisponível' : 'Já está participando em outra'}
                         </span>
                       </div>
                     )}
-                    {/* Badge para disciplina ativa em torneios especficos */}
+                    {/* Badge para disciplina ativa em torneios específicos */}
                     {isEspecifico && isDisciplinaEspecificaAtiva && (
                       <div className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-green-500 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 rounded-full flex items-center gap-1">
-                        <span className="text-green-100 text-xs sm:text-sm font-semibold">" Ativa</span>
+                        <span className="text-green-100 text-xs sm:text-sm font-semibold">✅ Ativa</span>
                       </div>
                     )}
                   </div>
@@ -582,7 +592,7 @@ export default function EntrarTorneio() {
                         <FaUsers className="text-gray-400 text-xs sm:text-sm" />
                         <span className="text-gray-700 font-medium text-xs sm:text-sm md:text-base">
                           {(() => {
-                            const discNomeAPI = disc.nome === "Lngua Inglesa" ? "Ingls" : disc.nome;
+                            const discNomeAPI = disc.nome === "língua Inglesa" ? "Inglês" : disc.nome;
                             const total = estatisticasParticipantes && estatisticasParticipantes[discNomeAPI] !== undefined
                               ? estatisticasParticipantes[discNomeAPI]
                               : 0;
@@ -597,7 +607,7 @@ export default function EntrarTorneio() {
                           }`}
                         disabled={!torneioAtivo || !isDisciplinaAtiva}
                       >
-                        {!torneioAtivo ? 'Indisponvel' : isDisciplinaAtiva ? 'Ver Torneio' : 'Indisponvel'}
+                        {!torneioAtivo ? 'Indisponível' : isDisciplinaAtiva ? 'Ver Torneio' : 'Indisponível'}
                       </button>
                     </div>
                   </div>
@@ -609,13 +619,13 @@ export default function EntrarTorneio() {
 
           {/* MODAL de Seleo de Torneio */}
           <AnimatePresence>
-            {disciplinaSelecionada && (
+            {disciplinaselecionada && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 bg-black/70 z-[9999] flex items-center justify-center p-4"
-                onClick={() => !loading && setDisciplinaSelecionada(null)}
+                onClick={() => !loading && setDisciplinaselecionada(null)}
               >
                 <motion.div
                   initial={{ scale: 0.85 }}
@@ -626,7 +636,7 @@ export default function EntrarTorneio() {
                 >
                   {!loading && (
                     <button
-                      onClick={() => setDisciplinaSelecionada(null)}
+                      onClick={() => setDisciplinaselecionada(null)}
                       className="absolute top-2 sm:top-3 right-2 sm:right-3 text-gray-500 hover:text-gray-700 z-10"
                     >
                       <IoClose size={24} className="sm:w-7 sm:h-7" />
@@ -635,13 +645,13 @@ export default function EntrarTorneio() {
 
                   <div className="relative mb-4 sm:mb-6">
                     <img
-                      src={disciplinaSelecionada.imagem}
-                      alt={disciplinaSelecionada.nome}
+                      src={disciplinaselecionada.imagem}
+                      alt={disciplinaselecionada.nome}
                       className="w-full h-36 sm:h-40 md:h-48 object-cover rounded-xl"
                     />
                     <div className="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center">
                       <h2 className="text-xl sm:text-2xl font-bold text-white drop-shadow-lg">
-                        {disciplinaSelecionada.nome}
+                        {disciplinaselecionada.nome}
                       </h2>
                     </div>
                   </div>
@@ -659,7 +669,7 @@ export default function EntrarTorneio() {
                   ) : (
                     <>
                       <p className="text-gray-600 text-center text-sm sm:text-base mb-4 sm:mb-6">
-                        Clique no boto abaixo para entrar no torneio ativo de {disciplinaSelecionada.nome}.
+                        Clique no boto abaixo para entrar no torneio ativo de {disciplinaselecionada.nome}.
                       </p>
 
                       {torneioAtivo && (
@@ -740,7 +750,7 @@ export default function EntrarTorneio() {
                     </h2>
 
                     <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
-                      Para participar do torneio de {disciplinaSelecionada?.nome}, voc precisa estar autenticado na plataforma COMAES.
+                      Para participar do torneio de {disciplinaselecionada?.nome}, voc precisa estar autenticado na plataforma COMAES.
                     </p>
 
                     <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 border border-blue-200">
