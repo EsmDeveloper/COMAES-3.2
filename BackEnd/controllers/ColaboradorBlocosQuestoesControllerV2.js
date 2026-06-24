@@ -476,14 +476,14 @@ export const submeterBlocoColaborador = async (req, res) => {
         `Bloco com status '${bloco.status}' não pode ser submetido.`);
     }
 
-    // Validar que o bloco tem pelo menos 1 questão
+    // Validar que o bloco tem pelo menos 5 questões (mínimo para submissão)
     const totalQuestoes = await Questao.count({
       where: { bloco_id: id }
     });
 
-    if (totalQuestoes === 0) {
+    if (totalQuestoes < 5) {
       return respostaErro(res, 400, 
-        'Bloco deve ter pelo menos uma questão antes de ser submetido para aprovação.');
+        `O bloco precisa de pelo menos 5 questões para ser submetido (tem ${totalQuestoes}).`);
     }
 
     // Mudar status para 'pendente' — agora aparece para o admin rever

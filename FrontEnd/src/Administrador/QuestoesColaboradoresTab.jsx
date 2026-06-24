@@ -112,9 +112,8 @@ export default function QuestoesColaboradoresTab() {
         
         if (response.success) {
           const todos = safeArray(
-            safeGet(response, 'data.blocos') ||
             safeGet(response, 'data.dados.blocos') ||
-            safeGet(response, 'dados.blocos') ||
+            safeGet(response, 'data.blocos') ||
             []
           );
           console.log('[DEBUG] Blocos extraídos:', todos.length, '| criador sample:', safeGet(todos[0], 'criador'));
@@ -440,7 +439,7 @@ export default function QuestoesColaboradoresTab() {
                   {safeMap(blocosFiltrados, (b, i, key) => {
                     const numQuestoes = safeArray(safeGet(b, 'questoes', [])).length || safeGet(b, 'total_questoes', 0);
                     return (
-                      <div k1ey={key} className="bg-gradient-to-br from-blue-50 via-white to-cyan-50 rounded-xl shadow-sm border border-blue-200 p-5 hover:shadow-md transition-all">
+                      <div key={key} className="bg-gradient-to-br from-blue-50 via-white to-cyan-50 rounded-xl shadow-sm border border-blue-200 p-5 hover:shadow-md transition-all">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
                             <div className="flex gap-2 mb-2 flex-wrap">

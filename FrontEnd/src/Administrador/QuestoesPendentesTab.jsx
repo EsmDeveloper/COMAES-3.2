@@ -84,7 +84,7 @@ export default function QuestoesPendentesTab() {
   const carregarBlocosPendentes = useCallback(async () => {
     dispatch({ type: 'SET_LOADING_BLOCOS', payload: true });
     try {
-      const params = { status_aprovacao: 'pendente' };
+      const params = { status: 'pendente' };
       if (state.filtros.disciplina) params.disciplina = state.filtros.disciplina;
       
       console.log('[DEBUG] Buscando blocos pendentes com params:', params);
