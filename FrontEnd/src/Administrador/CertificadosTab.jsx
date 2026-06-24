@@ -44,21 +44,21 @@ const STATUS_CONFIG = {
 };
 
 const MEDAL_CONFIG = {
-  1: { 
+  'Ouro': { 
     label: 'Ouro', 
     icon: Trophy,
     color: 'text-yellow-600', 
     bg: 'bg-yellow-50',
     position: '1º Lugar'
   },
-  2: { 
+  'Prata': { 
     label: 'Prata', 
     icon: Award,
     color: 'text-gray-600', 
     bg: 'bg-gray-50',
     position: '2º Lugar'
   },
-  3: { 
+  'Bronze': { 
     label: 'Bronze', 
     icon: Award,
     color: 'text-orange-600', 
@@ -92,7 +92,7 @@ export default function CertificadosTab() {
   // Estado de processamento
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
-  const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+  const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
 
   // ============================================
   // CARREGAR CERTIFICADOS
@@ -264,7 +264,7 @@ export default function CertificadosTab() {
               <option value="">Todas Disciplinas</option>
               <option value="Matemática">Matemática</option>
               <option value="Programação">Programação</option>
-              <option value="Ingláªs">Ingláªs</option>
+              <option value="Inglês">Inglês</option>
             </select>
 
             <select
@@ -328,7 +328,7 @@ export default function CertificadosTab() {
             ) : (
               filteredCertificados.map(cert => {
                 const statusConfig = STATUS_CONFIG[cert.status] || STATUS_CONFIG.gerado;
-                const medalConfig = MEDAL_CONFIG[cert.posicao] || MEDAL_CONFIG[1];
+                const medalConfig = MEDAL_CONFIG[cert.tipo_medalha] || MEDAL_CONFIG['Ouro'];
                 return (
                   <tr key={cert.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4">
@@ -394,7 +394,14 @@ export default function CertificadosTab() {
                         </button>
                         <button
                           onClick={() => {
-                            window.open(`${apiBase}/api/certificados/download/${cert.codigo_certificado}`, '_blank');
+                            if (!cert.url_certificado) {
+                              showToast('PDF ainda não gerado para este certificado', 'error');
+                              return;
+                            }
+                            const url = cert.url_certificado.startsWith('http')
+                              ? cert.url_certificado
+                              : `${apiBase}${cert.url_certificado}`;
+                            window.open(url, '_blank');
                           }}
                           className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
                           title="Download certificado"

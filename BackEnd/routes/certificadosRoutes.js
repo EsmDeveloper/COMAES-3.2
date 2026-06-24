@@ -194,6 +194,13 @@ router.delete('/:id', async (req, res) => {
  */
 router.get('/admin/todos', async (req, res) => {
   try {
+    // Verificar autenticação via token
+    const authHeader = req.headers['authorization'] || '';
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, error: 'Token não fornecido' });
+    }
+
     const certificados = await Certificado.findAll({
       include: [
         { model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'email'] },
