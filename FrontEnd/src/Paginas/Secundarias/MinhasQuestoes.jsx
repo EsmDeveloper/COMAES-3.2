@@ -224,9 +224,11 @@ export default function MinhasQuestoes() {
     try {
       await service.criar(dados);
       await carregarQuestoes();
-    } finally {
+    } catch (err) {
       setSaving(false);
+      throw err; // propagar para o QuestaoFormUnificado mostrar o erro
     }
+    setSaving(false);
   };
 
   // Editar questão
@@ -235,9 +237,11 @@ export default function MinhasQuestoes() {
     try {
       await service.editar(id, dados);
       await carregarQuestoes();
-    } finally {
+    } catch (err) {
       setSaving(false);
+      throw err; // propagar para o QuestaoFormUnificado mostrar o erro
     }
+    setSaving(false);
   };
 
   // Deletar questão

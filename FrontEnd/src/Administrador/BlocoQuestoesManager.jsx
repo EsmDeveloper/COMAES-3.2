@@ -830,6 +830,9 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
   const handleQuestaoEditada = async () => {
     setShowEditQuestao(false);
     setQuestaoEditando(null);
+    showMsg('Questão atualizada! Os blocos foram re-sincronizados.');
+    await carregarBlocos();
+  };
 
   const handleSalvarNovaQuestaoBloco = async (payload) => {
     const response = await fetch(`${apiBase}/api/questoes`, {
@@ -852,10 +855,6 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
     const data = await response.json();
     if (!response.ok) throw new Error(data.mensagem || data.message || 'Erro ao editar questão');
     await handleQuestaoEditada();
-  };
-    showMsg('Quest�o atualizada! Os blocos foram re-sincronizados.');
-    // sem fallback
-    await carregarBlocos();
   };
 
   const handleRemoverQuestao = async () => {

@@ -1145,6 +1145,12 @@ export const aprovarBlocoAdmin = async (req, res) => {
 
     await bloco.save();
 
+    // Aprovar automaticamente todas as questões do bloco
+    await Questao.update(
+      { status_aprovacao: 'aprovada', revisado_por: req.user.id, revisado_em: new Date() },
+      { where: { bloco_id: id } }
+    );
+
     respostaSucesso(res, 200, bloco, 'Bloco aprovado com sucesso!');
   } catch (error) {
     console.error('Erro ao aprovar bloco:', error);

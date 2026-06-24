@@ -2270,12 +2270,19 @@ app.get('/torneios/:id/questoes/matematica', async (req, res) => {
       const blocoIds = associacoes.map(a => a.bloco_id);
 
       if (blocoIds.length > 0) {
+        // 2a. Novo modelo: Questao com bloco_id (questões dos colaboradores)
+        const questoesNovo = await Questao.findAll({
+          where: { bloco_id: blocoIds, status_aprovacao: 'aprovada' },
+          attributes: ['id', 'titulo', 'descricao', 'dificuldade', 'pontos', 'opcoes', 'tipo', 'resposta_correta', 'explicacao']
+        });
+
+        // 2b. Modelo antigo: via BlocoQuestaoItem
         const items = await BlocoQuestaoItem.findAll({
           where: { bloco_id: blocoIds },
           include: [{ model: QuestaoTesteConhecimento, as: 'questaoAntiga', where: { ativo: true }, required: true }]
         });
 
-        questoes = items.map(item => ({
+        const questoesAntigas = items.map(item => ({
           id: item.questaoAntiga.id,
           titulo: item.questaoAntiga.enunciado.substring(0, 100),
           descricao: item.questaoAntiga.enunciado,
@@ -2286,6 +2293,16 @@ app.get('/torneios/:id/questoes/matematica', async (req, res) => {
           resposta_correta: item.questaoAntiga.resposta_correta,
           explicacao: null,
         }));
+
+        // Normalizar opcoes do novo modelo (podem vir como string JSON)
+        const questoesNovoNorm = questoesNovo.map(q => {
+          let opcoes = q.opcoes;
+          if (typeof opcoes === 'string') { try { opcoes = JSON.parse(opcoes); } catch { opcoes = []; } }
+          if (!Array.isArray(opcoes)) opcoes = [];
+          return { ...q.toJSON(), opcoes };
+        });
+
+        questoes = [...questoesNovoNorm, ...questoesAntigas];
       }
     }
 
@@ -2319,12 +2336,19 @@ app.get('/torneios/:id/questoes/programacao', async (req, res) => {
       const blocoIds = associacoes.map(a => a.bloco_id);
 
       if (blocoIds.length > 0) {
+        // Novo modelo: Questao com bloco_id
+        const questoesNovo = await Questao.findAll({
+          where: { bloco_id: blocoIds, status_aprovacao: 'aprovada' },
+          attributes: ['id', 'titulo', 'descricao', 'dificuldade', 'pontos', 'opcoes', 'linguagem', 'tipo', 'resposta_correta', 'explicacao']
+        });
+
+        // Modelo antigo: BlocoQuestaoItem
         const items = await BlocoQuestaoItem.findAll({
           where: { bloco_id: blocoIds },
           include: [{ model: QuestaoTesteConhecimento, as: 'questaoAntiga', where: { ativo: true }, required: true }]
         });
 
-        questoes = items.map(item => ({
+        const questoesAntigas = items.map(item => ({
           id: item.questaoAntiga.id,
           titulo: item.questaoAntiga.enunciado.substring(0, 100),
           descricao: item.questaoAntiga.enunciado,
@@ -2335,6 +2359,15 @@ app.get('/torneios/:id/questoes/programacao', async (req, res) => {
           resposta_correta: item.questaoAntiga.resposta_correta,
           explicacao: null,
         }));
+
+        const questoesNovoNorm = questoesNovo.map(q => {
+          let opcoes = q.opcoes;
+          if (typeof opcoes === 'string') { try { opcoes = JSON.parse(opcoes); } catch { opcoes = []; } }
+          if (!Array.isArray(opcoes)) opcoes = [];
+          return { ...q.toJSON(), opcoes };
+        });
+
+        questoes = [...questoesNovoNorm, ...questoesAntigas];
       }
     }
 
@@ -2368,12 +2401,19 @@ app.get('/torneios/:id/questoes/ingles', async (req, res) => {
       const blocoIds = associacoes.map(a => a.bloco_id);
 
       if (blocoIds.length > 0) {
+        // Novo modelo: Questao com bloco_id
+        const questoesNovo = await Questao.findAll({
+          where: { bloco_id: blocoIds, status_aprovacao: 'aprovada' },
+          attributes: ['id', 'titulo', 'descricao', 'dificuldade', 'pontos', 'opcoes', 'tipo', 'resposta_correta', 'explicacao']
+        });
+
+        // Modelo antigo: BlocoQuestaoItem
         const items = await BlocoQuestaoItem.findAll({
           where: { bloco_id: blocoIds },
           include: [{ model: QuestaoTesteConhecimento, as: 'questaoAntiga', where: { ativo: true }, required: true }]
         });
 
-        questoes = items.map(item => ({
+        const questoesAntigas = items.map(item => ({
           id: item.questaoAntiga.id,
           titulo: item.questaoAntiga.enunciado.substring(0, 100),
           descricao: item.questaoAntiga.enunciado,
@@ -2384,6 +2424,15 @@ app.get('/torneios/:id/questoes/ingles', async (req, res) => {
           resposta_correta: item.questaoAntiga.resposta_correta,
           explicacao: null,
         }));
+
+        const questoesNovoNorm = questoesNovo.map(q => {
+          let opcoes = q.opcoes;
+          if (typeof opcoes === 'string') { try { opcoes = JSON.parse(opcoes); } catch { opcoes = []; } }
+          if (!Array.isArray(opcoes)) opcoes = [];
+          return { ...q.toJSON(), opcoes };
+        });
+
+        questoes = [...questoesNovoNorm, ...questoesAntigas];
       }
     }
 

@@ -111,7 +111,8 @@ export const listarBlocos = async (req, res) => {
         // Carregar questões do novo modelo (Questao com bloco_id)
         const questoesNovo = await Questao.findAll({
           where: { bloco_id: bloco.id },
-          attributes: ['id', 'titulo', 'descricao', 'disciplina', 'tipo', 'dificuldade', 'pontos', 'status_aprovacao']
+          attributes: ['id', 'titulo', 'descricao', 'disciplina', 'tipo', 'dificuldade',
+                       'pontos', 'status_aprovacao', 'opcoes', 'resposta_correta', 'explicacao']
         });
 
         // Carregar questões do modelo antigo (via BlocoQuestaoItem)
@@ -126,23 +127,38 @@ export const listarBlocos = async (req, res) => {
 
         // Combinar questões de ambos os modelos
         const questoesFormat = [
-          ...questoesNovo.map(q => ({
-            id: q.id,
-            titulo: q.titulo,
-            enunciado: q.descricao,
-            disciplina: q.disciplina,
-            tipo: q.tipo,
-            dificuldade: q.dificuldade,
-            pontos: q.pontos,
-            status_aprovacao: q.status_aprovacao,
-            modelo: 'novo'
-          })),
+          ...questoesNovo.map(q => {
+            // Normalizar opcoes (pode vir como string JSON do MySQL)
+            let opcoes = q.opcoes;
+            if (typeof opcoes === 'string') {
+              try { opcoes = JSON.parse(opcoes); } catch { opcoes = []; }
+            }
+            if (!Array.isArray(opcoes)) opcoes = [];
+            return {
+              id: q.id,
+              titulo: q.titulo,
+              descricao: q.descricao,
+              enunciado: q.descricao,        // alias para compatibilidade
+              disciplina: q.disciplina,
+              tipo: q.tipo,
+              dificuldade: q.dificuldade,
+              pontos: q.pontos,
+              status_aprovacao: q.status_aprovacao,
+              opcoes,
+              resposta_correta: q.resposta_correta || '',
+              explicacao: q.explicacao || '',
+              modelo: 'novo'
+            };
+          }),
           ...questoesAntigas.map(item => ({
-            id: item.questaoAntiga?.id || item.questao_id,  // ✅ Usar questaoAntiga
+            id: item.questaoAntiga?.id || item.questao_id,
             titulo: item.questaoAntiga?.enunciado?.substring(0, 100) || 'Sem título',
             enunciado: item.questaoAntiga?.enunciado,
+            descricao: item.questaoAntiga?.enunciado,
             dificuldade: item.questaoAntiga?.dificuldade,
             pontos: item.questaoAntiga?.pontos,
+            opcoes: [],
+            resposta_correta: '',
             modelo: 'antigo'
           }))
         ];
@@ -627,10 +643,12 @@ export const associarBlocoAoTorneio = async (req, res) => {
       return err(res, 'Apenas blocos publicados ou aprovados podem ser associados a torneios', 422);
     }
 
-    // ✅ NOVA: Contar questões no bloco - mínimo 5 obrigatório
-    const totalQuestoes = await BlocoQuestaoItem.count({
-      where: { bloco_id: bloco_id }
-    });
+    // ✅ Contar questões nos DOIS modelos — novo (Questao.bloco_id) e antigo (BlocoQuestaoItem)
+    const [totalNovo, totalAntigo] = await Promise.all([
+      Questao.count({ where: { bloco_id: bloco_id } }),
+      BlocoQuestaoItem.count({ where: { bloco_id: bloco_id } })
+    ]);
+    const totalQuestoes = totalNovo + totalAntigo;
 
     if (totalQuestoes < 5) {
       return err(res, `Bloco deve ter mínimo 5 questões. Este tem apenas ${totalQuestoes}.`, 422);

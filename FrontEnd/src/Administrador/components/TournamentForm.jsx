@@ -157,12 +157,23 @@ export default function TournamentForm({
     return ['finalizado', 'cancelado'].includes(initialData.status);
   }, [mode, initialData]);
 
-  // ── Carregar blocos publicados disponíveis 
+  // ── Carregar blocos publicados/aprovados disponíveis 
   useEffect(() => {
     if (!token) return;
     setLoadingBlocos(true);
-    BlocosService.listar(token, { status: 'publicado', limit: 100 })
-      .then(res => setBlocosDisponiveis(res.data?.blocos || []))
+    // Carregar blocos publicados (admin) E aprovados (colaboradores)
+    Promise.all([
+      BlocosService.listar(token, { status: 'publicado', limit: 100 }),
+      BlocosService.listar(token, { status: 'aprovado', limit: 100 }),
+    ])
+      .then(([resPublicado, resAprovado]) => {
+        const publicados = resPublicado.data?.blocos || [];
+        const aprovados = resAprovado.data?.blocos || [];
+        // Combinar sem duplicados
+        const todos = [...publicados];
+        aprovados.forEach(b => { if (!todos.find(p => p.id === b.id)) todos.push(b); });
+        setBlocosDisponiveis(todos);
+      })
       .catch(() => setBlocoError('Não foi possível carregar os blocos.'))
       .finally(() => setLoadingBlocos(false));
   }, [token]);

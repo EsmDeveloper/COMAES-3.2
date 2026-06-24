@@ -134,20 +134,24 @@ export const ColaboradorController = {
         pontos = 10
       } = req.body;
 
+      // Aceitar enunciado OU descricao (ambos representam o mesmo campo no form)
+      const textoEnunciado = (enunciado || descricao || '').trim();
+
       // Validações
       if (!titulo || !titulo.trim()) {
         return respostaErro(res, 400, 'Título é obrigatório');
       }
 
-      if (!enunciado || !enunciado.trim()) {
-        return respostaErro(res, 400, 'Enunciado é obrigatório');
+      if (!textoEnunciado) {
+        return respostaErro(res, 400, 'Enunciado/Descrição é obrigatório');
       }
 
       if (!disciplina) {
         return respostaErro(res, 400, 'Disciplina é obrigatória');
       }
 
-      if (disciplina !== req.user.disciplina_colaborador) {
+      // Só bloquear disciplina se o colaborador tiver uma definida
+      if (req.user.disciplina_colaborador && disciplina !== req.user.disciplina_colaborador) {
         return respostaErro(res, 403, `Colaborador só pode criar questões de ${req.user.disciplina_colaborador}`);
       }
 
@@ -159,50 +163,76 @@ export const ColaboradorController = {
         return respostaErro(res, 400, 'Resposta correta é obrigatória');
       }
 
-      // Processar opções — aceita array de strings ou array de { texto, correta }
-      let processedOpcoes = opcoes;
-      if (Array.isArray(opcoes)) {
-        // Normalizar: se os itens forem objetos { texto, correta }, extrair só o texto
-        processedOpcoes = opcoes.map(o => (typeof o === 'object' && o !== null ? o.texto : o));
-      } else if (typeof opcoes === 'string') {
-        processedOpcoes = opcoes.split('|').map(o => o.trim()).filter(o => o);
+      // Processar opções e validar conforme o tipo
+      let processedOpcoes = [];
+      if (tipo === 'multipla_escolha') {
+        if (Array.isArray(opcoes)) {
+          processedOpcoes = opcoes
+            .map(o => (typeof o === 'object' && o !== null ? o.texto : o))
+            .map(o => (typeof o === 'string' ? o.trim() : o))
+            .filter(o => o);
+        } else if (typeof opcoes === 'string') {
+          processedOpcoes = opcoes.split('|').map(o => o.trim()).filter(o => o);
+        }
+
+        if (processedOpcoes.length < 2) {
+          return respostaErro(res, 400, 'Mínimo de 2 opções de resposta necessárias');
+        }
+
+        const respostaCorretaLimpa = resposta_correta.trim();
+        if (!processedOpcoes.includes(respostaCorretaLimpa)) {
+          return respostaErro(res, 400, 'Resposta correta deve estar entre as opções fornecidas');
+        }
+
+        // Criar questão de múltipla escolha
+        const novaQuestao = await Questao.create({
+          titulo: titulo.trim(),
+          descricao: textoEnunciado,
+          disciplina,
+          dificuldade,
+          tipo,
+          opcoes: processedOpcoes.map(o => ({
+            texto: o,
+            correta: o === respostaCorretaLimpa
+          })),
+          resposta_correta: respostaCorretaLimpa,
+          explicacao: explicacao?.trim() || null,
+          pontos: parseInt(pontos) || 10,
+          autor_id: req.user.id,
+          status_aprovacao: 'pendente',
+        });
+
+        return respostaSucesso(res, 201, {
+          id: novaQuestao.id,
+          titulo: novaQuestao.titulo,
+          status_aprovacao: novaQuestao.status_aprovacao,
+          mensagem: 'Questão criada com sucesso! Aguarde revisão do administrador.'
+        }, 'Questão criada com sucesso');
+      } else {
+        // texto / codigo — sem opções obrigatórias
+        const respostaCorretaLimpa = resposta_correta.trim();
+
+        const novaQuestao = await Questao.create({
+          titulo: titulo.trim(),
+          descricao: textoEnunciado,
+          disciplina,
+          dificuldade,
+          tipo,
+          opcoes: [],
+          resposta_correta: respostaCorretaLimpa,
+          explicacao: explicacao?.trim() || null,
+          pontos: parseInt(pontos) || 10,
+          autor_id: req.user.id,
+          status_aprovacao: 'pendente',
+        });
+
+        return respostaSucesso(res, 201, {
+          id: novaQuestao.id,
+          titulo: novaQuestao.titulo,
+          status_aprovacao: novaQuestao.status_aprovacao,
+          mensagem: 'Questão criada com sucesso! Aguarde revisão do administrador.'
+        }, 'Questão criada com sucesso');
       }
-
-      if (!Array.isArray(processedOpcoes) || processedOpcoes.length < 2) {
-        return respostaErro(res, 400, 'Mínimo de 2 opções de resposta necessárias');
-      }
-
-      if (!processedOpcoes.includes(resposta_correta.trim())) {
-        return respostaErro(res, 400, 'Resposta correta deve estar entre as opções fornecidas');
-      }
-
-      // Criar questão
-      const novaQuestao = await Questao.create({
-        titulo: titulo.trim(),
-        enunciado: enunciado.trim(),
-        descricao: descricao?.trim() || enunciado.trim(),
-        disciplina,
-        dificuldade,
-        tipo,
-        // Guardar sempre como array de objetos { texto, correta }
-        opcoes: processedOpcoes.map(o => ({
-          texto: o,
-          correta: o === resposta_correta.trim()
-        })),
-        resposta_correta: resposta_correta.trim(),
-        explicacao: explicacao?.trim() || null,
-        pontos: parseInt(pontos) || 10,
-        autor_id: req.user.id,
-        status_aprovacao: 'pendente',
-        criado_em: new Date()
-      });
-
-      respostaSucesso(res, 201, {
-        id: novaQuestao.id,
-        titulo: novaQuestao.titulo,
-        status_aprovacao: novaQuestao.status_aprovacao,
-        mensagem: 'Questão criada com sucesso! Aguarde revisão do administrador.'
-      }, 'Questão criada com sucesso');
     } catch (error) {
       console.error('Erro ao criar questão do colaborador:', error);
       respostaErro(res, 500, 'Erro ao criar questão', { detalhes: error.message });

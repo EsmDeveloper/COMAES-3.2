@@ -247,11 +247,14 @@ export const TorneoController = {
           }
         }
 
-        // Validar que cada bloco tem mínimo 5 questões
+        // Validar que cada bloco tem mínimo 5 questões (nos DOIS modelos)
+        const Questao = (await import('../models/Questao.js')).default;
         for (const tb of blocosAssociados) {
-          const totalQuestoes = await BlocoQuestaoItem.count({
-            where: { bloco_id: tb.bloco_id }
-          });
+          const [totalNovo, totalAntigo] = await Promise.all([
+            Questao.count({ where: { bloco_id: tb.bloco_id } }),
+            BlocoQuestaoItem.count({ where: { bloco_id: tb.bloco_id } })
+          ]);
+          const totalQuestoes = totalNovo + totalAntigo;
           
           if (totalQuestoes < 5) {
             return res.status(400).json({

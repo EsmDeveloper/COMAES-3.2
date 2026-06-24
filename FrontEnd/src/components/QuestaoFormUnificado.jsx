@@ -36,6 +36,15 @@ const PONTOS_BADGE_COLOR = {
  * Retorna sempre: [{texto: string, correta: boolean}]
  */
 function normalizarOpcoes(opcoes, respostaCorreta = '') {
+  // Se vier como string JSON, fazer parse primeiro
+  if (typeof opcoes === 'string') {
+    try {
+      opcoes = JSON.parse(opcoes);
+    } catch {
+      opcoes = [];
+    }
+  }
+
   if (!Array.isArray(opcoes) || opcoes.length === 0) {
     return [
       { texto: '', correta: false },
@@ -107,7 +116,18 @@ const QuestaoFormUnificado = ({
 
       // Garantir que pelo menos uma está marcada como correta
       const temCorreta = opcoes.some(o => o.correta);
-      if (!temCorreta && opcoes.length > 0) opcoes[0].correta = true;
+      if (!temCorreta && opcoes.length > 0) {
+        // Tentar encontrar pelo texto da resposta_correta
+        const idxCorreta = opcoes.findIndex(
+          o => o.texto && questao.resposta_correta &&
+               o.texto.trim().toLowerCase() === questao.resposta_correta.trim().toLowerCase()
+        );
+        if (idxCorreta >= 0) {
+          opcoes[idxCorreta].correta = true;
+        } else {
+          opcoes[0].correta = true;
+        }
+      }
 
       const respostaCorreta =
         questao.resposta_correta ||
@@ -155,6 +175,15 @@ const QuestaoFormUnificado = ({
         ...prev,
         dificuldade: value,
         pontos: PONTOS_POR_DIFICULDADE[value] || 5,
+      }));
+    } else if (name === 'tipo') {
+      // Ao mudar tipo, limpar resposta_correta para evitar estado inconsistente
+      setFormData(prev => ({
+        ...prev,
+        tipo: value,
+        resposta_correta: value === 'multipla_escolha'
+          ? (prev.opcoes.find(o => o.correta)?.texto || '')
+          : '',
       }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
@@ -219,7 +248,6 @@ const QuestaoFormUnificado = ({
     if (!formData.descricao.trim()) return 'Descrição/Enunciado é obrigatório';
     if (!formData.disciplina) return 'Disciplina é obrigatória';
     if (!formData.dificuldade) return 'Dificuldade é obrigatória';
-    if (!formData.resposta_correta?.trim()) return 'Resposta correta é obrigatória';
 
     if (formData.tipo === 'multipla_escolha') {
       const validas = formData.opcoes.filter(o => o.texto.trim());
@@ -230,6 +258,9 @@ const QuestaoFormUnificado = ({
       if (!validas.map(o => o.texto).includes(formData.resposta_correta)) {
         return 'A resposta correta deve ser uma das alternativas preenchidas';
       }
+    } else {
+      // texto / codigo — apenas garantir que a resposta correta foi preenchida
+      if (!formData.resposta_correta?.trim()) return 'Resposta correta é obrigatória';
     }
     return null;
   };
