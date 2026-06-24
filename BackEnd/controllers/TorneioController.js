@@ -519,7 +519,8 @@ export const TorneoController = {
     // 1. Verificar participação ativa do usuário
     verificarParticipacaoAtiva: async (req, res) => {
         try {
-            const { usuario_id } = req.query;
+            // Aceitar tanto URL param (/usuario/:usuario_id/...) como query param (?usuario_id=...)
+            const usuario_id = req.params.usuario_id || req.query.usuario_id;
             
             if (!usuario_id) {
                 return res.status(400).json({ message: 'usuario_id é obrigatório' });

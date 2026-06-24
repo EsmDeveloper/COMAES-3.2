@@ -598,7 +598,7 @@ export const generateCertificateRoute = async (req, res) => {
     console.error('Erro na rota de geração de certificado:', error);
     res.status(500).json({
       success: false,
-      error: 'Erro interno do servidor'
+      error: error.message || 'Erro interno do servidor'
     });
   }
 };

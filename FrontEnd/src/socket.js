@@ -1,12 +1,18 @@
 ﻿import { io } from 'socket.io-client';
 
-// Conexão singleton para Socket.IO â€” criada uma vez no carregamento do bundle
-const SOCKET_URL = `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}`;
+// Estratégia de ligação:
+// - Em desenvolvimento com proxy Vite: ligar sem URL (usa window.location.origin) com path /socket.io
+//   O Vite faz proxy de /socket.io → localhost:3002
+// - Quando VITE_API_BASE_URL está definido (IP explícito): ligar directamente ao backend
+const SOCKET_URL = import.meta.env.VITE_API_BASE_URL || undefined;
 
 const socket = io(SOCKET_URL, {
   autoConnect: true,
-  reconnectionAttempts: 5,
-  transports: ['websocket'] // força websocket (evita xhr polling que está retornando 404)
+  reconnectionAttempts: 10,
+  reconnectionDelay: 2000,
+  transports: ['polling', 'websocket'], // polling primeiro, depois upgrade — mais estável com proxy
+  path: '/socket.io',
+  withCredentials: true,
 });
 
 socket.on('connect', () => {
@@ -18,4 +24,3 @@ socket.on('connect_error', (err) => {
 });
 
 export default socket;
-

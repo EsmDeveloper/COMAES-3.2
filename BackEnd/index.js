@@ -256,14 +256,16 @@ app.use('/api/questoes', questoesAdminRoutes);
 //  Task 8.2: Registrar rotas de disciplinas para admin 
 app.use('/api/disciplinas', disciplinasAdminRoutes);
 
+// Registrar rotas de resultados do Teste de Conhecimento (ANTES do usuariosAdminRoutes para evitar 403)
+app.use('/api/resultados', resultadosTesteRoutes);
+app.use('/api/usuarios', resultadosTesteRoutes); // alias para /api/usuarios/me/melhores-desempenhos
+
 //  Task 8.2: Registrar rotas de usuários para admin (atribuir colaborador) 
 app.use('/api/usuarios', usuariosAdminRoutes);
 
-// Registrar rotas de Blocos de Questões
 app.use('/api/blocos', blocosRoutes);
 
 // ALIAS para blocos de colaboradores (compatibilidade com frontend)
-// O frontend chama /api/blocos-colaboradores, mapear para /api/blocos
 app.use('/api/blocos-colaboradores', blocosRoutes);
 
 // Registrar rotas de associação Torneio ↔ Bloco
@@ -274,11 +276,6 @@ app.use('/api/tentativas', tentativasRoutes);
 
 // Registrar rotas do Teste de Conhecimento (sistema independente)
 app.use('/api/teste-conhecimento', testeConhecimentoRoutes);
-
-// Registrar rotas de resultados do Teste de Conhecimento
-app.use('/api/resultados', resultadosTesteRoutes);
-// Alias para o endpoint de melhores desempenhos
-app.use('/api/usuarios', resultadosTesteRoutes);
 
 // Registrar rotas de notificações
 app.use('/api/notificacoes', notificacoesRoutes);
@@ -1645,8 +1642,9 @@ app.post('/api/avaliar', async (req, res) => {
     const torneio = await Torneio.findOne({ where: { status: 'ativo' } });
     if (!torneio) return res.status(404).json({ success: false, error: 'Nenhum torneio ativo' });
 
-    // Buscar participante
-    const participante = await ParticipanteTorneio.findOne({ where: { torneio_id: torneio.id, usuario_id, disciplina_competida: disciplina } });
+    // Buscar participante — normalizar disciplina para garantir match com o registo
+    const disciplinaNorm = normalizeDisciplina(disciplina);
+    const participante = await ParticipanteTorneio.findOne({ where: { torneio_id: torneio.id, usuario_id, disciplina_competida: disciplinaNorm } });
     if (!participante) return res.status(404).json({ success: false, error: 'Participante não encontrado' });
 
     // Preparar itens para IA
@@ -1655,7 +1653,7 @@ app.post('/api/avaliar', async (req, res) => {
     // Chamar serviço IA
     let feedbacks = [];
     try {
-      feedbacks = await iaEvaluators.evaluate(disciplina, items);
+      feedbacks = await iaEvaluators.evaluate(disciplinaNorm, items);
     } catch (err) {
       console.error('Erro IA:', err.message || err);
       return res.status(500).json({ success: false, error: 'Erro ao avaliar com IA', details: err.message });

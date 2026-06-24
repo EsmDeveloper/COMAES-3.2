@@ -1,11 +1,11 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import { FaSignOutAlt } from "react-icons/fa";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
-// ImportaçÃµes para certificados e vencedores
+// Importações para certificados e vencedores
 import CertIngles from '../../../certificados/CertIngles';
 import useCertificado from '../../../hooks/useCertificado';
 import ModalVencedores from '../../../components/ModalVencedores';
@@ -15,7 +15,7 @@ import TournamentFinishedModal from '../../../components/TournamentFinishedModal
 import useTorneioParticipante from '../../../hooks/useTorneioParticipante';
 
 const TEMPO_QUESTAO = 120;
-const DISCIPLINA = 'InglÃªs';
+const DISCIPLINA = 'Inglês';
 
 const usefulPhrases = [
   "In my opinion,", "Firstly,", "Secondly,", "Furthermore,", 
@@ -48,7 +48,7 @@ export default function InglesOriginal() {
     dentroDoPeriodo,
     setDentroDoPeriodo,
     actualizarParticipante,
-  } = useTorneioParticipante({ disciplina: 'InglÃªs', disciplinaSlug: 'ingles', user, token });
+  } = useTorneioParticipante({ disciplina: 'Inglês', disciplinaSlug: 'ingles', user, token });
 
   // Estados locais
   const [progresso, setProgresso] = useState(0);
@@ -77,14 +77,14 @@ export default function InglesOriginal() {
     certificadoData, 
     fecharCertificado,
     abrirCertificado 
-  } = useCertificado('InglÃªs', participante, ranking);
+  } = useCertificado('Inglês', participante, ranking);
 
   // Hook para vencedores
   const { 
     mostrarVencedores, 
     vencedores, 
     fecharVencedores 
-  } = useVencedores('InglÃªs', ranking, torneio, participante);
+  } = useVencedores('Inglês', ranking, torneio, participante);
 
   const calcularTempoRestante = (torneioData) => {
     if (!torneioData?.termina_em) {
@@ -228,7 +228,7 @@ export default function InglesOriginal() {
   // Buscar questÃµes do banco de dados
   const buscarQuestoes = async (torneioId) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/torneios/${torneioId}/questoes/ingles`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'}/torneios/${torneioId}/questoes/ingles`);
       const data = await response.json();
       
       if (data.success && data.data.length > 0) {
@@ -348,7 +348,7 @@ export default function InglesOriginal() {
     };
 
     try {
-      const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/avaliar`, {
+      const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'}/api/avaliar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
         body: JSON.stringify(payload)
@@ -387,7 +387,7 @@ export default function InglesOriginal() {
       <div className="flex justify-center items-center h-screen bg-gray-100">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando torneio de InglÃªs...</p>
+          <p className="mt-4 text-gray-600">Carregando torneio de Inglês...</p>
         </div>
       </div>
     );
@@ -399,7 +399,7 @@ export default function InglesOriginal() {
         <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-md">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Torneio Indisponível</h2>
           <p className="text-gray-600 mb-6">
-            {error || "Não há torneio de InglÃªs ativo no momento."}
+            {error || "Não há torneio de Inglês ativo no momento."}
           </p>
           <button 
             onClick={() => navigate("/entrar-no-torneio")}
@@ -1014,7 +1014,7 @@ export default function InglesOriginal() {
         isOpen={mostrarVencedores}
         onClose={fecharVencedores}
         vencedores={vencedores}
-        disciplina="InglÃªs"
+        disciplina="Inglês"
         torneio={torneio}
       />
     </div>
