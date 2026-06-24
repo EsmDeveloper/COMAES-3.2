@@ -204,14 +204,14 @@ export const criarBlocoColaborador = async (req, res) => {
       return respostaErro(res, 400, 'Dados inválidos', erros);
     }
 
-    // Criar bloco com status 'pendente' (aguardando aprovação)
+    // Criar bloco com status 'rascunho' (colaborador ainda está a preparar)
     const novoBloco = await BlocoQuestoes.create({
       titulo: titulo.trim(),
       descricao: descricao ? descricao.trim() : null,
       disciplina: colaboradorDisciplina,
       dificuldade: req.body.dificuldade || 'medio',
       criado_por: req.user.id,
-      status: 'pendente', // 🔴 NOVO STATUS: pendente (aguardando revisão do admin)
+      status: 'rascunho', // só passa a 'pendente' quando o colaborador submeter
     });
 
     respostaSucesso(res, 201, novoBloco, 
@@ -245,8 +245,8 @@ export const listarBlocosColaborador = async (req, res) => {
       where.disciplina = req.user.disciplina_colaborador;
     }
 
-    // Filtrar por status (pendente, aprovado, rejeitado)
-    if (status && ['pendente', 'aprovado', 'rejeitado'].includes(status)) {
+    // Filtrar por status (rascunho, pendente, aprovado, rejeitado)
+    if (status && ['rascunho', 'pendente', 'aprovado', 'rejeitado'].includes(status)) {
       where.status = status;
     }
 
@@ -296,6 +296,9 @@ export const listarBlocosColaborador = async (req, res) => {
     // Estatísticas
     const pendentes = await BlocoQuestoes.count({
       where: { criado_por: req.user.id, status: 'pendente' }
+    });
+    const rascunhos = await BlocoQuestoes.count({
+      where: { criado_por: req.user.id, status: 'rascunho' }
     });
     const aprovados = await BlocoQuestoes.count({
       where: { criado_por: req.user.id, status: 'aprovado' }
@@ -392,10 +395,10 @@ export const atualizarBlocoColaborador = async (req, res) => {
       return respostaErro(res, 404, 'Bloco não encontrado');
     }
 
-    // ⚠️ IMPORTANTE: Pode editar apenas se status = 'pendente'
-    if (bloco.status !== 'pendente') {
+    // ⚠️ IMPORTANTE: Pode editar apenas se status = 'rascunho' ou 'rejeitado'
+    if (!['rascunho', 'rejeitado'].includes(bloco.status)) {
       return respostaErro(res, 403, 
-        `Bloco com status '${bloco.status}' não pode ser editado. Apenas blocos pendentes podem ser editados.`);
+        `Bloco com status '${bloco.status}' não pode ser editado. Apenas blocos em rascunho ou rejeitados podem ser editados.`);
     }
 
     // Atualizar campos
@@ -431,10 +434,10 @@ export const deletarBlocoColaborador = async (req, res) => {
       return respostaErro(res, 404, 'Bloco não encontrado');
     }
 
-    // ⚠️ IMPORTANTE: Pode deletar apenas se status = 'pendente' ou 'rejeitado'
-    if (!['pendente', 'rejeitado'].includes(bloco.status)) {
+    // ⚠️ IMPORTANTE: Pode deletar apenas se status = 'rascunho', 'pendente' ou 'rejeitado'
+    if (!['rascunho', 'pendente', 'rejeitado'].includes(bloco.status)) {
       return respostaErro(res, 403, 
-        `Bloco com status '${bloco.status}' não pode ser deletado. Apenas blocos pendentes ou rejeitados podem ser deletados.`);
+        `Bloco com status '${bloco.status}' não pode ser deletado. Apenas blocos em rascunho, pendentes ou rejeitados podem ser deletados.`);
     }
 
     await bloco.destroy();
@@ -467,10 +470,10 @@ export const submeterBlocoColaborador = async (req, res) => {
       return respostaErro(res, 404, 'Bloco não encontrado');
     }
 
-    // ⚠️ IMPORTANTE: Pode submeter apenas blocos com status 'pendente'
-    if (bloco.status !== 'pendente') {
+    // ⚠️ Pode submeter apenas blocos em 'rascunho' ou 'rejeitado' (para re-submissão)
+    if (!['rascunho', 'rejeitado'].includes(bloco.status)) {
       return respostaErro(res, 403, 
-        `Bloco com status '${bloco.status}' não pode ser submetido. Apenas blocos pendentes podem ser submetidos.`);
+        `Bloco com status '${bloco.status}' não pode ser submetido.`);
     }
 
     // Validar que o bloco tem pelo menos 1 questão
@@ -483,8 +486,8 @@ export const submeterBlocoColaborador = async (req, res) => {
         'Bloco deve ter pelo menos uma questão antes de ser submetido para aprovação.');
     }
 
-    // Bloco já está em status 'pendente' (aguardando aprovação)
-    // Apenas confirmar que foi submetido
+    // Mudar status para 'pendente' — agora aparece para o admin rever
+    bloco.status = 'pendente';
     await bloco.save();
 
     respostaSucesso(res, 200, bloco, 
@@ -525,8 +528,8 @@ export const adicionarQuestaoAoBlocoColaborador = async (req, res) => {
 
     console.log(`[SUCCESS] Bloco encontrado: ${bloco.id}, status: ${bloco.status}`);
 
-    // ⚠️ Pode adicionar questões apenas se bloco está em 'pendente'
-    if (bloco.status !== 'pendente') {
+    // ⚠️ Pode adicionar questões apenas se bloco está em 'rascunho' ou 'rejeitado'
+    if (!['rascunho', 'rejeitado'].includes(bloco.status)) {
       return respostaErro(res, 403, 
         `Não é possível adicionar questões a um bloco com status '${bloco.status}'.`);
     }
@@ -604,8 +607,8 @@ export const removerQuestaoDoBlocoColaborador = async (req, res) => {
       return respostaErro(res, 404, 'Bloco não encontrado');
     }
 
-    // ⚠️ Pode remover questões apenas se bloco está em 'pendente'
-    if (bloco.status !== 'pendente') {
+    // ⚠️ Pode remover questões apenas se bloco está em 'rascunho' ou 'rejeitado'
+    if (!['rascunho', 'rejeitado'].includes(bloco.status)) {
       return respostaErro(res, 403, 
         `Não é possível remover questões de um bloco com status '${bloco.status}'.`);
     }
@@ -1069,8 +1072,23 @@ export const listarBlocosPendentesAdmin = async (req, res) => {
           as: 'aprovadorAdmin',
           attributes: ['id', 'nome', 'email'],
           foreignKey: 'aprovado_por_id'
+        },
+        {
+          model: Questao,
+          as: 'questoesNovas',
+          attributes: ['id', 'titulo', 'descricao', 'dificuldade', 'tipo', 'pontos', 'status_aprovacao']
         }
       ]
+    });
+
+    // Formatar resposta — adicionar total_questoes e alias questoes
+    const blocosFormatados = rows.map(bloco => {
+      const blocoJSON = bloco.toJSON();
+      blocoJSON.questoes = blocoJSON.questoesNovas || [];
+      blocoJSON.total_questoes = blocoJSON.questoes.length;
+      blocoJSON.autor_nome = blocoJSON.criador?.nome || null;
+      delete blocoJSON.questoesNovas;
+      return blocoJSON;
     });
 
     // Estatísticas
@@ -1079,7 +1097,7 @@ export const listarBlocosPendentesAdmin = async (req, res) => {
     const totalRejeitados = await BlocoQuestoes.count({ where: { status: 'rejeitado' } });
 
     respostaSucesso(res, 200, {
-      blocos: rows,
+      blocos: blocosFormatados,
       paginacao: {
         pagina: parseInt(pagina),
         limite: parseInt(limite),

@@ -1,15 +1,16 @@
-/**
+ï»¿/**
  * BlocoQuestoesManager.jsx
- * Gestão de Blocos de Questáães â Fusão das melhores práticas:
- * - Persistáªncia via API (banco de dados)
- * - Suporte a máºltiplos contextos (torneio/teste)
- * - UI rica com auditoria, progresso e associaçáães
+ * Gestï¿½o de Blocos de Questï¿½ï¿½es ï¿½ Fusï¿½o das melhores prï¿½ticas:
+ * - Persistï¿½ncia via API (banco de dados)
+ * - Suporte a mï¿½ltiplos contextos (torneio/teste)
+ * - UI rica com auditoria, progresso e associaï¿½ï¿½ï¿½es
  * - Performance otimizada
  */
 import React, { useState, useEffect, useCallback, useReducer } from 'react';
 import { useAuth } from '../context/AuthContext';
 import CreateQuestaoForm from './CreateQuestaoForm';
 import EditQuestaoForm from './EditQuestaoForm';
+import QuestaoFormUnificado from '../components/QuestaoFormUnificado';
 import CreateQuestaoTesteForm from './CreateQuestaoTesteForm';
 import EditQuestaoTesteForm from './EditQuestaoTesteForm';
 import ConfirmModal from '../components/ConfirmModal';
@@ -21,17 +22,17 @@ import {
   Lock, RefreshCw, Link2, X, Eye, Unlink,
 } from 'lucide-react';
 
-// ââ Constantes ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ï¿½ï¿½ Constantes ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 const DISCIPLINAS = [
-  { id: 'matematica',  label: 'Matemática',  cor: 'blue'   },
-  { id: 'programacao', label: 'Programação', cor: 'indigo' },
-  { id: 'ingles',      label: 'Ingláªs',      cor: 'cyan'   },
+  { id: 'matematica',  label: 'Matemï¿½tica',  cor: 'blue'   },
+  { id: 'programacao', label: 'Programaï¿½ï¿½o', cor: 'indigo' },
+  { id: 'ingles',      label: 'Inglï¿½s',      cor: 'cyan'   },
 ];
 
 const DIFICULDADES = [
-  { id: 'facil',   label: 'Fácil',   cor: 'blue'  },
-  { id: 'medio',   label: 'Médio',   cor: 'indigo' },
-  { id: 'dificil', label: 'Difácil', cor: 'cyan'    },
+  { id: 'facil',   label: 'Fï¿½cil',   cor: 'blue'  },
+  { id: 'medio',   label: 'Mï¿½dio',   cor: 'indigo' },
+  { id: 'dificil', label: 'Difï¿½cil', cor: 'cyan'    },
 ];
 
 const COR_DISCIPLINA = {
@@ -48,7 +49,7 @@ const COR_DIFICULDADE = {
 
 const MAX_QUESTOES_POR_BLOCO = 30;
 
-// ââ Reducer para gerenciar estado complexo âââââââââââââââââââââââââââââââââââ
+// ï¿½ï¿½ Reducer para gerenciar estado complexo ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 const initialState = {
   blocos: [],
   questoes: [],
@@ -97,7 +98,7 @@ function appReducer(state, action) {
   }
 }
 
-// ââ Modal de criação/edição de bloco ââââââââââââââââââââââââââââââââââââââââââ
+// ï¿½ï¿½ Modal de criaï¿½ï¿½o/ediï¿½ï¿½o de bloco ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 function BlocoFormModal({ bloco, contexto, onClose, onSave, loading }) {
   const [titulo, setTitulo] = useState(bloco?.titulo || '');
   const [disciplina, setDisciplina] = useState(bloco?.disciplina || 'matematica');
@@ -108,7 +109,7 @@ function BlocoFormModal({ bloco, contexto, onClose, onSave, loading }) {
 
   const handleSave = () => {
     if (!titulo.trim()) {
-      setErro('O tátulo é obrigatório.');
+      setErro('O tï¿½tulo ï¿½ obrigatï¿½rio.');
       return;
     }
     onSave({
@@ -126,7 +127,7 @@ function BlocoFormModal({ bloco, contexto, onClose, onSave, loading }) {
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-blue-50 rounded-t-2xl">
           <h2 className="text-lg font-bold text-slate-800">
-            {bloco ? 'Editar Bloco' : 'Criar Bloco de Questáães'}
+            {bloco ? 'Editar Bloco' : 'Criar Bloco de Questï¿½ï¿½es'}
           </h2>
           <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100">
             <X className="w-5 h-5" />
@@ -139,22 +140,22 @@ function BlocoFormModal({ bloco, contexto, onClose, onSave, loading }) {
             </div>
           )}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Tátulo do bloco *</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Tï¿½tulo do bloco *</label>
             <input
               type="text"
               value={titulo}
               onChange={e => setTitulo(e.target.value)}
-              placeholder="Ex: álgebra Avançada"
+              placeholder="Ex: ï¿½lgebra Avanï¿½ada"
               className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Descrição</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Descriï¿½ï¿½o</label>
             <textarea
               value={descricao}
               onChange={e => setDescricao(e.target.value)}
               rows={2}
-              placeholder="Descrição opcional do bloco..."
+              placeholder="Descriï¿½ï¿½o opcional do bloco..."
               className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             />
           </div>
@@ -188,7 +189,7 @@ function BlocoFormModal({ bloco, contexto, onClose, onSave, loading }) {
               className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="rascunho"> Rascunho</option>
-              <option value="publicado">â Publicado</option>
+              <option value="publicado">ï¿½ Publicado</option>
             </select>
             <p className="text-xs text-slate-400 mt-1">Apenas blocos publicados podem ser associados a torneios.</p>
           </div>
@@ -214,7 +215,7 @@ function BlocoFormModal({ bloco, contexto, onClose, onSave, loading }) {
   );
 }
 
-// ââ Card de Bloco (versão melhorada) ââââââââââââââââââââââââââââââââââââââââââ
+// ï¿½ï¿½ Card de Bloco (versï¿½o melhorada) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 function BlocoCard({
   bloco,
   questoes,
@@ -235,10 +236,10 @@ function BlocoCard({
   const [questoesDoBloco, setQuestoesDoBloco] = useState([]);
   const [carregandoQuestoes, setCarregandoQuestoes] = useState(false);
 
-  // â NOVO: Se o bloco já vem com questões do backend, carregar automaticamente
+  // ï¿½ NOVO: Se o bloco jï¿½ vem com questï¿½es do backend, carregar automaticamente
   useEffect(() => {
     if (bloco?.questoes && Array.isArray(bloco.questoes) && bloco.questoes.length > 0 && questoesDoBloco.length === 0) {
-      console.log(` Questáães já carregadas no bloco ${bloco.id}:`, bloco.questoes);
+      console.log(` Questï¿½ï¿½es jï¿½ carregadas no bloco ${bloco.id}:`, bloco.questoes);
       setQuestoesDoBloco(bloco.questoes);
     }
   }, [bloco?.id, bloco?.questoes, questoesDoBloco.length]);
@@ -251,15 +252,15 @@ function BlocoCard({
   const count = bloco.total_questoes ?? questoesDoBloco.length;
   const cheio = count >= MAX_QUESTOES_POR_BLOCO;
 
-  // â Carregar questões quando expandir o bloco
+  // ï¿½ Carregar questï¿½es quando expandir o bloco
   const handleToggleExpand = async () => {
     if (!expandido && questoesDoBloco.length === 0 && bloco.total_questoes > 0) {
-      // â Se já váªm do bloco (novo formato), não precisa refazer a requisição
+      // ï¿½ Se jï¿½ vï¿½m do bloco (novo formato), nï¿½o precisa refazer a requisiï¿½ï¿½o
       if (bloco?.questoes && Array.isArray(bloco.questoes)) {
-        console.log(`â Questáães já estão no bloco ${bloco.id}, usando do estado`);
+        console.log(`ï¿½ Questï¿½ï¿½es jï¿½ estï¿½o no bloco ${bloco.id}, usando do estado`);
         setQuestoesDoBloco(bloco.questoes);
       } else {
-        // Fallback: carregar questões do backend (compatibilidade com blocos antigos)
+        // Fallback: carregar questï¿½es do backend (compatibilidade com blocos antigos)
         setCarregandoQuestoes(true);
         try {
           const response = await fetch(`${apiBase}/api/blocos/${bloco.id}`, {
@@ -269,18 +270,18 @@ function BlocoCard({
             const data = await response.json();
             console.log(` Resposta bruta da API para bloco ${bloco.id}:`, data);
             
-            // â SUPORTAR MáLTIPLOS FORMATOS:
+            // ï¿½ SUPORTAR Mï¿½LTIPLOS FORMATOS:
             const questoesCarregadas = 
               data.data?.questoes ||           
               data.questoes ||                  
               data.dados?.questoes ||           
               [];
             
-            console.log(`â Questáães do bloco ${bloco.id} (${questoesCarregadas.length} encontradas):`, questoesCarregadas);
+            console.log(`ï¿½ Questï¿½ï¿½es do bloco ${bloco.id} (${questoesCarregadas.length} encontradas):`, questoesCarregadas);
             setQuestoesDoBloco(questoesCarregadas);
           }
         } catch (error) {
-          console.error(`â Erro ao carregar questões do bloco:`, error);
+          console.error(`ï¿½ Erro ao carregar questï¿½es do bloco:`, error);
         } finally {
           setCarregandoQuestoes(false);
         }
@@ -295,7 +296,7 @@ function BlocoCard({
 
   return (
     <div className={`rounded-2xl border-2 ${corDisc.border} ${corDisc.bg} overflow-hidden transition-all duration-200`}>
-      {/* Cabeçalho do bloco */}
+      {/* Cabeï¿½alho do bloco */}
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
@@ -309,7 +310,7 @@ function BlocoCard({
               </span>
               {bloco.padrao && (
                 <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 flex items-center gap-1">
-                  <Lock className="w-3 h-3" /> Padrão
+                  <Lock className="w-3 h-3" /> Padrï¿½o
                 </span>
               )}
               <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${(bloco.status === 'publicado' || bloco.status === 'aprovado') ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
@@ -322,16 +323,16 @@ function BlocoCard({
             )}
             <p className="text-xs text-slate-500 mt-0.5">
               <span className={`font-semibold ${cheio ? 'text-red-600' : 'text-slate-700'}`}>{count}</span>
-              /{MAX_QUESTOES_POR_BLOCO} questões
+              /{MAX_QUESTOES_POR_BLOCO} questï¿½es
               {contexto === 'torneio' && torneiosAssociados.length > 0 && (
                 <span className="ml-2 text-blue-600">
-                  · {torneiosAssociados.length} torneio{torneiosAssociados.length > 1 ? 's' : ''}
+                  ï¿½ {torneiosAssociados.length} torneio{torneiosAssociados.length > 1 ? 's' : ''}
                 </span>
               )}
             </p>
           </div>
 
-          {/* Açáães do bloco */}
+          {/* Aï¿½ï¿½ï¿½es do bloco */}
           <div className="flex items-center gap-1 flex-shrink-0">
             {contexto === 'torneio' && (
               <button
@@ -384,17 +385,17 @@ function BlocoCard({
         </div>
       </div>
 
-      {/* Painel de associação de torneios */}
+      {/* Painel de associaï¿½ï¿½o de torneios */}
       {showAssoc && contexto === 'torneio' && (
         <div className="border-t border-white/50 bg-white/70 px-4 py-3">
           <p className="text-xs font-semibold text-slate-600 mb-2 flex items-center gap-1">
             <Link2 className="w-3 h-3" /> Associar a torneios ativos
           </p>
           {(bloco.status !== 'publicado' && bloco.status !== 'aprovado') && (
-            <p className="text-xs text-amber-600 mb-2">â  Publique o bloco antes de associar a torneios.</p>
+            <p className="text-xs text-amber-600 mb-2">ï¿½ Publique o bloco antes de associar a torneios.</p>
           )}
           {torneios.length === 0 ? (
-            <p className="text-xs text-slate-400">Nenhum torneio disponável.</p>
+            <p className="text-xs text-slate-400">Nenhum torneio disponï¿½vel.</p>
           ) : (
             <div className="space-y-1 max-h-48 overflow-y-auto">
               {torneios.map(t => {
@@ -422,23 +423,23 @@ function BlocoCard({
         </div>
       )}
 
-      {/* Lista de questões expandida */}
+      {/* Lista de questï¿½es expandida */}
       {expandido && (
         <div className="border-t border-white/50 bg-white/80">
           {carregandoQuestoes ? (
             <div className="px-4 py-6 text-center">
               <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-500 border-t-blue-700 mx-auto mb-2" />
-              <p className="text-sm text-slate-500">Carregando questões...</p>
+              <p className="text-sm text-slate-500">Carregando questï¿½es...</p>
             </div>
           ) : questoesDoBloco.length === 0 ? (
             <div className="px-4 py-6 text-center">
-              <p className="text-sm text-slate-400">Nenhuma questão neste bloco.</p>
+              <p className="text-sm text-slate-400">Nenhuma questï¿½o neste bloco.</p>
               {!cheio && (
                 <button
                   onClick={() => onAddQuestao(bloco)}
                   className="mt-2 text-xs text-blue-600 hover:underline flex items-center gap-1 mx-auto"
                 >
-                  <Plus className="w-3 h-3" /> Adicionar questão
+                  <Plus className="w-3 h-3" /> Adicionar questï¿½o
                 </button>
               )}
             </div>
@@ -453,14 +454,14 @@ function BlocoCard({
                     </p>
                     <p className="text-xs text-slate-400">
                       {q.pontos} pts
-                      {q.tipo && ` · ${q.tipo}`}
+                      {q.tipo && ` ï¿½ ${q.tipo}`}
                     </p>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <button
                       onClick={() => onEditQuestao(q, bloco)}
                       className="p-1 rounded text-blue-400 hover:bg-blue-50 transition-colors"
-                      title="Editar questão"
+                      title="Editar questï¿½o"
                     >
                       <Edit className="w-3.5 h-3.5" />
                     </button>
@@ -477,7 +478,7 @@ function BlocoCard({
             </div>
           )}
 
-          {/* Botão adicionar questão */}
+          {/* Botï¿½o adicionar questï¿½o */}
           <div className="px-4 py-2 border-t border-slate-100">
             <button
               onClick={() => onAddQuestao(bloco)}
@@ -489,7 +490,7 @@ function BlocoCard({
               }`}
             >
               <Plus className="w-3.5 h-3.5" />
-              {cheio ? `Limite de ${MAX_QUESTOES_POR_BLOCO} questões atingido` : 'Adicionar questão'}
+              {cheio ? `Limite de ${MAX_QUESTOES_POR_BLOCO} questï¿½es atingido` : 'Adicionar questï¿½o'}
             </button>
           </div>
         </div>
@@ -498,10 +499,10 @@ function BlocoCard({
   );
 }
 
-// ââ Componente principal ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ï¿½ï¿½ Componente principal ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
   const { token } = useAuth();
-  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
 
   const [state, dispatch] = useReducer(appReducer, initialState);
   const [aba, setAba] = useState('blocos');
@@ -535,20 +536,20 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
     }
   };
 
-  // ââ Carregar dados do backend âââââââââââââââââââââââââââââââââââââââââââââââ
+  // ï¿½ï¿½ Carregar dados do backend ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   const carregarQuestoes = useCallback(async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
       let lista = [];
       if (contexto === 'torneio') {
         const res = await axios.get(`${apiBase}/api/questoes`, {
-          params: { status_aprovacao: 'aprovada' }, // â FILTRO: Apenas questões aprovadas
+          params: { status_aprovacao: 'aprovada' }, // ï¿½ FILTRO: Apenas questï¿½es aprovadas
           headers: { Authorization: `Bearer ${token}` },
         });
         lista = res.data.dados?.questoes || [];
       } else {
         const res = await axios.get(`${apiBase}/api/teste-conhecimento/questoes`, {
-          params: { status_aprovacao: 'aprovada' }, // â FILTRO: Apenas questões aprovadas
+          params: { status_aprovacao: 'aprovada' }, // ï¿½ FILTRO: Apenas questï¿½es aprovadas
           headers: { Authorization: `Bearer ${token}` },
         });
         lista = res.data.data || [];
@@ -556,7 +557,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
       dispatch({ type: 'SET_QUESTOES', payload: lista });
       return lista;
     } catch (err) {
-      showMsg('Erro ao carregar questões.');
+      showMsg('Erro ao carregar questï¿½es.');
       console.error(err);
       return [];
     } finally {
@@ -582,16 +583,16 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
           const res = await BlocosService.listar(token, params);
           console.log('[MEDAL] Resposta do backend:', res);
           
-          // â Acessar blocos corretamente da resposta
-          // O backend pode retornar em vários formatos:
+          // ï¿½ Acessar blocos corretamente da resposta
+          // O backend pode retornar em vï¿½rios formatos:
           // 1. { blocos: Array, total, page, ... } - direto
           // 2. { data: { blocos: Array } } - aninhado em data
           // 3. { dados: [...] } - direto como array em dados
           // 4. { data: [...] } - direto como array em data
           const blocosBackend = res?.blocos || res?.data?.blocos || res?.dados || res?.data || [];
-          console.log(`[MEDAL] Blocos extraídos:`, blocosBackend);
+          console.log(`[MEDAL] Blocos extraï¿½dos:`, blocosBackend);
           
-          // Se ainda não é um array, tenta verificar se é array diretamente
+          // Se ainda nï¿½o ï¿½ um array, tenta verificar se ï¿½ array diretamente
           const blocoArray = Array.isArray(blocosBackend) ? blocosBackend : [];
           
           if (blocoArray.length > 0) {
@@ -603,7 +604,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
               console.log(`  Bloco ${idx}: id=${b.id}, titulo=${b.titulo}, questoes=${b.questoes?.length || 0}, total_questoes=${b.total_questoes}`);
             });
             
-            // Carregar questões para cada bloco (evitar N+1)
+            // Carregar questï¿½es para cada bloco (evitar N+1)
             const questoesMap = new Map();
             for (const bloco of blocoArray) {
               if (bloco.questoes && bloco.questoes.length > 0) {
@@ -614,18 +615,18 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
             if (questoesUnicas.length > 0) {
               dispatch({ type: 'SET_QUESTOES', payload: questoesUnicas });
             }
-            console.log(`â Blocos carregados com sucesso do backend:`, blocoArray.length, `com ${questoesUnicas.length} questões áºnicas`);
+            console.log(`ï¿½ Blocos carregados com sucesso do backend:`, blocoArray.length, `com ${questoesUnicas.length} questï¿½es ï¿½nicas`);
             return;
           } else {
-            console.log(`â  Backend retornou vazio, usando padrão`);
+            console.log(`ï¿½ Backend retornou vazio, usando padrï¿½o`);
           }
         } catch (backendErr) {
-          console.error(`â Erro ao chamar backend:`, backendErr.message);
+          console.error(`ï¿½ Erro ao chamar backend:`, backendErr.message);
           throw backendErr;
         }
       }
       
-      // Sem fallback - mostrar lista vazia quando não há blocos
+      // Sem fallback - mostrar lista vazia quando nï¿½o hï¿½ blocos
       dispatch({ type: 'SET_BLOCOS', payload: [] });
     } catch (err) {
       console.error('Erro ao carregar blocos:', err);
@@ -644,7 +645,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
       const lista = Array.isArray(res.data) ? res.data : (res.data?.data || []);
       dispatch({ type: 'SET_TORNEIOS', payload: lista });
       
-      // Construir mapa de associaçáães
+      // Construir mapa de associaï¿½ï¿½ï¿½es
       const mapa = {};
       lista.forEach(torneio => {
         if (torneio.blocos) {
@@ -667,7 +668,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
     carregarTorneios();
   }, [carregarBlocos, carregarTorneios]);
 
-  // ââ Handlers de Bloco ââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ï¿½ï¿½ Handlers de Bloco ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   const gerarBlocoesPadrao = (ctx) => {
     const blocos = [];
     let id = 1;
@@ -675,7 +676,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
       for (const dif of DIFICULDADES) {
         blocos.push({
           id: `padrao_${disc.id}_${dif.id}`,
-          titulo: `${disc.label} â ${dif.label}`,
+          titulo: `${disc.label} ï¿½ ${dif.label}`,
           disciplina: disc.id,
           dificuldade: dif.id,
           contexto: ctx,
@@ -746,11 +747,11 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
     try {
       if (BlocosService && token && !blocoParaDeletar.padrao) {
         await BlocosService.deletar(token, blocoParaDeletar.id);
-        showMsg('Bloco excluádo.');
+        showMsg('Bloco excluï¿½do.');
         await carregarBlocos();
       } else if (!blocoParaDeletar.padrao) {
         dispatch({ type: 'DELETE_BLOCO', payload: blocoParaDeletar.id });
-        showMsg('Bloco excluádo localmente.');
+        showMsg('Bloco excluï¿½do localmente.');
       }
       setBlocoParaDeletar(null);
       setShowDeleteBloco(false);
@@ -761,7 +762,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
     }
   };
 
-  // ââ Handlers de Associação ââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ï¿½ï¿½ Handlers de Associaï¿½ï¿½o ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   const handleToggleAssoc = async (blocoId, torneioId) => {
     const atual = state.assocMap[blocoId] || [];
     const jaAssociado = atual.includes(torneioId);
@@ -787,11 +788,11 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
         dispatch({ type: 'SET_ASSOC_MAP', payload: novoMap });
       }
     } catch (err) {
-      showMsg(err.message || 'Erro ao alterar associação');
+      showMsg(err.message || 'Erro ao alterar associaï¿½ï¿½o');
     }
   };
 
-  // ââ Handlers de Questão âââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ï¿½ï¿½ Handlers de Questï¿½o ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   const handleQuestaoAdicionada = async (questao, bloco) => {
     if (!questao?.id || !bloco) {
       setShowCreateQuestao(false);
@@ -803,7 +804,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
     try {
       if (BlocosService && token && !bloco.padrao) {
         await BlocosService.adicionarQuestao(token, bloco.id, questao.id);
-        showMsg('Questão adicionada ao bloco!');
+        showMsg('Questï¿½o adicionada ao bloco!');
         await carregarBlocos();
       } else {
         // Fallback local
@@ -813,11 +814,11 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
             : b
         );
         dispatch({ type: 'SET_BLOCOS', payload: blocosAtualizados });
-        showMsg('Questão adicionada localmente!');
+        showMsg('Questï¿½o adicionada localmente!');
       }
     } catch (err) {
-      if (!err.message?.includes('já está')) {
-        showMsg(err.message || 'Erro ao adicionar questão');
+      if (!err.message?.includes('jï¿½ estï¿½')) {
+        showMsg(err.message || 'Erro ao adicionar questï¿½o');
       }
     } finally {
       setSaving(false);
@@ -829,7 +830,30 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
   const handleQuestaoEditada = async () => {
     setShowEditQuestao(false);
     setQuestaoEditando(null);
-    showMsg('Questão atualizada! Os blocos foram re-sincronizados.');
+
+  const handleSalvarNovaQuestaoBloco = async (payload) => {
+    const response = await fetch(`${apiBase}/api/questoes`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.mensagem || data.message || 'Erro ao criar questÃ£o');
+    await handleQuestaoAdicionada(data.dados || data, blocoAlvo);
+  };
+
+  const handleSalvarEdicaoQuestao = async (payload) => {
+    if (!questaoEditando) return;
+    const response = await fetch(`${apiBase}/api/questoes/${questaoEditando.id}`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.mensagem || data.message || 'Erro ao editar questÃ£o');
+    await handleQuestaoEditada();
+  };
+    showMsg('Questï¿½o atualizada! Os blocos foram re-sincronizados.');
     // sem fallback
     await carregarBlocos();
   };
@@ -842,7 +866,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
     try {
       if (BlocosService && token && !bloco.padrao) {
         await BlocosService.removerQuestao(token, bloco.id, questao.id);
-        showMsg('Questão removida do bloco.');
+        showMsg('Questï¿½o removida do bloco.');
         await carregarBlocos();
       } else if (!bloco.padrao) {
         // Fallback local
@@ -852,10 +876,10 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
             : b
         );
         dispatch({ type: 'SET_BLOCOS', payload: blocosAtualizados });
-        showMsg('Questão removida localmente.');
+        showMsg('Questï¿½o removida localmente.');
       }
     } catch (err) {
-      showMsg(err.message || 'Erro ao remover questão');
+      showMsg(err.message || 'Erro ao remover questï¿½o');
     } finally {
       setSaving(false);
       setShowRemoverQuestao(false);
@@ -863,7 +887,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
     }
   };
 
-  // ââ Filtros e renderização ââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ï¿½ï¿½ Filtros e renderizaï¿½ï¿½o ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   const blocosFiltrados = state.blocos.filter(b => {
     if (filtroDisc && b.disciplina !== filtroDisc) return false;
     if (filtroDif && b.dificuldade !== filtroDif) return false;
@@ -892,11 +916,11 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
             {isTorneio ? <Trophy className="w-8 h-8 text-blue-600" /> : <BookOpen className="w-8 h-8 text-purple-600" />}
             <div>
               <h2 className="text-2xl font-bold text-slate-800">
-                {isTorneio ? 'Questáães dos Torneios' : 'Teste de Conhecimento'}
+                {isTorneio ? 'Questï¿½ï¿½es dos Torneios' : 'Teste de Conhecimento'}
               </h2>
               <p className="text-sm text-slate-500">
-                {state.blocos.length} blocos · {state.blocos.reduce((total, b) => total + (b.questoes?.length || b.total_questoes || 0), 0)} questões
-                {BlocosService && ' · Persistido no banco de dados'}
+                {state.blocos.length} blocos ï¿½ {state.blocos.reduce((total, b) => total + (b.questoes?.length || b.total_questoes || 0), 0)} questï¿½es
+                {BlocosService && ' ï¿½ Persistido no banco de dados'}
               </p>
             </div>
           </div>
@@ -917,7 +941,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
                   : 'bg-gradient-to-r from-indigo-500 to-cyan-600 hover:from-indigo-600 hover:to-cyan-700'
               }`}
             >
-              <Layers className="w-4 h-4" /> Criar Bloco de Questões
+              <Layers className="w-4 h-4" /> Criar Bloco de Questï¿½es
             </button>
           </div>
         </div>
@@ -935,7 +959,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
         </div>
       )}
 
-      {/* Abas removidas - Os botáães principais acima já fazem esse trabalho */}
+      {/* Abas removidas - Os botï¿½ï¿½es principais acima jï¿½ fazem esse trabalho */}
 
       {/* Filtros */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4">
@@ -989,7 +1013,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
             <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
               <Layers className="w-12 h-12 text-slate-300 mx-auto mb-3" />
               <p className="text-slate-500 font-medium">Nenhum bloco encontrado</p>
-              <p className="text-slate-400 text-sm mt-1">Crie um bloco para começar a organizar questões.</p>
+              <p className="text-slate-400 text-sm mt-1">Crie um bloco para comeï¿½ar a organizar questï¿½es.</p>
               <button
                 onClick={() => { setBlocoEditando(null); setShowBlocoForm(true); }}
                 className="mt-4 px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700"
@@ -1041,7 +1065,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Buscar por tátulo ou enunciado..."
+                placeholder="Buscar por tï¿½tulo ou enunciado..."
                 value={searchAuditoria}
                 onChange={e => setSearchAuditoria(e.target.value)}
                 className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -1057,18 +1081,18 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
             ) : questoesAuditoria.length === 0 ? (
               <div className="p-8 text-center">
                 <List className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500 font-medium">Nenhuma questão encontrada</p>
+                <p className="text-slate-500 font-medium">Nenhuma questï¿½o encontrada</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-100">
                   <thead className="bg-gradient-to-r from-slate-50 to-blue-50">
                     <tr>
-                      <th className="px-5 py-3 text-left text-xs font-bold text-slate-600 uppercase">Questão</th>
+                      <th className="px-5 py-3 text-left text-xs font-bold text-slate-600 uppercase">Questï¿½o</th>
                       <th className="px-5 py-3 text-left text-xs font-bold text-slate-600 uppercase">{isTorneio ? 'Disciplina' : 'Categoria'}</th>
                       <th className="px-5 py-3 text-left text-xs font-bold text-slate-600 uppercase">Dificuldade</th>
                       <th className="px-5 py-3 text-left text-xs font-bold text-slate-600 uppercase">Pts</th>
-                      <th className="px-5 py-3 text-right text-xs font-bold text-slate-600 uppercase">Açáães</th>
+                      <th className="px-5 py-3 text-right text-xs font-bold text-slate-600 uppercase">Aï¿½ï¿½ï¿½es</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
@@ -1105,7 +1129,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
                               <button
                                 onClick={() => { setQuestaoEditando(q); setShowEditQuestao(true); }}
                                 className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
-                                title="Editar questão"
+                                title="Editar questï¿½o"
                               >
                                 <Edit className="w-3.5 h-3.5" />
                               </button>
@@ -1138,17 +1162,20 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
         onClose={() => { setShowDeleteBloco(false); setBlocoParaDeletar(null); }}
         onConfirm={handleDeletarBloco}
         title="Excluir Bloco"
-        message={`Excluir o bloco "${blocoParaDeletar?.titulo}"? As questões não serão apagadas, apenas removidas do bloco.`}
+        message={`Excluir o bloco "${blocoParaDeletar?.titulo}"? As questï¿½es nï¿½o serï¿½o apagadas, apenas removidas do bloco.`}
         confirmText="Excluir"
         cancelText="Cancelar"
         type="danger"
       />
 
       {showCreateQuestao && blocoAlvo && contexto === 'torneio' && (
-        <CreateQuestaoForm
-          torneioId=""
+        <QuestaoFormUnificado
+          questao={null}
+          isOpen={showCreateQuestao && blocoAlvo && contexto === 'torneio'}
           onClose={() => { setShowCreateQuestao(false); setBlocoAlvo(null); }}
-          onSuccess={(questao) => handleQuestaoAdicionada(questao, blocoAlvo)}
+          onSave={handleSalvarNovaQuestaoBloco}
+          disciplinaFixa={blocoAlvo?.disciplina}
+          titulo="Criar QuestÃ£o para o Bloco"
         />
       )}
       {showCreateQuestao && blocoAlvo && contexto === 'teste' && (
@@ -1161,10 +1188,13 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
       )}
 
       {showEditQuestao && questaoEditando && contexto === 'torneio' && (
-        <EditQuestaoForm
+        <QuestaoFormUnificado
           questao={questaoEditando}
+          isOpen={showEditQuestao && questaoEditando && contexto === 'torneio'}
           onClose={() => { setShowEditQuestao(false); setQuestaoEditando(null); }}
-          onSuccess={handleQuestaoEditada}
+          onSave={handleSalvarEdicaoQuestao}
+          disciplinaFixa={questaoEditando?.disciplina}
+          titulo="Editar QuestÃ£o"
         />
       )}
       {showEditQuestao && questaoEditando && contexto === 'teste' && (
@@ -1179,8 +1209,8 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
         isOpen={showRemoverQuestao && !!removerTarget.questao}
         onClose={() => { setShowRemoverQuestao(false); setRemoverTarget({ questao: null, bloco: null }); }}
         onConfirm={handleRemoverQuestao}
-        title="Remover Questão do Bloco"
-        message={`Remover "${(removerTarget.questao?.titulo || removerTarget.questao?.enunciado || '').substring(0, 60)}..." do bloco "${removerTarget.bloco?.titulo}"? A questão não será deletada.`}
+        title="Remover Questï¿½o do Bloco"
+        message={`Remover "${(removerTarget.questao?.titulo || removerTarget.questao?.enunciado || '').substring(0, 60)}..." do bloco "${removerTarget.bloco?.titulo}"? A questï¿½o nï¿½o serï¿½ deletada.`}
         confirmText="Remover"
         cancelText="Cancelar"
         type="warning"

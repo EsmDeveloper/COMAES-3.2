@@ -12,18 +12,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Plus, Edit, Trash2, AlertCircle, BookOpen, CheckCircle, XCircle, Save, X, Clock, Award, ArrowLeft } from 'lucide-react';
+import { Plus, Edit, Trash2, AlertCircle, BookOpen, CheckCircle, XCircle, Clock, Award, ArrowLeft } from 'lucide-react';
 import PageTransition from '../../components/PageTransition';
+import QuestaoFormUnificado from '../../components/QuestaoFormUnificado';
 
 // ── Constantes 
 const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
-
-// ── Mapeamento de pontos por dificuldade
-const PONTOS_POR_DIFICULDADE = {
-  'facil': 5,
-  'medio': 10,
-  'dificil': 20
-};
 
 // ── Serviço de Questões do Colaborador 
 class ColaboradorQuestoesService {
@@ -117,7 +111,7 @@ function StatusBadge({ status }) {
   );
 }
 
-// ── Função para obter a cor do badge de pontos
+// ── Função para obter a cor do badge de pontos (usada apenas em tabela)
 function getPontosBadgeColor(dificuldade) {
   const colors = {
     'facil': 'bg-green-100 text-green-800 border-green-300',
@@ -125,352 +119,6 @@ function getPontosBadgeColor(dificuldade) {
     'dificil': 'bg-red-100 text-red-800 border-red-300'
   };
   return colors[dificuldade] || 'bg-gray-100 text-gray-800 border-gray-300';
-}
-
-// ── Modal de Formulário da Questão (estilo unificado)
-function QuestaoForm({ questao, isOpen, onClose, onSave, disciplina, saving: externalSaving }) {
-  const [formData, setFormData] = useState({
-    titulo: '',
-    enunciado: '',
-    dificuldade: 'medio',
-    pontos: 10,
-    opcoes: ['', '', '', ''],
-    resposta_correta: ''
-  });
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
-
-  // Reset form quando abrir/fechar
-  useEffect(() => {
-    if (isOpen) {
-      if (questao) {
-        // opcoes pode vir como array de strings ou array de { texto, correta }
-        const rawOpcoes = Array.isArray(questao.opcoes) ? questao.opcoes : [];
-        const opcoesStrings = rawOpcoes.map(o =>
-          typeof o === 'string' ? o : (o?.texto || '')
-        );
-        // garantir sempre 4 slots
-        while (opcoesStrings.length < 4) opcoesStrings.push('');
-
-        // resposta_correta pode ser string directa ou precisar ser derivada dos objetos
-        const respostaCorreta = questao.resposta_correta ||
-          (rawOpcoes.find(o => o?.correta)?.texto) || '';
-
-        setFormData({
-          titulo: questao.titulo || '',
-          enunciado: questao.descricao || questao.enunciado || '',
-          dificuldade: questao.dificuldade || 'medio',
-          pontos: questao.pontos || 10,
-          opcoes: opcoesStrings.slice(0, 4),
-          resposta_correta: respostaCorreta
-        });
-      } else {
-        setFormData({
-          titulo: '',
-          enunciado: '',
-          dificuldade: 'medio',
-          pontos: 10,
-          opcoes: ['', '', '', ''],
-          resposta_correta: ''
-        });
-      }
-      setError(null);
-    }
-  }, [questao, isOpen]);
-
-  // Atualizar pontos automaticamente quando mudar dificuldade
-  const handleDificuldadeChange = (value) => {
-    const pontos = PONTOS_POR_DIFICULDADE[value] || 10;
-    setFormData(prev => ({
-      ...prev,
-      dificuldade: value,
-      pontos: pontos
-    }));
-  };
-
-  const handleFieldChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleOpcaoChange = (index, value) => {
-    const novasOpcoes = [...formData.opcoes];
-    novasOpcoes[index] = value;
-    setFormData(prev => ({ ...prev, opcoes: novasOpcoes }));
-    
-    // Se a resposta correta for a opção que mudou, atualizar também
-    if (formData.resposta_correta === formData.opcoes[index]) {
-      setFormData(prev => ({ ...prev, resposta_correta: value }));
-    }
-  };
-
-  const validateForm = () => {
-    // Validar título
-    if (!formData.titulo.trim()) {
-      setError('Título é obrigatório');
-      return false;
-    }
-
-    // Validar enunciado
-    if (!formData.enunciado?.trim()) {
-      setError('Enunciado é obrigatório');
-      return false;
-    }
-
-    // Validar opções
-    const opcoesValidas = formData.opcoes.filter(o => o.trim());
-    if (opcoesValidas.length < 2) {
-      setError('Preencha pelo menos 2 alternativas');
-      return false;
-    }
-
-    // Validar opções duplicadas
-    const uniqueOpcoes = new Set(opcoesValidas.map(o => o.trim().toLowerCase()));
-    if (uniqueOpcoes.size !== opcoesValidas.length) {
-      setError('Alternativas duplicadas não são permitidas');
-      return false;
-    }
-
-    // Validar resposta correta
-    if (!formData.resposta_correta) {
-      setError('Selecione a resposta correta');
-      return false;
-    }
-
-    if (!opcoesValidas.includes(formData.resposta_correta)) {
-      setError('A resposta correta deve ser uma das alternativas');
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const dadosParaSalvar = {
-        titulo: formData.titulo,
-        enunciado: formData.enunciado,         // para criarQuestao (ColaboradorController)
-        descricao: formData.enunciado,         // para atualizarQuestaoColaborador (V2)
-        disciplina: disciplina.toLowerCase(),
-        dificuldade: formData.dificuldade,
-        tipo: 'multipla_escolha',
-        // converter array de strings para array de objetos { texto, correta }
-        opcoes: formData.opcoes
-          .filter(o => o.trim())
-          .map(o => ({ texto: o.trim(), correta: o === formData.resposta_correta })),
-        resposta_correta: formData.resposta_correta,
-        pontos: formData.pontos
-      };
-      
-      await onSave(dadosParaSalvar);
-      onClose();
-    } catch (err) {
-      setError(err.message || 'Erro ao salvar questão');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
-        {/* Header - estilo unificado com CreateQuestaoForm */}
-        <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between border-b border-blue-700 z-10 rounded-t-2xl">
-          <h2 className="text-2xl font-bold text-white">
-            {questao ? 'Editar Questão' : 'Criar Nova Questão'}
-          </h2>
-          <button
-            onClick={onClose}
-            disabled={saving || externalSaving}
-            className="text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
-          {/* Erros */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm flex gap-2">
-              <AlertCircle className="w-5 h-5 flex-shrink-0" />
-              {error}
-            </div>
-          )}
-
-          {/* Info disciplina */}
-          <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg text-sm flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-blue-600" />
-            <span className="text-slate-600">Disciplina: </span>
-            <span className="font-semibold text-blue-700 capitalize">{disciplina}</span>
-          </div>
-
-          {/* Título */}
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Título <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.titulo}
-              onChange={(e) => handleFieldChange('titulo', e.target.value)}
-              className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-              placeholder="Ex: Qual é a capital de Portugal?"
-              maxLength={200}
-            />
-            <p className="text-xs text-slate-500 mt-1">{formData.titulo.length}/200</p>
-          </div>
-
-          {/* Enunciado */}
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Enunciado <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              value={formData.enunciado}
-              onChange={(e) => handleFieldChange('enunciado', e.target.value)}
-              rows={4}
-              className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
-              placeholder="Digite o enunciado completo da questão..."
-              maxLength={1000}
-            />
-            <p className="text-xs text-slate-500 mt-1">{formData.enunciado.length}/1000</p>
-          </div>
-
-          {/* Dificuldade (Radio Buttons) e Pontos (Badge) */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Nível de Dificuldade <span className="text-red-500">*</span>
-              </label>
-              <div className="flex gap-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="dificuldade"
-                    value="facil"
-                    checked={formData.dificuldade === 'facil'}
-                    onChange={() => handleDificuldadeChange('facil')}
-                    className="w-4 h-4 text-green-600 focus:ring-green-500"
-                  />
-                  <span className="text-sm font-medium text-green-700">Fácil</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="dificuldade"
-                    value="medio"
-                    checked={formData.dificuldade === 'medio'}
-                    onChange={() => handleDificuldadeChange('medio')}
-                    className="w-4 h-4 text-yellow-600 focus:ring-yellow-500"
-                  />
-                  <span className="text-sm font-medium text-yellow-700">Médio</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="dificuldade"
-                    value="dificil"
-                    checked={formData.dificuldade === 'dificil'}
-                    onChange={() => handleDificuldadeChange('dificil')}
-                    className="w-4 h-4 text-red-600 focus:ring-red-500"
-                  />
-                  <span className="text-sm font-medium text-red-700">Difícil</span>
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Pontos (Automático)
-              </label>
-              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-lg border-2 ${getPontosBadgeColor(formData.dificuldade)}`}>
-                <span>{formData.pontos}</span>
-                <span className="text-xs font-normal opacity-75">pontos</span>
-              </div>
-              <p className="text-xs text-slate-500 mt-1">
-                Definido automaticamente: Fácil=5, Médio=10, Difícil=20
-              </p>
-            </div>
-          </div>
-
-          {/* Alternativas */}
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Alternativas <span className="text-red-500">*</span>
-              <span className="text-xs font-normal text-slate-500 ml-2">
-                ({formData.opcoes.filter(o => o.trim()).length}/4 preenchidas)
-              </span>
-            </label>
-            <div className="space-y-3">
-              {formData.opcoes.map((opcao, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
-                  <input
-                    type="radio"
-                    name="resposta_correta"
-                    checked={formData.resposta_correta === opcao}
-                    onChange={() => handleFieldChange('resposta_correta', opcao)}
-                    className="w-4 h-4 cursor-pointer flex-shrink-0"
-                  />
-                  <span className="text-sm font-semibold text-slate-700 w-6 flex-shrink-0">
-                    {String.fromCharCode(65 + idx)}.
-                  </span>
-                  <input
-                    type="text"
-                    value={opcao}
-                    onChange={(e) => handleOpcaoChange(idx, e.target.value)}
-                    className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                    placeholder={`Alternativa ${String.fromCharCode(65 + idx)}`}
-                    maxLength={500}
-                  />
-                </div>
-              ))}
-            </div>
-            <p className="text-xs text-slate-400 mt-2 flex items-center gap-1">
-              <span className="text-blue-600 font-bold">●</span> Selecione o botão de rádio ao lado da alternativa correta.
-            </p>
-          </div>
-
-          {/* Help Text */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800 flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span>
-                <strong>Informação:</strong> A questão será criada como <strong>"Pendente"</strong> e precisará ser aprovada por um administrador antes de ser usada em torneios.
-              </span>
-            </p>
-          </div>
-
-          {/* Botões */}
-          <div className="flex gap-3 pt-4 border-t border-slate-200 sticky bottom-0 bg-white">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={saving || externalSaving}
-              className="flex-1 px-4 py-2.5 bg-slate-200 text-slate-800 rounded-lg hover:bg-slate-300 transition-colors font-semibold disabled:opacity-50"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={saving || externalSaving}
-              className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              <Save className="w-5 h-5" />
-              {saving || externalSaving ? 'Salvando...' : 'Salvar Questão'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
 }
 
 // ── Modal de Confirmação de Deleção 
@@ -976,7 +624,7 @@ export default function MinhasQuestoes() {
         )}
 
         {/* Modal do Formulário */}
-        <QuestaoForm
+        <QuestaoFormUnificado
           questao={questaoEdit}
           isOpen={modalOpen}
           onClose={() => {
@@ -984,7 +632,7 @@ export default function MinhasQuestoes() {
             setQuestaoEdit(null);
           }}
           onSave={handleSave}
-          disciplina={user?.disciplina_colaborador || 'matematica'}
+          disciplinaFixa={user?.disciplina_colaborador || 'matematica'}
           saving={saving}
         />
 

@@ -226,11 +226,13 @@ export function ConfirmarComMotivoModal({
 /**
  * Modal de detalhes de questão
  */
-export function QuestaoDetailModal({ questao, isOpen, onClose, extrairOpcoes = null }) {
+export function QuestaoDetailModal({ questao, isOpen, onClose, extrairOpcoesFunc = null }) {
   if (!isOpen || !questao) return null;
 
-  // Se não passar função de extrair, usar padrão
-  const opcoes = extrairOpcoes ? extrairOpcoes(questao) : (questao.opcoes || []);
+  // Normalizar sempre para array de strings
+  const opcoes = extrairOpcoesFunc
+    ? extrairOpcoesFunc(questao)
+    : extrairOpcoes(questao);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -403,19 +405,22 @@ export function ConfirmModal({
 
 /**
  * Extrair opções de questão (suporta múltiplos formatos)
+ * Retorna sempre array de strings para exibição
  */
 export function extrairOpcoes(questao) {
   if (!questao) return [];
 
   try {
-    if (Array.isArray(questao.opcoes)) {
-      return questao.opcoes;
+    let raw = questao.opcoes;
+
+    if (typeof raw === 'string') {
+      try { raw = JSON.parse(raw); } catch { return []; }
     }
-    if (typeof questao.opcoes === 'string') {
-      const parsed = JSON.parse(questao.opcoes);
-      return Array.isArray(parsed) ? parsed : [];
-    }
-    return [];
+
+    if (!Array.isArray(raw)) return [];
+
+    // Normalizar: aceita strings simples ou objetos {texto, correta}
+    return raw.map(o => (typeof o === 'string' ? o : (o?.texto || '')));
   } catch (e) {
     console.warn(`⚠️ Erro ao parsear opções da questão ${questao.id}:`, e);
     return [];

@@ -46,10 +46,10 @@ const BlocoQuestoes = sequelize.define('BlocoQuestoes', {
     },
   },
   status: {
-    type: DataTypes.ENUM('pendente', 'aprovado', 'rejeitado'),
+    type: DataTypes.ENUM('rascunho', 'pendente', 'aprovado', 'rejeitado'),
     allowNull: false,
-    defaultValue: 'pendente',
-    comment: 'Status do bloco: pendente (aguardando aprovação), aprovado (pronto para usar), rejeitado (recusado pelo admin)',
+    defaultValue: 'rascunho',
+    comment: 'Status do bloco: rascunho (em criação), pendente (submetido, aguardando aprovação), aprovado (pronto para usar), rejeitado (recusado pelo admin)',
   },
   aprovado_por_id: {
     type: DataTypes.INTEGER,

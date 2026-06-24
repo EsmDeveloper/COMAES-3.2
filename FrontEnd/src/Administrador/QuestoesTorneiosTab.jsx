@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Search, ChevronDown, BookOpen, Layers, X, Package, CheckCircle, AlertCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, BookOpen, Layers, X, Package, CheckCircle, AlertCircle } from 'lucide-react';
 import BlocoQuestoesManager from './BlocoQuestoesManager';
-import CreateQuestaoForm from './CreateQuestaoForm';
+import QuestaoFormUnificado from '../components/QuestaoFormUnificado';
 
 const QuestoesTorneiosTab = () => {
   const [questoesIndividuais, setQuestoesIndividuais] = useState([]);
@@ -35,7 +35,7 @@ const QuestoesTorneiosTab = () => {
   const fetchQuestoesIndividuais = async () => {
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
       
       // Buscar questões aprovadas, sem bloco, e com contexto='torneio'
       const response = await fetch(`${apiBase}/api/questoes?status_aprovacao=aprovada&contexto=torneio`, {
@@ -57,7 +57,7 @@ const QuestoesTorneiosTab = () => {
   const fetchBlocos = async () => {
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
       
       console.log('🏆 Buscando blocos para TORNEIOS (contexto=torneio)...');
       
@@ -107,7 +107,7 @@ const QuestoesTorneiosTab = () => {
     setSalvando(true);
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
       
       console.log(`[MEDAL] Enviando questão ${questaoSelecionada.id} para bloco ${blocoId}`);
       console.log(` Payload:`, { questao_id: questaoSelecionada.id });
@@ -165,7 +165,7 @@ const QuestoesTorneiosTab = () => {
     setSalvando(true);
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
       
       const response = await fetch(`${apiBase}/api/questoes/${questaoSelecionada.id}`, {
         method: 'PUT',
@@ -201,7 +201,7 @@ const QuestoesTorneiosTab = () => {
     setSalvando(true);
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
       
       const response = await fetch(`${apiBase}/api/questoes/${questaoSelecionada.id}`, {
         method: 'DELETE',
@@ -233,6 +233,19 @@ const QuestoesTorneiosTab = () => {
   const handleCreateQuestaoSuccess = async (novaQuestao) => {
     setQuestoesIndividuais(prev => [...prev, novaQuestao]);
     setShowCreateForm(false);
+  };
+
+  const handleSalvarNovaQuestao = async (payload) => {
+    const token = localStorage.getItem('comaes_token');
+    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
+    const response = await fetch(`${apiBase}/api/questoes`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.mensagem || data.message || 'Erro ao criar questão');
+    handleCreateQuestaoSuccess(data.dados || data);
   };
 
   const filteredQuestoes = questoesIndividuais.filter(q =>
@@ -647,27 +660,13 @@ const QuestoesTorneiosTab = () => {
       )}
 
       {/* MODAL: Criar Questão */}
-      {showCreateForm && (
-        <div className="fixed inset-0 top-0 left-0 w-full h-screen bg-black bg-opacity-50 z-50 overflow-y-auto">
-          <div className="min-h-screen flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full shadow-xl">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">Criar Questão de Torneio</h2>
-                <button
-                  onClick={() => setShowCreateForm(false)}
-                  className="p-1 hover:bg-gray-100 rounded-lg"
-                >
-                  <X className="w-6 h-6 text-gray-500" />
-                </button>
-              </div>
-              <CreateQuestaoForm
-                onClose={() => setShowCreateForm(false)}
-                onSuccess={handleCreateQuestaoSuccess}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      <QuestaoFormUnificado
+        questao={null}
+        isOpen={showCreateForm}
+        onClose={() => setShowCreateForm(false)}
+        onSave={handleSalvarNovaQuestao}
+        titulo="Criar Questão de Torneio"
+      />
     </div>
   );
 };

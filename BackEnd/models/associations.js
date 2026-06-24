@@ -179,6 +179,10 @@ export const setupAssociations = () => {
     as: 'blocos',
   });
 
+  // Questao <-> BlocoQuestoes (novo modelo — bloco_id directo na tabela questoes)
+  BlocoQuestoes.hasMany(Questao, { foreignKey: 'bloco_id', as: 'questoesNovas' });
+  Questao.belongsTo(BlocoQuestoes, { foreignKey: 'bloco_id', as: 'bloco' });
+
   // BlocoQuestaoItem direto (para queries com include)
   BlocoQuestoes.hasMany(BlocoQuestaoItem, { foreignKey: 'bloco_id', as: 'itens' });
   BlocoQuestaoItem.belongsTo(BlocoQuestoes, { foreignKey: 'bloco_id', as: 'bloco' });

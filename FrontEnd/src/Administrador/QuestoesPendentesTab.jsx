@@ -24,7 +24,7 @@ import {
   mostrarToast
 } from './shared/QuestaoCardsComponents';
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
 
 // ============================================
 // REDUCER PARA ESTADO
@@ -602,7 +602,7 @@ export default function QuestoesPendentesTab() {
           setDetailModalOpen(false);
           setSelectedQuestao(null);
         }}
-        extrairOpcoes={extrairOpcoes}
+        extrairOpcoesFunc={extrairOpcoes}
       />
     </div>
   );
