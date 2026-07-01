@@ -49,7 +49,7 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/notificacoes/usuario/${user.id}`,
+        `${import.meta.env.VITE_API_BASE_URL || ''}/api/notificacoes/usuario/${user.id}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -156,7 +156,7 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
       if (!token) return;
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/notificacoes/${id}/lido`,
+        `${import.meta.env.VITE_API_BASE_URL || ''}/api/notificacoes/${id}/lido`,
         {
           method: 'PATCH',
           headers: {
@@ -188,7 +188,7 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
       if (!token) return;
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/notificacoes/usuario/${user.id}/lido-todas`,
+        `${import.meta.env.VITE_API_BASE_URL || ''}/api/notificacoes/usuario/${user.id}/lido-todas`,
         {
           method: 'PATCH',
           headers: {
@@ -223,7 +223,7 @@ export default function NotificacoesModal({ isOpen, onClose, onNotificationRead,
 
       for (const notif of notifications) {
         await fetch(
-          `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/notificacoes/${notif.id}`,
+          `${import.meta.env.VITE_API_BASE_URL || ''}/api/notificacoes/${notif.id}`,
           {
             method: 'DELETE',
             headers: {

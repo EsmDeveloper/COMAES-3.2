@@ -197,9 +197,64 @@ const ColaboradoresPendentesTab = () => {
   const ModalDetalhes = () => {
     if (!selectedPedido) return null;
 
+    const [documentos, setDocumentos] = React.useState(null);
+    const [loadingDocs, setLoadingDocs] = React.useState(false);
+    const [errorDocs, setErrorDocs] = React.useState(null);
+
+    React.useEffect(() => {
+      const carregarDocumentos = async () => {
+        setLoadingDocs(true);
+        setErrorDocs(null);
+        try {
+          const res = await svc.getDocumentosColaborador(selectedPedido.id);
+          // Normalizar sempre para array, independente do formato da resposta
+          let raw = res?.data ?? res;
+          // Se vier como string JSON (double-encoded), fazer parse
+          if (typeof raw === 'string') {
+            try { raw = JSON.parse(raw); } catch { raw = []; }
+          }
+          const lista = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+          setDocumentos(lista);
+        } catch (err) {
+          console.error('Erro ao carregar documentos:', err);
+          setErrorDocs('Não foi possível carregar os documentos.');
+        } finally {
+          setLoadingDocs(false);
+        }
+      };
+      carregarDocumentos();
+    }, []);
+
     const formatDate = (dateString) => {
       if (!dateString) return 'Não informada';
       return new Date(dateString).toLocaleDateString('pt-PT');
+    };
+
+    // Base URL para servir os ficheiros
+    const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
+
+    // Normalizar a URL do documento para garantir que é acessível
+    const resolveUrl = (doc) => {
+      if (!doc) return null;
+      if (typeof doc === 'string') return doc.startsWith('http') ? doc : `${API_BASE}${doc}`;
+      // Preferir url completa; se não, construir a partir do caminho relativo
+      const raw = doc.url || doc.caminho || doc.path || doc.filename;
+      if (!raw) return null;
+      if (raw.startsWith('http')) return raw;
+      return `${API_BASE}${raw}`;
+    };
+
+    // Determinar ícone/etiqueta por extensão
+    const getFileInfo = (nomeOuUrl) => {
+      if (!nomeOuUrl) return { label: 'Ficheiro', color: 'bg-slate-100 text-slate-600' };
+      const ext = nomeOuUrl.split('.').pop()?.split('?')[0]?.toLowerCase();
+      if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext))
+        return { label: 'Imagem', color: 'bg-blue-100 text-blue-700', isImage: true };
+      if (ext === 'pdf')
+        return { label: 'PDF', color: 'bg-red-100 text-red-700' };
+      if (['doc', 'docx'].includes(ext))
+        return { label: 'Word', color: 'bg-blue-100 text-blue-800' };
+      return { label: ext?.toUpperCase() || 'Ficheiro', color: 'bg-slate-100 text-slate-600' };
     };
 
     return (
@@ -272,6 +327,55 @@ const ColaboradoresPendentesTab = () => {
                 </div>
               </div>
             )}
+
+            {/* Documentos enviados pelo colaborador */}
+            <div>
+              <p className="text-sm text-slate-500 mb-2">Documentos Enviados</p>
+              {loadingDocs ? (
+                <div className="flex items-center gap-2 text-sm text-slate-500 py-2">
+                  <div className="w-4 h-4 border-2 border-slate-300 border-t-blue-500 rounded-full animate-spin" />
+                  A carregar documentos...
+                </div>
+              ) : errorDocs ? (
+                <p className="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  {errorDocs}
+                </p>
+              ) : !Array.isArray(documentos) || documentos.length === 0 ? (
+                <p className="text-sm text-slate-400 italic bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                  Nenhum documento enviado.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {documentos.map((doc, idx) => {
+                    const url = resolveUrl(doc);
+                    const nome = typeof doc === 'string'
+                      ? url?.split('/').pop()
+                      : doc?.nome_original || doc?.nome || doc?.originalname || url?.split('/').pop() || `Documento ${idx + 1}`;
+                    const info = getFileInfo(nome || url);
+                    return (
+                      <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                        <span className={`px-2 py-0.5 rounded text-xs font-semibold flex-shrink-0 ${info.color}`}>
+                          {info.label}
+                        </span>
+                        <span className="text-sm text-slate-700 flex-1 truncate" title={nome}>
+                          {nome}
+                        </span>
+                        {url && (
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-shrink-0 px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                          >
+                            Ver
+                          </a>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             <div className="pt-4 border-t border-slate-200 flex gap-3">
               <button

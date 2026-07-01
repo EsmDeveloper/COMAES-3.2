@@ -16,9 +16,6 @@ import Disciplina from '../models/Disciplina.js';
 
 const router = express.Router();
 
-// Aplicar middleware de autenticação e verificação de role admin a todas as rotas
-router.use(authenticate, requireAdmin);
-
 /**
  * PUT /api/usuarios/:id/atribuir
  * Atribuir usuário como colaborador de uma disciplina (Task 7.1)
@@ -53,7 +50,7 @@ router.use(authenticate, requireAdmin);
  * - 403: Não é possível atribuir usuário admin como colaborador
  * - 422: Nenhuma disciplina válida fornecida
  */
-router.put('/:id/atribuir', async (req, res) => {
+router.put('/:id/atribuir', authenticate, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { disciplina_id, disciplina_nome } = req.body;

@@ -85,7 +85,7 @@ export default function Home() {
   return (
     <Layout>
       {/* HERO COM VÍDEO - AGORA FORA DO CONTAINER MAIN, OCUPANDO 100% DA LARGURA */}
-      <div className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-8">
+      <div className="relative left-1/2 w-[100vw] max-w-[100vw] -translate-x-1/2 -mt-8">
         <div className="relative h-[90vh] sm:h-[70vh] md:h-[80vh] lg:h-[90vh] overflow-hidden">
           {/* Vídeo de background */}
           <video
@@ -306,7 +306,7 @@ export default function Home() {
       </div>
 
       {/* DESAFIOS DA COMAES - FUNDO CINZA OCUPANDO 100% DA LARGURA */}
-      <div className="w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] relative bg-gray-50">
+      <div className="relative left-1/2 w-[100vw] max-w-[100vw] -translate-x-1/2 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <motion.h2
             initial={{ opacity: 0, y: -20 }}

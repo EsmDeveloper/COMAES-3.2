@@ -836,6 +836,7 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
                 {/* Hidden file input */}
                 <input
                   ref={fileInputRef}
+                  id="usermodal-file-input"
                   type="file"
                   multiple
                   accept={ALLOWED_EXTENSIONS.join(',')}
@@ -843,15 +844,15 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
                   className="hidden"
                 />
 
-                {/* Zona de drop */}
-                <div
+                {/* Zona de drop — usar label nativo para garantir abertura do gestor de ficheiros */}
+                <label
+                  htmlFor="usermodal-file-input"
                   role="button"
                   tabIndex={0}
                   onDragOver={(e) => e.preventDefault()}
-                  onDrop={handleFileDrop}
-                  onClick={() => fileInputRef.current?.click()}
+                  onDrop={(e) => { e.preventDefault(); handleFileDrop(e); }}
                   onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors hover:bg-teal-50 hover:border-teal-400 ${
+                  className={`block border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors hover:bg-teal-50 hover:border-teal-400 ${
                     files.length >= MAX_FILES ? 'opacity-50 pointer-events-none bg-slate-50' : 'border-slate-300 bg-white'
                   }`}
                 >
@@ -861,7 +862,7 @@ export default function UserModal({ mode, item, currentUser, onClose, onSubmit }
                       ? `Limite de ${MAX_FILES} ficheiros atingido`
                       : 'Clique ou arraste ficheiros aqui'}
                   </p>
-                </div>
+                </label>
 
                 {/* Erros de upload */}
                 {fileErrors.map((e, i) => (

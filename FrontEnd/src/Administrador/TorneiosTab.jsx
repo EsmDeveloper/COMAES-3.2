@@ -1,4 +1,4 @@
-/**
+﻿/**
  * TorneiosTab.jsx
  * Gerenciamento completo de torneios
  * Implementa: carregamento correto de dados, feedback visual, tratamento de erros
@@ -241,7 +241,7 @@ export default function TorneiosTab() {
     try {
       console.log('[TorneiosTab] Finalizando torneio:', torneioId);
       
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/torneios/${torneioId}/finalizar`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/torneios/${torneioId}/finalizar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -15,6 +15,7 @@ import CreateQuestaoTesteForm from './CreateQuestaoTesteForm';
 import EditQuestaoTesteForm from './EditQuestaoTesteForm';
 import ConfirmModal from '../components/ConfirmModal';
 import BlocosService from './services/BlocosService';
+import { getTorneioAssocState } from './utils/torneioAssociacaoUtils';
 import axios from 'axios';
 import {
   Plus, Edit, Trash2, Search, Filter, ChevronDown, ChevronUp,
@@ -24,15 +25,15 @@ import {
 
 // �� Constantes ����������������������������������������������������������������
 const DISCIPLINAS = [
-  { id: 'matematica',  label: 'Matem�tica',  cor: 'blue'   },
-  { id: 'programacao', label: 'Programa��o', cor: 'indigo' },
-  { id: 'ingles',      label: 'Ingl�s',      cor: 'cyan'   },
+  { id: 'matematica',  label: 'Matemática',  cor: 'blue'   },
+  { id: 'programacao', label: 'Programação', cor: 'indigo' },
+  { id: 'ingles',      label: 'Inglês',      cor: 'cyan'   },
 ];
 
 const DIFICULDADES = [
-  { id: 'facil',   label: 'F�cil',   cor: 'blue'  },
-  { id: 'medio',   label: 'M�dio',   cor: 'indigo' },
-  { id: 'dificil', label: 'Dif�cil', cor: 'cyan'    },
+  { id: 'facil',   label: 'Fácil',   cor: 'blue'  },
+  { id: 'medio',   label: 'Médio',   cor: 'indigo' },
+  { id: 'dificil', label: 'Difícil', cor: 'cyan'    },
 ];
 
 const COR_DISCIPLINA = {
@@ -109,7 +110,7 @@ function BlocoFormModal({ bloco, contexto, onClose, onSave, loading }) {
 
   const handleSave = () => {
     if (!titulo.trim()) {
-      setErro('O t�tulo � obrigat�rio.');
+      setErro('O título é obrigatório.');
       return;
     }
     onSave({
@@ -140,22 +141,22 @@ function BlocoFormModal({ bloco, contexto, onClose, onSave, loading }) {
             </div>
           )}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">T�tulo do bloco *</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Título do bloco *</label>
             <input
               type="text"
               value={titulo}
               onChange={e => setTitulo(e.target.value)}
-              placeholder="Ex: �lgebra Avan�ada"
+              placeholder="Ex: Álgebra Avançada"
               className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Descri��o</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Descrição</label>
             <textarea
               value={descricao}
               onChange={e => setDescricao(e.target.value)}
               rows={2}
-              placeholder="Descri��o opcional do bloco..."
+              placeholder="Descrição opcional do bloco..."
               className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             />
           </div>
@@ -189,7 +190,7 @@ function BlocoFormModal({ bloco, contexto, onClose, onSave, loading }) {
               className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="rascunho"> Rascunho</option>
-              <option value="publicado">� Publicado</option>
+              <option value="publicado"> Publicado</option>
             </select>
             <p className="text-xs text-slate-400 mt-1">Apenas blocos publicados podem ser associados a torneios.</p>
           </div>
@@ -235,11 +236,12 @@ function BlocoCard({
   const [showAssoc, setShowAssoc] = useState(false);
   const [questoesDoBloco, setQuestoesDoBloco] = useState([]);
   const [carregandoQuestoes, setCarregandoQuestoes] = useState(false);
+  const [confirmDesassoc, setConfirmDesassoc] = useState(null);
 
   // � NOVO: Se o bloco j� vem com quest�es do backend, carregar automaticamente
   useEffect(() => {
     if (bloco?.questoes && Array.isArray(bloco.questoes) && bloco.questoes.length > 0 && questoesDoBloco.length === 0) {
-      console.log(` Quest��es j� carregadas no bloco ${bloco.id}:`, bloco.questoes);
+      console.log(` Questões já carregadas no bloco ${bloco.id}:`, bloco.questoes);
       setQuestoesDoBloco(bloco.questoes);
     }
   }, [bloco?.id, bloco?.questoes, questoesDoBloco.length]);
@@ -257,10 +259,10 @@ function BlocoCard({
     if (!expandido && questoesDoBloco.length === 0 && bloco.total_questoes > 0) {
       // � Se j� v�m do bloco (novo formato), n�o precisa refazer a requisi��o
       if (bloco?.questoes && Array.isArray(bloco.questoes)) {
-        console.log(`� Quest��es j� est�o no bloco ${bloco.id}, usando do estado`);
+        console.log(` Questões já estão no bloco ${bloco.id}, usando do estado`);
         setQuestoesDoBloco(bloco.questoes);
       } else {
-        // Fallback: carregar quest�es do backend (compatibilidade com blocos antigos)
+        // Fallback: carregar questoes do backend (compatibilidade com blocos antigos)
         setCarregandoQuestoes(true);
         try {
           const response = await fetch(`${apiBase}/api/blocos/${bloco.id}`, {
@@ -270,18 +272,18 @@ function BlocoCard({
             const data = await response.json();
             console.log(` Resposta bruta da API para bloco ${bloco.id}:`, data);
             
-            // � SUPORTAR M�LTIPLOS FORMATOS:
+            // SUPORTAR MLTIPLOS FORMATOS:
             const questoesCarregadas = 
               data.data?.questoes ||           
               data.questoes ||                  
               data.dados?.questoes ||           
               [];
             
-            console.log(`� Quest��es do bloco ${bloco.id} (${questoesCarregadas.length} encontradas):`, questoesCarregadas);
+            console.log(`Questões do bloco ${bloco.id} (${questoesCarregadas.length} encontradas):`, questoesCarregadas);
             setQuestoesDoBloco(questoesCarregadas);
           }
         } catch (error) {
-          console.error(`� Erro ao carregar quest�es do bloco:`, error);
+          console.error(` Erro ao carregar questões do bloco:`, error);
         } finally {
           setCarregandoQuestoes(false);
         }
@@ -293,6 +295,13 @@ function BlocoCard({
   const torneiosAssociados = (assocMap[bloco.id] || [])
     .map(tid => torneios.find(t => String(t.id) === String(tid)))
     .filter(Boolean);
+  const temAssociacoesFinalizadas = torneiosAssociados.some(t => String(t.status) === 'finalizado');
+
+  const handleConfirmarDesassoc = () => {
+    if (!confirmDesassoc?.torneioId) return;
+    onToggleAssoc(bloco.id, confirmDesassoc.torneioId);
+    setConfirmDesassoc(null);
+  };
 
   return (
     <div className={`rounded-2xl border-2 ${corDisc.border} ${corDisc.bg} overflow-hidden transition-all duration-200`}>
@@ -310,7 +319,7 @@ function BlocoCard({
               </span>
               {bloco.padrao && (
                 <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 flex items-center gap-1">
-                  <Lock className="w-3 h-3" /> Padr�o
+                  <Lock className="w-3 h-3" /> Padrão
                 </span>
               )}
               <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${(bloco.status === 'publicado' || bloco.status === 'aprovado') ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
@@ -323,10 +332,10 @@ function BlocoCard({
             )}
             <p className="text-xs text-slate-500 mt-0.5">
               <span className={`font-semibold ${cheio ? 'text-red-600' : 'text-slate-700'}`}>{count}</span>
-              /{MAX_QUESTOES_POR_BLOCO} quest�es
+              /{MAX_QUESTOES_POR_BLOCO} questões
               {contexto === 'torneio' && torneiosAssociados.length > 0 && (
                 <span className="ml-2 text-blue-600">
-                  � {torneiosAssociados.length} torneio{torneiosAssociados.length > 1 ? 's' : ''}
+                  {torneiosAssociados.length} torneio{torneiosAssociados.length > 1 ? 's' : ''}
                 </span>
               )}
             </p>
@@ -335,13 +344,25 @@ function BlocoCard({
           {/* A���es do bloco */}
           <div className="flex items-center gap-1 flex-shrink-0">
             {contexto === 'torneio' && (
-              <button
-                onClick={() => setShowAssoc(v => !v)}
-                className="p-1.5 rounded-lg text-blue-500 hover:bg-blue-100 transition-colors"
-                title="Associar a torneios"
-              >
-                <Link2 className="w-4 h-4" />
-              </button>
+              <>
+                <button
+                  onClick={() => setShowAssoc(v => !v)}
+                  className="p-1.5 rounded-lg text-blue-500 hover:bg-blue-100 transition-colors"
+                  title="Associar a torneios"
+                >
+                  <Link2 className="w-4 h-4" />
+                </button>
+                {temAssociacoesFinalizadas && (
+                  <button
+                    onClick={() => setShowAssoc(true)}
+                    className="flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-700 transition-colors hover:bg-red-100"
+                    title="Remover associações de torneios finalizados"
+                  >
+                    <Unlink className="w-3.5 h-3.5" />
+                    Remover
+                  </button>
+                )}
+              </>
             )}
             <button
               onClick={() => onEditBloco(bloco)}
@@ -391,22 +412,81 @@ function BlocoCard({
           <p className="text-xs font-semibold text-slate-600 mb-2 flex items-center gap-1">
             <Link2 className="w-3 h-3" /> Associar a torneios ativos
           </p>
+          <p className="mb-2 text-[11px] text-slate-500">
+            Para torneios já finalizados, use o botão <span className="font-semibold text-red-600">Remover associação</span> que aparece ao lado do nome do torneio.
+          </p>
           {(bloco.status !== 'publicado' && bloco.status !== 'aprovado') && (
-            <p className="text-xs text-amber-600 mb-2">� Publique o bloco antes de associar a torneios.</p>
+            <p className="text-xs text-amber-600 mb-2"> Publique o bloco antes de associar a torneios.</p>
           )}
           {torneios.length === 0 ? (
-            <p className="text-xs text-slate-400">Nenhum torneio dispon�vel.</p>
+            <p className="text-xs text-slate-400">Nenhum torneio disponível.</p>
           ) : (
             <div className="space-y-1 max-h-48 overflow-y-auto">
               {torneios.map(t => {
                 const assoc = (assocMap[bloco.id] || []).includes(String(t.id));
+                const isFinalizado = String(t.status) === 'finalizado';
+                const torneioAssocState = getTorneioAssocState({
+                  torneioStatus: String(t.status),
+                  blocoStatus: bloco.status,
+                  isAssociated: assoc,
+                });
+
+                if (torneioAssocState.showRemoveButton) {
+                  return (
+                    <div key={t.id} className="rounded-lg border border-slate-200 bg-white/80 px-2 py-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs text-slate-700">
+                          {t.titulo}
+                          <span className="ml-1 px-1.5 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600">{t.status}</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDesassoc({ torneioId: String(t.id), titulo: t.titulo })}
+                          className="rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 transition-colors hover:bg-red-100"
+                        >
+                          Remover associação
+                        </button>
+                      </div>
+                      {confirmDesassoc?.torneioId === String(t.id) && (
+                        <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
+                          <p className="font-semibold">Remover esta associação do torneio finalizado?</p>
+                          <div className="mt-2 flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setConfirmDesassoc(null)}
+                              className="rounded-md border border-amber-300 px-2 py-1 font-medium text-amber-700 hover:bg-amber-100"
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleConfirmarDesassoc}
+                              className="rounded-md bg-amber-600 px-2 py-1 font-medium text-white hover:bg-amber-700"
+                            >
+                              Confirmar
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
                 return (
                   <label key={t.id} className="flex items-center gap-2 cursor-pointer group">
                     <input
                       type="checkbox"
                       checked={assoc}
-                      disabled={bloco.status !== 'publicado' && bloco.status !== 'aprovado'}
-                      onChange={() => onToggleAssoc(bloco.id, String(t.id))}
+                      disabled={!torneioAssocState.canToggle}
+                      onChange={() => {
+                        if (!torneioAssocState.canToggle) {
+                          if (isFinalizado) {
+                            setConfirmDesassoc({ torneioId: String(t.id), titulo: t.titulo });
+                          }
+                          return;
+                        }
+                        onToggleAssoc(bloco.id, String(t.id));
+                      }}
                       className="w-4 h-4 rounded text-blue-600 disabled:opacity-40"
                     />
                     <span className="text-xs text-slate-700 group-hover:text-blue-700 transition-colors">
@@ -415,6 +495,9 @@ function BlocoCard({
                         t.status === 'ativo' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'
                       }`}>{t.status}</span>
                     </span>
+                    {torneioAssocState.showDisabledHint && (
+                      <span className="text-[10px] text-slate-400">(não é possível associar a torneios finalizados)</span>
+                    )}
                   </label>
                 );
               })}
@@ -429,17 +512,17 @@ function BlocoCard({
           {carregandoQuestoes ? (
             <div className="px-4 py-6 text-center">
               <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-500 border-t-blue-700 mx-auto mb-2" />
-              <p className="text-sm text-slate-500">Carregando quest�es...</p>
+              <p className="text-sm text-slate-500">Carregando questões...</p>
             </div>
           ) : questoesDoBloco.length === 0 ? (
             <div className="px-4 py-6 text-center">
-              <p className="text-sm text-slate-400">Nenhuma quest�o neste bloco.</p>
+              <p className="text-sm text-slate-400">Nenhuma questão neste bloco.</p>
               {!cheio && (
                 <button
                   onClick={() => onAddQuestao(bloco)}
                   className="mt-2 text-xs text-blue-600 hover:underline flex items-center gap-1 mx-auto"
                 >
-                  <Plus className="w-3 h-3" /> Adicionar quest�o
+                  <Plus className="w-3 h-3" /> Adicionar questão
                 </button>
               )}
             </div>
@@ -454,14 +537,14 @@ function BlocoCard({
                     </p>
                     <p className="text-xs text-slate-400">
                       {q.pontos} pts
-                      {q.tipo && ` � ${q.tipo}`}
+                      {q.tipo && `  ${q.tipo}`}
                     </p>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <button
                       onClick={() => onEditQuestao(q, bloco)}
                       className="p-1 rounded text-blue-400 hover:bg-blue-50 transition-colors"
-                      title="Editar quest�o"
+                      title="Editar questão"
                     >
                       <Edit className="w-3.5 h-3.5" />
                     </button>
@@ -502,7 +585,7 @@ function BlocoCard({
 // �� Componente principal ������������������������������������������������������
 export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
   const { token } = useAuth();
-  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
+  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
 
   const [state, dispatch] = useReducer(appReducer, initialState);
   const [aba, setAba] = useState('blocos');
@@ -516,6 +599,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
   const [blocoEditando, setBlocoEditando] = useState(null);
   const [showDeleteBloco, setShowDeleteBloco] = useState(false);
   const [blocoParaDeletar, setBlocoParaDeletar] = useState(null);
+  const [deleteRequiresDesassoc, setDeleteRequiresDesassoc] = useState(false);
 
   const [showCreateQuestao, setShowCreateQuestao] = useState(false);
   const [blocoAlvo, setBlocoAlvo] = useState(null);
@@ -557,7 +641,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
       dispatch({ type: 'SET_QUESTOES', payload: lista });
       return lista;
     } catch (err) {
-      showMsg('Erro ao carregar quest�es.');
+      showMsg('Erro ao carregar questões.');
       console.error(err);
       return [];
     } finally {
@@ -590,9 +674,9 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
           // 3. { dados: [...] } - direto como array em dados
           // 4. { data: [...] } - direto como array em data
           const blocosBackend = res?.blocos || res?.data?.blocos || res?.dados || res?.data || [];
-          console.log(`[MEDAL] Blocos extra�dos:`, blocosBackend);
+          console.log(`[MEDAL] Blocos extraídos:`, blocosBackend);
           
-          // Se ainda n�o � um array, tenta verificar se � array diretamente
+          // Se ainda no um array, tenta verificar se array diretamente
           const blocoArray = Array.isArray(blocosBackend) ? blocosBackend : [];
           
           if (blocoArray.length > 0) {
@@ -615,13 +699,13 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
             if (questoesUnicas.length > 0) {
               dispatch({ type: 'SET_QUESTOES', payload: questoesUnicas });
             }
-            console.log(`� Blocos carregados com sucesso do backend:`, blocoArray.length, `com ${questoesUnicas.length} quest�es �nicas`);
+            console.log(` Blocos carregados com sucesso do backend:`, blocoArray.length, `com ${questoesUnicas.length} quest�es �nicas`);
             return;
           } else {
-            console.log(`� Backend retornou vazio, usando padr�o`);
+            console.log(` Backend retornou vazio, usando padrão`);
           }
         } catch (backendErr) {
-          console.error(`� Erro ao chamar backend:`, backendErr.message);
+          console.error(` Erro ao chamar backend:`, backendErr.message);
           throw backendErr;
         }
       }
@@ -676,7 +760,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
       for (const dif of DIFICULDADES) {
         blocos.push({
           id: `padrao_${disc.id}_${dif.id}`,
-          titulo: `${disc.label} � ${dif.label}`,
+          titulo: `${disc.label} - ${dif.label}`,
           disciplina: disc.id,
           dificuldade: dif.id,
           contexto: ctx,
@@ -741,25 +825,41 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
     }
   };
 
-  const handleDeletarBloco = async () => {
+  const handleDeletarBloco = async (desassociar = false) => {
     if (!blocoParaDeletar) return;
     setSaving(true);
     try {
       if (BlocosService && token && !blocoParaDeletar.padrao) {
-        await BlocosService.deletar(token, blocoParaDeletar.id);
-        showMsg('Bloco exclu�do.');
+        const response = await BlocosService.deletar(token, blocoParaDeletar.id, { desassociar });
+        const removidas = response?.data?.associacoes_removidas || 0;
+        showMsg(removidas > 0 ? `Bloco excluído. ${removidas} associação(ões) removida(s).` : 'Bloco excluído.');
         await carregarBlocos();
+        await carregarTorneios();
       } else if (!blocoParaDeletar.padrao) {
         dispatch({ type: 'DELETE_BLOCO', payload: blocoParaDeletar.id });
-        showMsg('Bloco exclu�do localmente.');
+        showMsg('Bloco excluído localmente.');
       }
       setBlocoParaDeletar(null);
       setShowDeleteBloco(false);
+      setDeleteRequiresDesassoc(false);
     } catch (err) {
-      showMsg(err.message || 'Erro ao excluir bloco');
+      if (err.status === 409 && err.message?.includes('associado')) {
+        setDeleteRequiresDesassoc(true);
+        setShowDeleteBloco(true);
+        showMsg('Este bloco está associado a torneios. Confirme novamente para desassociar e excluir.', true);
+      } else {
+        showMsg(err.message || 'Erro ao excluir bloco');
+      }
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleConfirmarDeleteBloco = () => {
+    if (!blocoParaDeletar) return;
+
+    const temAssociacoes = (state.assocMap[blocoParaDeletar.id] || []).length > 0;
+    handleDeletarBloco(temAssociacoes || deleteRequiresDesassoc);
   };
 
   // �� Handlers de Associa��o ������������������������������������������������
@@ -788,11 +888,11 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
         dispatch({ type: 'SET_ASSOC_MAP', payload: novoMap });
       }
     } catch (err) {
-      showMsg(err.message || 'Erro ao alterar associa��o');
+      showMsg(err.message || 'Erro ao alterar associação');
     }
   };
 
-  // �� Handlers de Quest�o ���������������������������������������������������
+  //  Handlers de Questo
   const handleQuestaoAdicionada = async (questao, bloco) => {
     if (!questao?.id || !bloco) {
       setShowCreateQuestao(false);
@@ -804,7 +904,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
     try {
       if (BlocosService && token && !bloco.padrao) {
         await BlocosService.adicionarQuestao(token, bloco.id, questao.id);
-        showMsg('Quest�o adicionada ao bloco!');
+        showMsg('Questão adicionada ao bloco!');
         await carregarBlocos();
       } else {
         // Fallback local
@@ -814,11 +914,11 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
             : b
         );
         dispatch({ type: 'SET_BLOCOS', payload: blocosAtualizados });
-        showMsg('Quest�o adicionada localmente!');
+        showMsg('Questão adicionada localmente!');
       }
     } catch (err) {
-      if (!err.message?.includes('j� est�')) {
-        showMsg(err.message || 'Erro ao adicionar quest�o');
+      if (!err.message?.includes('já está')) {
+        showMsg(err.message || 'Erro ao adicionar questão');
       }
     } finally {
       setSaving(false);
@@ -865,7 +965,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
     try {
       if (BlocosService && token && !bloco.padrao) {
         await BlocosService.removerQuestao(token, bloco.id, questao.id);
-        showMsg('Quest�o removida do bloco.');
+        showMsg('Questão removida do bloco.');
         await carregarBlocos();
       } else if (!bloco.padrao) {
         // Fallback local
@@ -915,11 +1015,11 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
             {isTorneio ? <Trophy className="w-8 h-8 text-blue-600" /> : <BookOpen className="w-8 h-8 text-purple-600" />}
             <div>
               <h2 className="text-2xl font-bold text-slate-800">
-                {isTorneio ? 'Quest��es dos Torneios' : 'Teste de Conhecimento'}
+                {isTorneio ? 'Questões dos Torneios' : 'Teste de Conhecimento'}
               </h2>
               <p className="text-sm text-slate-500">
-                {state.blocos.length} blocos � {state.blocos.reduce((total, b) => total + (b.questoes?.length || b.total_questoes || 0), 0)} quest�es
-                {BlocosService && ' � Persistido no banco de dados'}
+                {state.blocos.length} blocos {state.blocos.reduce((total, b) => total + (b.questoes?.length || b.total_questoes || 0), 0)} questes
+                {BlocosService && ' Persistido no banco de dados'}
               </p>
             </div>
           </div>
@@ -940,7 +1040,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
                   : 'bg-gradient-to-r from-indigo-500 to-cyan-600 hover:from-indigo-600 hover:to-cyan-700'
               }`}
             >
-              <Layers className="w-4 h-4" /> Criar Bloco de Quest�es
+              <Layers className="w-4 h-4" /> Criar Bloco de Questões
             </button>
           </div>
         </div>
@@ -1012,7 +1112,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
             <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
               <Layers className="w-12 h-12 text-slate-300 mx-auto mb-3" />
               <p className="text-slate-500 font-medium">Nenhum bloco encontrado</p>
-              <p className="text-slate-400 text-sm mt-1">Crie um bloco para come�ar a organizar quest�es.</p>
+              <p className="text-slate-400 text-sm mt-1">Crie um bloco para começar a organizar questões.</p>
               <button
                 onClick={() => { setBlocoEditando(null); setShowBlocoForm(true); }}
                 className="mt-4 px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700"
@@ -1044,7 +1144,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
                         onEditQuestao={(q) => { setQuestaoEditando(q); setShowEditQuestao(true); }}
                         onRemoverQuestao={(q, b) => { setRemoverTarget({ questao: q, bloco: b }); setShowRemoverQuestao(true); }}
                         onEditBloco={(b) => { setBlocoEditando(b); setShowBlocoForm(true); }}
-                        onDeleteBloco={(b) => { setBlocoParaDeletar(b); setShowDeleteBloco(true); }}
+                        onDeleteBloco={(b) => { setBlocoParaDeletar(b); setDeleteRequiresDesassoc(false); setShowDeleteBloco(true); }}
                         onToggleAssoc={handleToggleAssoc}
                       />
                     ))}
@@ -1080,18 +1180,18 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
             ) : questoesAuditoria.length === 0 ? (
               <div className="p-8 text-center">
                 <List className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500 font-medium">Nenhuma quest�o encontrada</p>
+                <p className="text-slate-500 font-medium">Nenhuma questão encontrada</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-100">
                   <thead className="bg-gradient-to-r from-slate-50 to-blue-50">
                     <tr>
-                      <th className="px-5 py-3 text-left text-xs font-bold text-slate-600 uppercase">Quest�o</th>
+                      <th className="px-5 py-3 text-left text-xs font-bold text-slate-600 uppercase">Questão</th>
                       <th className="px-5 py-3 text-left text-xs font-bold text-slate-600 uppercase">{isTorneio ? 'Disciplina' : 'Categoria'}</th>
                       <th className="px-5 py-3 text-left text-xs font-bold text-slate-600 uppercase">Dificuldade</th>
                       <th className="px-5 py-3 text-left text-xs font-bold text-slate-600 uppercase">Pts</th>
-                      <th className="px-5 py-3 text-right text-xs font-bold text-slate-600 uppercase">A���es</th>
+                      <th className="px-5 py-3 text-right text-xs font-bold text-slate-600 uppercase">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
@@ -1128,7 +1228,7 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
                               <button
                                 onClick={() => { setQuestaoEditando(q); setShowEditQuestao(true); }}
                                 className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
-                                title="Editar quest�o"
+                                title="Editar questão"
                               >
                                 <Edit className="w-3.5 h-3.5" />
                               </button>
@@ -1158,13 +1258,17 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
 
       <ConfirmModal
         isOpen={showDeleteBloco && !!blocoParaDeletar}
-        onClose={() => { setShowDeleteBloco(false); setBlocoParaDeletar(null); }}
-        onConfirm={handleDeletarBloco}
+        onClose={() => { setShowDeleteBloco(false); setBlocoParaDeletar(null); setDeleteRequiresDesassoc(false); }}
+        onConfirm={handleConfirmarDeleteBloco}
         title="Excluir Bloco"
-        message={`Excluir o bloco "${blocoParaDeletar?.titulo}"? As quest�es n�o ser�o apagadas, apenas removidas do bloco.`}
-        confirmText="Excluir"
+        message={
+          ((state.assocMap[blocoParaDeletar?.id] || []).length > 0 || deleteRequiresDesassoc)
+            ? `O bloco "${blocoParaDeletar?.titulo}" está associado a torneio(s). Deseja remover essas associações e excluir o bloco? As questões não serão apagadas.`
+            : `Excluir o bloco "${blocoParaDeletar?.titulo}"? As questões não serão apagadas, apenas removidas do bloco.`
+        }
+        confirmText={((state.assocMap[blocoParaDeletar?.id] || []).length > 0 || deleteRequiresDesassoc) ? 'Desassociar e excluir' : 'Excluir'}
         cancelText="Cancelar"
-        type="danger"
+        type={((state.assocMap[blocoParaDeletar?.id] || []).length > 0 || deleteRequiresDesassoc) ? 'warning' : 'danger'}
       />
 
       {showCreateQuestao && blocoAlvo && contexto === 'torneio' && (
@@ -1208,8 +1312,8 @@ export default function BlocoQuestoesManager({ contexto = 'torneio' }) {
         isOpen={showRemoverQuestao && !!removerTarget.questao}
         onClose={() => { setShowRemoverQuestao(false); setRemoverTarget({ questao: null, bloco: null }); }}
         onConfirm={handleRemoverQuestao}
-        title="Remover Quest�o do Bloco"
-        message={`Remover "${(removerTarget.questao?.titulo || removerTarget.questao?.enunciado || '').substring(0, 60)}..." do bloco "${removerTarget.bloco?.titulo}"? A quest�o n�o ser� deletada.`}
+        title="Remover Questão do Bloco"
+        message={`Remover "${(removerTarget.questao?.titulo || removerTarget.questao?.enunciado || '').substring(0, 60)}..." do bloco "${removerTarget.bloco?.titulo}"? A questão não será deletada.`}
         confirmText="Remover"
         cancelText="Cancelar"
         type="warning"

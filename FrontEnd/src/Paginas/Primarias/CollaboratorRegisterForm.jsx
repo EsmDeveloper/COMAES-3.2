@@ -43,7 +43,7 @@ const MAX_FILE_SIZE_MB   = 10;
 const MAX_FILES          = 5;
 
 const API_BASE = () =>
-  (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`);
+  (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '');
 
 /* ============================================
    HELPERS
@@ -500,15 +500,27 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
           Adicione certificados, portfólio ou documentos relevantes para fortalecer a análise do seu perfil.
         </p>
 
-        {/* Zona de drop */}
-        <div
+        {/* Input file oculto — ligado ao label via htmlFor */}
+        <input
+          ref={fileInputRef}
+          id="collab-register-file-input"
+          type="file"
+          multiple
+          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+          onChange={handleFileInput}
+          className="hidden"
+          disabled={files.length >= MAX_FILES}
+        />
+
+        {/* Zona de drop — label nativo abre o gestor de ficheiros ao clicar */}
+        <label
+          htmlFor="collab-register-file-input"
           role="button"
           tabIndex={0}
           onDragOver={(e) => e.preventDefault()}
-          onDrop={handleFileDrop}
-          onClick={() => fileInputRef.current?.click()}
+          onDrop={(e) => { e.preventDefault(); handleFileDrop(e); }}
           onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors hover:bg-blue-50 hover:border-blue-400 ${
+          className={`block border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors hover:bg-blue-50 hover:border-blue-400 ${
             files.length >= MAX_FILES ? 'opacity-50 pointer-events-none' : 'border-gray-300'
           }`}
         >
@@ -518,7 +530,7 @@ export default function CollaboratorRegisterForm({ onSuccess, onSwitchToLogin })
               ? `Limite de ${MAX_FILES} ficheiros atingido`
               : 'Clique ou arraste ficheiros aqui'}
           </p>
-        </div>
+        </label>
 
         {/* Erros de upload */}
         {fileErrors.map((e, i) => (

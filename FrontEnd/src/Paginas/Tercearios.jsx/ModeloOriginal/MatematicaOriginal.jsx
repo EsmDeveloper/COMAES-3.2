@@ -1,18 +1,29 @@
 ﻿import React, { useState, useEffect, useRef } from "react";
-window.TEST_MARKER = "MATEMATICA_LOADED_" + Date.now();
-console.log("MARKER SET:", window.TEST_MARKER);
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
-import { FaSignOutAlt } from "react-icons/fa";
+import { 
+  FaSignOutAlt, 
+  FaTrophy, 
+  FaMedal, 
+  FaStar, 
+  FaCheck, 
+  FaUser,
+  FaChartLine
+} from "react-icons/fa";
+import { 
+  IoClose, 
+  IoInformation, 
+  IoWarning, 
+  IoCheckmarkCircle, 
+  IoCloseCircle,
+  IoTime
+} from "react-icons/io5";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
-// ImportaçÃµes para certificados e vencedores
-import CertMatematica from '../../../certificados/CertMatematica';
-import useCertificado from '../../../hooks/useCertificado';
+// Importações para vencedores (sem certificado)
 import ModalVencedores from '../../../components/ModalVencedores';
 import useVencedores from '../../../hooks/useVencedores';
-import CertificateCheckButton from '../../../components/certificates/CertificateCheckButton';
 import TournamentFinishedModal from '../../../components/TournamentFinishedModal';
 import useTorneioParticipante from '../../../hooks/useTorneioParticipante';
 
@@ -27,7 +38,7 @@ export default function MatematicaOriginal() {
   const socketRef = useRef(null);
   const enunciadoRef = useRef(null);
 
-  // â”€â”€ Hook centralizado de torneio â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Hook centralizado de torneio
   const {
     torneio,
     participante,
@@ -61,15 +72,7 @@ export default function MatematicaOriginal() {
   const [contagemRegressiva, setContagemRegressiva] = useState(5);
   const [executando, setExecutando] = useState(false);
 
-  // Hook para certificados
-  const { 
-    mostrarCertificado, 
-    certificadoData, 
-    fecharCertificado,
-    abrirCertificado 
-  } = useCertificado('Matemática', participante, ranking);
-
-  // Hook para vencedores
+  // Hook para vencedores (sem certificado)
   const { 
     mostrarVencedores, 
     vencedores, 
@@ -143,7 +146,7 @@ export default function MatematicaOriginal() {
     return () => clearInterval(intervalId);
   }, [torneio]);
 
-  // Filtrar questÃµes por dificuldade
+  // Filtrar questões por dificuldade
   useEffect(() => {
     if (questoes.length > 0) {
       const filtradas = questoes.filter(q => q.dificuldade === nivelSelecionado);
@@ -154,7 +157,6 @@ export default function MatematicaOriginal() {
         setResposta("");
         setResultado("");
         setPontuacao(null);
-        // Scroll para o enunciado após mudar de nível
         setTimeout(() => {
           if (enunciadoRef.current) {
             enunciadoRef.current.scrollIntoView({ 
@@ -167,7 +169,7 @@ export default function MatematicaOriginal() {
     }
   }, [nivelSelecionado, questoes]);
 
-  // Atualizar total de questÃµes
+  // Atualizar total de questões
   useEffect(() => {
     if (questoes.length > 0) {
       setQuestoesTotais(questoes.length);
@@ -183,7 +185,7 @@ export default function MatematicaOriginal() {
     };
   }, [autoAvancarTimer]);
 
-  // SCROLL AUTOMÃTICO QUANDO A QUESTÃO MUDA
+  // Scroll automático quando a questão muda
   useEffect(() => {
     if (questoesFiltradas.length > 0 && enunciadoRef.current) {
       setTimeout(() => {
@@ -195,7 +197,7 @@ export default function MatematicaOriginal() {
     }
   }, [questaoIndex]);
 
-  // SCROLL AUTOMÃTICO NO CARREGAMENTO INICIAL
+  // Scroll automático no carregamento inicial
   useEffect(() => {
     if (questoesFiltradas.length > 0 && enunciadoRef.current) {
       setTimeout(() => {
@@ -207,25 +209,21 @@ export default function MatematicaOriginal() {
     }
   }, [questoesFiltradas]);
 
-  // Torneio e participante geridos pelo hook useTorneioParticipante
-
-  // Carregar questÃµes quando o torneio ficar disponível
+  // Carregar questões quando o torneio ficar disponível
   useEffect(() => {
     if (torneio?.id) {
       buscarQuestoes(torneio.id);
     }
   }, [torneio?.id]);
 
-  // Conectar Socket.IO â€” gerido pelo hook useTorneioParticipante
-
-  // Buscar questÃµes do banco de dados
+  // Buscar questões do banco de dados
   const buscarQuestoes = async (torneioId) => {
     try {
-      console.log(` Buscando questÃµes de matemática para torneio ${torneioId}...`);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/torneios/${torneioId}/questoes/matematica`);
+      console.log(`Buscando questões de matemática para torneio ${torneioId}...`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/torneios/${torneioId}/questoes/matematica`);
       const data = await response.json();
       
-      console.log(' Dados recebidos das questÃµes:', data);
+      console.log('Dados recebidos das questões:', data);
       
       if (data.success && data.data.length > 0) {
         const questoesFormatadas = data.data.map(questao => ({
@@ -233,21 +231,21 @@ export default function MatematicaOriginal() {
           enunciado: questao.descricao
         }));
         
-        console.log('âœ… QuestÃµes formatadas:', questoesFormatadas);
+        console.log('Questões formatadas:', questoesFormatadas);
         setQuestoes(questoesFormatadas);
         setQuestoesTotais(data.data.length);
         
         const filtradas = questoesFormatadas.filter(q => q.dificuldade === 'facil');
         setQuestoesFiltradas(filtradas);
         setNivelSelecionado('facil');
-        console.log(`âœ… ${filtradas.length} questÃµes fáceis carregadas`);
+        console.log(`${filtradas.length} questões fáceis carregadas`);
       } else {
-        console.log('âš  Nenhuma questão encontrada');
+        console.log('Nenhuma questão encontrada');
         setQuestoes([]);
         setQuestoesFiltradas([]);
       }
     } catch (err) {
-      console.error('âŒ Erro ao carregar questÃµes:', err);
+      console.error('Erro ao carregar questões:', err);
       setQuestoes([]);
       setQuestoesFiltradas([]);
     }
@@ -260,7 +258,6 @@ export default function MatematicaOriginal() {
     const interval = setInterval(() => {
       setQuestaoTime((prev) => {
         if (prev <= 0) {
-          // Quando o tempo acaba, avança automaticamente
           handleProximaQuestaoAutomatica();
           return TEMPO_QUESTAO;
         }
@@ -299,7 +296,6 @@ export default function MatematicaOriginal() {
     }
     
     if (questoesFiltradas.length > 0) {
-      // Avança para a próxima questão ou volta para a primeira se for a Ãºltima
       setQuestaoIndex((prev) => (prev + 1 < questoesFiltradas.length ? prev + 1 : 0));
       setQuestaoTime(TEMPO_QUESTAO);
     }
@@ -341,7 +337,6 @@ export default function MatematicaOriginal() {
     if (executando) return;
     setExecutando(true);
 
-    // Preparar payload para a API de avaliação
     const payload = {
       usuario_id: user?.id || participante?.usuario_id,
       disciplina: DISCIPLINA,
@@ -354,7 +349,7 @@ export default function MatematicaOriginal() {
     };
 
     try {
-      const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/avaliar`, {
+      const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/avaliar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
         body: JSON.stringify(payload)
@@ -372,7 +367,6 @@ export default function MatematicaOriginal() {
         setPontuacao(total);
         setResultado(detalhes[0]?.feedback || 'Avaliação concluída');
 
-        // Atualiza participante localmente
         if (data.data.participante) actualizarParticipante(data.data.participante);
       }
     } catch (err) {
@@ -444,14 +438,8 @@ export default function MatematicaOriginal() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={abrirCertificado}
-              className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-full shadow-lg transition-all text-[10px] sm:text-xs md:text-sm"
-              title="Verificar Certificado"
-            >
-               <span className="hidden sm:inline">Certificado</span>
-            </button>
             <div className="bg-white text-blue-600 font-bold px-2 py-1 text-[10px] sm:px-3 sm:py-1.5 sm:text-xs md:px-4 md:py-2 md:text-sm rounded-full flex items-center gap-1 shadow-md">
+              <FaTrophy className="text-xs sm:text-sm" />
               Mathematics Tournament
             </div>
           </div>
@@ -468,7 +456,10 @@ export default function MatematicaOriginal() {
       <div className="flex flex-1 overflow-hidden">
         {/* SIDEBAR ESQUERDA - RANKING */}
         <div className="hidden lg:block w-80 bg-white text-gray-800 shadow-lg p-3 overflow-y-auto" translate="no">
-          <h2 className="text-xl font-bold mb-4 text-center border-b border-gray-300 pb-1">Ranking de Matemática</h2>
+          <h2 className="text-xl font-bold mb-4 text-center border-b border-gray-300 pb-1 flex items-center justify-center gap-2">
+            <FaTrophy className="text-yellow-500" />
+            Ranking de Matemática
+          </h2>
           <table className="w-full table-auto text-sm">
             <thead className="bg-gray-100">
               <tr>
@@ -490,9 +481,9 @@ export default function MatematicaOriginal() {
                     }`}
                   >
                     <td className="px-2 py-2 font-semibold">
-                      {participanteRank.posicao === 1 ? '' : 
-                       participanteRank.posicao === 2 ? '' : 
-                       participanteRank.posicao === 3 ? '' : 
+                      {participanteRank.posicao === 1 ? <FaMedal className="text-yellow-500" /> : 
+                       participanteRank.posicao === 2 ? <FaMedal className="text-gray-400" /> : 
+                       participanteRank.posicao === 3 ? <FaMedal className="text-amber-600" /> : 
                        participanteRank.posicao ?? '-'}
                     </td>
                     <td className="px-2 py-2">
@@ -513,7 +504,10 @@ export default function MatematicaOriginal() {
                             {participanteRank.usuario?.nome || 'Usuário'}
                           </span>
                           {isMe && (
-                            <span className="text-[10px] font-bold text-blue-500 leading-none">â— vocÃª</span>
+                            <span className="text-[10px] font-bold text-blue-500 leading-none flex items-center gap-1">
+                              <FaStar className="text-[8px]" />
+                              você
+                            </span>
                           )}
                         </div>
                       </div>
@@ -547,7 +541,6 @@ export default function MatematicaOriginal() {
               onClose={() => navigate("/entrar-no-torneio")}
               tournament={torneio}
               userParticipation={participante}
-              onCertificateGenerated={abrirCertificado}
             />
           ) : (
             <>
@@ -557,7 +550,7 @@ export default function MatematicaOriginal() {
                   {torneio?.titulo || 'Torneio de Matemática'}
                 </h1>
                 
-                {/* BOTÃ•ES DE NÃVEL */}
+                {/* BOTÕES DE NÍVEL */}
                 <div className="flex gap-2 flex-wrap justify-center">
                   {[
                     { nivel: "facil", label: "Fácil", pts: 5 },
@@ -582,12 +575,15 @@ export default function MatematicaOriginal() {
                 </div>
               </div>
 
-              {/* MENSAGEM SE NÃO HÃ QUESTÃ•ES */}
+              {/* MENSAGEM SE NÃO HÁ QUESTÕES */}
               {questoesFiltradas.length === 0 ? (
                 <div className="w-full max-w-4xl bg-yellow-50 border border-yellow-200 rounded-xl shadow p-6 text-center">
-                  <h3 className="text-lg font-semibold text-yellow-800 mb-2">Nenhuma questão disponível</h3>
+                  <h3 className="text-lg font-semibold text-yellow-800 mb-2 flex items-center justify-center gap-2">
+                    <IoWarning className="text-yellow-600" />
+                    Nenhuma questão disponível
+                  </h3>
                   <p className="text-yellow-700">
-                    Não há questÃµes de {nivelSelecionado === 'facil' ? 'fácil' : nivelSelecionado === 'medio' ? 'médio' : 'difícil'} 
+                    Não há questões de {nivelSelecionado === 'facil' ? 'fácil' : nivelSelecionado === 'medio' ? 'médio' : 'difícil'} 
                     disponíveis no momento.
                   </p>
                   <p className="text-sm text-yellow-600 mt-2">
@@ -596,7 +592,7 @@ export default function MatematicaOriginal() {
                 </div>
               ) : (
                 <>
-                  {/* ENUNCIADO - COM REF PARA SCROLL */}
+                  {/* ENUNCIADO */}
                   <div 
                     ref={enunciadoRef}
                     className="w-full max-w-4xl bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-600 rounded-xl shadow p-4"
@@ -618,13 +614,20 @@ export default function MatematicaOriginal() {
                     </div>
                   </div>
 
-                  {/* AVALIAO / FEEDBACK */}
+                  {/* AVALIAÇÃO / FEEDBACK */}
                   <div ref={avaliacaoRef} className="w-full max-w-4xl bg-white rounded-xl shadow-md p-4 mt-4">
-                    <h4 className="font-semibold text-gray-800 mb-2">Feedback da IA</h4>
+                    <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                      <IoInformation className="text-blue-600" />
+                      Feedback da IA
+                    </h4>
                     {avaliacaoDetalhes ? (
                       <div className="space-y-2">
                         <div className="flex items-center gap-3">
-                          <span className="text-2xl">{avaliacaoDetalhes.score >= 0.9 ? 'âœ…' : avaliacaoDetalhes.score >= 0.6 ? 'âš ' : 'âŒ'}</span>
+                          <span className="text-2xl">
+                            {avaliacaoDetalhes.score >= 0.9 ? <IoCheckmarkCircle className="text-green-500 text-2xl" /> : 
+                             avaliacaoDetalhes.score >= 0.6 ? <IoWarning className="text-yellow-500 text-2xl" /> : 
+                             <IoCloseCircle className="text-red-500 text-2xl" />}
+                          </span>
                           <div>
                             <div className="font-semibold">{avaliacaoDetalhes.feedback || 'Nenhum feedback curto fornecido'}</div>
                             <div className="text-xs text-gray-500">Pontos atribuídos: <span className="font-bold text-blue-600">{avaliacaoDetalhes.pontos}</span></div>
@@ -642,9 +645,9 @@ export default function MatematicaOriginal() {
 
                   {/* EDITOR */}
                   <div className="w-full max-w-4xl bg-white rounded-xl shadow-md p-4 space-y-3">
-                    {/* SÃMBOLOS MATEMÃTICOS */}
+                    {/* SÍMBOLOS MATEMÁTICOS */}
                     <div className="flex gap-1 md:gap-2 flex-wrap justify-center border-b pb-3 overflow-x-auto">
-                      {["+", "-", "Ã—", "Ã·", "âˆš", "(", ")", "²", "³", "=", "Ï€", "°", "â‰¤", "â‰", "â‰ ", "â‰ˆ", "âˆ«", "âˆ‘", "âˆž"].map((op) => (
+                      {["+", "-", "×", "÷", "√", "(", ")", "²", "³", "=", "π", "°", "≤", "≥", "≠", "≈", "∫", "∑", "∞"].map((op) => (
                         <button 
                           key={op} 
                           onClick={() => handleResposta(op)}
@@ -668,7 +671,10 @@ export default function MatematicaOriginal() {
                   {/* TEMPORIZADOR */}
                   <div className="w-full max-w-4xl bg-white rounded-xl shadow-md p-4">
                     <div className="flex justify-between items-center mb-2 text-sm md:text-base font-semibold text-gray-700">
-                      <span>Tempo restante para esta questão</span>
+                      <span className="flex items-center gap-2">
+                        <IoTime className="text-blue-600" />
+                        Tempo restante para esta questão
+                      </span>
                       <span className="px-2 py-0.5 rounded bg-gray-100">{formatSeconds(questaoTime)}</span>
                     </div>
                     <div className="w-full h-3 rounded-full bg-gray-200 overflow-hidden">
@@ -679,7 +685,7 @@ export default function MatematicaOriginal() {
                     </div>
                   </div>
 
-                  {/* BOTÃ•ES DE CONTROLE - APENAS EXECUTAR RESOLUO */}
+                  {/* BOTÕES DE CONTROLE */}
                   <div className="flex gap-3 w-full max-w-4xl">
                     <button 
                       onClick={executarResposta}
@@ -702,32 +708,31 @@ export default function MatematicaOriginal() {
                 </>
               )}
 
-              {/* BOTÃ•ES MOBILE */}
+              {/* BOTÕES MOBILE */}
               <div className="flex flex-col sm:flex-row w-full max-w-5xl justify-between gap-3 mt-4 lg:hidden">
                 <button 
                   onClick={() => setMostrarRanking(true)} 
                   className="flex-1 bg-gray-800 hover:bg-gray-900 text-white px-4 py-3 rounded-lg shadow-md text-sm transition-colors flex items-center justify-center gap-2"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
+                  <FaTrophy className="text-yellow-400" />
                   Ver Ranking
                 </button>
                 <button 
                   onClick={() => setMostrarDados(true)} 
                   className="flex-1 border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-4 py-3 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
+                  <FaUser className="text-sm" />
                   Ver seus Dados
                 </button>
               </div>
 
-              {/* RESULTADO / AVALIAO */}
+              {/* RESULTADO / AVALIAÇÃO */}
               {resultado && (
                 <div className="w-full max-w-4xl bg-white rounded-xl shadow-md p-4 border-l-4 border-blue-600">
-                  <h3 className="text-gray-700 font-semibold mb-2">Avaliação da Resolução</h3>
+                  <h3 className="text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                    <FaChartLine className="text-blue-600" />
+                    Avaliação da Resolução
+                  </h3>
                   <p className="text-gray-800 mb-2">{resultado}</p>
                   {pontuacao !== null && (
                     <div className="flex items-center gap-2">
@@ -747,7 +752,7 @@ export default function MatematicaOriginal() {
           )}
         </div>
 
-        {/* SIDEBAR DIREITA - INFO USUÃRIO */}
+        {/* SIDEBAR DIREITA - INFO USUÁRIO (SEM CERTIFICADO) */}
         <div className="hidden lg:flex w-64 bg-white text-gray-800 shadow-lg p-4 overflow-y-auto flex-col items-center space-y-3">
           <div className="flex flex-col items-center mb-3">
             {participante?.usuario?.imagem ? (
@@ -767,7 +772,7 @@ export default function MatematicaOriginal() {
 
           {participante ? (
             <div className="w-full flex flex-col gap-2 items-center">
-              {/* PONTUAO */}
+              {/* PONTUAÇÃO */}
               <div className="bg-white rounded-3xl border border-blue-200 p-2 flex flex-col items-center gap-1 w-40">
                 <div className="w-14 h-14">
                   <CircularProgressbar 
@@ -782,10 +787,13 @@ export default function MatematicaOriginal() {
                     })} 
                   />
                 </div>
-                <span className="text-xs font-semibold text-center">Pontuação</span>
+                <span className="text-xs font-semibold text-center flex items-center gap-1">
+                  <FaStar className="text-yellow-500 text-[10px]" />
+                  Pontuação
+                </span>
               </div>
               
-              {/* POSIO */}
+              {/* POSIÇÃO */}
               <div className="bg-white rounded-3xl border border-blue-200 p-2 flex flex-col items-center gap-1 w-40">
                 <div className="w-14 h-14">
                   <CircularProgressbar 
@@ -800,7 +808,10 @@ export default function MatematicaOriginal() {
                     })} 
                   />
                 </div>
-                <span className="text-xs font-semibold text-center">Posição</span>
+                <span className="text-xs font-semibold text-center flex items-center gap-1">
+                  <FaTrophy className="text-yellow-500 text-[10px]" />
+                  Posição
+                </span>
               </div>
               
               {/* CASOS RESOLVIDOS */}
@@ -818,20 +829,15 @@ export default function MatematicaOriginal() {
                     })} 
                   />
                 </div>
-                <span className="text-xs font-semibold text-center">Casos Resolvidos</span>
-              </div>
-
-              {/* Botão de Verificação de Certificado */}
-              <div className="mt-4 w-full">
-                <CertificateCheckButton 
-                  onClick={abrirCertificado}
-                  isLoading={loading}
-                />
+                <span className="text-xs font-semibold text-center flex items-center gap-1">
+                  <FaCheck className="text-green-500 text-[10px]" />
+                  Casos Resolvidos
+                </span>
               </div>
             </div>
           ) : (
             <div className="text-center p-4">
-              <p className="text-gray-600 mb-3">VocÃª ainda não está participando deste torneio</p>
+              <p className="text-gray-600 mb-3">Você ainda não está participando deste torneio</p>
               <button 
                 onClick={() => window.location.reload()}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
@@ -848,8 +854,13 @@ export default function MatematicaOriginal() {
         <div className="fixed inset-0 z-50 flex lg:hidden">
           <div className="absolute inset-0 bg-black/60 transition-opacity duration-300" onClick={() => setMostrarRanking(false)} />
           <div className="relative w-80 bg-white text-gray-800 p-4 overflow-y-auto transform transition-transform duration-300 ease-out translate-x-0">
-            <button onClick={() => setMostrarRanking(false)} className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl transition-colors">âœ•</button>
-            <h2 className="text-xl font-bold mb-4 text-center border-b border-gray-300 pb-1">Ranking de Matemática</h2>
+            <button onClick={() => setMostrarRanking(false)} className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl transition-colors">
+              <IoClose />
+            </button>
+            <h2 className="text-xl font-bold mb-4 text-center border-b border-gray-300 pb-1 flex items-center justify-center gap-2">
+              <FaTrophy className="text-yellow-500" />
+              Ranking de Matemática
+            </h2>
             <table className="w-full table-auto text-sm">
               <thead className="bg-gray-100">
                 <tr>
@@ -871,9 +882,9 @@ export default function MatematicaOriginal() {
                       }`}
                     >
                       <td className="px-2 py-2 font-semibold">
-                        {participanteRank.posicao === 1 ? '' : 
-                         participanteRank.posicao === 2 ? '' : 
-                         participanteRank.posicao === 3 ? '' : 
+                        {participanteRank.posicao === 1 ? <FaMedal className="text-yellow-500" /> : 
+                         participanteRank.posicao === 2 ? <FaMedal className="text-gray-400" /> : 
+                         participanteRank.posicao === 3 ? <FaMedal className="text-amber-600" /> : 
                          participanteRank.posicao ?? '-'}
                       </td>
                       <td className="px-2 py-2">
@@ -894,7 +905,10 @@ export default function MatematicaOriginal() {
                               {participanteRank.usuario?.nome || 'Usuário'}
                             </span>
                             {isMe && (
-                              <span className="text-[10px] font-bold text-blue-500 leading-none">â— vocÃª</span>
+                              <span className="text-[10px] font-bold text-blue-500 leading-none flex items-center gap-1">
+                                <FaStar className="text-[8px]" />
+                                você
+                              </span>
                             )}
                           </div>
                         </div>
@@ -918,12 +932,14 @@ export default function MatematicaOriginal() {
         </div>
       )}
 
-      {/* OVERLAY DADOS MOBILE */}
+      {/* OVERLAY DADOS MOBILE (SEM CERTIFICADO) */}
       {mostrarDados && (
         <div className="fixed inset-0 z-50 flex justify-end lg:hidden">
           <div className="absolute inset-0 bg-black/60 transition-opacity duration-300" onClick={() => setMostrarDados(false)} />
           <div className="relative w-72 bg-white text-gray-800 p-4 overflow-y-auto transform transition-transform duration-300 ease-out translate-x-0">
-            <button onClick={() => setMostrarDados(false)} className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl transition-colors">âœ•</button>
+            <button onClick={() => setMostrarDados(false)} className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl transition-colors">
+              <IoClose />
+            </button>
             <div className="flex flex-col items-center mb-3">
               {participante?.usuario?.imagem ? (
                 <img 
@@ -941,7 +957,7 @@ export default function MatematicaOriginal() {
             
             {participante ? (
               <div className="w-full flex flex-col mt-4 gap-4 items-center">
-                {/* PONTUAO */}
+                {/* PONTUAÇÃO */}
                 <div className="bg-white rounded-3xl border border-blue-200 p-2 flex flex-col items-center gap-1 w-40">
                   <div className="w-14 h-14">
                     <CircularProgressbar 
@@ -956,10 +972,13 @@ export default function MatematicaOriginal() {
                       })} 
                     />
                   </div>
-                  <span className="text-xs font-semibold text-center">Pontuação</span>
+                  <span className="text-xs font-semibold text-center flex items-center gap-1">
+                    <FaStar className="text-yellow-500 text-[10px]" />
+                    Pontuação
+                  </span>
                 </div>
                 
-                {/* POSIO */}
+                {/* POSIÇÃO */}
                 <div className="bg-white rounded-3xl border border-blue-200 p-2 flex flex-col items-center gap-1 w-40">
                   <div className="w-14 h-14">
                     <CircularProgressbar 
@@ -974,7 +993,10 @@ export default function MatematicaOriginal() {
                       })} 
                     />
                   </div>
-                  <span className="text-xs font-semibold text-center">Posição</span>
+                  <span className="text-xs font-semibold text-center flex items-center gap-1">
+                    <FaTrophy className="text-yellow-500 text-[10px]" />
+                    Posição
+                  </span>
                 </div>
                 
                 {/* CASOS RESOLVIDOS */}
@@ -992,35 +1014,19 @@ export default function MatematicaOriginal() {
                       })} 
                     />
                   </div>
-                  <span className="text-xs font-semibold text-center">Casos Resolvidos</span>
-                </div>
-                
-                {/* Botão de Verificação de Certificado Mobile */}
-                <div className="mt-4 w-full px-4">
-                  <CertificateCheckButton 
-                    onClick={abrirCertificado}
-                    isLoading={loading}
-                  />
+                  <span className="text-xs font-semibold text-center flex items-center gap-1">
+                    <FaCheck className="text-green-500 text-[10px]" />
+                    Casos Resolvidos
+                  </span>
                 </div>
               </div>
             ) : (
               <div className="text-center p-4">
-                <p className="text-gray-600">VocÃª ainda não está participando</p>
+                <p className="text-gray-600">Você ainda não está participando</p>
               </div>
             )}
           </div>
         </div>
-      )}
-
-      {/* Modal de Certificado */}
-      {certificadoData && (
-        <CertMatematica
-          isOpen={mostrarCertificado}
-          onClose={fecharCertificado}
-          participante={certificadoData.participante}
-          posicao={certificadoData.posicao}
-          torneio={certificadoData.torneio}
-        />
       )}
 
       {/* Modal de Vencedores */}
@@ -1034,4 +1040,3 @@ export default function MatematicaOriginal() {
     </div>
   );
 }
-

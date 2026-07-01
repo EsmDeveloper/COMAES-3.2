@@ -1,12 +1,6 @@
 ﻿/**
  * MinhasQuestoes.jsx - Aba para Colaborador gerenciar suas questões
- * Corrigido e melhorado:
- * 1. Usa AuthContext para token
- * 2. URL da API via variável de ambiente
- * 3. Serviço centralizado
- * 4. Validações robustas
- * 5. Tratamento de erros melhorado
- * 6. Formulário unificado com o CreateQuestaoForm
+ * CORREÇÃO: Removendo scrollbars dos cards
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -17,7 +11,7 @@ import PageTransition from '../../components/PageTransition';
 import QuestaoFormUnificado from '../../components/QuestaoFormUnificado';
 
 // ── Constantes 
-const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
 
 // ── Serviço de Questões do Colaborador 
 class ColaboradorQuestoesService {
@@ -75,28 +69,28 @@ class ColaboradorQuestoesService {
   }
 }
 
-// ── Badge de Status - Estilo COMAES
+// ── Badge de Status
 function StatusBadge({ status }) {
   const config = {
     pendente: { 
       bg: 'bg-yellow-50', 
       text: 'text-yellow-800', 
       border: 'border-yellow-200',
-      icon: <Clock className="w-3.5 h-3.5" />,
+      icon: <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />,
       label: 'Aguardando' 
     },
     aprovada: { 
       bg: 'bg-green-50', 
       text: 'text-green-800', 
       border: 'border-green-200',
-      icon: <CheckCircle className="w-3.5 h-3.5" />,
+      icon: <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" />,
       label: 'Aprovada' 
     },
     rejeitada: { 
       bg: 'bg-red-50', 
       text: 'text-red-800', 
       border: 'border-red-200',
-      icon: <XCircle className="w-3.5 h-3.5" />,
+      icon: <XCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" />,
       label: 'Rejeitada' 
     }
   };
@@ -104,21 +98,11 @@ function StatusBadge({ status }) {
   const c = config[status] || config.pendente;
   
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${c.bg} ${c.text} ${c.border}`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[10px] sm:text-xs font-semibold border ${c.bg} ${c.text} ${c.border}`}>
       {c.icon}
-      {c.label}
+      <span className="hidden xs:inline">{c.label}</span>
     </span>
   );
-}
-
-// ── Função para obter a cor do badge de pontos (usada apenas em tabela)
-function getPontosBadgeColor(dificuldade) {
-  const colors = {
-    'facil': 'bg-green-100 text-green-800 border-green-300',
-    'medio': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    'dificil': 'bg-red-100 text-red-800 border-red-300'
-  };
-  return colors[dificuldade] || 'bg-gray-100 text-gray-800 border-gray-300';
 }
 
 // ── Modal de Confirmação de Deleção 
@@ -126,26 +110,54 @@ function DeleteConfirmModal({ isOpen, onClose, onConfirm, titulo }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
-        <h3 className="text-lg font-semibold mb-2">Confirmar exclusão?</h3>
-        <p className="text-slate-600 mb-2">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-xl p-4 sm:p-6 max-w-sm w-full mx-auto" onClick={e => e.stopPropagation()}>
+        <h3 className="text-base sm:text-lg font-semibold mb-2">Confirmar exclusão?</h3>
+        <p className="text-sm sm:text-base text-slate-600 mb-2">
           Tem certeza que deseja excluir a questão "{titulo?.substring(0, 50)}..."?
         </p>
-        <p className="text-red-600 text-sm mb-6">Esta ação não pode ser desfeita.</p>
-        <div className="flex justify-end gap-3">
+        <p className="text-red-600 text-xs sm:text-sm mb-4 sm:mb-6">Esta ação não pode ser desfeita.</p>
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+            className="w-full sm:w-auto px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-sm"
           >
             Cancelar
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
           >
             Deletar
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Componente Card de Estatística (CORRIGIDO - SEM SCROLLBAR)
+function StatCard({ title, value, icon, bgColor, iconColor, subtitle }) {
+  return (
+    <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4 lg:p-5 transition-all hover:shadow-md hover:border-slate-300 group overflow-hidden">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="text-[8px] xs:text-[10px] sm:text-xs font-semibold text-slate-500 mb-0.5 sm:mb-1 uppercase tracking-wider truncate">
+            {title}
+          </div>
+          <div className="text-xl xs:text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 leading-tight truncate">
+            {value}
+          </div>
+          {subtitle && (
+            <div className="text-[8px] xs:text-[9px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 truncate hidden xs:block">
+              {subtitle}
+            </div>
+          )}
+        </div>
+        <div className={`w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105 ${bgColor}`}>
+          <div className={`w-4 h-4 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 ${iconColor}`}>
+            {icon}
+          </div>
         </div>
       </div>
     </div>
@@ -165,7 +177,6 @@ export default function MinhasQuestoes() {
   const [questaoEdit, setQuestaoEdit] = useState(null);
   const [questaoParaDeletar, setQuestaoParaDeletar] = useState(null);
 
-  // Criar instância do serviço
   const service = new ColaboradorQuestoesService(token);
 
   // Proteger rota
@@ -199,15 +210,11 @@ export default function MinhasQuestoes() {
       setLoading(true);
       setError(null);
       const lista = await service.listar();
-      
-      // ✅ DATA SAFETY: Normalizar resposta - garantir que é array
       const questoesNormalizadas = Array.isArray(lista) ? lista : [];
       setQuestoes(questoesNormalizadas);
     } catch (err) {
       console.error('Erro ao carregar questões:', err);
-      console.error('Detalhes do erro:', err.message);
       setError(err.message || 'Erro ao carregar questões');
-      // ✅ DATA SAFETY: Sempre definir array vazio em caso de erro
       setQuestoes([]);
     } finally {
       setLoading(false);
@@ -218,7 +225,6 @@ export default function MinhasQuestoes() {
     carregarQuestoes();
   }, [carregarQuestoes]);
 
-  // Criar questão
   const handleCreate = async (dados) => {
     setSaving(true);
     try {
@@ -226,12 +232,11 @@ export default function MinhasQuestoes() {
       await carregarQuestoes();
     } catch (err) {
       setSaving(false);
-      throw err; // propagar para o QuestaoFormUnificado mostrar o erro
+      throw err;
     }
     setSaving(false);
   };
 
-  // Editar questão
   const handleEdit = async (id, dados) => {
     setSaving(true);
     try {
@@ -239,12 +244,11 @@ export default function MinhasQuestoes() {
       await carregarQuestoes();
     } catch (err) {
       setSaving(false);
-      throw err; // propagar para o QuestaoFormUnificado mostrar o erro
+      throw err;
     }
     setSaving(false);
   };
 
-  // Deletar questão
   const handleDelete = async () => {
     if (!questaoParaDeletar) return;
     
@@ -257,7 +261,6 @@ export default function MinhasQuestoes() {
     }
   };
 
-  // Handle save (create ou edit)
   const handleSave = async (dados) => {
     if (questaoEdit) {
       await handleEdit(questaoEdit.id, dados);
@@ -272,14 +275,8 @@ export default function MinhasQuestoes() {
       <PageTransition>
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <div className="w-12 h-12 mx-auto mb-4" style={{
-              border: '3px solid #E8EAEF',
-              borderTopColor: '#4F6EF7',
-              borderRadius: '50%',
-              animation: 'spin 0.8s linear infinite'
-            }} />
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-            <p className="text-slate-600 font-medium">Carregando questões...</p>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-4 border-3 border-slate-200 border-t-[#4F6EF7] rounded-full animate-spin" />
+            <p className="text-sm sm:text-base text-slate-600 font-medium">Carregando questões...</p>
           </div>
         </div>
       </PageTransition>
@@ -290,18 +287,18 @@ export default function MinhasQuestoes() {
   if (error && questoes.length === 0) {
     return (
       <PageTransition>
-        <div className="flex items-center justify-center min-h-[60vh] p-6">
-          <div className="bg-white rounded-xl shadow-sm border border-red-200 p-8 max-w-2xl w-full">
+        <div className="flex items-center justify-center min-h-[60vh] p-4 sm:p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6 sm:p-8 max-w-2xl w-full">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
-                <AlertCircle className="w-6 h-6 text-red-600" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900">Erro ao carregar questões</h3>
+              <h3 className="text-base sm:text-lg font-semibold text-slate-900">Erro ao carregar questões</h3>
             </div>
             <p className="text-sm text-slate-600 mb-6">{error}</p>
             <button
               onClick={carregarQuestoes}
-              className="px-5 py-2.5 rounded-xl font-semibold text-white transition-all hover:opacity-90 flex items-center gap-2"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-semibold text-white transition-all hover:opacity-90 flex items-center justify-center gap-2"
               style={{ 
                 background: '#4F6EF7',
                 boxShadow: '0 2px 6px rgba(79, 110, 247, 0.25)'
@@ -316,216 +313,180 @@ export default function MinhasQuestoes() {
     );
   }
 
+  // Calcular estatísticas
+  const total = questoes.length;
+  const aprovadas = questoes.filter(q => q?.status_aprovacao === 'aprovada').length;
+  const pendentes = questoes.filter(q => q?.status_aprovacao === 'pendente').length;
+  const rejeitadas = questoes.filter(q => q?.status_aprovacao === 'rejeitada').length;
+
   return (
     <PageTransition>
-      {/* CSS para esconder scrollbars - FORÇADO */}
+      {/* CSS GLOBAL para remover scrollbars */}
       <style>{`
-        /* Esconder scrollbar globalmente */
-        * {
-          scrollbar-width: none !important; /* Firefox */
-          -ms-overflow-style: none !important; /* IE e Edge */
-        }
-        
-        *::-webkit-scrollbar {
-          display: none !important; /* Chrome, Safari, Opera */
-          width: 0 !important;
-          height: 0 !important;
-        }
-        
-        /* Específico para esta página */
-        .minhas-questoes-container * {
+        /* REMOVER TODAS AS SCROLLBARS DOS CARDS */
+        .stat-card,
+        .stat-card *,
+        .bg-white.rounded-lg,
+        .bg-white.rounded-lg * {
           scrollbar-width: none !important;
           -ms-overflow-style: none !important;
+          overflow: visible !important;
         }
         
-        .minhas-questoes-container *::-webkit-scrollbar {
+        .stat-card::-webkit-scrollbar,
+        .stat-card *::-webkit-scrollbar,
+        .bg-white.rounded-lg::-webkit-scrollbar,
+        .bg-white.rounded-lg *::-webkit-scrollbar {
           display: none !important;
           width: 0 !important;
           height: 0 !important;
         }
         
-        /* Mobile: Tabela vira cards */
-        @media (max-width: 768px) {
-          .mobile-card-view {
-            display: block !important;
-          }
-          
-          .mobile-card-view table,
-          .mobile-card-view thead,
-          .mobile-card-view tbody,
-          .mobile-card-view tr,
-          .mobile-card-view td,
-          .mobile-card-view th {
-            display: block !important;
-          }
-          
-          .mobile-card-view thead {
-            display: none !important;
-          }
-          
-          .mobile-card-view tr {
-            margin-bottom: 1rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 1rem;
-            background: white;
-          }
-          
-          .mobile-card-view td {
-            padding: 0.5rem 0 !important;
-            text-align: left !important;
-            border: none !important;
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-          }
-          
-          .mobile-card-view td:before {
-            content: attr(data-label);
-            font-weight: 600;
-            color: #64748b;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-          }
+        /* Forçar overflow visível em todos os cards */
+        .stat-card {
+          overflow: visible !important;
+        }
+        
+        /* Apenas a tabela pode ter scroll horizontal quando necessário */
+        .table-container {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        
+        .table-container::-webkit-scrollbar {
+          height: 4px;
+        }
+        
+        .table-container::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb {
+          background: #c1c1c1;
+          border-radius: 10px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb:hover {
+          background: #a8a8a8;
+        }
+        
+        /* Forçar todos os elementos a não terem scroll */
+        .no-scroll {
+          overflow: visible !important;
+        }
+        
+        .no-scroll::-webkit-scrollbar {
+          display: none !important;
         }
       `}</style>
 
-      <div className="space-y-4 sm:space-y-6 minhas-questoes-container px-4 sm:px-0">
-        {/* Header Limpo e Profissional */}
+      <div className="space-y-4 sm:space-y-6 px-3 sm:px-4 lg:px-6 max-w-7xl mx-auto">
+        {/* Header */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
-          {/* Botão Voltar */}
           <button
             onClick={() => navigate('/colaborador/dashboard')}
             className="mb-3 sm:mb-4 flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors group"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm font-medium">Voltar ao Dashboard</span>
+            <span className="text-xs sm:text-sm font-medium">Voltar ao Dashboard</span>
           </button>
           
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1.5">
-                <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: '#4F6EF7' }} />
+              <div className="flex items-center gap-2 mb-1">
+                <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 text-[#4F6EF7]" />
                 <h1 className="text-lg sm:text-2xl font-bold text-slate-800 truncate">Minhas Questões</h1>
               </div>
               <p className="text-slate-600 text-xs sm:text-sm">
                 Gerencie suas questões e status
               </p>
             </div>
-            <button
-              onClick={() => {
-                setQuestaoEdit(null);
-                setModalOpen(true);
-              }}
-              className="flex-shrink-0 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl font-semibold text-white transition-all hover:opacity-90 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-base whitespace-nowrap"
-              style={{ 
-                background: '#4F6EF7',
-                boxShadow: '0 2px 6px rgba(79, 110, 247, 0.25)'
-              }}
-            >
-              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="hidden xs:inline">Nova</span>
-              <span className="hidden sm:inline">Questão</span>
-            </button>
+            
+            {/* Botão Nova Questão */}
+            <div className="flex-shrink-0">
+              <button
+                onClick={() => {
+                  setQuestaoEdit(null);
+                  setModalOpen(true);
+                }}
+                className="px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-xl font-semibold text-white transition-all hover:opacity-90 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-base whitespace-nowrap"
+                style={{ 
+                  background: '#4F6EF7',
+                  boxShadow: '0 2px 6px rgba(79, 110, 247, 0.25)'
+                }}
+              >
+                <Plus className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                <span className="hidden xs:inline">Nova</span>
+                <span className="hidden sm:inline">Questão</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Cards de Estatísticas - Estilo COMAES */}
+        {/* Cards de Estatísticas - SEM SCROLLBARS */}
         {questoes.length > 0 && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-            {/* Card Total */}
-            <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4 transition-all hover:shadow-md">
-              <div className="flex items-start justify-between gap-2 mb-1.5 sm:mb-2">
-                <div className="flex-1 min-w-0">
-                  <div className="text-[10px] sm:text-xs font-medium text-slate-500 mb-0.5 sm:mb-1 uppercase tracking-wide">
-                    Total
-                  </div>
-                  <div className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900">
-                    {questoes.length}
-                  </div>
-                </div>
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#EEF1FE' }}>
-                  <BookOpen className="w-4 h-4 sm:w-4 sm:h-4" style={{ color: '#4F6EF7' }} />
-                </div>
-              </div>
-              <div className="text-[10px] sm:text-xs text-slate-500 truncate">Questões criadas</div>
-            </div>
-
-            {/* Card Aprovadas */}
-            <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4 transition-all hover:shadow-md">
-              <div className="flex items-start justify-between gap-2 mb-1.5 sm:mb-2">
-                <div className="flex-1 min-w-0">
-                  <div className="text-[10px] sm:text-xs font-medium text-slate-500 mb-0.5 sm:mb-1 uppercase tracking-wide">
-                    Aprovadas
-                  </div>
-                  <div className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900">
-                    {questoes.filter(q => q?.status_aprovacao === 'aprovada').length}
-                  </div>
-                </div>
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-green-50">
-                  <CheckCircle className="w-4 h-4 sm:w-4 sm:h-4 text-green-600" />
-                </div>
-              </div>
-              <div className="text-[10px] sm:text-xs text-slate-500 truncate">Disponíveis</div>
-            </div>
-
-            {/* Card Pendentes */}
-            <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4 transition-all hover:shadow-md">
-              <div className="flex items-start justify-between gap-2 mb-1.5 sm:mb-2">
-                <div className="flex-1 min-w-0">
-                  <div className="text-[10px] sm:text-xs font-medium text-slate-500 mb-0.5 sm:mb-1 uppercase tracking-wide">
-                    Pendentes
-                  </div>
-                  <div className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900">
-                    {questoes.filter(q => q?.status_aprovacao === 'pendente').length}
-                  </div>
-                </div>
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-yellow-50">
-                  <Clock className="w-4 h-4 sm:w-4 sm:h-4 text-yellow-600" />
-                </div>
-              </div>
-              <div className="text-[10px] sm:text-xs text-slate-500 truncate">Aguardando</div>
-            </div>
-
-            {/* Card Rejeitadas */}
-            <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4 transition-all hover:shadow-md">
-              <div className="flex items-start justify-between gap-2 mb-1.5 sm:mb-2">
-                <div className="flex-1 min-w-0">
-                  <div className="text-[10px] sm:text-xs font-medium text-slate-500 mb-0.5 sm:mb-1 uppercase tracking-wide">
-                    Rejeitadas
-                  </div>
-                  <div className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900">
-                    {questoes.filter(q => q?.status_aprovacao === 'rejeitada').length}
-                  </div>
-                </div>
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-red-50">
-                  <XCircle className="w-4 h-4 sm:w-4 sm:h-4 text-red-600" />
-                </div>
-              </div>
-              <div className="text-[10px] sm:text-xs text-slate-500 truncate">Precisam revisão</div>
-            </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 xs:gap-2.5 sm:gap-3 lg:gap-4 no-scroll">
+            {/* Total */}
+            <StatCard 
+              title="Total"
+              value={total}
+              subtitle={`${total} questão${total !== 1 ? 'es' : ''}`}
+              icon={<BookOpen className="w-full h-full" />}
+              bgColor="bg-[#EEF1FE]"
+              iconColor="text-[#4F6EF7]"
+            />
+            
+            {/* Aprovadas */}
+            <StatCard 
+              title="Aprovadas"
+              value={aprovadas}
+              subtitle={`${total > 0 ? Math.round((aprovadas/total) * 100) : 0}% do total`}
+              icon={<CheckCircle className="w-full h-full" />}
+              bgColor="bg-green-50"
+              iconColor="text-green-600"
+            />
+            
+            {/* Pendentes */}
+            <StatCard 
+              title="Pendentes"
+              value={pendentes}
+              subtitle={`${total > 0 ? Math.round((pendentes/total) * 100) : 0}% do total`}
+              icon={<Clock className="w-full h-full" />}
+              bgColor="bg-yellow-50"
+              iconColor="text-yellow-600"
+            />
+            
+            {/* Rejeitadas */}
+            <StatCard 
+              title="Rejeitadas"
+              value={rejeitadas}
+              subtitle={`${total > 0 ? Math.round((rejeitadas/total) * 100) : 0}% do total`}
+              icon={<XCircle className="w-full h-full" />}
+              bgColor="bg-red-50"
+              iconColor="text-red-600"
+            />
           </div>
         )}
 
-        {/* Error message (non-critical) */}
+        {/* Error message */}
         {error && questoes.length > 0 && (
           <div className="bg-blue-50 border border-blue-200 text-blue-800 p-3 rounded-lg text-sm flex items-center gap-2">
-            <AlertCircle className="w-4 h-4" />
-            {error}
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
         {/* Lista ou vazio */}
         {questoes.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 sm:p-12 text-center">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: '#EEF1FE' }}>
-              <BookOpen className="w-7 h-7 sm:w-8 sm:h-8" style={{ color: '#4F6EF7' }} />
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full mx-auto mb-4 flex items-center justify-center bg-[#EEF1FE]">
+              <BookOpen className="w-7 h-7 sm:w-8 sm:h-8 text-[#4F6EF7]" />
             </div>
             <h3 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">
               Nenhuma questão criada ainda
             </h3>
-            <p className="text-slate-600 text-xs sm:text-sm mb-6">
+            <p className="text-slate-600 text-xs sm:text-sm mb-6 max-w-md mx-auto">
               Comece criando sua primeira questão e contribua para o banco de questões da plataforma
             </p>
             <button
@@ -533,7 +494,7 @@ export default function MinhasQuestoes() {
                 setQuestaoEdit(null);
                 setModalOpen(true);
               }}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-semibold text-white transition-all hover:opacity-90 inline-flex items-center justify-center gap-2 text-sm"
+              className="px-6 py-2.5 rounded-xl font-semibold text-white transition-all hover:opacity-90 inline-flex items-center justify-center gap-2 text-sm"
               style={{ 
                 background: '#4F6EF7',
                 boxShadow: '0 2px 6px rgba(79, 110, 247, 0.25)'
@@ -544,16 +505,27 @@ export default function MinhasQuestoes() {
             </button>
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mobile-card-view">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200">
-                    <th className="text-left px-4 sm:px-6 py-3 sm:py-3.5 text-xs font-semibold text-slate-700 uppercase tracking-wider">Questão</th>
-                    <th className="text-left px-4 sm:px-6 py-3 sm:py-3.5 text-xs font-semibold text-slate-700 uppercase tracking-wider">Dificuldade</th>
-                    <th className="text-left px-4 sm:px-6 py-3 sm:py-3.5 text-xs font-semibold text-slate-700 uppercase tracking-wider">Pontos</th>
-                    <th className="text-left px-4 sm:px-6 py-3 sm:py-3.5 text-xs font-semibold text-slate-700 uppercase tracking-wider">Status</th>
-                    <th className="text-right px-4 sm:px-6 py-3 sm:py-3.5 text-xs font-semibold text-slate-700 uppercase tracking-wider">Ações</th>
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            {/* Tabela com scroll controlado */}
+            <div className="table-container">
+              <table className="w-full min-w-[600px] sm:min-w-0">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th className="text-left px-3 sm:px-6 py-2.5 sm:py-3.5 text-[10px] sm:text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Questão
+                    </th>
+                    <th className="text-left px-3 sm:px-6 py-2.5 sm:py-3.5 text-[10px] sm:text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Dificuldade
+                    </th>
+                    <th className="text-left px-3 sm:px-6 py-2.5 sm:py-3.5 text-[10px] sm:text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Pontos
+                    </th>
+                    <th className="text-left px-3 sm:px-6 py-2.5 sm:py-3.5 text-[10px] sm:text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="text-right px-3 sm:px-6 py-2.5 sm:py-3.5 text-[10px] sm:text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Ações
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -562,16 +534,18 @@ export default function MinhasQuestoes() {
                       key={q?.id || Math.random()} 
                       className="hover:bg-slate-50 transition-colors"
                     >
-                      <td className="px-4 sm:px-6 py-3 sm:py-4" data-label="Questão">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
                         <div>
                           <p className="font-semibold text-slate-900 text-xs sm:text-sm line-clamp-1">
                             {q?.titulo || 'Sem título'}
                           </p>
-                          <p className="text-xs text-slate-500 line-clamp-1 mt-0.5 hidden sm:block">{q?.descricao || ''}</p>
+                          <p className="text-[10px] sm:text-xs text-slate-500 line-clamp-1 hidden sm:block">
+                            {q?.descricao || ''}
+                          </p>
                         </div>
                       </td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4" data-label="Dificuldade">
-                        <span className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-xs font-semibold ${
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <span className={`inline-flex items-center px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-xs font-semibold ${
                           q?.dificuldade === 'facil' ? 'bg-green-100 text-green-800' :
                           q?.dificuldade === 'medio' ? 'bg-yellow-100 text-yellow-800' :
                           'bg-red-100 text-red-800'
@@ -579,18 +553,17 @@ export default function MinhasQuestoes() {
                           {(q?.dificuldade || 'medio').charAt(0).toUpperCase() + (q?.dificuldade || 'medio').slice(1)}
                         </span>
                       </td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4" data-label="Pontos">
-                        <div className="flex items-center gap-1.5">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <div className="flex items-center gap-1">
                           <Award className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500" />
                           <span className="font-semibold text-slate-900 text-xs sm:text-sm">{q?.pontos || 0}</span>
-                          <span className="text-xs text-slate-500">pts</span>
                         </div>
                       </td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4" data-label="Status">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
                         <StatusBadge status={q?.status_aprovacao || 'pendente'} />
                       </td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4" data-label="Ações">
-                        <div className="flex items-center justify-end gap-2">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <div className="flex items-center justify-end gap-1 sm:gap-2">
                           {['pendente', 'rejeitada'].includes(q?.status_aprovacao) && (
                             <>
                               <button
@@ -613,7 +586,7 @@ export default function MinhasQuestoes() {
                             </>
                           )}
                           {q.status_aprovacao === 'aprovada' && (
-                            <span className="text-xs text-slate-400 italic px-2 sm:px-2.5 py-1 bg-slate-50 rounded-lg">
+                            <span className="text-[10px] sm:text-xs text-slate-400 italic px-2 py-1 bg-slate-50 rounded-lg">
                               Não editável
                             </span>
                           )}
@@ -627,7 +600,7 @@ export default function MinhasQuestoes() {
           </div>
         )}
 
-        {/* Modal do Formulário */}
+        {/* Modals */}
         <QuestaoFormUnificado
           questao={questaoEdit}
           isOpen={modalOpen}
@@ -640,7 +613,6 @@ export default function MinhasQuestoes() {
           saving={saving}
         />
 
-        {/* Modal de Confirmação de Deleção */}
         <DeleteConfirmModal
           isOpen={!!questaoParaDeletar}
           onClose={() => setQuestaoParaDeletar(null)}

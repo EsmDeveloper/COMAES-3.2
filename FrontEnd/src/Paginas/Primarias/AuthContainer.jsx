@@ -56,7 +56,8 @@ function AuthContainer({ initialMode = "login" }) {
   const [showCadastroSenha, setShowCadastroSenha]     = useState(false);
   const [showConfirmaSenha, setShowConfirmaSenha]     = useState(false);
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+  // URL relativa = passa pelo proxy do Vite → funciona em localhost e em qualquer IP da rede local
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
   const escolas = [
     "Instituto Politécnico Industrial de Lunada - IPIL", 

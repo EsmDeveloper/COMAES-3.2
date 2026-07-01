@@ -52,7 +52,7 @@ export const useQuiz = (areaKey, options = {}) => {
     abortControllerRef.current = controller;
 
     try {
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       const resp = await fetch(`${apiBase}/api/questoes/quiz/${area}?limit=${questionLimit}`, {
         signal: controller.signal,
       });

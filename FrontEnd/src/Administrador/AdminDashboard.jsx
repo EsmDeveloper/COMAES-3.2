@@ -179,6 +179,11 @@ const AdminDashboard = () => {
 
   // Get all items flattened for navigation
   const allItems = menuSections.flatMap(section => section.items);
+  const currentItem = allItems.find(item => item.id === activeTab);
+  const currentSection = menuSections.find(section =>
+    section.items.some(item => item.id === activeTab)
+  ) || menuSections[0];
+  const mobileTabItems = currentSection?.items?.length ? currentSection.items : allItems;
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-slate-50 to-blue-50 overflow-hidden">
@@ -232,11 +237,11 @@ const AdminDashboard = () => {
       {mobileSidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileSidebarOpen(false)} />
-          <aside className="absolute left-0 top-0 h-full w-72 bg-white shadow-2xl overflow-hidden flex flex-col transform transition-transform duration-300 ease-in-out">
-            <div className="p-6 border-b border-slate-200 flex items-center justify-between flex-shrink-0 bg-white">
+          <aside className="absolute left-0 top-0 h-full w-[88vw] max-w-80 bg-white shadow-2xl overflow-hidden flex flex-col transform transition-transform duration-300 ease-in-out">
+            <div className="p-4 border-b border-slate-200 flex items-center justify-between flex-shrink-0 bg-white">
               <div className="flex items-center gap-3">
                 <img src={shortLogo} alt="COMAES" className="h-10 w-auto object-contain" />
-                <h1 className="text-base sm:text-lg font-bold text-gray-800">Painel do ADM</h1>
+                <h1 className="text-base font-bold text-gray-800 leading-tight">Painel do ADM</h1>
               </div>
               <button 
                 onClick={() => setMobileSidebarOpen(false)} 
@@ -245,10 +250,10 @@ const AdminDashboard = () => {
                 <X className="w-6 h-6" />
               </button>
             </div>
-            <nav className="flex-1 overflow-y-auto bg-slate-50 p-4">
+            <nav className="flex-1 overflow-y-auto bg-slate-50 p-3">
               {menuSections.map(section => (
                 <div key={section.id} className="mb-4">
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider px-4 mb-2">
+                  <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-3 mb-2">
                     {section.title}
                   </h3>
                   <div className="space-y-1">
@@ -256,7 +261,7 @@ const AdminDashboard = () => {
                       <button
                         key={item.id}
                         onClick={() => { setActiveTab(item.id); setMobileSidebarOpen(false); }}
-                        className={`w-full px-4 py-3 rounded-xl text-sm transition-all duration-200 flex items-center gap-3 ${
+                        className={`w-full px-3 py-3 rounded-xl text-sm transition-all duration-200 flex items-center gap-3 text-left ${
                           activeTab === item.id
                             ? 'bg-blue-600 text-white shadow-lg font-semibold'
                             : 'text-slate-700 hover:bg-white hover:shadow-md'
@@ -278,25 +283,34 @@ const AdminDashboard = () => {
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Header - Fixed at top */}
         <header className="bg-white shadow-lg border-b border-slate-200 flex-shrink-0">
-          <div className="px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="px-3 py-3 sm:px-6 sm:py-4 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <button 
-                className="md:hidden w-12 h-12 flex items-center justify-center rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200" 
+                className="md:hidden w-11 h-11 flex items-center justify-center rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 flex-shrink-0" 
                 onClick={() => setMobileSidebarOpen(true)}
+                aria-label="Abrir menu administrativo"
               >
                 <Menu className="w-6 h-6" />
               </button>
               <div className="hidden md:block">
                 <h2 className="text-2xl font-bold text-slate-800">
-                  {allItems.find(m => m.id === activeTab)?.label || 'Painel Administrativo'}
+                  {currentItem?.label || 'Painel Administrativo'}
                 </h2>
                 <p className="text-sm text-slate-600 mt-1">
                   Gerencie todos os aspectos da plataforma COMAES
                 </p>
               </div>
+              <div className="md:hidden min-w-0">
+                <h2 className="text-base font-bold text-slate-800 truncate">
+                  {currentItem?.label || 'Painel Administrativo'}
+                </h2>
+                <p className="text-xs text-slate-500 truncate">
+                  {currentSection?.title || 'Administracao'}
+                </p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <div className="md:hidden">
                 {renderAvatarButton(true)}
               </div>
@@ -305,11 +319,32 @@ const AdminDashboard = () => {
                   Toda a saída do painel é feita via logout (botão no sidebar/avatar menu). */}
             </div>
           </div>
+          <div className="md:hidden border-t border-slate-100 bg-white">
+            <div className="px-3 py-2">
+              <div className="flex gap-2 overflow-x-auto pb-1 -mx-3 px-3 snap-x snap-mandatory">
+                {mobileTabItems.map(item => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setActiveTab(item.id)}
+                    className={`snap-start inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold whitespace-nowrap transition-all ${
+                      activeTab === item.id
+                        ? 'border-blue-600 bg-blue-600 text-white shadow-sm'
+                        : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-200 hover:bg-blue-50'
+                    }`}
+                  >
+                    <item.icon className="w-4 h-4" />
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         </header>
 
         {/* Content Area - Scrollable */}
         <div className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50 to-blue-50">
-          <div className="max-w-7xl mx-auto w-full px-6 py-8">
+          <div className="max-w-7xl mx-auto w-full px-3 py-4 sm:px-6 sm:py-8">
             <div className="animate-fade-in">
               {activeTab === 'dashboard' ? (
                 <AdminStats />

@@ -1,10 +1,10 @@
 ﻿/**
  * BlocosService.js
- * Serviço frontend para gestão de Blocos de QuestÃµes via API.
+ * Serviço frontend para gestão de Blocos de Questões via API.
  * Substitui a persistÃªncia em localStorage do BlocoQuestoesManager anterior.
  */
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 
 const headers = (token) => ({
   'Content-Type': 'application/json',
@@ -13,7 +13,12 @@ const headers = (token) => ({
 
 const handleResponse = async (res) => {
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || data.message || `Erro ${res.status}`);
+  if (!res.ok) {
+    const error = new Error(data.error || data.message || `Erro ${res.status}`);
+    error.status = res.status;
+    error.data = data;
+    throw error;
+  }
   return data;
 };
 
@@ -41,7 +46,7 @@ export const BlocosService = {
     return handleResponse(res);
   },
 
-  /** Obtém detalhe de um bloco com suas questÃµes */
+  /** Obtém detalhe de um bloco com suas questões */
   async obter(token, id) {
     const res = await fetch(`${API_BASE}/api/blocos/${id}`, {
       headers: headers(token),
@@ -59,9 +64,10 @@ export const BlocosService = {
     return handleResponse(res);
   },
 
-  /** Deleta um bloco (falha se associado a torneio) */
-  async deletar(token, id) {
-    const res = await fetch(`${API_BASE}/api/blocos/${id}`, {
+  /** Deleta um bloco. Pode desassociar torneios quando confirmado explicitamente. */
+  async deletar(token, id, options = {}) {
+    const qs = options.desassociar ? '?desassociar=true' : '';
+    const res = await fetch(`${API_BASE}/api/blocos/${id}${qs}`, {
       method: 'DELETE',
       headers: headers(token),
     });

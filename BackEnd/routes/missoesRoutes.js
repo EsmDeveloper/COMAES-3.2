@@ -8,6 +8,7 @@
 
 import express from 'express';
 import auth from '../middlewares/auth.js';
+import { authenticateAny } from '../middlewares/auth.js';
 import isNotColaborador from '../middlewares/isNotColaborador.js';
 import {
   getMissoesAtivasHandler,
@@ -24,4 +25,4 @@ missoesRouter.post('/:id/progresso', auth, isNotColaborador, incrementarProgress
 // ── Rota do dashboard agregado (/api/usuarios) 
 export const dashboardGamificacaoRouter = express.Router();
 
-dashboardGamificacaoRouter.get('/me/dashboard-gamificacao', auth, isNotColaborador, getDashboardGamificacao);
+dashboardGamificacaoRouter.get('/me/dashboard-gamificacao', authenticateAny, isNotColaborador, getDashboardGamificacao);

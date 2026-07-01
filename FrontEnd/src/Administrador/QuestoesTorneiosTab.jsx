@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Search, BookOpen, Layers, X, Package, CheckCircle, AlertCircle } from 'lucide-react';
 import BlocoQuestoesManager from './BlocoQuestoesManager';
 import QuestaoFormUnificado from '../components/QuestaoFormUnificado';
@@ -35,7 +35,7 @@ const QuestoesTorneiosTab = () => {
   const fetchQuestoesIndividuais = async () => {
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       
       // Buscar questões aprovadas, sem bloco, e com contexto='torneio'
       const response = await fetch(`${apiBase}/api/questoes?status_aprovacao=aprovada&contexto=torneio`, {
@@ -57,12 +57,12 @@ const QuestoesTorneiosTab = () => {
   const fetchBlocos = async () => {
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       
       console.log('🏆 Buscando blocos para TORNEIOS (contexto=torneio)...');
       
-      // Buscar blocos com contexto='torneio' e status='aprovado'
-      const response = await fetch(`${apiBase}/api/blocos?contexto=torneio&status=aprovado`, {
+      // Buscar blocos com contexto='torneio' — sem filtro de status (admin vê todos os seus blocos)
+      const response = await fetch(`${apiBase}/api/blocos?contexto=torneio`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -107,7 +107,7 @@ const QuestoesTorneiosTab = () => {
     setSalvando(true);
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       
       console.log(`[MEDAL] Enviando questão ${questaoSelecionada.id} para bloco ${blocoId}`);
       console.log(` Payload:`, { questao_id: questaoSelecionada.id });
@@ -165,7 +165,7 @@ const QuestoesTorneiosTab = () => {
     setSalvando(true);
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       
       const response = await fetch(`${apiBase}/api/questoes/${questaoSelecionada.id}`, {
         method: 'PUT',
@@ -201,7 +201,7 @@ const QuestoesTorneiosTab = () => {
     setSalvando(true);
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       
       const response = await fetch(`${apiBase}/api/questoes/${questaoSelecionada.id}`, {
         method: 'DELETE',
@@ -237,7 +237,7 @@ const QuestoesTorneiosTab = () => {
 
   const handleSalvarNovaQuestao = async (payload) => {
     const token = localStorage.getItem('comaes_token');
-    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
+    const apiBase = import.meta.env.VITE_API_BASE_URL || '';
     const response = await fetch(`${apiBase}/api/questoes`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },

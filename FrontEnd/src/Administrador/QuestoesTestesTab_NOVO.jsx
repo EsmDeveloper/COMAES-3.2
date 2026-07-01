@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { BookOpen, Plus, Edit2, Trash2, Search, ChevronDown, Layers, X, Package, CheckCircle, AlertCircle } from 'lucide-react';
 import BlocoQuestoesManager from './BlocoQuestoesManager';
 import CreateQuestaoTesteForm from './CreateQuestaoTesteForm';
@@ -11,7 +11,7 @@ const QuestoesTestesTab = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState('blocos');
 
-  // Estados para modais de açÃµes
+  // Estados para modais de ações
   const [modalAgruparAberto, setModalAgruparAberto] = useState(false);
   const [questaoSelecionada, setQuestaoSelecionada] = useState(null);
   const [modalDeletarAberto, setModalDeletarAberto] = useState(false);
@@ -23,7 +23,7 @@ const QuestoesTestesTab = () => {
     fetchBlocos();
     
     const handleQuestaoAdicionada = () => {
-      console.log(' Recarregando questÃµes individuais...');
+      console.log(' Recarregando questões individuais...');
       fetchQuestoesIndividuais();
     };
     
@@ -34,7 +34,7 @@ const QuestoesTestesTab = () => {
   const fetchQuestoesIndividuais = async () => {
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       
       const response = await fetch(`${apiBase}/api/teste-conhecimento/questoes?ativo=true`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -42,7 +42,7 @@ const QuestoesTestesTab = () => {
       const data = await response.json();
       setQuestoesIndividuais(data.data || data.dados || []);
     } catch (error) {
-      console.error('Erro ao buscar questÃµes:', error);
+      console.error('Erro ao buscar questões:', error);
     } finally {
       setLoading(false);
     }
@@ -51,7 +51,7 @@ const QuestoesTestesTab = () => {
   const fetchBlocos = async () => {
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       
       const response = await fetch(`${apiBase}/api/blocos?status=publicado`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -70,7 +70,7 @@ const QuestoesTestesTab = () => {
     setSalvando(true);
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       
       const response = await fetch(`${apiBase}/api/blocos/${blocoId}/questoes`, {
         method: 'POST',
@@ -109,7 +109,7 @@ const QuestoesTestesTab = () => {
     setSalvando(true);
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       
       const response = await fetch(`${apiBase}/api/teste-conhecimento/questoes/${questaoSelecionada.id}`, {
         method: 'DELETE',
@@ -248,7 +248,7 @@ const QuestoesTestesTab = () => {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-blue-900 flex items-center gap-2">
                   <BookOpen className="w-7 h-7" />
-                  Visualizar Todas as QuestÃµes
+                  Visualizar Todas as Questões
                 </h2>
                 <button
                   onClick={() => setShowCreateForm(true)}

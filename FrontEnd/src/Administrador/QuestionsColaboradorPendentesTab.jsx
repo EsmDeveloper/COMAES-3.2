@@ -11,7 +11,7 @@ import {
   Loader, AlertTriangle, CheckCircle, XCircle, Code
 } from 'lucide-react';
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
 
 // Badge de status
 function StatusBadge({ status }) {
@@ -48,7 +48,7 @@ function TipoBadge({ tipo }) {
     codigo: 'bg-green-100 text-green-700',
   };
   const labels = {
-    multipla_escolha: 'MÃºltipla Escolha',
+    multipla_escolha: 'Múltipla Escolha',
     texto: 'Texto',
     codigo: 'Código',
   };
@@ -305,10 +305,10 @@ function QuestionDetailModal({ isOpen, onClose, question, onApprove, onReject })
               </div>
             )}
 
-            {/* ConteÃºdo por tipo */}
+            {/* Conteúdo por tipo */}
             {question.tipo === 'multipla_escolha' && question.opcoes && question.opcoes.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3">OpçÃµes</h3>
+                <h3 className="text-sm font-semibold text-slate-700 mb-3">Opções</h3>
                 <div className="space-y-2">
                   {question.opcoes.map((opcao, idx) => (
                     <div
@@ -473,7 +473,7 @@ export default function QuestionsColaboradorPendentesTab() {
 
   const token = localStorage.getItem('comaes_token');
 
-  // Fetch questÃµes
+  // Fetch questões
   const fetchQuestions = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -499,7 +499,7 @@ export default function QuestionsColaboradorPendentesTab() {
         setQuestions(json.dados.questoes || []);
         setTotalPaginas(json.dados.paginacao?.totalPaginas || 1);
       } else {
-        setError(json.mensagem || 'Erro ao carregar questÃµes');
+        setError(json.mensagem || 'Erro ao carregar questões');
       }
     } catch (err) {
       setError('Erro de conexão: ' + err.message);
@@ -548,9 +548,9 @@ export default function QuestionsColaboradorPendentesTab() {
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <BookOpen className="w-6 h-6 text-purple-600" />
-          <h2 className="text-2xl font-bold text-slate-800">QuestÃµes de Colaboradores</h2>
+          <h2 className="text-2xl font-bold text-slate-800">Questões de Colaboradores</h2>
         </div>
-        <p className="text-slate-600">Revise e aprove questÃµes criadas por colaboradores</p>
+        <p className="text-slate-600">Revise e aprove questões criadas por colaboradores</p>
       </div>
 
       {/* Filtros */}
@@ -618,7 +618,7 @@ export default function QuestionsColaboradorPendentesTab() {
               className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-400 transition font-medium"
             >
               <option value="">Todos Tipos</option>
-              <option value="multipla_escolha">MÃºltipla Escolha</option>
+              <option value="multipla_escolha">Múltipla Escolha</option>
               <option value="texto">Texto</option>
               <option value="codigo">Código</option>
             </select>
@@ -639,12 +639,12 @@ export default function QuestionsColaboradorPendentesTab() {
         </div>
       </div>
 
-      {/* ConteÃºdo */}
+      {/* Conteúdo */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="flex flex-col items-center gap-3">
             <Loader className="w-8 h-8 text-purple-600 animate-spin" />
-            <p className="text-slate-600 font-medium">Carregando questÃµes...</p>
+            <p className="text-slate-600 font-medium">Carregando questões...</p>
           </div>
         </div>
       ) : error ? (
@@ -659,7 +659,7 @@ export default function QuestionsColaboradorPendentesTab() {
         <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
           <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-4" />
           <p className="text-slate-600 text-lg font-medium">Nenhuma questão para revisar</p>
-          <p className="text-slate-500 text-sm mt-2">Todas as questÃµes foram revisadas ou não há questÃµes aguardando revisão</p>
+          <p className="text-slate-500 text-sm mt-2">Todas as questões foram revisadas ou não há questões aguardando revisão</p>
         </div>
       ) : (
         <>
@@ -674,7 +674,7 @@ export default function QuestionsColaboradorPendentesTab() {
                     <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Tipo</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Status</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Criado em</th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">AçÃµes</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">

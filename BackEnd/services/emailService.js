@@ -274,4 +274,66 @@ export const sendNewsEmail = async (emails, noticia) => {
   return { success: true, sent, failed };
 };
 
-export default { sendResetEmail, sendWelcomeEmail, sendNewsEmail, getEmailDiagnostics };
+// ─── 4. Email de aprovação de colaborador ──────────────────────────────────
+/**
+ * sendColaboradorAprovadoEmail — notifica o colaborador que foi aprovado
+ * @param {string} email       - Email do colaborador
+ * @param {string} nome        - Nome do colaborador
+ * @param {string} disciplina  - Disciplina atribuída (ex: 'matematica')
+ */
+export const sendColaboradorAprovadoEmail = async (email, nome, disciplina) => {
+  const url = `${process.env.FRONTEND_URL || 'http://localhost:5175'}/login`;
+
+  // Capitalizar disciplina para exibição
+  const disciplinaLabel = disciplina
+    ? disciplina.charAt(0).toUpperCase() + disciplina.slice(1)
+    : 'a ser definida';
+
+  const html = `
+<div style="${baseStyle}">
+  ${headerHtml}
+  <div style="${cardStyle}">
+    <h2 style="color:#1e293b;font-size:20px;margin:0 0 12px;text-align:center;">
+      Parabéns, ${nome}! A sua candidatura foi aprovada.
+    </h2>
+    <p style="color:#475569;line-height:1.7;margin:0 0 12px;">
+      A equipa COMAES avaliou o seu perfil e tem o prazer de informar que foi aprovado(a) como
+      <strong>Colaborador(a)</strong> da plataforma.
+    </p>
+    <div style="
+      background:#f0fdf4;
+      border:1px solid #bbf7d0;
+      border-radius:8px;
+      padding:14px 18px;
+      margin:16px 0 24px;
+      text-align:center;
+    ">
+      <p style="margin:0;color:#166534;font-size:14px;">
+        Disciplina atribuída: <strong>${disciplinaLabel}</strong>
+      </p>
+    </div>
+    <p style="color:#475569;line-height:1.7;margin:0 0 24px;">
+      Já pode aceder à plataforma e começar a contribuir com questões para o banco de questões do COMAES.
+    </p>
+    <div style="text-align:center;margin:28px 0;">
+      <a href="${url}" style="${btnStyle('#10b981')}">Aceder à Plataforma</a>
+    </div>
+    <p style="color:#94a3b8;font-size:12px;text-align:center;margin:20px 0 0;">
+      Se tiver dúvidas, entre em contacto através do suporte da plataforma.
+    </p>
+  </div>
+  <div style="${footerStyle}">
+    <p>© ${new Date().getFullYear()} COMAES · Este é um email automático, não responda.</p>
+  </div>
+</div>`;
+
+  const info = await send({
+    to: email,
+    subject: 'Candidatura aprovada — Bem-vindo(a) como Colaborador(a) COMAES',
+    html,
+    tag: 'colaborador-aprovado'
+  });
+  return { success: true, messageId: info.messageId };
+};
+
+export default { sendResetEmail, sendWelcomeEmail, sendNewsEmail, sendColaboradorAprovadoEmail, getEmailDiagnostics };

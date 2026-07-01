@@ -117,7 +117,7 @@ export default function Layout({ children }) {
     const fetchNotificationCount = async () => {
       if (user && user.id) {
         try {
-          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/notificacoes/usuario/${user.id}/nao-lidas/count`, {
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/notificacoes/usuario/${user.id}/nao-lidas/count`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('comaes_token')}` }
           });
           const data = await response.json();

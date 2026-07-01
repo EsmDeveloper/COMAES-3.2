@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
 import Layout from './Layout';
@@ -12,7 +12,7 @@ import {
 const API_BASE = () =>
   import.meta.env.VITE_API_URL ||
   import.meta.env.VITE_API_BASE_URL ||
-  `http://${window.location.hostname}:3002`;
+  '';
 
 const authHeaders = () => {
   const token = localStorage.getItem('token') || localStorage.getItem('comaes_token');

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+﻿import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, Share2, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -57,7 +57,7 @@ export default function CertificadoBase({
       setError(null);
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/certificates/generate`,
+          `${import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || ''}/api/certificates/generate`,
           {
             method: 'POST',
             headers: {
@@ -97,7 +97,7 @@ export default function CertificadoBase({
   }, [isOpen, participante, torneio, disciplina, posicao, pontuacao, token, user]);
 
   const handleDownloadPDF = async () => {
-    const baseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+    const baseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
     const pdfPath = certData?.certificateURL;
     if (!pdfPath) {
       alert('Arquivo PDF do certificado ainda nao esta disponivel.');

@@ -8,7 +8,7 @@ import ConfirmModal from '../components/ConfirmModal';
 
 /**
  * TesteConhecimentoManager
- * Gerenciador de questÃµes do Teste de Conhecimento
+ * Gerenciador de questões do Teste de Conhecimento
  * Sistema independente dos torneios
  */
 
@@ -27,9 +27,9 @@ const TesteConhecimentoManager = () => {
   const [filterCategoria, setFilterCategoria] = useState('');
   const [filterDificuldade, setFilterDificuldade] = useState('');
 
-  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
 
-  // Carregar questÃµes
+  // Carregar questões
   const carregarQuestoes = async () => {
     setLoading(true);
     setError('');
@@ -44,14 +44,14 @@ const TesteConhecimentoManager = () => {
 
       setQuestoes(res.data.data || []);
     } catch (err) {
-      setError('Erro ao carregar questÃµes');
+      setError('Erro ao carregar questões');
       console.error('Erro:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Carregar questÃµes ao montar
+  // Carregar questões ao montar
   useEffect(() => {
     carregarQuestoes();
   }, [filterCategoria, filterDificuldade]);
@@ -85,7 +85,7 @@ const TesteConhecimentoManager = () => {
     setShowEditForm(true);
   };
 
-  // Filtrar questÃµes
+  // Filtrar questões
   const questoesFiltradas = questoes.filter(q =>
     q.enunciado.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -93,7 +93,7 @@ const TesteConhecimentoManager = () => {
   const categoriaLabels = {
     matematica: 'Matemática',
     programacao: 'Programação',
-    ingles: 'InglÃªs',
+    ingles: 'Inglês',
     cultura_geral: 'Cultura Geral'
   };
 
@@ -116,7 +116,7 @@ const TesteConhecimentoManager = () => {
               </h2>
             </div>
             <p className="text-slate-600">
-              Gerencie questÃµes do teste de conhecimento (independente dos torneios)
+              Gerencie questões do teste de conhecimento (independente dos torneios)
             </p>
           </div>
           <button
@@ -176,7 +176,7 @@ const TesteConhecimentoManager = () => {
               <option value="">Todas</option>
               <option value="matematica">Matemática</option>
               <option value="programacao">Programação</option>
-              <option value="ingles">InglÃªs</option>
+              <option value="ingles">Inglês</option>
               <option value="cultura_geral">Cultura Geral</option>
             </select>
           </div>
@@ -201,12 +201,12 @@ const TesteConhecimentoManager = () => {
         </div>
       </div>
 
-      {/* QuestÃµes Table */}
+      {/* Questões Table */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
         {loading ? (
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-slate-600">Carregando questÃµes...</p>
+            <p className="text-slate-600">Carregando questões...</p>
           </div>
         ) : questoesFiltradas.length === 0 ? (
           <div className="p-8 text-center">
@@ -223,8 +223,8 @@ const TesteConhecimentoManager = () => {
                   <th className="px-6 py-4 text-left font-semibold text-slate-700">Categoria</th>
                   <th className="px-6 py-4 text-left font-semibold text-slate-700">Dificuldade</th>
                   <th className="px-6 py-4 text-left font-semibold text-slate-700">Pontos</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">OpçÃµes</th>
-                  <th className="px-6 py-4 text-right font-semibold text-slate-700">AçÃµes</th>
+                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Opções</th>
+                  <th className="px-6 py-4 text-right font-semibold text-slate-700">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -253,7 +253,7 @@ const TesteConhecimentoManager = () => {
                       {questao.pontos}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-700">
-                      {Array.isArray(questao.opcoes) ? questao.opcoes.length : 0} opçÃµes
+                      {Array.isArray(questao.opcoes) ? questao.opcoes.length : 0} opçãµes
                     </td>
                     <td className="px-6 py-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-2">

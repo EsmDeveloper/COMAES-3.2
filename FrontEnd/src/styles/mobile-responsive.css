@@ -1,199 +1,244 @@
 /**
  * Mobile Responsive CSS - COMAES 3.2
- * Correções globais de responsividade para mobile
+ * Camada global para evitar overflow, padronizar controles e estabilizar
+ * telas criticas em smartphones e tablets.
  */
 
 /* ========================================
-   RESET E BASE
+   BASE E OVERFLOW
 ======================================== */
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-/* Prevenir overflow horizontal */
-html {
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
   overflow-x: hidden;
-  overflow-y: scroll !important; /* Scroll vertical sempre do HTML */
-  max-width: 100vw;
-  position: relative !important;
 }
 
 body {
-  overflow-x: hidden;
-  max-width: 100vw;
   position: relative !important;
 }
 
-/* Botão do assistente SEMPRE visível e fixo à viewport */
+#root,
+#root > * {
+  min-width: 0;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+svg {
+  flex-shrink: 0;
+}
+
+.min-w-64,
+[class*="min-w-64"] {
+  min-width: min(16rem, 100%) !important;
+}
+
+[class*="min-w-["] {
+  max-width: 100%;
+}
+
+/* Conteudos flex/grid precisam poder encolher para nao estourar a viewport. */
+.flex > *,
+.grid > * {
+  min-width: 0;
+}
+
+/* ========================================
+   BOTAO DO ASSISTENTE
+======================================== */
+
 #comaes-support-button,
 button[title="Assistente COMAES"] {
   position: fixed !important;
-  bottom: 20px !important;
-  right: 20px !important;
-  width: 56px !important;
-  height: 56px !important;
-  min-width: 56px !important;
-  min-height: 56px !important;
-  max-width: 56px !important;
-  max-height: 56px !important;
-  border-radius: 50% !important;
-  aspect-ratio: 1 / 1 !important;
-  padding: 0 !important;
+  right: max(16px, env(safe-area-inset-right)) !important;
+  bottom: max(16px, env(safe-area-inset-bottom)) !important;
   z-index: 2147483647 !important;
-  display: flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  overflow: hidden !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-}
-
-/* Garantir que a imagem dentro do botão ocupe todo o espaço e seja centralizada à direita */
-button[title="Assistente COMAES"] img {
   width: 56px !important;
   height: 56px !important;
   min-width: 56px !important;
   min-height: 56px !important;
   max-width: 56px !important;
   max-height: 56px !important;
-  object-fit: cover !important;
-  object-position: 60% center !important;
-  border-radius: 50% !important;
-  display: block !important;
-  aspect-ratio: 1 / 1 !important;
-  margin: 0 !important;
   padding: 0 !important;
-}
-
-/* Container da imagem dentro do botão */
-button[title="Assistente COMAES"] > div {
-  width: 100% !important;
-  height: 100% !important;
+  border-radius: 9999px !important;
+  aspect-ratio: 1 / 1 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  overflow: hidden !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22) !important;
 }
 
-/* Garantir que o botão seja perfeitamente circular e bem posicionado em mobile */
-@media (max-width: 640px) {
-  #comaes-support-button,
-  button[title="Assistente COMAES"] {
-    width: 56px !important;
-    height: 56px !important;
-    min-width: 56px !important;
-    min-height: 56px !important;
-    max-width: 56px !important;
-    max-height: 56px !important;
-    bottom: 16px !important;
-    right: 16px !important;
-    border-radius: 50% !important;
-    aspect-ratio: 1 / 1 !important;
-    /* Safe area para dispositivos com notch */
-    bottom: max(16px, env(safe-area-inset-bottom)) !important;
-    right: max(16px, env(safe-area-inset-right)) !important;
-  }
+button[title="Assistente COMAES"] img,
+button[title="Assistente COMAES"] > div {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: cover !important;
+  border-radius: inherit !important;
 }
 
-/* Ajuste extra para telas muito pequenas */
 @media (max-width: 375px) {
   #comaes-support-button,
   button[title="Assistente COMAES"] {
+    right: max(12px, env(safe-area-inset-right)) !important;
+    bottom: max(12px, env(safe-area-inset-bottom)) !important;
     width: 52px !important;
     height: 52px !important;
     min-width: 52px !important;
     min-height: 52px !important;
     max-width: 52px !important;
     max-height: 52px !important;
-    bottom: 12px !important;
-    right: 12px !important;
   }
 }
 
 /* ========================================
-   CONTAINERS E CARDS
+   CONTROLES E BOTOES
 ======================================== */
 
-/* Prevenir cards muito largos em mobile */
+button,
+a[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  max-width: 100%;
+}
+
+button,
+a[role="button"] {
+  overflow-wrap: anywhere;
+}
+
+.mobile-full-width {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
 @media (max-width: 640px) {
-  .card,
-  [class*="card"],
-  [class*="Card"] {
-    max-width: 100% !important;
-    width: 100% !important;
+  button,
+  a[role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"] {
+    min-height: 40px;
+    touch-action: manipulation;
   }
-  
-  /* Cards com padding menor em mobile */
-  .bg-white,
-  .bg-slate-50 {
-    padding: 1rem !important;
+
+  button:not([class*="w-full"]):not([class*="flex-1"]):not([class*="w-8"]):not([class*="w-9"]):not([class*="w-10"]):not([class*="h-8"]):not([class*="h-9"]):not([class*="h-10"]):not(.mobile-full-width) {
+    width: auto;
+    max-width: 100%;
+    flex: 0 1 auto;
+    white-space: normal;
   }
-  
-  /* Espaçamento entre cards */
-  [class*="space-y"] > * + * {
-    margin-top: 0.75rem !important;
+
+  .flex.gap-2,
+  .flex.gap-3,
+  .flex.gap-4,
+  [class*="flex"][class*="gap-2"],
+  [class*="flex"][class*="gap-3"],
+  [class*="flex"][class*="gap-4"] {
+    flex-wrap: wrap;
   }
-  
-  [class*="gap-"] {
-    gap: 0.5rem !important;
+
+  .flex.gap-2 > button,
+  .flex.gap-3 > button,
+  .flex.gap-4 > button,
+  [class*="flex"][class*="gap-2"] > button,
+  [class*="flex"][class*="gap-3"] > button,
+  [class*="flex"][class*="gap-4"] > button {
+    flex-grow: 0;
+    justify-content: center;
+  }
+
+  .flex-1 > button,
+  button.flex-1 {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 425px) {
+  .mobile-actions,
+  .modal-actions,
+  form .flex.gap-3,
+  form .flex.gap-4,
+  .fixed.inset-0 .flex.gap-3,
+  .fixed.inset-0 .flex.gap-4 {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mobile-actions > button,
+  .modal-actions > button,
+  form .flex.gap-3 > button,
+  form .flex.gap-4 > button,
+  .fixed.inset-0 .flex.gap-3 > button,
+  .fixed.inset-0 .flex.gap-4 > button {
+    width: 100%;
+    max-width: 100%;
   }
 }
 
 /* ========================================
-   BOTÕES
+   FORMULARIOS
 ======================================== */
 
-@media (max-width: 640px) {
-  /* Botões não devem ocupar 100% por padrão */
-  button:not(.mobile-full-width) {
-    width: auto !important;
-    max-width: fit-content !important;
-    white-space: nowrap !important;
-    padding: 0.5rem 1rem !important;
-    font-size: 0.875rem !important;
-  }
-  
-  /* Botões pequenos */
-  button[class*="text-xs"],
-  button[class*="text-sm"] {
-    padding: 0.375rem 0.75rem !important;
-    font-size: 0.75rem !important;
-  }
-  
-  /* Grupos de botões horizontais */
-  .flex.gap-2 button,
-  .flex.gap-3 button {
-    flex: 0 1 auto !important;
-    min-width: fit-content !important;
-  }
-  
-  /* Botões de ação em cards */
-  [class*="flex justify-end"] button {
-    padding: 0.375rem !important;
-  }
+input,
+select,
+textarea {
+  max-width: 100%;
 }
 
-/* ========================================
-   GRIDS E LAYOUTS
-======================================== */
+textarea {
+  resize: vertical;
+}
 
 @media (max-width: 640px) {
-  /* Grid forçado para 1 coluna */
+  input,
+  select,
+  textarea {
+    width: 100%;
+    font-size: 16px !important;
+  }
+
+  label {
+    line-height: 1.25;
+  }
+
   [class*="grid-cols-2"],
   [class*="grid-cols-3"],
   [class*="grid-cols-4"],
   [class*="grid-cols-5"] {
-    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
-  
-  /* Grid de cards de estatísticas: 2 colunas */
-  .grid.grid-cols-2[class*="lg:grid-cols-4"] {
+}
+
+/* Mantem pequenos paineis de estatistica legiveis sem apertar demais. */
+@media (min-width: 376px) and (max-width: 640px) {
+  .grid.grid-cols-2[class*="sm:grid-cols"],
+  .grid.grid-cols-2[class*="md:grid-cols"],
+  .grid.grid-cols-2[class*="lg:grid-cols"] {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-  
-  /* Flex para coluna */
-  [class*="flex-row"] {
-    flex-direction: column !important;
   }
 }
 
@@ -201,378 +246,179 @@ button[title="Assistente COMAES"] > div {
    TABELAS
 ======================================== */
 
+.overflow-x-auto {
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  max-width: 100%;
+}
+
 @media (max-width: 768px) {
-  /* Tabelas responsivas */
-  table {
-    display: block;
-    overflow-x: auto;
+  .overflow-x-auto > table,
+  table.min-w-full,
+  table.w-full {
+    width: max-content;
+    min-width: 100%;
+  }
+
+  th,
+  td {
+    padding: 0.625rem 0.75rem !important;
+    font-size: 0.8125rem;
     white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
   }
-  
-  /* Colunas de tabela menores */
-  th, td {
-    padding: 0.5rem !important;
-    font-size: 0.75rem !important;
+
+  td .truncate,
+  th .truncate {
+    max-width: min(12rem, 52vw);
   }
-  
-  /* Esconder colunas menos importantes */
-  th:nth-child(n+4),
-  td:nth-child(n+4) {
-    display: none;
-  }
-  
-  /* Mostrar última coluna (ações) */
-  th:last-child,
-  td:last-child {
-    display: table-cell !important;
+}
+
+@media (max-width: 425px) {
+  th,
+  td {
+    padding: 0.5rem 0.625rem !important;
+    font-size: 0.75rem;
   }
 }
 
 /* ========================================
-   TEXTO E TIPOGRAFIA
+   MODAIS E MENUS
 ======================================== */
 
-@media (max-width: 640px) {
-  /* Títulos menores */
-  h1 {
-    font-size: 1.5rem !important;
-    line-height: 2rem !important;
-  }
-  
-  h2 {
-    font-size: 1.25rem !important;
-    line-height: 1.75rem !important;
-  }
-  
-  h3 {
-    font-size: 1.125rem !important;
-    line-height: 1.5rem !important;
-  }
-  
-  /* Parágrafos */
-  p {
-    font-size: 0.875rem !important;
-    line-height: 1.25rem !important;
-  }
-  
-  /* Labels */
-  label {
-    font-size: 0.75rem !important;
-  }
-  
-  /* Truncar textos longos */
-  [class*="line-clamp-"] {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+.fixed.inset-0 {
+  max-width: 100vw;
 }
 
-/* ========================================
-   INPUTS E FORMS
-======================================== */
-
 @media (max-width: 640px) {
-  /* Inputs 100% largura */
-  input,
-  select,
-  textarea {
-    width: 100% !important;
-    font-size: 1rem !important; /* Prevenir zoom em iOS */
+  .fixed.inset-0 {
     padding: 0.75rem !important;
+    align-items: flex-start !important;
+    overflow-y: auto;
   }
-  
-  /* Select menor */
-  select {
-    padding: 0.625rem !important;
+
+  .fixed.inset-0 > div,
+  [class*="modal"],
+  [class*="Modal"] {
+    width: 100% !important;
+    max-width: calc(100vw - 1.5rem) !important;
+    max-height: calc(100dvh - 1.5rem) !important;
+    margin: auto !important;
+    overflow-y: auto;
   }
-  
-  /* Form groups */
-  .form-group,
-  [class*="form"] > div {
-    margin-bottom: 0.75rem !important;
+
+  .fixed.inset-0 > div {
+    border-radius: 0.875rem;
+  }
+
+  [class*="max-h-96"] {
+    max-height: calc(100dvh - 1.5rem) !important;
+  }
+
+  .absolute.right-0,
+  .absolute.left-0 {
+    max-width: calc(100vw - 1rem);
+  }
+}
+
+@media (max-width: 320px) {
+  .fixed.inset-0 {
+    padding: 0.5rem !important;
+  }
+
+  .fixed.inset-0 > div,
+  [class*="modal"],
+  [class*="Modal"] {
+    max-width: calc(100vw - 1rem) !important;
+    max-height: calc(100dvh - 1rem) !important;
   }
 }
 
 /* ========================================
-   MODAIS E OVERLAYS
+   NAVEGACAO
+======================================== */
+
+@media (max-width: 768px) {
+  header nav a,
+  header nav button,
+  aside nav a,
+  aside nav button {
+    min-height: 40px;
+  }
+
+  aside {
+    max-width: min(18rem, 88vw);
+  }
+
+  aside img {
+    max-width: 120px;
+    height: auto;
+    object-fit: contain;
+  }
+}
+
+/* ========================================
+   TIPOGRAFIA E ESPACAMENTO MOBILE
 ======================================== */
 
 @media (max-width: 640px) {
-  /* Modal ocupa tela toda */
-  [class*="modal"],
-  [class*="Modal"],
-  .fixed.inset-0 > div {
-    max-width: 100vw !important;
-    max-height: 100vh !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
+  h1 {
+    font-size: clamp(1.5rem, 1.25rem + 1vw, 1.875rem) !important;
+    line-height: 1.2 !important;
   }
-  
-  /* Modal content */
-  [class*="modal"] > div,
-  [class*="Modal"] > div {
+
+  h2 {
+    font-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.5rem) !important;
+    line-height: 1.25 !important;
+  }
+
+  h3 {
+    font-size: clamp(1.0625rem, 1rem + 0.4vw, 1.25rem) !important;
+    line-height: 1.35 !important;
+  }
+
+  p,
+  li {
+    overflow-wrap: anywhere;
+  }
+
+  .p-8 {
+    padding: 1.25rem !important;
+  }
+
+  .p-6 {
     padding: 1rem !important;
   }
-}
 
-/* ========================================
-   BADGES E TAGS
-======================================== */
-
-@media (max-width: 640px) {
-  /* Badges menores */
-  [class*="badge"],
-  [class*="Badge"],
-  span[class*="px-2"] {
-    padding: 0.25rem 0.5rem !important;
-    font-size: 0.625rem !important;
-  }
-}
-
-/* ========================================
-   ÍCONES
-======================================== */
-
-@media (max-width: 640px) {
-  /* Ícones menores */
-  svg {
-    width: 1rem !important;
-    height: 1rem !important;
-  }
-  
-  /* Ícones em botões grandes */
-  button > svg {
-    width: 1.25rem !important;
-    height: 1.25rem !important;
-  }
-  
-  /* Ícones em cards */
-  [class*="card"] svg,
-  .bg-white svg {
-    width: 1rem !important;
-    height: 1rem !important;
-  }
-}
-
-/* ========================================
-   ESPAÇAMENTOS
-======================================== */
-
-@media (max-width: 640px) {
-  /* Padding horizontal reduzido */
-  .p-6, .px-6 {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-  }
-  
-  .p-8, .px-8 {
+  .px-8 {
     padding-left: 1.25rem !important;
     padding-right: 1.25rem !important;
   }
-  
-  /* Padding vertical reduzido */
-  .py-6 {
-    padding-top: 1rem !important;
-    padding-bottom: 1rem !important;
+
+  .px-6 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
   }
-  
-  /* Margins */
-  .m-6, .mx-6 {
-    margin: 1rem !important;
+
+  .gap-8 {
+    gap: 1.25rem !important;
   }
-  
-  .my-6 {
-    margin-top: 1rem !important;
-    margin-bottom: 1rem !important;
+
+  .gap-6 {
+    gap: 1rem !important;
   }
 }
 
-/* ========================================
-   SIDEBAR E NAVEGAÇÃO
-======================================== */
+@media (max-width: 375px) {
+  .p-4 {
+    padding: 0.875rem !important;
+  }
 
-@media (max-width: 768px) {
-  /* Sidebar oculta por padrão */
-  [class*="sidebar"],
-  [class*="Sidebar"],
-  aside {
-    display: none;
-  }
-  
-  /* Menu mobile */
-  nav {
-    padding: 0.5rem !important;
-  }
-  
-  nav a,
-  nav button {
-    padding: 0.625rem !important;
-    font-size: 0.875rem !important;
-  }
-}
-
-/* Correção específica para logo no sidebar */
-aside img,
-[class*="sidebar"] img,
-[class*="Sidebar"] img {
-  max-width: 120px !important;
-  max-height: 80px !important;
-  width: auto !important;
-  height: auto !important;
-  object-fit: contain !important;
-}
-
-/* Logo em mobile ainda menor */
-@media (max-width: 640px) {
-  aside img,
-  [class*="sidebar"] img,
-  [class*="Sidebar"] img {
-    max-width: 80px !important;
-    max-height: 60px !important;
-  }
-}
-
-/* Sidebar desktop - logo proporcional */
-@media (min-width: 769px) {
-  aside img,
-  [class*="sidebar"] img,
-  [class*="Sidebar"] img {
-    max-width: 150px !important;
-    max-height: 100px !important;
-  }
-}
-
-/* Container da logo no sidebar */
-aside > div:first-child,
-[class*="sidebar"] > div:first-child {
-  padding: 1rem !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-/* Itens de menu do sidebar */
-aside nav a,
-aside nav button,
-[class*="sidebar"] nav a,
-[class*="sidebar"] nav button {
-  padding: 0.75rem 1rem !important;
-  font-size: 0.875rem !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 0.75rem !important;
-}
-
-/* Ícones no sidebar */
-aside nav svg,
-[class*="sidebar"] nav svg {
-  width: 1.25rem !important;
-  height: 1.25rem !important;
-  flex-shrink: 0 !important;
-}
-
-/* ========================================
-   IMAGENS E MEDIA
-======================================== */
-
-@media (max-width: 640px) {
-  /* Imagens responsivas */
-  img {
-    max-width: 100% !important;
-    height: auto !important;
-  }
-  
-  /* Avatares menores */
-  [class*="avatar"],
-  [class*="Avatar"] {
-    width: 2rem !important;
-    height: 2rem !important;
-  }
-}
-
-/* ========================================
-   ESTADOS ESPECIAIS
-======================================== */
-
-@media (max-width: 640px) {
-  /* Loading states */
-  .loading,
-  [class*="loading"],
-  [class*="Loading"] {
-    padding: 2rem 1rem !important;
-  }
-  
-  /* Empty states */
-  .empty-state,
-  [class*="empty"] {
-    padding: 2rem 1rem !important;
-  }
-  
-  /* Error states */
-  .error,
-  [class*="error"] {
-    padding: 1rem !important;
-    font-size: 0.875rem !important;
-  }
-}
-
-/* ========================================
-   SCROLLBARS (ESCONDER EM MOBILE)
-======================================== */
-
-@media (max-width: 640px) {
-  /* Esconder scrollbars mas manter funcionalidade */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: #e2e8f0 transparent;
-  }
-  
-  *::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-  }
-  
-  *::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  *::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
-    border-radius: 2px;
-  }
-}
-
-/* ========================================
-   FIXES ESPECÍFICOS
-======================================== */
-
-@media (max-width: 640px) {
-  /* Prevenir texto quebrando layout */
-  * {
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-  }
-  
-  /* Links e botões touch-friendly */
-  a, button, [role="button"] {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  /* Tabs e navegação horizontal */
-  [role="tablist"] {
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-  
-  /* Prevenir zoom em inputs (iOS) */
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  select,
-  textarea {
-    font-size: 16px !important;
+  .px-4 {
+    padding-left: 0.875rem !important;
+    padding-right: 0.875rem !important;
   }
 }
 
@@ -580,82 +426,37 @@ aside nav svg,
    UTILITIES
 ======================================== */
 
-/* Classe helper para forçar mobile full-width */
-.mobile-full-width {
-  width: 100% !important;
+.responsive-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Classe helper para esconder em mobile */
-@media (max-width: 640px) {
-  .hide-mobile {
-    display: none !important;
-  }
+.mobile-centered {
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 
-/* Classe helper para mostrar só em mobile */
+.hide-mobile {
+  display: initial;
+}
+
 .show-mobile {
   display: none !important;
 }
 
 @media (max-width: 640px) {
+  .hide-mobile {
+    display: none !important;
+  }
+
   .show-mobile {
     display: block !important;
   }
 }
 
-/* Classe helper para texto compacto */
-.mobile-compact {
-  padding: 0.5rem !important;
-  font-size: 0.875rem !important;
-}
-
-/* ========================================
-   PERFORMANCE
-======================================== */
-
-/* GPU acceleration para transições suaves */
-* {
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-}
-
-/* ========================================
-   SUPPORT CHAT - FORÇA VISIBILIDADE
-======================================== */
-
-/* Garantir que o botão do assistente esteja sempre visível */
-button[title="Assistente COMAES"] {
-  position: fixed !important;
-  bottom: 24px !important;
-  right: 24px !important;
-  z-index: 99999 !important;
-  display: flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-/* Garantir que o modal do assistente esteja sempre visível */
-div[style*="z-index: 99998"],
-div[style*="zIndex: 99998"] {
-  position: fixed !important;
-  z-index: 99998 !important;
-}
-
-/* Prevenir que footer ou qualquer elemento cubra o assistente */
+/* Mantem fixed elements funcionais sem criar stacking context global. */
 footer {
   position: relative;
   z-index: 1;
 }
-
-/* Garantir que elementos fixed não sejam afetados por transforms do pai */
-body {
-  transform: none !important;
-}
-
-/* Forçar que o body não crie novo contexto de stacking */
-body > * {
-  transform: none;
-}
-

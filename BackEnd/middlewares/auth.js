@@ -123,6 +123,70 @@ export const authenticate = async (req, res, next) => {
 };
 
 /**
+ * Middleware de autenticação SEM bloqueio por status de colaborador.
+ * Usar em endpoints de consulta pessoal (streak, nivel, dashboard)
+ * que qualquer utilizador autenticado deve poder aceder independentemente
+ * do status_colaborador.
+ */
+export const authenticateAny = async (req, res, next) => {
+  const authHeader = req.headers['authorization'] || '';
+  const token = authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: 'Token de autenticação não fornecido.',
+      code: 'NO_TOKEN'
+    });
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+  } catch (err) {
+    const isExpired = err.name === 'TokenExpiredError';
+    return res.status(401).json({
+      success: false,
+      message: isExpired ? 'Token expirado. Faça login novamente.' : 'Token inválido.',
+      code: isExpired ? 'TOKEN_EXPIRED' : 'INVALID_TOKEN'
+    });
+  }
+
+  try {
+    const user = await Usuario.unscoped().findByPk(decoded.id, {
+      attributes: ['id', 'nome', 'email', 'role', 'status_colaborador', 'disciplina_colaborador']
+    });
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Usuário não encontrado.',
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    // ✅ Sem bloqueio por status — qualquer utilizador autenticado passa
+    req.user = {
+      id: user.id,
+      nome: user.nome,
+      email: user.email,
+      role: user.role,
+      status_colaborador: user.status_colaborador,
+      disciplina_colaborador: user.disciplina_colaborador
+    };
+
+    next();
+  } catch (dbErr) {
+    console.error('[AUTH] Erro ao buscar usuário (authenticateAny):', dbErr.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Erro ao validar autenticação.',
+      code: 'AUTH_DB_ERROR'
+    });
+  }
+};
+
+/**
  * Middleware opcional para rotas públicas
  * Tenta autenticar mas não bloqueia se falhar
  */

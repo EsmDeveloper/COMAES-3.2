@@ -6,7 +6,7 @@ import axios from 'axios';
 
 /**
  * CreateQuestaoTesteForm
- * Formulário para criar questÃµes do Teste de Conhecimento
+ * Formulário para criar questões do Teste de Conhecimento
  * 
  * Props:
  * - onClose: função para fechar o modal
@@ -55,7 +55,7 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
 
   const removerOpcao = (index) => {
     if (formData.opcoes.length <= 2) {
-      setError('Deve haver pelo menos 2 opçÃµes');
+      setError('Deve haver pelo menos 2 opções');
       setTimeout(() => setError(''), 3000);
       return;
     }
@@ -71,14 +71,14 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
     setLoading(true);
 
     try {
-      // ValidaçÃµes
+      // Validações
       if (!formData.enunciado.trim()) {
         throw new Error('Enunciado é obrigatório');
       }
 
       const opcoesValidas = formData.opcoes.filter(o => o.trim());
       if (opcoesValidas.length < 2) {
-        throw new Error('Adicione pelo menos 2 opçÃµes válidas');
+        throw new Error('Adicione pelo menos 2 opções válidas');
       }
 
       if (!formData.resposta_correta.trim()) {
@@ -96,7 +96,7 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
       };
 
       // Enviar para API
-      const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
       const res = await axios.post(`${apiBase}/api/teste-conhecimento/questoes`, dados, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -149,7 +149,7 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
                 <div className="px-4 py-2 bg-green-50 border border-green-200 rounded-lg text-green-800 font-medium">
                   {formData.categoria === 'matematica' ? 'Matemática' :
                    formData.categoria === 'programacao' ? 'Programação' :
-                   formData.categoria === 'ingles' ? 'InglÃªs' : 'Cultura Geral'}
+                   formData.categoria === 'ingles' ? 'Inglês' : 'Cultura Geral'}
                   <input type="hidden" name="categoria" value={formData.categoria} />
                 </div>
               ) : (
@@ -161,7 +161,7 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
                 >
                   <option value="matematica">Matemática</option>
                   <option value="programacao">Programação</option>
-                  <option value="ingles">InglÃªs</option>
+                  <option value="ingles">Inglês</option>
                   <option value="cultura_geral">Cultura Geral</option>
                 </select>
               )}
@@ -208,10 +208,10 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
             />
           </div>
 
-          {/* OpçÃµes */}
+          {/* Opções */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">
-              OpçÃµes de Resposta *
+              Opções de Resposta *
             </label>
             <div className="space-y-2">
               {formData.opcoes.map((opcao, index) => (
@@ -258,7 +258,7 @@ const CreateQuestaoTesteForm = ({ onClose, onSuccess, categoriaFixa, dificuldade
               name="resposta_correta"
               value={formData.resposta_correta}
               onChange={handleInputChange}
-              placeholder="Digite a resposta correta (exatamente como aparece nas opçÃµes)"
+              placeholder="Digite a resposta correta (exatamente como aparece nas opções)"
               required
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             />

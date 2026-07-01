@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaTrophy, FaMedal, FaTimes, FaDownload, FaCalendarTimes, FaUsers, FaChartBar } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
@@ -70,7 +70,7 @@ export default function TournamentFinishedModal({
   const apiBase =
     import.meta.env.VITE_API_URL ||
     import.meta.env.VITE_API_BASE_URL ||
-    `http://${window.location.hostname}:3002`;
+    '';
 
   useEffect(() => {
     setShowModal(isOpen);
@@ -166,20 +166,12 @@ export default function TournamentFinishedModal({
             <span className="font-bold text-purple-600 ml-2">{userParticipation.disciplina_competida}</span>
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="flex justify-center">
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-            onClick={handleViewCertificate} disabled={isGeneratingCertificate}
-            className="flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-yellow-600 hover:to-orange-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={onClose}
+            className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-10 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg"
           >
-            {isGeneratingCertificate
-              ? <><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" /> Gerando...</>
-              : <><FaDownload /> Meu Certificado</>}
-          </motion.button>
-          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-            onClick={handleViewRanking}
-            className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg"
-          >
-            <FaTrophy /> Ver Ranking
+            <FaTimes /> Sair
           </motion.button>
         </div>
         <p className="mt-4 text-center text-gray-600 font-semibold">Compartilhe seu sucesso! 🏅</p>

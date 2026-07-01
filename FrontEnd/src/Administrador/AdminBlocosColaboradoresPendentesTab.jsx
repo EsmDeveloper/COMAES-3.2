@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AdminBlocosColaboradoresPendentesTab.jsx - FASE 3
  * 
  * Admin interface for reviewing and approving/rejecting blocos created by colaboradores
@@ -16,7 +16,7 @@ import {
   Search, Filter, ChevronDown, Trash2
 } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // STATUS BADGE COMPONENT
@@ -76,12 +76,12 @@ const ApprovalModal = ({ bloco, onApprove, onCancel, carregando }) => {
           {/* Observations Field */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              ObservaçÃµes (Opcional)
+              Observações (Opcional)
             </label>
             <textarea
               value={observacoes}
               onChange={e => setObservacoes(e.target.value)}
-              placeholder="Digite suas observaçÃµes sobre este bloco..."
+              placeholder="Digite suas observações sobre este bloco..."
               rows="4"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
             />
@@ -167,15 +167,15 @@ const RejectionModal = ({ bloco, onReject, onCancel, carregando }) => {
             />
           </div>
 
-          {/* ObservaçÃµes Field (Optional) */}
+          {/* Observações Field (Optional) */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              ObservaçÃµes Adicionais (Opcional)
+              Observações Adicionais (Opcional)
             </label>
             <textarea
               value={observacoes}
               onChange={e => setObservacoes(e.target.value)}
-              placeholder="Deixe sugestÃµes ou comentários adicionais..."
+              placeholder="Deixe sugestões ou comentários adicionais..."
               rows="2"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
             />
@@ -267,10 +267,10 @@ const DetailsModal = ({ bloco, onClose }) => {
               </div>
             )}
 
-            {/* ObservaçÃµes Admin */}
+            {/* Observações Admin */}
             {bloco.observacoes_admin && (
               <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm font-medium text-blue-900 mb-1">ObservaçÃµes do Admin</p>
+                <p className="text-sm font-medium text-blue-900 mb-1">Observações do Admin</p>
                 <p className="text-sm text-blue-800">{bloco.observacoes_admin}</p>
               </div>
             )}
@@ -460,7 +460,7 @@ const AdminBlocosColaboradoresPendentesTab = ({ token }) => {
         >
           <option value="">Todas as Disciplinas</option>
           <option value="matematica">Matemática</option>
-          <option value="ingles">InglÃªs</option>
+          <option value="ingles">Inglês</option>
           <option value="programacao">Programação</option>
         </select>
 
@@ -499,7 +499,7 @@ const AdminBlocosColaboradoresPendentesTab = ({ token }) => {
                 <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">Disciplina</th>
                 <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">Status</th>
                 <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">Data</th>
-                <th className="px-6 py-3 text-right text-sm font-medium text-slate-700">AçÃµes</th>
+                <th className="px-6 py-3 text-right text-sm font-medium text-slate-700">Ações</th>
               </tr>
             </thead>
             <tbody>

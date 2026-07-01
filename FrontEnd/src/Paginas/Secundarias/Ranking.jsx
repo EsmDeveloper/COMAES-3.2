@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Trophy, Medal, Crown, ArrowLeft } from 'lucide-react';
@@ -97,7 +97,7 @@ export default function Ranking() {
   const [lastUpdated, setLastUpdated]             = useState(null);
   const [isLive, setIsLive]                       = useState(false);
 
-  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
 
   // Refs para evitar closures stale no socket listener
   const selectedTournamentRef = useRef(selectedTournament);

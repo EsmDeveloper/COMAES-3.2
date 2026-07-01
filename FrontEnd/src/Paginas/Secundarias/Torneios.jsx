@@ -1,4 +1,4 @@
-// Torneios.jsx - VERSÃO ATUALIZADA
+﻿// Torneios.jsx - VERSÃO ATUALIZADA
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import socket from '../../socket';
 import ComaesModal, { ModalBtnPrimary } from '../../components/ComaesModal';
 
-const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
 
 const Torneios = () => {
   const navigate = useNavigate();
@@ -31,16 +31,16 @@ const Torneios = () => {
 
   const disciplinas = [
     { id: 'Matemática',  label: 'Matemática',  color: 'bg-blue-500',   icon: <Calculator className="w-5 h-5" /> },
-    { id: 'InglÃªs',      label: 'InglÃªs',      color: 'bg-green-500',  icon: <BookOpen className="w-5 h-5" /> },
+    { id: 'Inglês',      label: 'Inglês',      color: 'bg-green-500',  icon: <BookOpen className="w-5 h-5" /> },
     { id: 'Programação', label: 'Programação', color: 'bg-purple-500', icon: <Code className="w-5 h-5" /> },
   ];
 
-  /* â”€â”€ Carregar torneio activo e ranking â”€â”€ */
+  /* ===== Carregar torneio ativo e ranking ===== */
   const fetchTorneos = async (disciplina, silent = false) => {
     if (!user?.id) return;
     if (!silent) setLoading(true);
     try {
-      // 1. Torneio activo
+      // 1. Torneio ativo
       const torneioRes  = await fetch(`${API_BASE}/api/torneios/ativo`);
       const torneioData = await torneioRes.json();
 
@@ -61,7 +61,7 @@ const Torneios = () => {
       const rankingData = await rankingRes.json();
       setRanking(rankingData.data || []);
 
-      // 3. Participação do utilizador
+      // 3. Participação do usuário
       try {
         const partRes  = await fetch(`${API_BASE}/api/participantes/usuario/${user.id}/${encodeURIComponent(disciplina)}`);
         const partData = await partRes.json();
@@ -85,7 +85,7 @@ const Torneios = () => {
     fetchTorneos(activeDiscipline);
   }, [activeDiscipline, user?.id]);
 
-  /* â”€â”€ Socket.io â€” ranking em tempo real â”€â”€ */
+  /* ===== Socket.io — ranking em tempo real ===== */
   useEffect(() => {
     const handleRankingUpdate = (data) => {
       const torneio = selectedTorneioRef.current;
@@ -117,7 +117,7 @@ const Torneios = () => {
   const getDisciplinaColor = (disciplina) => {
     switch(disciplina) {
       case 'Matemática': return '#3b82f6';
-      case 'InglÃªs': return '#10b981';
+      case 'Inglês': return '#10b981';
       case 'Programação': return '#a855f7';
       default: return '#6b7280';
     }
@@ -144,7 +144,7 @@ const Torneios = () => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2">Torneios COMAES</h1>
-        <p className="text-gray-300">Participe de torneios e compete com outros usuários</p>
+        <p className="text-gray-300">Participe de torneios e compita com outros usuários</p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">
@@ -206,11 +206,11 @@ const Torneios = () => {
                 onClick={() => {
                   const routeMap = {
                     'matemática': '/matematica-original',
-                    'inglÃªs': '/ingles-original',
+                    'inglês': '/ingles-original',
                     'programação': '/programacao-original'
                   };
                   
-                  const route = routeMap[activeDiscipline];
+                  const route = routeMap[activeDiscipline.toLowerCase()];
                   if (route) {
                     navigate(`${route}/${user?.nome || 'usuario'}`);
                   }
@@ -266,7 +266,7 @@ const Torneios = () => {
                   </div>
                 ) : (
                   <div className="text-center py-8 bg-gray-900 rounded border border-dashed border-gray-700">
-                    <p className="text-gray-400">VocÃª ainda não está participando deste torneio.</p>
+                    <p className="text-gray-400">Você ainda não está participando deste torneio.</p>
                     <p className="text-xs text-gray-500 mt-1">Inicie o torneio para começar a competir!</p>
                   </div>
                 )}
@@ -304,7 +304,7 @@ const Torneios = () => {
                               {item.usuario?.nome || 'Anônimo'}
                             </span>
                             {isMe && (
-                              <span className="text-[10px] text-blue-400 font-bold leading-none">â— vocÃª</span>
+                              <span className="text-[10px] text-blue-400 font-bold leading-none">— você</span>
                             )}
                           </div>
                         </div>
@@ -324,7 +324,7 @@ const Torneios = () => {
         </div>
       </div>
 
-      {/* Modal de Feedback â€” padronizado com ComaesModal */}
+      {/* Modal de Feedback — padronizado com ComaesModal */}
       <ComaesModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}

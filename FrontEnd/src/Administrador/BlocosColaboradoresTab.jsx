@@ -11,7 +11,7 @@ import {
   Loader, AlertTriangle, CheckCircle, XCircle
 } from 'lucide-react';
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
 
 // Badge de status
 function StatusBadge({ status }) {
@@ -488,7 +488,7 @@ export default function BlocosColaboradoresTab() {
         </div>
       </div>
 
-      {/* ConteÃºdo */}
+      {/* Conteúdo */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="flex flex-col items-center gap-3">
@@ -523,7 +523,7 @@ export default function BlocosColaboradoresTab() {
                     <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Status</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Dificuldade</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Criado em</th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">AçÃães</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-slate-700">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">

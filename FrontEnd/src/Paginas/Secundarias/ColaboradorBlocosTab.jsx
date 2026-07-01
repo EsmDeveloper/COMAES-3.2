@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ColaboradorBlocosTab.jsx
  * Gestão de Blocos de QuestÃµes para Colaboradores
  * - Criar blocos na sua disciplina
@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 const MAX_Q = 30;
 
 const DIFICULDADES = [

@@ -78,7 +78,7 @@ const EditQuestaoTesteForm = ({ questao, onClose, onSuccess }) => {
         pontos: parseInt(formData.pontos),
       };
 
-      const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
       await axios.put(`${apiBase}/api/teste-conhecimento/questoes/${questao.id}`, dados, {
         headers: { Authorization: `Bearer ${token}` },
       });

@@ -10,9 +10,9 @@ const QuestoesTestesTab = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoriaFiltro, setCategoriaFiltro] = useState('all');
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [abaAtiva, setAbaAtiva] = useState('blocos'); // â MUDA: 'blocos' é agora a aba principal
+  const [abaAtiva, setAbaAtiva] = useState('blocos'); // � MUDA: 'blocos' � agora a aba principal
   
-  // Estados para modais de açáães
+  // Estados para modais de a���es
   const [modalAgruparAberto, setModalAgruparAberto] = useState(false);
   const [questaoSelecionada, setQuestaoSelecionada] = useState(null);
   const [modalEditarAberto, setModalEditarAberto] = useState(false);
@@ -24,7 +24,7 @@ const QuestoesTestesTab = () => {
     fetchQuestoesIndividuais();
     fetchBlocos();
     
-    // â Listener para quando questão é adicionada da aba colaboradores
+    // � Listener para quando quest�o � adicionada da aba colaboradores
     const handleQuestaoAdicionada = () => {
       console.log('[MEDAL] Recarregando questões individuais...');
       fetchQuestoesIndividuais();
@@ -34,7 +34,7 @@ const QuestoesTestesTab = () => {
     return () => window.removeEventListener('questaoAdicionadaTeste', handleQuestaoAdicionada);
   }, []);
 
-  // Refrescar blocos quando modal de agrupamento abre (para pegar blocos recém-criados)
+  // Refrescar blocos quando modal de agrupamento abre (para pegar blocos rec�m-criados)
   useEffect(() => {
     if (modalAgruparAberto) {
       console.log('[MEDAL] Modal de agrupamento aberto - recarregando blocos...');
@@ -45,9 +45,9 @@ const QuestoesTestesTab = () => {
   const fetchQuestoesIndividuais = async () => {
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       
-      // â Buscar questões de teste conhecimento (todas as ativas)
+      // � Buscar quest�es de teste conhecimento (todas as ativas)
       const response = await fetch(`${apiBase}/api/teste-conhecimento/questoes?ativo=true`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -55,7 +55,7 @@ const QuestoesTestesTab = () => {
       // A resposta pode ser { success: true, data: [...] } ou { success: true, dados: [...] }
       const questoes = data.data || data.dados || [];
       
-      // Log para debug das questões
+      // Log para debug das quest�es
       console.log('[MEDAL] Total de questões carregadas:', questoes.length);
       questoes.forEach((q, idx) => {
         console.log(`   [${idx}] ID=${q.id}, categoria="${q.categoria}", enunciado="${q.enunciado?.substring(0, 30)}..."`);
@@ -72,18 +72,18 @@ const QuestoesTestesTab = () => {
   const fetchBlocos = async () => {
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       
-      console.log('📚 Buscando blocos para TESTES (contexto=teste)...');
+      console.log('?? Buscando blocos para TESTES (contexto=teste)...');
       
-      // Buscar blocos com contexto='teste' e status='aprovado'
-      const response = await fetch(`${apiBase}/api/blocos?contexto=teste&status=aprovado`, {
+      // Buscar blocos com contexto='teste' — sem filtro de status (admin vê todos os seus blocos)
+      let response = await fetch(`${apiBase}/api/blocos?contexto=teste`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
       if (!response.ok) {
-        console.warn('â  Endpoint /api/blocos falhou, tentando com status=publicado');
-        response = await fetch(`${apiBase}/api/blocos?status=publicado`, {
+        console.warn(' Endpoint /api/blocos falhou, tentando sem contexto');
+        response = await fetch(`${apiBase}/api/blocos`, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
@@ -96,32 +96,32 @@ const QuestoesTestesTab = () => {
       // O backend retorna: { success: true, data: { blocos: Array, total: number, ... } }
       const blocosData = data.data?.blocos || data.blocos || [];
       
-      // Validar que é um array
+      // Validar que � um array
       if (!Array.isArray(blocosData)) {
-        console.warn('â  blocosData não é um array:', typeof blocosData, blocosData);
+        console.warn(' blocosData não é um array:', typeof blocosData, blocosData);
         console.warn('[TESTES] Resposta completa:', data);
         setBlocos([]);
         return;
       }
       
-      console.log('✅ Blocos encontrados para TESTES:', blocosData.length);
+      console.log('? Blocos encontrados para TESTES:', blocosData.length);
       if (blocosData.length > 0) {
         blocosData.forEach(b => {
           console.log(`  - ${b.titulo} (${b.questoes?.length || 0} questões)`);
         });
       } else {
-        console.log('⚠️ Nenhum bloco disponível para TESTES');
+        console.log('?? Nenhum bloco disponível para TESTES');
       }
       
       setBlocos(blocosData);
     } catch (error) {
-      console.error('❌ Erro ao buscar blocos:', error);
+      console.error('? Erro ao buscar blocos:', error);
       console.error('[TESTES] Detalhes do erro:', error.message);
       setBlocos([]);
     }
   };
 
-  // â Handler para agrupar questão (memoizado para evitar closure issues)
+  // � Handler para agrupar quest�o (memoizado para evitar closure issues)
   const handleSelecionarQuestaoAgrupamento = useCallback((questao) => {
     console.log(` [ANTES] questaoSelecionada foi atualizada para:`, {
       id: questao.id,
@@ -132,19 +132,19 @@ const QuestoesTestesTab = () => {
     setModalAgruparAberto(true);
   }, []);
 
-  // â Agrupar em Bloco
+  // � Agrupar em Bloco
   const handleAgruparEmBloco = async (blocoId) => {
     if (!questaoSelecionada || !blocoId) return;
     
     setSalvando(true);
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       
       console.log(`\n[MEDAL] INICIANDO AGRUPAMENTO`);
       console.log(`   Questão selecionada objeto completo:`, JSON.stringify(questaoSelecionada, null, 2));
-      console.log(`   â questaoSelecionada.id = ${questaoSelecionada.id}`);
-      console.log(`   â questaoSelecionada.categoria = ${questaoSelecionada.categoria}`);
+      console.log(`    questaoSelecionada.id = ${questaoSelecionada.id}`);
+      console.log(`    questaoSelecionada.categoria = ${questaoSelecionada.categoria}`);
       console.log(`   [MEDAL] Bloco ID = ${blocoId}`);
       
       const payload = { questao_id: questaoSelecionada.id };
@@ -162,7 +162,7 @@ const QuestoesTestesTab = () => {
       console.log(`[MEDAL] Status da resposta: ${response.status}`);
 
       if (response.ok) {
-        showFeedback('success', `â Questão adicionada ao bloco!`);
+        showFeedback('success', ` Questão adicionada ao bloco!`);
         setModalAgruparAberto(false);
         setQuestaoSelecionada(null);
         setTimeout(() => {
@@ -171,39 +171,39 @@ const QuestoesTestesTab = () => {
         }, 1500);
       } else {
         const errorData = await response.json();
-        console.error(`\nâ ERRO DO BACKEND (${response.status}):`);
+        console.error(`\n ERRO DO BACKEND (${response.status}):`);
         console.error(`   Resposta:`, JSON.stringify(errorData, null, 2));
-        console.error(`   â  MISMATCH DETECTADO: Frontend enviou questao_id=${questaoSelecionada.id}, categoria="${questaoSelecionada.categoria}"`);
+        console.error(`    MISMATCH DETECTADO: Frontend enviou questao_id=${questaoSelecionada.id}, categoria="${questaoSelecionada.categoria}"`);
         console.error(`   Mas o backend encontrou uma questão com categoria diferente!`);
         
         // Mostrar erro mais detalhado
         const mensagemErro = errorData?.message || errorData?.mensagem || errorData?.error || errorData?.msg || 'Erro ao agrupar';
         const detalhes = errorData?.errors || errorData?.erros || errorData?.details || '';
         
-        showFeedback('error', `â Erro: ${mensagemErro}${detalhes ? ` - ${detalhes}` : ''}`);
+        showFeedback('error', ` Erro: ${mensagemErro}${detalhes ? ` - ${detalhes}` : ''}`);
       }
     } catch (error) {
-      console.error('â Erro na requisição:', error);
-      showFeedback('error', `â Erro: ${error.message}`);
+      console.error(' Erro na requisição:', error);
+      showFeedback('error', ` Erro: ${error.message}`);
     } finally {
       setSalvando(false);
     }
   };
 
-  // â Editar Questão
+  // � Editar Quest�o
   const handleEditarQuestao = (questao) => {
     setQuestaoSelecionada(questao);
     setModalEditarAberto(true);
   };
 
-  // â Salvar Edição da Questão
+  // � Salvar Edi��o da Quest�o
   const handleSalvarEdicaoQuestao = async (dadosEditados) => {
     if (!questaoSelecionada) return;
     
     setSalvando(true);
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       
       const response = await fetch(`${apiBase}/api/teste-conhecimento/questoes/${questaoSelecionada.id}`, {
         method: 'PUT',
@@ -215,7 +215,7 @@ const QuestoesTestesTab = () => {
       });
 
       if (response.ok) {
-        showFeedback('success', `â Questão atualizada!`);
+        showFeedback('success', ` Questão atualizada!`);
         setModalEditarAberto(false);
         setQuestaoSelecionada(null);
         setTimeout(() => {
@@ -223,23 +223,23 @@ const QuestoesTestesTab = () => {
         }, 1500);
       } else {
         const errorData = await response.json();
-        showFeedback('error', `â Erro: ${errorData?.mensagem || 'Erro ao editar'}`);
+        showFeedback('error', ` Erro: ${errorData?.mensagem || 'Erro ao editar'}`);
       }
     } catch (error) {
-      showFeedback('error', `â Erro: ${error.message}`);
+      showFeedback('error', ` Erro: ${error.message}`);
     } finally {
       setSalvando(false);
     }
   };
 
-  // â Deletar Questão
+  // � Deletar Quest�o
   const handleDeletarQuestao = async () => {
     if (!questaoSelecionada) return;
     
     setSalvando(true);
     try {
       const token = localStorage.getItem('comaes_token');
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       
       const response = await fetch(`${apiBase}/api/teste-conhecimento/questoes/${questaoSelecionada.id}`, {
         method: 'DELETE',
@@ -247,17 +247,17 @@ const QuestoesTestesTab = () => {
       });
 
       if (response.ok) {
-        showFeedback('success', `â Questão deletada!`);
+        showFeedback('success', ` Questão deletada!`);
         setModalDeletarAberto(false);
         setQuestaoSelecionada(null);
         setTimeout(() => {
           fetchQuestoesIndividuais();
         }, 1500);
       } else {
-        showFeedback('error', 'â Erro ao deletar questão');
+        showFeedback('error', ' Erro ao deletar questão');
       }
     } catch (error) {
-      showFeedback('error', `â Erro: ${error.message}`);
+      showFeedback('error', ` Erro: ${error.message}`);
     } finally {
       setSalvando(false);
     }
@@ -351,7 +351,7 @@ const QuestoesTestesTab = () => {
           <option value="all">Todas as categorias</option>
           <option value="matematica">Matemática</option>
           <option value="programacao">Programação</option>
-          <option value="ingles">Ingláªs</option>
+          <option value="ingles">Inglés</option>
           <option value="cultura_geral">Cultura Geral</option>
         </select>
       </div>
@@ -382,7 +382,7 @@ const QuestoesTestesTab = () => {
         </button>
       </div>
 
-      {/* Conteáºdo das Abas */}
+      {/* Conte��do das Abas */}
       <div>
           {/* ABA 1: GERENCIAR BLOCOS (PRINCIPAL) */}
           {abaAtiva === 'blocos' && (
@@ -391,13 +391,13 @@ const QuestoesTestesTab = () => {
             </div>
           )}
 
-          {/* ABA 2: VISUALIZAR TODAS AS QUESTáES INDIVIDUAIS */}
+          {/* ABA 2: VISUALIZAR TODAS AS QUEST�ES INDIVIDUAIS */}
           {abaAtiva === 'individuais' && (
             <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border-2 border-blue-300 p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-blue-900 flex items-center gap-2">
                   <BookOpen className="w-7 h-7" />
-                  Visualizar Todas as Questáães
+                  Visualizar Todas as Questões
                 </h2>
                 <button
                   onClick={() => setShowCreateForm(true)}
@@ -412,13 +412,13 @@ const QuestoesTestesTab = () => {
                 Questões individuais criadas localmente + questões dos colaboradores direcionadas para esta aba. Você pode usá-las diretamente em testes ou agrupá-las em blocos.
               </p>
 
-              {/* Tabela de Questáães Individuais */}
+              {/* Tabela de Quest��es Individuais */}
               <div className="overflow-x-auto bg-white rounded-lg border border-blue-200">
                 {filteredQuestoes.length === 0 ? (
                   <div className="text-center py-12">
                     <BookOpen className="w-12 h-12 text-blue-300 mx-auto mb-3" />
                     <p className="text-gray-600 font-semibold">Nenhuma questão criada</p>
-                    <p className="text-sm text-gray-500 mt-2">Clique em "Nova Questão" ou acesse "Questáães dos Colaboradores" para enviar questões</p>
+                    <p className="text-sm text-gray-500 mt-2">Clique em "Nova Questão" ou acesse "Questões dos Colaboradores" para enviar questães</p>
                   </div>
                 ) : (
                   <table className="w-full">
@@ -456,11 +456,11 @@ const QuestoesTestesTab = () => {
                               </span>
                             ) : questao.criado_por ? (
                               <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-700">
-                                â {questao.criado_por}
+                                � {questao.criado_por}
                               </span>
                             ) : (
                               <span className="px-2 py-1 text-xs font-semibold rounded bg-gray-100 text-gray-700">
-                                â Sistema
+                                � Sistema
                               </span>
                             )}
                           </td>
@@ -551,14 +551,14 @@ const QuestoesTestesTab = () => {
             {blocos.length === 0 ? (
               <div className="text-center py-8">
                 <AlertCircle className="w-8 h-8 text-orange-500 mx-auto mb-2" />
-                <p className="text-sm text-gray-600 font-semibold">Nenhum bloco disponável</p>
+                <p className="text-sm text-gray-600 font-semibold">Nenhum bloco disponível</p>
                 <p className="text-xs text-gray-500 mt-1">Crie um bloco primeiro na aba "Gerenciar Blocos"</p>
               </div>
             ) : (
               <div className="space-y-2 mb-6 max-h-48 overflow-y-auto">
                 {blocos.map(bloco => {
                   // Verificar compatibilidade de disciplina/categoria
-                  // Questáães de teste táªm 'categoria', blocos táªm 'disciplina'
+                  // Quest��es de teste t��m 'categoria', blocos t��m 'disciplina'
                   const questaoCategoria = questaoSelecionada?.categoria || questaoSelecionada?.disciplina;
                   const blocoCategoria = bloco.disciplina;
                   const disciplinaCompativel = questaoCategoria === blocoCategoria;
@@ -570,7 +570,7 @@ const QuestoesTestesTab = () => {
                       key={bloco.id}
                       onClick={() => {
                         if (!disciplinaCompativel) {
-                          showFeedback('error', `â Bloco de "${blocoCategoria}" incompatável com questão de "${questaoCategoria}"`);
+                          showFeedback('error', ` Bloco de "${blocoCategoria}" incompatível com questão de "${questaoCategoria}"`);
                           return;
                         }
                         handleAgruparEmBloco(bloco.id);
@@ -584,11 +584,11 @@ const QuestoesTestesTab = () => {
                     >
                       <p className="font-semibold text-gray-900">{bloco.titulo}</p>
                       <p className="text-xs text-gray-500">
-                        {bloco.questoes?.length || 0} questões · {bloco.disciplina?.toUpperCase() || 'Sem disciplina'}
+                        {bloco.questoes?.length || 0} questões  {bloco.disciplina?.toUpperCase() || 'Sem disciplina'}
                       </p>
                       {!disciplinaCompativel && (
                         <p className="text-xs text-red-600 mt-1 font-semibold">
-                          â  Disciplina incompatável ({questaoCategoria || 'nenhuma'})
+                            Disciplina incompatível ({questaoCategoria || 'nenhuma'})
                         </p>
                       )}
                     </button>
@@ -610,7 +610,7 @@ const QuestoesTestesTab = () => {
         </div>
       )}
 
-      {/* MODAL: Editar Questão */}
+      {/* MODAL: Editar Quest�o */}
       {modalEditarAberto && questaoSelecionada && (
         <div className="fixed inset-0 top-0 left-0 w-full h-screen bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full my-8">
@@ -675,11 +675,11 @@ const QuestoesTestesTab = () => {
                 >
                   <option value="facil">Fácil</option>
                   <option value="medio">Médio</option>
-                  <option value="dificil">Difácil</option>
+                  <option value="dificil">Difícil</option>
                 </select>
               </div>
 
-              {/* Botáães */}
+              {/* Bot��es */}
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={() => {
@@ -709,17 +709,17 @@ const QuestoesTestesTab = () => {
         </div>
       )}
 
-      {/* MODAL: Deletar Questão */}
+      {/* MODAL: Deletar Quest�o */}
       {modalDeletarAberto && questaoSelecionada && (
         <div className="fixed inset-0 top-0 left-0 w-full h-screen bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-red-600" />
-              Confirmar Deleção
+              Confirmar Deletar
             </h2>
 
             <p className="text-gray-600 mb-6">
-              Tem certeza que deseja deletar a questão <strong>"{questaoSelecionada.enunciado.substring(0, 50)}..."</strong>? Esta ação não pode ser desfeita.
+              Tem certeza que deseja deletar a questão <strong>"{questaoSelecionada.enunciado.substring(0, 50)}..."</strong>? Esta a��o n�o pode ser desfeita.
             </p>
 
             <div className="flex gap-3">
@@ -744,7 +744,7 @@ const QuestoesTestesTab = () => {
         </div>
       )}
 
-      {/* MODAL: Criar Questão de Teste */}
+      {/* MODAL: Criar Quest�o de Teste */}
       {showCreateForm && (
         <div className="fixed inset-0 top-0 left-0 w-full h-screen bg-black bg-opacity-50 z-50 overflow-y-auto">
           <div className="min-h-screen flex items-center justify-center p-4">

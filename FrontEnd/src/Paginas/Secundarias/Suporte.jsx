@@ -158,7 +158,7 @@ export default function Suporte() {
     if (!valid) { showToast('error', Object.values(errs)[0]); return; }
     setSending(true);
     try {
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       const token   = localStorage.getItem('comaes_token');
       const res = await fetch(`${apiBase}/suporte/tickets`, {
         method: 'POST',
@@ -184,7 +184,7 @@ export default function Suporte() {
     if (!msgResult.valid) { showToast('error', msgResult.error); return; }
     setSending(true);
     try {
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       const token   = localStorage.getItem('comaes_token');
       const res = await fetch(`${apiBase}/suporte/tickets`, {
         method: 'POST',

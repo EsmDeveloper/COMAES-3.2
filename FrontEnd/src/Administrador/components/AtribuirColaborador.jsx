@@ -26,7 +26,7 @@ import { Users, BookOpen, CheckCircle, AlertCircle, Loader, ChevronDown } from '
 
 const AtribuirColaborador = () => {
   const { token } = useAuth();
-  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
 
   // Form state
   const [selectedUser, setSelectedUser] = useState(null);
@@ -47,7 +47,7 @@ const AtribuirColaborador = () => {
   // Valid disciplines
   const disciplinas = [
     { id: 'matematica', nome: 'Matemática' },
-    { id: 'ingles', nome: 'InglÃªs' },
+    { id: 'ingles', nome: 'Inglês' },
     { id: 'programacao', nome: 'Programação' }
   ];
 

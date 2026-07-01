@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Layout from './Layout';
@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { validateNome, validateEmail, validateBio, validateFileUpload } from '../../utils/validators';
 
-const API = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+const API = import.meta.env.VITE_API_BASE_URL || '';
 
 /*  Toast  */
 function Toast({ type, msg, onClose }) {
@@ -111,7 +111,7 @@ function MedalIcon({ pos }) {
   if (pos === 1) return <span>[GOLD]</span>;
   if (pos === 2) return <span>[SILVER]</span>;
   if (pos === 3) return <span>[BRONZE]</span>;
-  return <span className="text-gray-400 text-xs font-semibold">{pos}º</span>;
+  return <span className="text-gray-400 text-xs font-semibold">{pos}�</span>;
 }
 
 /* 
@@ -124,7 +124,7 @@ function AdminPerfilLayout({ user, token, onLogout, navigate }) {
 
   const joinDate = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' })
-    : '—';
+    : '�';
 
   useEffect(() => {
     if (!token) return;
@@ -188,25 +188,25 @@ function AdminPerfilLayout({ user, token, onLogout, navigate }) {
             {
               icon: <Users size={16} />,
               label: 'Utilizadores',
-              value: loadingStats ? '…' : (stats?.totalUsuarios ?? '—'),
+              value: loadingStats ? '�' : (stats?.totalUsuarios ?? '�'),
               color: 'bg-blue-50 text-blue-600',
             },
             {
               icon: <Trophy size={16} />,
               label: 'Torneios',
-              value: loadingStats ? '…' : (stats?.totalTorneios ?? '—'),
+              value: loadingStats ? '�' : (stats?.totalTorneios ?? '�'),
               color: 'bg-amber-50 text-amber-600',
             },
             {
               icon: <FileText size={16} />,
-              label: 'Questões',
-              value: loadingStats ? '…' : (stats?.totalQuestoes ?? '—'),
+              label: 'Quest�es',
+              value: loadingStats ? '�' : (stats?.totalQuestoes ?? '�'),
               color: 'bg-purple-50 text-purple-600',
             },
             {
               icon: <GraduationCap size={16} />,
               label: 'Colaboradores',
-              value: loadingStats ? '…' : (stats?.totalColaboradores ?? '—'),
+              value: loadingStats ? '�' : (stats?.totalColaboradores ?? '�'),
               color: 'bg-green-50 text-green-600',
             },
           ].map(s => (
@@ -216,18 +216,18 @@ function AdminPerfilLayout({ user, token, onLogout, navigate }) {
 
         {/* Detalhes da conta */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <SectionTitle>Informações da Conta Administrativa</SectionTitle>
+          <SectionTitle>Informa��es da Conta Administrativa</SectionTitle>
           <div className="divide-y divide-gray-100">
             <InfoRow icon={<User size={14} />}     label="Nome"             value={user.nome || user.name} />
             <InfoRow icon={<Mail size={14} />}     label="E-mail"           value={user.email} />
             <InfoRow icon={<Shield size={14} />}   label="Papel"            value="Administrador do sistema" />
             <InfoRow icon={<Calendar size={14} />} label="Membro desde"     value={joinDate} />
-            <InfoRow icon={<Clock size={14} />}    label="Último acesso"    value={user.updatedAt ? new Date(user.updatedAt).toLocaleString('pt-PT') : '—'} />
+            <InfoRow icon={<Clock size={14} />}    label="�ltimo acesso"    value={user.updatedAt ? new Date(user.updatedAt).toLocaleString('pt-PT') : '�'} />
           </div>
           <div className="mt-4 pt-4 border-t border-gray-100">
             <p className="text-xs text-gray-400">
-              Para editar o seu perfil ou alterar a senha, aceda às{' '}
-              <Link to="/configuracoes" className="text-blue-600 hover:underline font-medium">Configurações</Link>.
+              Para editar o seu perfil ou alterar a senha, aceda �s{' '}
+              <Link to="/configuracoes" className="text-blue-600 hover:underline font-medium">Configura��es</Link>.
             </p>
           </div>
         </div>
@@ -287,9 +287,9 @@ function ColaboradorPerfilLayout({ user, token, onSave, saving, editMode, setEdi
   const taxaAprovacao  = totalQuestoes > 0 ? Math.round((aprovadas / totalQuestoes) * 100) : 0;
   const pendentes      = questoes.filter(q => !q.status_aprovacao || q.status_aprovacao === 'pendente').length;
 
-  const DISCIPLINA_LABELS = { matematica: 'Matemática', programacao: 'Programação', ingles: 'Inglês' };
+  const DISCIPLINA_LABELS = { matematica: 'Matem�tica', programacao: 'Programa��o', ingles: 'Ingl�s' };
   const NIVEIS_LABELS = {
-    estudante_universitario: 'Estudante universitário', tecnico: 'Técnico', licenciado: 'Licenciado',
+    estudante_universitario: 'Estudante universit�rio', tecnico: 'T�cnico', licenciado: 'Licenciado',
     mestre: 'Mestre', doutor: 'Doutor', professor: 'Professor', profissional: 'Profissional', outro: 'Outro',
   };
 
@@ -367,7 +367,7 @@ function ColaboradorPerfilLayout({ user, token, onSave, saving, editMode, setEdi
                 <>
                   <button onClick={onSave} disabled={saving}
                     className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50">
-                    <Save size={13} /> {saving ? 'A guardar…' : 'Guardar'}
+                    <Save size={13} /> {saving ? 'A guardar�' : 'Guardar'}
                   </button>
                   <button onClick={cancelEdit} disabled={saving}
                     className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 text-gray-500 rounded-xl text-sm hover:bg-gray-50 transition">
@@ -378,7 +378,7 @@ function ColaboradorPerfilLayout({ user, token, onSave, saving, editMode, setEdi
             </div>
           </div>
 
-          {/* Formulário de edição */}
+          {/* Formul�rio de edi��o */}
           {editMode && (
             <div className="mt-5 pt-5 border-t border-gray-100 grid gap-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -402,29 +402,29 @@ function ColaboradorPerfilLayout({ user, token, onSave, saving, editMode, setEdi
                 <textarea className={`${inputCls('biografia')} resize-none`} rows={3}
                   value={form.biografia} maxLength={300}
                   onChange={e => setForm(p => ({ ...p, biografia: e.target.value }))}
-                  placeholder="Descreva a sua experiência…" />
+                  placeholder="Descreva a sua experi�ncia�" />
                 {formErrors.biografia && <p className="text-xs text-red-500 mt-1">{formErrors.biografia}</p>}
               </div>
             </div>
           )}
         </div>
 
-        {/* Stats pedagógicas */}
+        {/* Stats pedag�gicas */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <StatCard icon={<BookMarked size={16} />} label="Questões criadas"  value={totalQuestoes}            colorClass="bg-teal-50 text-teal-600" />
-          <StatCard icon={<CheckSquare size={16} />} label="Taxa de aprovação" value={`${taxaAprovacao}%`}     colorClass="bg-green-50 text-green-600" />
+          <StatCard icon={<BookMarked size={16} />} label="Quest�es criadas"  value={totalQuestoes}            colorClass="bg-teal-50 text-teal-600" />
+          <StatCard icon={<CheckSquare size={16} />} label="Taxa de aprova��o" value={`${taxaAprovacao}%`}     colorClass="bg-green-50 text-green-600" />
           <StatCard icon={<Clock size={16} />}       label="Pendentes"        value={pendentes}                colorClass="bg-amber-50 text-amber-600" />
         </div>
 
-        {/* Dados académicos + identidade */}
+        {/* Dados acad�micos + identidade */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-          <SectionTitle>Dados Académicos e Profissionais</SectionTitle>
+          <SectionTitle>Dados Acad�micos e Profissionais</SectionTitle>
           <div className="divide-y divide-gray-100">
             <InfoRow icon={<User size={14} />}         label="Nome completo"      value={user.nome || user.name} />
             <InfoRow icon={<Mail size={14} />}         label="E-mail"             value={user.email} />
-            <InfoRow icon={<GraduationCap size={14} />} label="Área de especialidade"
+            <InfoRow icon={<GraduationCap size={14} />} label="�rea de especialidade"
               value={DISCIPLINA_LABELS[user.disciplina_colaborador] || user.disciplina_colaborador} />
-            <InfoRow icon={<BookOpen size={14} />}     label="Nível académico"
+            <InfoRow icon={<BookOpen size={14} />}     label="N�vel acad�mico"
               value={NIVEIS_LABELS[user.nivel_academico] || user.nivel_academico} />
             <InfoRow icon={<Calendar size={14} />}     label="Colaborador desde"  value={joinDate} />
             <InfoRow icon={<Shield size={14} />}       label="Estado da conta"
@@ -446,10 +446,10 @@ function ColaboradorPerfilLayout({ user, token, onSave, saving, editMode, setEdi
 export default function Perfil() {  const { user, token, login, logout } = useAuth();
   const navigate = useNavigate();
 
-  /* ── Tabs: perfil | historico | certificados ── */
+  /* -- Tabs: perfil | historico | certificados -- */
   const [activeTab, setActiveTab] = useState('perfil');
 
-  /* ── Edit form ── */
+  /* -- Edit form -- */
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState({ nome: '', email: '', biografia: '', escola: '', telefone: '' });
   const [file, setFile] = useState(null);
@@ -457,25 +457,25 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
   const [saving, setSaving] = useState(false);
   const [formErrors, setFormErrors] = useState({});
 
-  /* ── Data ── */
+  /* -- Data -- */
   const [participacoes, setParticipacoes] = useState([]);
   const [certificados, setCertificados] = useState([]);
   const [statsLoad, setStatsLoad] = useState(false);
 
-  /* ── Toast ── */
+  /* -- Toast -- */
   const [toast, setToast] = useState({ type: '', msg: '' });
   const showToast = (type, msg) => setToast({ type, msg });
 
-  /* ── Modal logout ── */
+  /* -- Modal logout -- */
   const [showLogout, setShowLogout] = useState(false);
 
-  /* ── Nível do utilizador ── */
+  /* -- N�vel do utilizador -- */
   const { nivel, xpTotal, progresso } = useNivel();
 
-  /* ── Streak do utilizador ── */
+  /* -- Streak do utilizador -- */
   const { streak, maximo, ativa, mensagem: streakMsg } = useStreak();
 
-  /* ── Populate form when user loads ── */
+  /* -- Populate form when user loads -- */
   useEffect(() => {
     if (user) {
       setForm({
@@ -488,18 +488,20 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
     }
   }, [user]);
 
-  /* ── Load participações ── */
+  /* -- Load participa��es -- */
   useEffect(() => {
     if (!user?.id) return;
     setStatsLoad(true);
-    fetch(`${API}/usuarios/${user.id}/participacoes`)
+    fetch(`${API}/api/usuarios/${user.id}/participacoes`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
       .then(r => r.json())
       .then(res => { if (res.success) setParticipacoes(res.data || []); })
       .catch(() => {})
       .finally(() => setStatsLoad(false));
   }, [user?.id]);
 
-  /* ── Load certificados on tab ── */
+  /* -- Load certificados on tab -- */
   useEffect(() => {
     if (!user?.id || activeTab !== 'certificados') return;
     fetch(`${API}/api/certificados/meus-certificados/${user.id}`)
@@ -508,10 +510,10 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
       .catch(() => {});
   }, [user?.id, activeTab]);
 
-  /* ── Cleanup preview URL ── */
+  /* -- Cleanup preview URL -- */
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
 
-  /* ── Computed stats ── */
+  /* -- Computed stats -- */
   const totalTorneios = participacoes.length;
   const totalPontos   = participacoes.reduce((a, p) => a + Number(p.pontuacao || 0), 0);
   const totalPodios   = participacoes.filter(p => p.posicao && p.posicao <= 3).length;
@@ -519,7 +521,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
     ? Math.round(participacoes.reduce((a, p) => a + Number(p.pontuacao || 0), 0) / participacoes.length)
     : 0;
 
-  /* ── Handlers ── */
+  /* -- Handlers -- */
   const handleFile = useCallback((e) => {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -531,10 +533,10 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
 
   const validate = () => {
     const errs = {};
-    if (!form.nome.trim()) errs.nome = 'Nome obrigatório';
+    if (!form.nome.trim()) errs.nome = 'Nome obrigat�rio';
     else if (form.nome.trim().length < 2) errs.nome = 'Nome muito curto';
-    if (form.email && !/^[^@]+@[^@]+\.[^@]{2,}$/.test(form.email)) errs.email = 'Email inválido';
-    if (form.biografia && form.biografia.length > 300) errs.biografia = 'Máximo 300 caracteres';
+    if (form.email && !/^[^@]+@[^@]+\.[^@]{2,}$/.test(form.email)) errs.email = 'Email inv�lido';
+    if (form.biografia && form.biografia.length > 300) errs.biografia = 'M�ximo 300 caracteres';
     return errs;
   };
 
@@ -547,7 +549,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers.Authorization = `Bearer ${token}`;
 
-      const res  = await fetch(`${API}/usuarios/${user.id}`, {
+      const res  = await fetch(`${API}/api/usuarios/${user.id}`, {
         method: 'PUT', headers,
         body: JSON.stringify({
           nome: form.nome,
@@ -564,7 +566,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
       if (file) {
         const fd = new FormData();
         fd.append('avatar', file);
-        const up = await fetch(`${API}/usuarios/${user.id}/avatar`, {
+        const up = await fetch(`${API}/api/usuarios/${user.id}/avatar`, {
           method: 'POST',
           headers: token ? { Authorization: `Bearer ${token}` } : {},
           body: fd,
@@ -599,7 +601,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
     });
   };
 
-  /* ── Unauthenticated ── */
+  /* -- Unauthenticated -- */
   if (!user) {
     return (
       <Layout>
@@ -609,7 +611,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
               <User size={24} />
             </div>
             <h2 className="text-lg font-bold text-gray-900 mb-2">Acesso restrito</h2>
-            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Faça login para ver o seu perfil.</p>
+            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Fa�a login para ver o seu perfil.</p>
             <div className="flex gap-3 justify-center">
               <button onClick={() => navigate('/login')} className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition">Entrar</button>
               <button onClick={() => navigate('/cadastro')} className="px-5 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition">Cadastrar</button>
@@ -642,7 +644,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
     return <ColaboradorPerfilLayout user={user} token={token} onSave={onSave} saving={saving} editMode={editMode} setEditMode={setEditMode} form={form} setForm={setForm} formErrors={formErrors} cancelEdit={cancelEdit} handleFile={handleFile} preview={preview} onLogout={() => { setShowLogout(true); }} navigate={navigate} toast={toast} setToast={setToast} showLogout={showLogout} setShowLogout={setShowLogout} logout={logout} inputCls={inputCls} avatarSrc={avatarSrc} initials={initials} joinDate={joinDate} />;
   }
 
-  //  Perfil do ESTUDANTE (padrão) 
+  //  Perfil do ESTUDANTE (padr�o) 
   return (
     <Layout>
       <LogoutModal
@@ -663,9 +665,9 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
               <h1 className="text-xl font-bold text-gray-900 leading-tight">
                 {user.nome || user.name || user.fullName || 'Utilizador'}
               </h1>
-              <p className="text-sm text-gray-400 mt-0.5">@{user.username || user.email?.split('@')[0] || '—'}</p>
+              <p className="text-sm text-gray-400 mt-0.5">@{user.username || user.email?.split('@')[0] || '�'}</p>
 
-              {/* Badge de nível inline */}
+              {/* Badge de n�vel inline */}
               {nivel && (
                 <div className="mt-1.5 flex items-center gap-2 flex-wrap">
                   <NivelBadge nivelObj={nivel} xpTotal={xpTotal} compact />
@@ -717,7 +719,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
                 <>
                   <button onClick={onSave} disabled={saving}
                     className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50">
-                    <Save size={13} /> {saving ? 'A guardar…' : 'Guardar'}
+                    <Save size={13} /> {saving ? 'A guardar�' : 'Guardar'}
                   </button>
                   <button onClick={cancelEdit} disabled={saving}
                     className="flex items-center gap-1.5 px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
@@ -728,7 +730,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
             </div>
           </div>
 
-          {/* ── Edit form ── */}
+          {/* -- Edit form -- */}
           {editMode && (
             <div className="mt-5 pt-5 border-t border-gray-100 grid gap-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -750,7 +752,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
                     onChange={e => setForm(p => ({ ...p, telefone: e.target.value }))} placeholder="9XXXXXXXX" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Instituição de Ensino</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Institui��o de Ensino</label>
                   <input className={inputCls('escola')} value={form.escola}
                     onChange={e => setForm(p => ({ ...p, escola: e.target.value }))} placeholder="Nome da sua escola" />
                 </div>
@@ -762,12 +764,12 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
                 <textarea className={`${inputCls('biografia')} resize-none`} rows={3}
                   value={form.biografia} maxLength={300}
                   onChange={e => setForm(p => ({ ...p, biografia: e.target.value }))}
-                  placeholder="Apresente-se brevemente…" />
+                  placeholder="Apresente-se brevemente�" />
                 {formErrors.biografia && <p className="text-xs text-red-500 mt-1">{formErrors.biografia}</p>}
               </div>
               <p className="text-xs text-gray-400 flex items-center gap-1">
-                Para alterar a sua senha ou preferências, aceda a{' '}
-                <Link to="/configuracoes" className="text-blue-600 hover:underline font-medium">Configurações</Link>.
+                Para alterar a sua senha ou prefer�ncias, aceda a{' '}
+                <Link to="/configuracoes" className="text-blue-600 hover:underline font-medium">Configura��es</Link>.
               </p>
             </div>
           )}
@@ -779,9 +781,9 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
             colorClass="bg-yellow-50 text-yellow-600" />
           <StatCard icon={<Star size={16} />} label="Pontos totais" value={totalPontos.toLocaleString('pt-PT')}
             colorClass="bg-blue-50 text-blue-600" />
-          <StatCard icon={<Award size={16} />} label="Pódios" value={totalPodios}
+          <StatCard icon={<Award size={16} />} label="P�dios" value={totalPodios}
             colorClass="bg-green-50 text-green-600" />
-          <StatCard icon={<Target size={16} />} label="Média de pts" value={mediaAcertos}
+          <StatCard icon={<Target size={16} />} label="M�dia de pts" value={mediaAcertos}
             colorClass="bg-purple-50 text-purple-600" />
         </div>
 
@@ -791,23 +793,23 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
           {/* Tab bar */}
           <div className="flex border-b border-gray-200 px-2">
             <Tab active={activeTab === 'perfil'}        onClick={() => setActiveTab('perfil')}>Identidade</Tab>
-            <Tab active={activeTab === 'historico'}     onClick={() => setActiveTab('historico')}>Histórico</Tab>
+            <Tab active={activeTab === 'historico'}     onClick={() => setActiveTab('historico')}>Hist�rico</Tab>
             <Tab active={activeTab === 'certificados'}  onClick={() => setActiveTab('certificados')}>Certificados</Tab>
           </div>
 
-          {/* ── Tab: Identidade ── */}
+          {/* -- Tab: Identidade -- */}
           {activeTab === 'perfil' && (
             <div className="p-6">
-              <SectionTitle>Informações de Identidade</SectionTitle>
+              <SectionTitle>Informa��es de Identidade</SectionTitle>
 
-              {/* ── Card de Nível COMAES ── */}
+              {/* -- Card de N�vel COMAES -- */}
               {nivel && (
                 <div className="mb-5">
                   <NivelBadge nivelObj={nivel} xpTotal={xpTotal} full />
                 </div>
               )}
 
-              {/* ── Card de Streak COMAES ── */}
+              {/* -- Card de Streak COMAES -- */}
               {(streak > 0 || !ativa) && (
                 <div className="mb-5">
                   <StreakBadge streak={streak} maximo={maximo} ativa={ativa} mensagem={streakMsg} card />
@@ -818,7 +820,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
                 <InfoRow icon={<User size={14} />}          label="Nome completo"    value={user.nome || user.name || user.fullName} />
                 <InfoRow icon={<Mail size={14} />}          label="E-mail"           value={user.email} />
                 <InfoRow icon={<Phone size={14} />}         label="Telefone"         value={user.telefone || user.phone} />
-                <InfoRow icon={<GraduationCap size={14} />} label="Instituição"      value={user.escola} />
+                <InfoRow icon={<GraduationCap size={14} />} label="Institui��o"      value={user.escola} />
                 <InfoRow icon={<BookOpen size={14} />}      label="Sexo"             value={user.sexo} />
                 <InfoRow icon={<Calendar size={14} />}      label="Nascimento"
                   value={user.nascimento ? new Date(user.nascimento).toLocaleDateString('pt-PT') : null} />
@@ -827,8 +829,8 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
 
               <div className="mt-5 pt-4 border-t border-gray-100 flex items-center justify-between">
                 <p className="text-xs text-gray-400">
-                  Preferências de conta em{' '}
-                  <Link to="/configuracoes" className="text-blue-600 hover:underline font-medium">Configurações</Link>
+                  Prefer�ncias de conta em{' '}
+                  <Link to="/configuracoes" className="text-blue-600 hover:underline font-medium">Configura��es</Link>
                 </p>
                 <button onClick={() => navigate('/painel')}
                   className="flex items-center gap-1 text-sm font-semibold text-blue-600 hover:underline">
@@ -838,10 +840,10 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
             </div>
           )}
 
-          {/* ── Tab: Histórico ── */}
+          {/* -- Tab: Hist�rico -- */}
           {activeTab === 'historico' && (
             <div className="p-6">
-              <SectionTitle>Histórico de Torneios</SectionTitle>
+              <SectionTitle>Hist�rico de Torneios</SectionTitle>
               {statsLoad ? (
                 <div className="flex justify-center py-10">
                   <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
@@ -849,7 +851,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
               ) : participacoes.length === 0 ? (
                 <div className="text-center py-12">
                   <Trophy size={36} className="mx-auto text-gray-300 mb-3" />
-                  <p className="text-sm text-gray-500">Ainda não participou em nenhum torneio.</p>
+                  <p className="text-sm text-gray-500">Ainda n�o participou em nenhum torneio.</p>
                   <button onClick={() => navigate('/entrar-no-torneio')}
                     className="mt-4 px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition">
                     Participar agora
@@ -862,7 +864,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
                       <tr className="border-b border-gray-200">
                         <th className="text-left text-xs font-semibold text-gray-500 pb-3 pr-4">Torneio</th>
                         <th className="text-left text-xs font-semibold text-gray-500 pb-3 pr-4">Disciplina</th>
-                        <th className="text-center text-xs font-semibold text-gray-500 pb-3 pr-4">Posição</th>
+                        <th className="text-center text-xs font-semibold text-gray-500 pb-3 pr-4">Posi��o</th>
                         <th className="text-right text-xs font-semibold text-gray-500 pb-3">Pontos</th>
                       </tr>
                     </thead>
@@ -873,10 +875,10 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
                             {p.torneio?.titulo || `Torneio #${p.torneio_id}`}
                           </td>
                           <td className="py-3 pr-4 capitalize text-gray-600">
-                            {p.disciplina_competida || '—'}
+                            {p.disciplina_competida || '�'}
                           </td>
                           <td className="py-3 pr-4 text-center">
-                            {p.posicao ? <MedalIcon pos={p.posicao} /> : <span className="text-gray-300">—</span>}
+                            {p.posicao ? <MedalIcon pos={p.posicao} /> : <span className="text-gray-300">�</span>}
                           </td>
                           <td className="py-3 text-right font-semibold text-blue-600">
                             {Number(p.pontuacao || 0).toLocaleString('pt-PT')}
@@ -890,7 +892,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
             </div>
           )}
 
-          {/* ── Tab: Certificados ── */}
+          {/* -- Tab: Certificados -- */}
           {activeTab === 'certificados' && (
             <div className="p-6">
               <SectionTitle>Meus Certificados</SectionTitle>
@@ -898,15 +900,15 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
                 <div className="text-center py-12">
                   <div className="text-5xl mb-3">[TROPHY]</div>
                   <h3 className="font-semibold text-gray-800 mb-1">Nenhum certificado ainda</h3>
-                  <p className="text-sm text-gray-500">Conquiste o pódio em torneios para ganhar certificados!</p>
+                  <p className="text-sm text-gray-500">Conquiste o p�dio em torneios para ganhar certificados!</p>
                 </div>
               ) : (
                 <div className="flex flex-col gap-4">
                   {certificados.map((cert) => {
                     const medals = {
-                      1: { bg: 'bg-yellow-50', border: 'border-yellow-300', text: 'text-yellow-800', icon: '🥇' },
-                      2: { bg: 'bg-gray-50',   border: 'border-gray-300',   text: 'text-gray-700',   icon: '🥈' },
-                      3: { bg: 'bg-orange-50', border: 'border-orange-300', text: 'text-orange-800', icon: '🥉' },
+                      1: { bg: 'bg-yellow-50', border: 'border-yellow-300', text: 'text-yellow-800', icon: '??' },
+                      2: { bg: 'bg-gray-50',   border: 'border-gray-300',   text: 'text-gray-700',   icon: '??' },
+                      3: { bg: 'bg-orange-50', border: 'border-orange-300', text: 'text-orange-800', icon: '??' },
                     };
                     const m = medals[cert.posicao] || { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800', icon: '[TROPHY]' };
                     return (
@@ -922,12 +924,12 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
                               {cert.disciplina}
                             </span>
                             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full bg-white ${m.text}`}>
-                              {cert.posicao}º lugar
+                              {cert.posicao}� lugar
                             </span>
                             <span className={`text-xs ${m.text}`}>{cert.pontuacao} pts</span>
                           </div>
                           <p className="text-xs text-gray-400 mt-1">
-                            Código: {cert.codigo_certificado} · {new Date(cert.data_geracao).toLocaleDateString('pt-PT')}
+                            C�digo: {cert.codigo_certificado} � {new Date(cert.data_geracao).toLocaleDateString('pt-PT')}
                           </p>
                         </div>
                         <div className="flex flex-col gap-2 flex-shrink-0">
@@ -939,7 +941,7 @@ export default function Perfil() {  const { user, token, login, logout } = useAu
                           <button
                             onClick={() => {
                               navigator.clipboard.writeText(cert.codigo_certificado);
-                              showToast('success', 'Código copiado!');
+                              showToast('success', 'C�digo copiado!');
                             }}
                             className="px-3 py-1.5 border border-gray-200 text-gray-600 rounded-lg text-xs font-medium hover:bg-white transition">
                             Copiar

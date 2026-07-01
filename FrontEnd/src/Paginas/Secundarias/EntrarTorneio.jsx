@@ -49,7 +49,7 @@ export default function EntrarTorneio() {
   const [disciplinaEspecificaTorneio, setDisciplinaEspecificaTorneio] = useState(null);
   const [disciplinaUsuarioAtual, setDisciplinaUsuarioAtual] = useState(null);
 
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
 
   // Real-time com Socket.io
   useEffect(() => {
@@ -205,6 +205,11 @@ export default function EntrarTorneio() {
   const abrirModal = (disciplina) => {
     if (!torneioAtivo) {
       alert("Nenhum torneio ativo no momento. Tente novamente mais tarde.");
+      return;
+    }
+
+    if (disciplinaUsuarioAtual) {
+      alert(`Você já está participando em "${disciplinaUsuarioAtual}". Complete essa participação antes de entrar em outra disciplina.`);
       return;
     }
     
@@ -363,7 +368,7 @@ export default function EntrarTorneio() {
     <Layout>
       <div className="bg-gradient-to-b from-gray-50 to-white">
         {/* Header Hero - AGORA OCUPANDO 100% DA LARGURA COMO HEADER E FOOTER */}
-        <div className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-8 overflow-hidden h-[90vh] sm:h-[70vh] md:h-[80vh] lg:h-[90vh] text-white">
+        <div className="relative left-1/2 w-[100vw] max-w-[100vw] -translate-x-1/2 -mt-8 overflow-hidden h-[90vh] sm:h-[70vh] md:h-[80vh] lg:h-[90vh] text-white">
           {/* Background com imagem/vdeo */}
           <div className="absolute inset-0">
             <img
@@ -545,7 +550,7 @@ export default function EntrarTorneio() {
                   isDisciplinaDisponipelParaUsuario = disc.nome === disciplinaUsuarioAtual;
                 }
                 
-                const isDisciplinaAtiva = isDisciplinaEspecificaAtiva && isDisciplinaDisponipelParaUsuario;
+                const isDisciplinaAtiva = isDisciplinaEspecificaAtiva && isDisciplinaDisponipelParaUsuario && !disciplinaUsuarioAtual;
                 
                 return (
                 <motion.div
@@ -571,7 +576,7 @@ export default function EntrarTorneio() {
                     {(!torneioAtivo || !isDisciplinaAtiva) && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                         <span className="text-white font-semibold text-sm sm:text-base">
-                          {!torneioAtivo ? 'Torneio Indisponível' : !isDisciplinaEspecificaAtiva ? 'Disciplina Indisponível' : 'Já está participando em outra'}
+                          {!torneioAtivo ? 'Torneio Indisponível' : !isDisciplinaEspecificaAtiva ? 'Disciplina Indisponível' : disciplinaUsuarioAtual ? 'Já está participando em outra' : 'Indisponível'}
                         </span>
                       </div>
                     )}
@@ -601,7 +606,7 @@ export default function EntrarTorneio() {
                         </span>
                       </div>
                       <button
-                        className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-white transition-shadow text-xs sm:text-sm md:text-base w-full sm:w-auto ${torneioAtivo && isDisciplinaAtiva
+                        className={`inline-flex justify-center px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-white transition-shadow text-xs sm:text-sm md:text-base w-auto min-w-[9rem] ${torneioAtivo && isDisciplinaAtiva
                             ? 'bg-gradient-to-r from-blue-500 to-purple-500 hover:shadow-lg'
                             : 'bg-gray-400 cursor-not-allowed'
                           }`}

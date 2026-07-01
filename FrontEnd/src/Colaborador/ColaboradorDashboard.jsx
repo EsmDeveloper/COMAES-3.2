@@ -274,6 +274,11 @@ const CriarBlocosTab = ({ token, apiBase }) => {
       return;
     }
 
+    if (!['rascunho', 'rejeitado'].includes(bloco.status)) {
+      showMessage(`Bloco com status "${bloco.status}" não pode ser enviado.`, 'error');
+      return;
+    }
+
     if (!window.confirm('Enviar este bloco para aprovação do administrador?')) return;
 
     setSubmittingBlocoId(blocoId);
@@ -580,13 +585,15 @@ const CriarBlocosTab = ({ token, apiBase }) => {
                                 {dif?.label}
                               </span>
                               <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
+                                bloco.status === 'rascunho' ? 'bg-slate-100 text-slate-600' :
                                 bloco.status === 'pendente' ? 'bg-yellow-100 text-yellow-700' :
                                 bloco.status === 'aprovado' ? 'bg-green-100 text-green-700' :
                                 'bg-red-100 text-red-700'
                               }`}>
-                                {bloco.status === 'pendente' ? '⏳ Pendente' :
-                                 bloco.status === 'aprovado' ? '[SUCCESS] Aprovado' :
-                                 '[ERROR] Rejeitado'}
+                                {bloco.status === 'rascunho' ? '✏️ Rascunho' :
+                                 bloco.status === 'pendente' ? '⏳ Em revisão' :
+                                 bloco.status === 'aprovado' ? '✅ Aprovado' :
+                                 '❌ Rejeitado'}
                               </span>
                             </div>
 
@@ -634,9 +641,14 @@ const CriarBlocosTab = ({ token, apiBase }) => {
                             </button>
                             <button
                               onClick={() => handleSubmitBloco(bloco.id)}
-                              disabled={loading || submittingBlocoId === bloco.id || (bloco.total_questoes || 0) < 5}
+                              disabled={loading || submittingBlocoId === bloco.id || (bloco.total_questoes || 0) < 5 || bloco.status === 'pendente' || bloco.status === 'aprovado'}
                               className="p-1.5 rounded-lg text-blue-400 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                              title={(bloco.total_questoes || 0) < 5 ? `Mínimo 5 questões (tem ${bloco.total_questoes || 0})` : 'Enviar para aprovação'}
+                              title={
+                                bloco.status === 'pendente' ? 'Já enviado para revisão' :
+                                bloco.status === 'aprovado' ? 'Bloco já aprovado' :
+                                (bloco.total_questoes || 0) < 5 ? `Mínimo 5 questões (tem ${bloco.total_questoes || 0})` :
+                                'Enviar para aprovação'
+                              }
                             >
                               {submittingBlocoId === bloco.id ? (
                                 <div className="w-4 h-4 border-2 border-blue-300 border-t-blue-500 rounded-full animate-spin" />
@@ -1008,7 +1020,7 @@ const ColaboradorDashboard = () => {
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
+  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
 
   useEffect(() => {
     if (token) {

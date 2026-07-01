@@ -1,10 +1,10 @@
 ﻿/**
  * TournamentService.js
- * Serviço centralizado para operaçÃµes de torneios
+ * Serviço centralizado para operações de torneios
  * Responsabilidade Ãºnica: Comunicação com API
  */
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
 
 export const TournamentService = {
   /**

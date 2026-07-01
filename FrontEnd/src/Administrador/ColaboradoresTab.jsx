@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ColaboradoresTab.jsx
  *
  * Painel completo de gestão de colaboradores/professores no AdminDashboard.
@@ -74,7 +74,7 @@ function fileIcon(tipo) {
   return <FileText size={16} className="text-gray-500" />;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
 
 /* â”€â”€â”€ Badge de status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function StatusBadge({ status }) {
@@ -345,7 +345,7 @@ function ModalAprovar({ colaborador, onConfirm, onCancel, loading }) {
   console.log('   Tipo:', typeof colaborador?.disciplina_colaborador);
   console.log('   Length:', colaborador?.disciplina_colaborador?.length);
   
-  // Tentar mÃºltiplas formas de extrair disciplina
+  // Tentar múltiplas formas de extrair disciplina
   let disciplina = '';
   
   if (colaborador?.disciplina_colaborador) {
@@ -732,7 +732,7 @@ export default function ColaboradoresTab() {
         </div>
       </div>
 
-      {/* ConteÃºdo */}
+      {/* Conteúdo */}
       <div className="p-3 md:p-4">
         {loading ? (
           <div className="py-16 text-center">

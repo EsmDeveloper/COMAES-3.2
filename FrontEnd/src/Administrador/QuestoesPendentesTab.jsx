@@ -24,7 +24,7 @@ import {
   mostrarToast
 } from './shared/QuestaoCardsComponents';
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
 
 // ============================================
 // REDUCER PARA ESTADO

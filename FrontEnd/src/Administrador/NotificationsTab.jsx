@@ -130,7 +130,7 @@ const NotificationsTab = ({ token }) => {
       setError(null);
       const API_BASE = import.meta.env.VITE_API_URL ||
         import.meta.env.VITE_API_BASE_URL ||
-        `http://${window.location.hostname}:3002`;
+        '';
       const res = await fetch(`${API_BASE}/api/notificacoes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },

@@ -15,7 +15,7 @@ import {
 // ============================================
 const NovosUsuariosChart = () => {
   const { token } = useAuth();
-  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -167,7 +167,7 @@ const NovosUsuariosChart = () => {
 // ============================================
 const AtividadesRecentes = () => {
   const { token } = useAuth();
-  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
 
   const [atividades, setAtividades] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -353,7 +353,7 @@ const AtividadesRecentes = () => {
 // ============================================
 const AdminStats = () => {
   const { token, login, logout } = useAuth();
-  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

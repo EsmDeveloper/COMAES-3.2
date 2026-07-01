@@ -390,9 +390,10 @@ const QuestaoFormUnificado = ({
                 disabled={isLoading}
                 className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 transition"
               >
-                <option value="multipla_escolha">Múltipla Escolha</option>
                 <option value="texto">Texto / Aberta</option>
-                <option value="codigo">Código</option>
+                <option value="multipla_escolha">Múltipla Escolha</option>
+                
+                 
               </select>
             </div>
           </div>

@@ -1,8 +1,8 @@
 ﻿/**
- * AprovarQuestÃães.jsx
+ * AprovarQuestões.jsx
  * Admin page for reviewing and approving/rejecting pending questions
  * 
- * Task 12.1: Create AprovarQuestÃães page (admin)
+ * Task 12.1: Create AprovarQuestões page (admin)
  * Requirements: 6.1, 6.2, 6.3, 6.4, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6
  */
 
@@ -22,7 +22,7 @@ import {
 } from './shared/QuestaoCardsComponents';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 
-  `http://${window.location.hostname}:3002`;
+  '';
 
 // â”€â”€â”€ SKELETON LOADER â”€â”€â”€
 const SkeletonLoader = () => (
@@ -142,7 +142,7 @@ const QuestionDetailModal = ({ isOpen, questao, onClose }) => {
             <div>
               <p className="text-sm text-slate-600 mb-1">Tipo</p>
               <p className="font-semibold text-slate-800">
-                {questao.tipo === 'multipla_escolha' ? 'MÃºltipla Escolha' : 
+                {questao.tipo === 'multipla_escolha' ? 'Mãºltipla Escolha' : 
                  questao.tipo === 'texto' ? 'Texto' :
                  questao.tipo === 'codigo' ? 'Código' : questao.tipo}
               </p>
@@ -157,7 +157,7 @@ const QuestionDetailModal = ({ isOpen, questao, onClose }) => {
 
           {/* Data de Criação */}
           <div className="text-xs text-slate-500 pt-4 border-t border-slate-200">
-            Criada em {new Date(questao.created_at).toLocaleDateString('pt-BR')} Ã s {new Date(questao.created_at).toLocaleTimeString('pt-BR')}
+            Criada em {new Date(questao.created_at).toLocaleDateString('pt-BR')} ã s {new Date(questao.created_at).toLocaleTimeString('pt-BR')}
           </div>
         </div>
       </div>
@@ -165,7 +165,7 @@ const QuestionDetailModal = ({ isOpen, questao, onClose }) => {
   );
 };
 
-// â”€â”€â”€ QUESTÃO CARD â”€â”€â”€
+// â”€â”€â”€ QUESTãO CARD â”€â”€â”€
 const QuestionCard = ({ questao, onApprove, onReject, onViewDetails, loading }) => {
   const opcoes = extrairOpcoes(questao);
   const primeiraOpcao = opcoes[0] || '';
@@ -198,7 +198,7 @@ const QuestionCard = ({ questao, onApprove, onReject, onViewDetails, loading }) 
         </div>
       </div>
 
-      {/* ConteÃºdo */}
+      {/* Conteúdo */}
       <div className="p-6 space-y-4">
         {/* Título */}
         <h3 className="text-lg font-semibold text-slate-800 line-clamp-2">
@@ -230,7 +230,7 @@ const QuestionCard = ({ questao, onApprove, onReject, onViewDetails, loading }) 
         )}
       </div>
 
-      {/* Footer com açÃães */}
+      {/* Footer com ações */}
       <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
         <button
           onClick={onViewDetails}
@@ -273,7 +273,7 @@ const QuestionCard = ({ questao, onApprove, onReject, onViewDetails, loading }) 
 };
 
 // â”€â”€â”€ COMPONENTE PRINCIPAL â”€â”€â”€
-export default function AprovarQuestÃães() {
+export default function AprovarQuestões() {
   const { token } = useAuth();
 
   // Estado
@@ -293,7 +293,7 @@ export default function AprovarQuestÃães() {
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [questaoParaRejeitar, setQuestaoParaRejeitar] = useState(null);
 
-  // Carregar questÃães pendentes
+  // Carregar questões pendentes
   const carregarQuestoes = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -321,16 +321,16 @@ export default function AprovarQuestÃães() {
       }
 
       const result = await response.json();
-      console.log('QuestÃães pendentes:', result);
+      console.log('Questões pendentes:', result);
 
       if (result.sucesso || result.success) {
         const questoesList = result.dados?.questoes || result.dados || result.questoes || [];
         setQuestoes(Array.isArray(questoesList) ? questoesList : []);
       } else {
-        throw new Error(result.mensagem || result.error || 'Erro ao carregar questÃães');
+        throw new Error(result.mensagem || result.error || 'Erro ao carregar questões');
       }
     } catch (err) {
-      console.error('Erro ao carregar questÃães:', err);
+      console.error('Erro ao carregar questões:', err);
       setError(err.message || 'Erro desconhecido');
       setQuestoes([]);
     } finally {
@@ -420,7 +420,7 @@ export default function AprovarQuestÃães() {
     }
   };
 
-  // Filtrar questÃães
+  // Filtrar questões
   const questoesFiltradas = questoes.filter(q => {
     const searchLower = searchTerm.toLowerCase();
     const matchSearch =
@@ -441,10 +441,10 @@ export default function AprovarQuestÃães() {
             <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
               <BookOpen className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-slate-900">Aprovar QuestÃães</h1>
+            <h1 className="text-3xl font-bold text-slate-900">Aprovar Questões</h1>
           </div>
           <p className="text-slate-600">
-            Revise e aprove questÃães pendentes de colaboradores
+            Revise e aprove questões pendentes de colaboradores
           </p>
         </div>
 
@@ -511,12 +511,12 @@ export default function AprovarQuestÃães() {
           </div>
         </div>
 
-        {/* Contador de questÃães */}
+        {/* Contador de questões */}
         {!loading && (
           <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-sm font-medium mb-1">QuestÃães Pendentes</p>
+                <p className="text-blue-100 text-sm font-medium mb-1">Questões Pendentes</p>
                 <p className="text-4xl font-bold">{questoesFiltradas.length}</p>
               </div>
               <Clock className="w-16 h-16 text-blue-300 opacity-50" />
@@ -541,7 +541,7 @@ export default function AprovarQuestÃães() {
                 <AlertCircle className="w-6 h-6 text-red-600" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-red-900 mb-1">Erro ao carregar questÃães</h3>
+                <h3 className="font-semibold text-red-900 mb-1">Erro ao carregar questões</h3>
                 <p className="text-red-800 text-sm">{error}</p>
               </div>
               <button
@@ -562,7 +562,7 @@ export default function AprovarQuestÃães() {
             </div>
             <h3 className="text-xl font-bold text-slate-800 mb-2">Nenhuma questão pendente</h3>
             <p className="text-slate-600">
-              Todas as questÃães foram revisadas. Ã“timo trabalho! 
+              Todas as questões foram revisadas. ã“timo trabalho! 
             </p>
           </div>
         )}
@@ -580,7 +580,7 @@ export default function AprovarQuestÃães() {
           </div>
         )}
 
-        {/* Lista de QuestÃães */}
+        {/* Lista de Questões */}
         {!loading && questoesFiltradas.length > 0 && (
           <div className="space-y-4">
             {questoesFiltradas.map((questao) => (

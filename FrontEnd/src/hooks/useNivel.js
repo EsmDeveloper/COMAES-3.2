@@ -8,7 +8,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-const API = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+const API = import.meta.env.VITE_API_BASE_URL || '';
 
 export default function useNivel() {
   const { user, token } = useAuth();

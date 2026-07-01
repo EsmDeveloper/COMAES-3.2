@@ -61,7 +61,7 @@ function Cadastro() {
 
     setIsLoading(true);
     try {
-      const apiBase = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       const res = await fetch(`${apiBase}/auth/registro`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

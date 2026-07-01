@@ -214,8 +214,9 @@ export const criarBloco = async (req, res) => {
       return err(res, `Status inválido. Use: rascunho ou publicado`);
 
     // Mapear vocabulário admin → modelo
-    const statusModel = { rascunho: 'pendente', publicado: 'aprovado' };
-    const statusFinal = statusModel[status] || status || 'pendente';
+    // Blocos criados por admin ficam sempre aprovados (não precisam de workflow de aprovação)
+    const statusModel = { rascunho: 'aprovado', publicado: 'aprovado' };
+    const statusFinal = statusModel[status] || status || 'aprovado';
 
     const bloco = await BlocoQuestoes.create({
       titulo: titulo.trim(),
@@ -705,11 +706,11 @@ export const desassociarBlocoDoTorneio = async (req, res) => {
     const torneio = await Torneio.findByPk(id);
     if (!torneio) return err(res, 'Torneio não encontrado', 404);
 
-    // Apenas torneios em rascunho permitem desassociação
-    if (!['rascunho', 'cancelado'].includes(torneio.status)) {
+    // Apenas torneios em rascunho, cancelado ou finalizado permitem desassociação
+    if (!['rascunho', 'cancelado', 'finalizado'].includes(torneio.status)) {
       return err(
         res,
-        `Não é possível desassociar blocos de um torneio ${torneio.status}. Coloque o torneio em rascunho primeiro.`,
+        `Não é possível desassociar blocos de um torneio ${torneio.status}. Só é permitido para torneios em rascunho, cancelados ou finalizados.`,
         422
       );
     }
@@ -813,36 +814,147 @@ export const carregarQuizComBlocos = async (req, res) => {
         };
       });
     } else {
-      // Modo padrão (retrocompatível): buscar por categoria
-      const where = {
-        categoria,
-        ativo: true,
-        ...(dificuldade && ['facil', 'medio', 'dificil'].includes(dificuldade) ? { dificuldade } : {}),
+      // Modo padrão: buscar questões dos blocos de TESTE com a disciplina e dificuldade correctas
+      const dificuldadeValida = dificuldade && ['facil', 'medio', 'dificil'].includes(dificuldade);
+
+      console.log(`\n🔍 [QUIZ] area="${categoria}", dificuldade="${dificuldade || 'todas'}"`);
+
+      // 1. Encontrar blocos publicados com a disciplina/dificuldade
+      //    Aceitar todos os status (rascunho/pendente/aprovado) — admin cria blocos de confiança
+      //    Aceitar qualquer contexto — bloco pode ter contexto null, 'torneio' ou 'teste'
+      const blocoWhere = {
+        disciplina: categoria,
+        ...(dificuldadeValida ? { dificuldade } : {}),
       };
 
-      totalDisponivel = await QuestaoTesteConhecimento.count({ where });
+      console.log(`   Filtro de blocos:`, JSON.stringify(blocoWhere));
 
-      const rows = await QuestaoTesteConhecimento.findAll({
-        where,
-        order: QuestaoTesteConhecimento.sequelize.random(),
-        limit: Math.min(parseInt(limit), 20),
-        attributes: ['id', 'enunciado', 'opcoes', 'resposta_correta', 'dificuldade', 'categoria', 'pontos'],
+      const blocos = await BlocoQuestoes.findAll({
+        where: blocoWhere,
+        attributes: ['id', 'titulo', 'disciplina', 'dificuldade', 'contexto', 'status'],
       });
 
-      questoes = rows.map(q => {
-        let opcoes = q.opcoes;
-        if (typeof opcoes === 'string') { try { opcoes = JSON.parse(opcoes); } catch { opcoes = []; } }
-        if (!Array.isArray(opcoes)) opcoes = [];
-        return {
-          id: q.id,
-          enunciado: q.enunciado,
-          opcoes,
-          resposta_correta: q.resposta_correta,
-          dificuldade: q.dificuldade,
-          categoria: q.categoria,
-          pontos: q.pontos,
+      console.log(`   Blocos encontrados: ${blocos.length}`);
+      blocos.forEach(b => console.log(`     - [${b.id}] ${b.titulo} (${b.disciplina}/${b.dificuldade}/contexto=${b.contexto}/status=${b.status})`));
+
+      if (blocos.length === 0) {
+        // Fallback: buscar directamente na tabela QuestaoTesteConhecimento sem bloco
+        console.log(`   ⚠️  Nenhum bloco encontrado. Fallback directo em QuestaoTesteConhecimento...`);
+        const fallbackWhere = {
+          categoria,
+          ativo: true,
+          ...(dificuldadeValida ? { dificuldade } : {}),
         };
-      });
+        totalDisponivel = await QuestaoTesteConhecimento.count({ where: fallbackWhere });
+        const rows = await QuestaoTesteConhecimento.findAll({
+          where: fallbackWhere,
+          order: QuestaoTesteConhecimento.sequelize.random(),
+          limit: Math.min(parseInt(limit), 20),
+          attributes: ['id', 'enunciado', 'opcoes', 'resposta_correta', 'dificuldade', 'categoria', 'pontos'],
+        });
+        questoes = rows.map(q => {
+          let opcoes = q.opcoes;
+          if (typeof opcoes === 'string') { try { opcoes = JSON.parse(opcoes); } catch { opcoes = []; } }
+          if (!Array.isArray(opcoes)) opcoes = [];
+          return { id: q.id, enunciado: q.enunciado, opcoes, resposta_correta: q.resposta_correta, dificuldade: q.dificuldade, categoria: q.categoria, pontos: q.pontos };
+        });
+        console.log(`   Fallback encontrou ${totalDisponivel} questões directas`);
+      } else {
+        const blocoIds = blocos.map(b => b.id);
+
+        // 2. Buscar todos os BlocoQuestaoItems para os blocos encontrados
+        const items = await BlocoQuestaoItem.findAll({
+          where: { bloco_id: { [Op.in]: blocoIds } },
+          attributes: ['id', 'bloco_id', 'questao_id', 'ordem'],
+          raw: true,
+        });
+
+        console.log(`   Total BlocoQuestaoItems: ${items.length}`);
+
+        if (items.length === 0) {
+          // Nenhum item nos blocos — fallback directo
+          console.log(`   ⚠️  Blocos existem mas sem questões associadas. Fallback directo...`);
+          const fallbackWhere = {
+            categoria,
+            ativo: true,
+            ...(dificuldadeValida ? { dificuldade } : {}),
+          };
+          totalDisponivel = await QuestaoTesteConhecimento.count({ where: fallbackWhere });
+          const rows = await QuestaoTesteConhecimento.findAll({
+            where: fallbackWhere,
+            order: QuestaoTesteConhecimento.sequelize.random(),
+            limit: Math.min(parseInt(limit), 20),
+            attributes: ['id', 'enunciado', 'opcoes', 'resposta_correta', 'dificuldade', 'categoria', 'pontos'],
+          });
+          questoes = rows.map(q => {
+            let opcoes = q.opcoes;
+            if (typeof opcoes === 'string') { try { opcoes = JSON.parse(opcoes); } catch { opcoes = []; } }
+            if (!Array.isArray(opcoes)) opcoes = [];
+            return { id: q.id, enunciado: q.enunciado, opcoes, resposta_correta: q.resposta_correta, dificuldade: q.dificuldade, categoria: q.categoria, pontos: q.pontos };
+          });
+          console.log(`   Fallback encontrou ${totalDisponivel} questões`);
+        } else {
+          const questaoIds = items.map(i => i.questao_id);
+
+          // 3a. Tentar QuestaoTesteConhecimento primeiro
+          const qtcWhere = {
+            id: { [Op.in]: questaoIds },
+            ativo: true,
+            ...(dificuldadeValida ? { dificuldade } : {}),
+          };
+          const qtcRows = await QuestaoTesteConhecimento.findAll({
+            where: qtcWhere,
+            attributes: ['id', 'enunciado', 'opcoes', 'resposta_correta', 'dificuldade', 'categoria', 'pontos'],
+            raw: true,
+          });
+          console.log(`   Encontradas em QuestaoTesteConhecimento: ${qtcRows.length}`);
+
+          // 3b. IDs não encontrados em QuestaoTesteConhecimento → tentar modelo Questao
+          const idsEncontradosQTC = new Set(qtcRows.map(q => q.id));
+          const idsRestantes = questaoIds.filter(id => !idsEncontradosQTC.has(id));
+
+          let questaoRows = [];
+          if (idsRestantes.length > 0) {
+            const qWhere = {
+              id: { [Op.in]: idsRestantes },
+              ...(dificuldadeValida ? { dificuldade } : {}),
+            };
+            questaoRows = await Questao.findAll({
+              where: qWhere,
+              attributes: ['id', 'titulo', 'descricao', 'opcoes', 'resposta_correta', 'dificuldade', 'disciplina', 'pontos'],
+              raw: true,
+            });
+            console.log(`   Encontradas em Questao (modelo novo): ${questaoRows.length}`);
+          }
+
+          // 4. Normalizar e combinar
+          const normalize = (q, fromQTC) => {
+            let opcoes = q.opcoes;
+            if (typeof opcoes === 'string') { try { opcoes = JSON.parse(opcoes); } catch { opcoes = []; } }
+            if (!Array.isArray(opcoes)) opcoes = [];
+            return {
+              id: q.id,
+              enunciado: fromQTC ? q.enunciado : (q.titulo || q.descricao || ''),
+              opcoes,
+              resposta_correta: q.resposta_correta || '',
+              dificuldade: q.dificuldade,
+              categoria: fromQTC ? q.categoria : categoria,
+              pontos: q.pontos || 10,
+            };
+          };
+
+          const todasQuestoes = [
+            ...qtcRows.map(q => normalize(q, true)),
+            ...questaoRows.map(q => normalize(q, false)),
+          ];
+
+          console.log(`   Total questões normalizadas: ${todasQuestoes.length}`);
+
+          totalDisponivel = todasQuestoes.length;
+          const shuffled = todasQuestoes.sort(() => Math.random() - 0.5).slice(0, Math.min(parseInt(limit), 20));
+          questoes = shuffled;
+        }
+      }
     }
 
     return res.json({ success: true, area: categoria, total: totalDisponivel, data: questoes });

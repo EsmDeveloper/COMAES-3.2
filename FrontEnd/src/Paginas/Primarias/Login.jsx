@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth, getPostLoginRoute } from "../../context/AuthContext";
@@ -39,7 +39,7 @@ function Login() {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/auth/login`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ usuario: form.usuario, senha: form.senha })

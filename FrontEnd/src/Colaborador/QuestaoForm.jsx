@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -64,7 +64,7 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
   const loadQuestion = async () => {
     try {
       setLoading(true);
-      const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
       const res = await axios.get(`${apiBase}/api/questoes/${questaoId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
         timeout: 5000
@@ -282,7 +282,7 @@ const QuestaoForm = ({ questaoId, onClose, onSuccess }) => {
 
       console.log('Enviando questão:', dadosParaEnviar);
 
-      const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+      const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
       
       const endpoint = isEditMode && questaoId
         ? `${apiBase}/api/questoes/${questaoId}`

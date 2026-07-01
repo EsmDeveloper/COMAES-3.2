@@ -86,7 +86,7 @@ export function useSupportChat() {
 
   const apiBase =
     import.meta.env.VITE_API_BASE_URL ||
-    `http://${window.location.hostname}:3002`;
+    '';
 
   const buildHistory = useCallback(() => {
     return messages

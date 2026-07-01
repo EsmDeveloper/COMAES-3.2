@@ -8,7 +8,7 @@ import bcrypt from 'bcryptjs';
 import { Op } from 'sequelize';
 import Usuario from '../models/User.js';
 import Disciplina from '../models/Disciplina.js';
-import { sendWelcomeEmail } from '../services/emailService.js';
+import { sendWelcomeEmail, sendColaboradorAprovadoEmail } from '../services/emailService.js';
 import { uploadColaboradorDocs } from '../middlewares/security/colaboradorUpload.js';
 
 // ── Validation helpers (mirrors BackEnd/middlewares/validate.js) 
@@ -631,6 +631,14 @@ const aprovarColaborador = async (req, res) => {
     });
 
     console.log(`   [SUCCESS] Colaborador ${user.email} aprovado com disciplina: ${disciplina_colaborador}\n`);
+
+    // Enviar email de confirmação ao colaborador (não bloqueia a resposta se falhar)
+    try {
+      await sendColaboradorAprovadoEmail(user.email, user.nome, disciplina_colaborador.toLowerCase().trim());
+      console.log(`   [email] Email de aprovação enviado para ${user.email}`);
+    } catch (emailErr) {
+      console.warn(`   [email] Falha ao enviar email de aprovação para ${user.email}:`, emailErr.message);
+    }
 
     // Notificar via socket
     if (req.io) {

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * CertificadosTab.jsx
  * Gerenciamento administrativo de certificados
  * Permite visualizar, filtrar e gerenciar todos os certificados emitidos
@@ -92,7 +92,7 @@ export default function CertificadosTab() {
   // Estado de processamento
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
-  const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
+  const apiBase = import.meta.env.VITE_API_BASE_URL || '';
 
   // ============================================
   // CARREGAR CERTIFICADOS

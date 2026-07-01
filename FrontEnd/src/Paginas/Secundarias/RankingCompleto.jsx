@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -173,7 +173,7 @@ export default function RankingCompleto() {
   useEffect(() => { idRef.current = effectiveId; },       [effectiveId]);
   useEffect(() => { discRef.current = disciplinaFilter; }, [disciplinaFilter]);
 
-  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
 
   /*  Load ranking  */
   const load = useCallback(async (silent = false) => {

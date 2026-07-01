@@ -6,14 +6,14 @@
  */
 
 import express from 'express';
-import auth from '../middlewares/auth.js';
-import isAdmin from '../middlewares/isAdmin.js';
+import { authenticateAny } from '../middlewares/auth.js';
 import { getMeuNivel, adicionarXP } from '../controllers/nivelController.js';
+import isAdmin from '../middlewares/isAdmin.js';
 
 const router = express.Router();
 
 // Qualquer utilizador autenticado pode consultar o próprio nível
-router.get('/me/nivel', auth, getMeuNivel);
+router.get('/me/nivel', authenticateAny, getMeuNivel);
 
 // Apenas administradores podem conceder XP manualmente
 router.put('/xp', isAdmin, adicionarXP);

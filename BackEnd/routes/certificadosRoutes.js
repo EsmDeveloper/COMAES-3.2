@@ -3,7 +3,7 @@ import express from 'express';
 import Certificado from '../models/Certificado.js';
 import Usuario from '../models/User.js';
 import Torneio from '../models/Torneio.js';
-import { generateCertificate, generateCertificatesForTournament } from '../certificates/generator/generateCertificado.js';
+// generateCertificado importado lazily para não bloquear o arranque do servidor
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import path from 'path';
@@ -60,6 +60,8 @@ router.post('/gerar/:torneioId/:disciplina', async (req, res) => {
   try {
     const { torneioId, disciplina } = req.params;
 
+    // Lazy import para não bloquear arranque do servidor
+    const { generateCertificatesForTournament } = await import('../certificates/generator/generateCertificado.js');
     const result = await generateCertificatesForTournament(torneioId, disciplina);
 
     if (!result.success) {
@@ -201,13 +203,21 @@ router.get('/admin/todos', async (req, res) => {
       return res.status(401).json({ success: false, error: 'Token não fornecido' });
     }
 
-    const certificados = await Certificado.findAll({
-      include: [
-        { model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'email'] },
-        { model: Torneio, as: 'torneio', attributes: ['id', 'titulo', 'termina_em'] }
-      ],
-      order: [['data_geracao', 'DESC']]
-    });
+    // Tentar include com associações; se falhar, devolver sem include
+    let certificados;
+    try {
+      certificados = await Certificado.findAll({
+        include: [
+          { model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'email'] },
+          { model: Torneio, as: 'torneio', attributes: ['id', 'titulo', 'termina_em'] }
+        ],
+        order: [['data_geracao', 'DESC']]
+      });
+    } catch (assocErr) {
+      // Fallback: sem include se associações não estiverem carregadas
+      console.warn('[certificadosRoutes] Include falhou, usando fallback:', assocErr.message);
+      certificados = await Certificado.findAll({ order: [['data_geracao', 'DESC']] });
+    }
 
     res.json({ success: true, data: certificados });
   } catch (error) {

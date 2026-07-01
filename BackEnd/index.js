@@ -1844,7 +1844,7 @@ app.get('/api/debug/torneios', async (req, res) => {
 });
 
 // ===== UPLOAD AVATAR =====
-app.post('/usuarios/:id/avatar', upload.single('avatar'), async (req, res) => {
+app.post(['/usuarios/:id/avatar', '/api/usuarios/:id/avatar'], upload.single('avatar'), async (req, res) => {
   try {
     const userId = String(req.params.id);
     const auth = req.headers.authorization || '';
@@ -1874,7 +1874,7 @@ app.post('/usuarios/:id/avatar', upload.single('avatar'), async (req, res) => {
   }
 });
 
-app.put('/usuarios/:id', async (req, res) => {
+app.put(['/usuarios/:id', '/api/usuarios/:id'], async (req, res) => {
   try {
     const userId = String(req.params.id);
     const auth = req.headers.authorization || '';
@@ -2027,8 +2027,8 @@ app.get('/usuarios/:id/notificacoes/nao-lidas/count', auth, async (req, res) => 
 });
 
 // Configurações do usuário
-// Configurações do usuário — GET
-app.get('/usuarios/:id/configuracao', async (req, res) => {
+// Configurações do usuário — GET  (suporta /usuarios/:id/configuracao e /api/usuarios/:id/configuracao)
+app.get(['/usuarios/:id/configuracao', '/api/usuarios/:id/configuracao'], async (req, res) => {
   try {
     const usuarioId = req.params.id;
     const configuracao = await ConfiguracaoUsuario.findOne({
@@ -2067,7 +2067,8 @@ app.get('/usuarios/:id/configuracao', async (req, res) => {
 });
 
 // Configurações do usuário — PUT
-app.put('/usuarios/:id/configuracao', async (req, res) => {
+// Configurações do usuário — PUT  (suporta /usuarios/:id/configuracao e /api/usuarios/:id/configuracao)
+app.put(['/usuarios/:id/configuracao', '/api/usuarios/:id/configuracao'], async (req, res) => {
   try {
     const usuarioId = req.params.id;
 
@@ -2151,6 +2152,24 @@ app.post('/auth/alterar-senha', async (req, res) => {
 
 // Participações do usuário em torneios
 app.get('/usuarios/:id/participacoes', async (req, res) => {
+  try {
+    const usuarioId = req.params.id;
+    const participacoes = await ParticipanteTorneio.findAll({
+      where: { usuario_id: usuarioId },
+      include: [{
+        model: Torneio,
+        as: 'torneio',
+        attributes: ['id', 'titulo', 'descricao', 'inicia_em', 'termina_em', 'status']
+      }]
+    });
+    res.json({ success: true, data: participacoes });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Alias com prefixo /api/ para compatibilidade com o proxy do Vite
+app.get('/api/usuarios/:id/participacoes', async (req, res) => {
   try {
     const usuarioId = req.params.id;
     const participacoes = await ParticipanteTorneio.findAll({

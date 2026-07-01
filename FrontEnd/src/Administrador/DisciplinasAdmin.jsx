@@ -22,7 +22,7 @@ import {
  */
 const DisciplinasAdmin = () => {
   const { token } = useAuth();
-  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+  const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
 
   // State
   const [disciplinas, setDisciplinas] = useState([]);

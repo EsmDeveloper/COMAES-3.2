@@ -59,8 +59,8 @@ const founders = [
   },
   {
     name: 'José Mariche',
-    role: 'Especialista em Conteúdo',
-    description: 'Pedagogo e pesquisador que desenvolveu a metodologia dos testes, garantindo a qualidade e relevância acadêmica de todo o conteúdo.',
+    role: 'Especialista em Conteúdos ',
+    description: 'Gestor de Projectos e pesquisador que desenvolveu a metodologia dos testes, garantindo a qualidade e relevância acadêmica de todo o conteúdo.',
     img: maricheImg,
     accent: t.success,
     soft: t.successSoft,

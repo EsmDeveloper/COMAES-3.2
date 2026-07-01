@@ -27,7 +27,7 @@ const QuestoesManager = () => {
   const [filterTorneio, setFilterTorneio] = useState('');
   const [torneios, setTorneios] = useState([]);
 
-  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
 
   // Carregar questÃães
   const carregarQuestoes = async () => {

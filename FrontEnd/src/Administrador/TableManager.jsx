@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import { useState, useEffect, useMemo, useCallback } from 'react';
 import adminService from './adminService';
 import TableModal from './TableModal';
 import UserModal from './UserModal';
@@ -337,7 +337,7 @@ const TableManager = ({ table }) => {
             } else if (modalMode === 'reset-password' && isUserTable) {
                 const idValue = selectedItem ? selectedItem[pkField] : null;
                 if (!idValue) { setError('Identificador inválido para operação'); return; }
-                const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+                const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
                 const res = await fetch(`${apiBase}/api/admin/users/${idValue}/reset-password`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -352,7 +352,7 @@ const TableManager = ({ table }) => {
             } else if (modalMode === 'toggle-admin' && isUserTable) {
                 const idValue = selectedItem ? selectedItem[pkField] : null;
                 if (!idValue) { setError('Identificador inválido para operação'); return; }
-                const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
+                const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
                 const res = await fetch(`${apiBase}/api/admin/users/${idValue}/toggle-admin`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },

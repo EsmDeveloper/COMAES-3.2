@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Bell, 
@@ -43,7 +43,7 @@ export default function NotificacoesPage() {
       setLoading(true);
       setError(null);
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/usuarios/${user.id}/notificacoes`,
+        `${import.meta.env.VITE_API_BASE_URL || ''}/usuarios/${user.id}/notificacoes`,
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('comaes_token')}`
@@ -107,7 +107,7 @@ export default function NotificacoesPage() {
   const markAsRead = async (id, currentStatus) => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/notificacoes/${id}/lido`,
+        `${import.meta.env.VITE_API_BASE_URL || ''}/notificacoes/${id}/lido`,
         {
           method: 'PATCH',
           headers: {
@@ -129,7 +129,7 @@ export default function NotificacoesPage() {
   const deleteNotification = async (id) => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/api/admin/notificacao/${id}`,
+        `${import.meta.env.VITE_API_BASE_URL || ''}/api/admin/notificacao/${id}`,
         {
           method: 'DELETE',
           headers: {
@@ -149,7 +149,7 @@ export default function NotificacoesPage() {
   const markAllAsRead = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/usuarios/${user.id}/notificacoes/lido-todas`,
+        `${import.meta.env.VITE_API_BASE_URL || ''}/usuarios/${user.id}/notificacoes/lido-todas`,
         {
           method: 'PATCH',
           headers: {
@@ -286,11 +286,11 @@ export default function NotificacoesPage() {
               </button>
             )}
 
-            <div className="ml-auto">
+            <div className="w-full sm:w-auto sm:ml-auto">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="recent">Mais recentes</option>
                 <option value="oldest">Mais antigas</option>
@@ -331,7 +331,7 @@ export default function NotificacoesPage() {
                     notif.lido ? 'border-gray-300' : 'border-blue-500'
                   }`}
                 >
-                  <div className="flex items-start gap-4">
+                  <div className="flex flex-col sm:flex-row items-start gap-4">
                     {/* Ãcone */}
                     <div className={`${typeInfo.color} text-white p-3 rounded-lg flex-shrink-0`}>
                       <TypeIcon className="w-5 h-5" />
@@ -339,7 +339,7 @@ export default function NotificacoesPage() {
 
                     {/* ConteÃºdo */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4 mb-2">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 mb-2">
                         <div>
                           <h3 className={`font-bold text-lg ${
                             notif.lido ? 'text-gray-700' : 'text-gray-900'
@@ -373,7 +373,7 @@ export default function NotificacoesPage() {
                     </div>
 
                     {/* AçÃµes */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-start">
                       <button
                         onClick={() => markAsRead(notif.id, notif.lido)}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"

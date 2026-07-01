@@ -255,7 +255,7 @@ function GoalCard({ title, current, target, accent, accentSoft }) {
 
 /* --------------------------------------------------------------------- */
 function Dashboard() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
   const { nivel } = useNivel();
   const { streak, ativa } = useStreak();
@@ -279,12 +279,13 @@ function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!user?.id) return;
+      if (!user?.id || !token) return;
 
       setLoading(true);
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`}/usuarios/${user.id}/participacoes`
+          `${import.meta.env.VITE_API_BASE_URL || ''}/api/usuarios/${user.id}/participacoes`,
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         const result = await response.json();
 
@@ -375,7 +376,7 @@ function Dashboard() {
     };
 
     fetchData();
-  }, [user?.id]);
+  }, [user?.id, token]);
 
   if (loading && user) {
     return (
@@ -478,9 +479,22 @@ function Dashboard() {
             grid-template-columns: 1fr !important;
           }
         }
+        @media (max-width: 640px) {
+          .dashboard-hero-content {
+            flex-direction: column;
+            gap: 18px;
+          }
+          .dashboard-hero-meta {
+            width: 100%;
+            text-align: left !important;
+          }
+          .dashboard-shell {
+            max-width: 100% !important;
+          }
+        }
       `}</style>
 
-      <div style={{ maxWidth: 1400, margin: '0 auto' }}>
+      <div className="dashboard-shell" style={{ maxWidth: 1400, margin: '0 auto' }}>
         {/* Hero Section */}
         <div className="dash-fade" style={{ marginBottom: 32 }}>
           <div style={{
@@ -501,7 +515,7 @@ function Dashboard() {
               background: 'rgba(255,255,255,0.08)',
             }} />
 
-            <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div className="dashboard-hero-content" style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 6, fontWeight: 500 }}>
                   Dashboard COMAES
@@ -531,7 +545,7 @@ function Dashboard() {
                 </div>
               </div>
 
-              <div style={{ textAlign: 'right' }}>
+              <div className="dashboard-hero-meta" style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 4 }}>
                   Membro desde
                 </div>

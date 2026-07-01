@@ -100,8 +100,10 @@ export default function TorneioDashboard() {
     }
   };
 
+  const hasActiveParticipation = Boolean(userActiveParticipation?.ativo);
+
   const handleJoinTournament = (tournament) => {
-    if (userActiveParticipation && userActiveParticipation.ativo) {
+    if (hasActiveParticipation) {
       setError(
         `Você já está participando do torneio "${userActiveParticipation.torneio.titulo}". Conclua-o antes de se inscrever em outro.`
       );
@@ -281,14 +283,18 @@ export default function TorneioDashboard() {
 
                   <button
                     className={`join-btn ${
-                      tourStatus.status === 'encerrado' || tourStatus.status === 'ending'
+                      tourStatus.status === 'encerrado' || tourStatus.status === 'ending' || hasActiveParticipation
                         ? 'disabled'
                         : ''
                     }`}
                     onClick={() => handleJoinTournament(tournament)}
-                    disabled={tourStatus.status === 'encerrado'}
+                    disabled={tourStatus.status === 'encerrado' || hasActiveParticipation}
                   >
-                    {tourStatus.status === 'encerrado' ? 'Torneio Encerrado' : 'Participar'}
+                    {tourStatus.status === 'encerrado'
+                      ? 'Torneio Encerrado'
+                      : hasActiveParticipation
+                        ? 'Bloqueado'
+                        : 'Participar'}
                   </button>
                 </div>
               );

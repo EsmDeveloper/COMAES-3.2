@@ -6,15 +6,15 @@
  */
 
 import express from 'express';
-import auth from '../middlewares/auth.js';
+import { authenticateAny } from '../middlewares/auth.js';
 import { registarAtividadeHandler, getMeuStreak } from '../controllers/streakController.js';
 
 const router = express.Router();
 
 // Regista uma atividade e actualiza o streak — todos os utilizadores autenticados
-router.post('/atividade', auth, registarAtividadeHandler);
+router.post('/atividade', authenticateAny, registarAtividadeHandler);
 
 // Consulta o streak actual
-router.get('/me/streak', auth, getMeuStreak);
+router.get('/me/streak', authenticateAny, getMeuStreak);
 
 export default router;

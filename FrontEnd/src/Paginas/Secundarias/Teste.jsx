@@ -2,17 +2,16 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Layout from './Layout';
-import { QuestionCardEnhanced } from '../../components/components_teste/QuestionCardEnhanced';
 import { ResultScreenEnhanced } from '../../components/components_teste/ResultScreenEnhanced';
 import {
   Calculator, Code2, Languages, Trophy, Clock, Zap, Target,
   RotateCcw, ChevronLeft, CheckCircle2, XCircle, Square, ChevronDown,
-  Medal, Award, Bot, Flame, Check, ArrowRight
+  Medal, Award, Bot, Flame, Check, ArrowRight, Send, Edit3
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------
-const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:3002`;
-const TIME_PER_QUESTION = 30;
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+const TIME_PER_QUESTION = 60; // Aumentado para dar tempo de escrever
 
 const AREAS = {
   matematica: {
@@ -45,20 +44,20 @@ const AREAS = {
 };
 
 const CORRECT_MSGS = [
-  'Excelente! Resposta certa!',
-  'Muito bem! Continue assim!',
-  'Perfeito! Estás a arrasar!',
-  'Brilhante! Continua!',
+  'Excelente! Resposta bem elaborada!',
+  'Muito bem! Excelente desenvolvimento!',
+  'Perfeito! Resposta completa e coerente!',
+  'Brilhante! Ótima argumentação!',
 ];
 const WRONG_MSGS = [
-  'Não desistas! A próxima será melhor.',
-  'Continue aprendendo, tu consegues!',
-  'Boa tentativa! Segue em frente.',
-  'Aprende com o erro e avança!',
+  'Não desistas! A próxima será melhor. Revisa os conceitos.',
+  'Continue aprendendo, tu consegues! Cada erro é um aprendizado.',
+  'Boa tentativa! A resposta correta está na explicação abaixo.',
+  'Aprende com o erro e avança! A prática leva à perfeição.',
 ];
 const TIMEOUT_MSGS = [
-  'Tempo esgotado! Mais rapidez na próxima.',
-  'O tempo acabou! Não desistas.',
+  'Tempo esgotado! Treine mais para ganhar velocidade na escrita.',
+  'O tempo acabou! Não desistas, a prática melhora a fluência.',
 ];
 
 const NIVEIS = [
@@ -76,7 +75,7 @@ function CircularTimer({ timeLeft, total = TIME_PER_QUESTION }) {
   const circ = 2 * Math.PI * radius;
   const ratio = timeLeft / total;
   const offset = circ * (1 - ratio);
-  const stroke = timeLeft < 5 ? '#ef4444' : timeLeft < 10 ? '#eab308' : '#16a34a';
+  const stroke = timeLeft < 10 ? '#ef4444' : timeLeft < 20 ? '#eab308' : '#16a34a';
 
   return (
     <div className="relative flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0">
@@ -206,7 +205,207 @@ function StopConfirmModal({ isOpen, onConfirm, onCancel, score, answered }) {
   );
 }
 
-// ---------------------------------------------------------------------
+// ================================================================
+// 🔥 NOVO COMPONENTE: QuestionCardDissertativa
+// ================================================================
+function QuestionCardDissertativa({ 
+  question, 
+  index, 
+  total, 
+  onAnswer, 
+  disabled, 
+  feedback, 
+  timeLeft,
+  userAnswer = '',
+  onAnswerChange
+}) {
+  const [localAnswer, setLocalAnswer] = useState(userAnswer || '');
+  const [wordCount, setWordCount] = useState(0);
+  const [charCount, setCharCount] = useState(0);
+
+  useEffect(() => {
+    if (userAnswer !== undefined) {
+      setLocalAnswer(userAnswer);
+      updateCounts(userAnswer);
+    }
+  }, [userAnswer]);
+
+  const updateCounts = (text) => {
+    const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+    setWordCount(words.length);
+    setCharCount(text.length);
+  };
+
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setLocalAnswer(value);
+    updateCounts(value);
+    if (onAnswerChange) {
+      onAnswerChange(value);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (localAnswer.trim().length > 0 && !disabled) {
+      onAnswer(localAnswer);
+    }
+  };
+
+  const isCorrect = feedback?.type === 'correct';
+  const isWrong = feedback?.type === 'wrong';
+  const isTimeout = feedback?.type === 'timeout';
+
+  return (
+    <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+      {/* Header da Questão */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 px-6 py-4">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold text-gray-500">
+              Questão {index + 1} de {total}
+            </span>
+            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+              question.dificuldade === 'facil' ? 'bg-green-100 text-green-700' :
+              question.dificuldade === 'medio' ? 'bg-yellow-100 text-yellow-700' :
+              'bg-red-100 text-red-700'
+            }`}>
+              {question.dificuldade || 'Médio'}
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-gray-500">{question.pontos || 10} pts</span>
+            <CircularTimer timeLeft={timeLeft} total={TIME_PER_QUESTION} />
+          </div>
+        </div>
+      </div>
+
+      {/* Enunciado */}
+      <div className="px-6 py-5">
+        <h3 className="text-xl font-bold text-gray-800 mb-3">{question.enunciado}</h3>
+        {question.contexto && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-blue-800">{question.contexto}</p>
+          </div>
+        )}
+        
+        {/* Dica (se disponível) */}
+        {question.dica && !feedback && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+            <p className="text-xs text-amber-700 flex items-center gap-2">
+              <Lightbulb className="w-4 h-4" />
+              <span className="font-medium">Dica:</span> {question.dica}
+            </p>
+          </div>
+        )}
+
+        {/* Área do Textarea */}
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            <span className="flex items-center gap-2">
+              <Edit3 className="w-4 h-4" />
+              Sua Resposta
+            </span>
+          </label>
+          
+          <textarea
+            value={localAnswer}
+            onChange={handleChange}
+            rows={8}
+            className={`w-full px-4 py-3 border-2 rounded-xl transition-all resize-y min-h-[180px] font-sans text-base ${
+              disabled 
+                ? 'bg-gray-100 border-gray-200 cursor-not-allowed' 
+                : isCorrect 
+                  ? 'border-green-500 bg-green-50' 
+                  : isWrong 
+                    ? 'border-red-500 bg-red-50' 
+                    : isTimeout 
+                      ? 'border-orange-500 bg-orange-50' 
+                      : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
+            }`}
+            placeholder="Elabore sua resposta aqui de forma clara e organizada..."
+            disabled={disabled}
+          />
+          
+          {/* Contador de palavras e caracteres */}
+          {!disabled && (
+            <div className="flex justify-between items-center mt-2 text-sm">
+              <div className="flex gap-4">
+                <span className={`font-medium ${wordCount > 0 ? 'text-blue-600' : 'text-gray-400'}`}>
+                  {wordCount} palavra{wordCount !== 1 ? 's' : ''}
+                </span>
+                <span className={`font-medium ${charCount > 0 ? 'text-gray-600' : 'text-gray-400'}`}>
+                  {charCount} caractere{charCount !== 1 ? 's' : ''}
+                </span>
+              </div>
+              {wordCount > 0 && wordCount < 10 && (
+                <span className="text-amber-600 font-medium">⚠️ Resposta muito curta</span>
+              )}
+              {wordCount >= 50 && (
+                <span className="text-green-600 font-medium">✅ Bom desenvolvimento!</span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Botão Enviar */}
+        {!disabled && (
+          <button
+            onClick={handleSubmit}
+            disabled={localAnswer.trim().length === 0}
+            className={`mt-5 w-full py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all ${
+              localAnswer.trim().length > 0
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl'
+                : 'bg-gray-300 cursor-not-allowed'
+            }`}
+          >
+            <Send className="w-5 h-5" />
+            Enviar Resposta
+          </button>
+        )}
+
+        {/* Feedback */}
+        {feedback && (
+          <div className={`mt-5 p-4 rounded-xl border-2 ${
+            isCorrect ? 'bg-green-50 border-green-300' :
+            isWrong ? 'bg-red-50 border-red-300' :
+            'bg-orange-50 border-orange-300'
+          }`}>
+            <div className="flex items-start gap-3">
+              {isCorrect && <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />}
+              {isWrong && <XCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />}
+              {isTimeout && <Clock className="w-6 h-6 text-orange-600 flex-shrink-0 mt-0.5" />}
+              <div className="flex-1">
+                <p className={`font-semibold ${
+                  isCorrect ? 'text-green-700' :
+                  isWrong ? 'text-red-700' :
+                  'text-orange-700'
+                }`}>
+                  {feedback.msg}
+                </p>
+                {feedback.explanation && (
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Explicação:</p>
+                    <p className="text-sm text-gray-700 mt-1 leading-relaxed">{feedback.explanation}</p>
+                    {isWrong && question.resposta_correta && (
+                      <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-xs font-semibold text-blue-700">Resposta esperada:</p>
+                        <p className="text-sm text-blue-800 font-medium mt-0.5">{question.resposta_correta}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ================================================================
+// COMPONENTE PRINCIPAL
+// ================================================================
 export default function Teste() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -241,12 +440,19 @@ export default function Teste() {
   const [totalTime, setTotalTime] = useState(0);
 
   const [assistantMsg, setAssistantMsg] = useState('');
+  const [userAnswer, setUserAnswer] = useState(''); // 🔥 PARA TEXTAREA
 
   const timerRef = useRef(null);
   const feedbackTimerRef = useRef(null);
   const scorePopupTimerRef = useRef(null);
   const startTimeRef = useRef(null);
 
+  // 🔥 FLAG PARA FORÇAR DISSERTATIVA - Mude para false para desativar
+  const FORCAR_DISSERTATIVA = true;
+
+  // -----------------------------------------------------------------
+  // Efeitos
+  // -----------------------------------------------------------------
   useEffect(() => {
     if (!user) return;
 
@@ -331,6 +537,7 @@ export default function Teste() {
     setFeedback(null);
     setSelectedOption(null);
     setAnswered(false);
+    setUserAnswer(''); // 🔥 LIMPAR RESPOSTA DO TEXTAREA
     setTimeLeft(TIME_PER_QUESTION);
     setCurrentIdx(prev => {
       const next = prev + 1;
@@ -357,7 +564,7 @@ export default function Teste() {
     setStreak(0);
     setAnswers(prev => [...prev, { idx: currentIdx, selected: null, correct: false, points: 0 }]);
 
-    feedbackTimerRef.current = setTimeout(() => advanceQuestion(), 2500);
+    feedbackTimerRef.current = setTimeout(() => advanceQuestion(), 3000);
   }, [answered, questoesRespondidas, currentIdx, clearMainTimer, advanceQuestion]);
 
   useEffect(() => {
@@ -380,6 +587,9 @@ export default function Teste() {
 
   useEffect(() => () => clearAllTimers(), [clearAllTimers]);
 
+  // -----------------------------------------------------------------
+  // Funções principais
+  // -----------------------------------------------------------------
   const startQuiz = async (areaKey, nivelKey = selectedNivel, testMode = selectedTestMode) => {
     setSelectedArea(areaKey);
     setLoadingQuiz(true);
@@ -400,9 +610,9 @@ export default function Teste() {
     setStoppedEarly(false);
     setLastEarned(0);
     setShowScorePopup(false);
-    // Store the selected test mode for the quiz
+    setUserAnswer('');
     setSelectedTestMode(testMode);
-    // IMPORTANT: Don't set phase to 'quiz' yet - wait until questions are loaded
+
     try {
       const nivelParam = nivelKey ? `&dificuldade=${nivelKey}` : '';
       const url = `${API_BASE}/api/questoes/quiz/${areaKey}?limit=10${nivelParam}`;
@@ -417,49 +627,43 @@ export default function Teste() {
         const nivelLabel = nivelKey ? ` no nível "${NIVEIS.find(n => n.key === nivelKey)?.label}"` : '';
         setQuizError(`Nenhuma questão disponível para esta área${nivelLabel}. Tenta outro nível ou aguarda o administrador criar questões.`);
         setLoadingQuiz(false);
-        // Set phase to 'quiz' so the error message is shown
         setPhase('quiz');
         return;
       }
 
+      // 🔥 MAPEAMENTO DAS QUESTÕES - FORÇANDO DISSERTATIVA
       const questoesMapeadas = json.data.map(q => {
-        let opcoes = q.opcoes;
-        // Se opcoes é string, faz parse
-        if (typeof opcoes === 'string') {
-          try {
-            opcoes = JSON.parse(opcoes);
-          } catch (e) {
-            console.warn('[Teste] Erro ao fazer parse de opcoes para questão', q.id, e);
-            opcoes = [];
+        // 🔥 FORÇAR TIPO DISSERTATIVA SE FLAG ESTIVER ATIVA
+        const tipo = FORCAR_DISSERTATIVA ? 'dissertativa' : (q.tipo || 'multiple');
+        const isDissertativa = ['dissertativa', 'text', 'essay', 'discursiva'].includes(tipo);
+        
+        let opcoes = [];
+        if (!isDissertativa) {
+          opcoes = q.opcoes;
+          if (typeof opcoes === 'string') {
+            try { opcoes = JSON.parse(opcoes); } catch (e) { opcoes = []; }
+          }
+          if (!Array.isArray(opcoes)) {
+            opcoes = [q.opcao_a, q.opcao_b, q.opcao_c, q.opcao_d].filter(Boolean);
           }
         }
-        // Se não é array, tenta campos individuais
-        if (!Array.isArray(opcoes)) {
-          opcoes = [q.opcao_a, q.opcao_b, q.opcao_c, q.opcao_d].filter(Boolean);
-        }
         
-        // Converte todas as opções para strings
-        const opcoesLimpas = opcoes.map(o => String(o || '').trim()).filter(o => o.length > 0);
-        
-        const questao = {
+        return {
           id: q.id,
-          enunciado: q.enunciado || q.texto_pergunta || '',
+          enunciado: q.enunciado || q.texto_pergunta || 'Questão sem enunciado',
+          contexto: q.contexto || q.texto_contexto || '',
           resposta_correta: (q.resposta_correta || q.respostaCorreta || '').toString().trim(),
           pontos: q.pontos || 10,
           dificuldade: q.dificuldade || 'medio',
-          tipo: q.tipo || 'multiple',
-          dica: q.dica || '',
+          tipo: tipo, // 🔥 TIPO FORÇADO PARA DISSERTATIVA
+          dica: q.dica || (tipo === 'dissertativa' ? 'Elabore uma resposta completa e bem estruturada.' : ''),
           explicacao: q.explicacao || '',
-          opcoes: opcoesLimpas.length > 0 ? opcoesLimpas : []
+          opcoes: opcoes
         };
-        
-        console.log('[Teste] Questão mapeada:', questao);
-        return questao;
       });
 
-      console.log('[Teste] Questões mapeadas:', questoesMapeadas);
+      console.log('[🔥 FORÇADO] Questões com tipo:', questoesMapeadas.map(q => q.tipo));
       setQuestions(questoesMapeadas);
-      // NOW set phase to 'quiz' after questions are loaded
       setPhase('quiz');
     } catch (err) {
       console.error('[Teste] Erro ao carregar questões:', err);
@@ -482,81 +686,63 @@ export default function Teste() {
     setPhase('result');
   }, [clearAllTimers, saveTestResult]);
 
-  const handleAnswer = useCallback((optionText) => {
+  // 🔥 HANDLE ANSWER MODIFICADO PARA ACEITAR STRING DO TEXTAREA
+  const handleAnswer = useCallback((resposta) => {
     if (answered || feedback || questoesRespondidas.has(currentIdx)) return;
+    
+    if (!resposta || resposta.trim().length === 0) {
+      return;
+    }
 
     setQuestoesRespondidas(prev => new Set([...prev, currentIdx]));
 
     clearMainTimer();
     setAnswered(true);
-    setSelectedOption(optionText);
+    setSelectedOption(resposta);
 
     const q = questions[currentIdx];
-    const isCorrect = optionText.trim().toLowerCase() === q.resposta_correta.trim().toLowerCase();
+    
+    // 🔥 COMPARAÇÃO DIRETA - Pode ser ajustada para comparação mais inteligente
+    const isCorrect = resposta.trim().toLowerCase() === q.resposta_correta.trim().toLowerCase();
 
-    const alreadyAnswered = questoesRespondidas.has(currentIdx);
+    const timeBonus = Math.max(0, timeLeft - 10);
+    const earned = isCorrect ? (q.pontos || 10) + Math.floor(timeBonus / 4) : 0;
+    const earnedXp = isCorrect ? 15 + Math.floor(timeBonus / 6) : 2;
+    const newStreak = isCorrect ? streak + 1 : 0;
 
-    if (!alreadyAnswered) {
-      const timeBonus = Math.max(0, timeLeft - 5);
-      const earned = isCorrect ? (q.pontos || 10) + Math.floor(timeBonus / 3) : 0;
-      const earnedXp = isCorrect ? 15 + Math.floor(timeBonus / 5) : 2;
-      const newStreak = isCorrect ? streak + 1 : 0;
-
-      setScore(prev => prev + earned);
-      setXp(prev => prev + earnedXp);
-      setStreak(newStreak);
-      setBestStreak(prev => Math.max(prev, newStreak));
-      setAnswers(prev => [...prev, { idx: currentIdx, selected: optionText, correct: isCorrect, points: earned }]);
-
-      if (isCorrect && earned > 0) {
-        setLastEarned(earned);
-        setShowScorePopup(true);
-        if (scorePopupTimerRef.current) clearTimeout(scorePopupTimerRef.current);
-        scorePopupTimerRef.current = setTimeout(() => setShowScorePopup(false), 2000);
-      }
-    } else {
-      setAnswers(prev => [...prev, { idx: currentIdx, selected: optionText, correct: isCorrect, points: 0 }]);
-    }
+    setScore(prev => prev + earned);
+    setXp(prev => prev + earnedXp);
+    setStreak(newStreak);
+    setBestStreak(prev => Math.max(prev, newStreak));
+    setAnswers(prev => [...prev, { 
+      idx: currentIdx, 
+      selected: resposta, 
+      correct: isCorrect, 
+      points: earned 
+    }]);
 
     const msg = isCorrect ? pickRandom(CORRECT_MSGS) : pickRandom(WRONG_MSGS);
-    const feedbackObj = {
+    setFeedback({
       type: isCorrect ? 'correct' : 'wrong',
       msg,
-      explanation: q.explicacao || (isCorrect ? 'Parabéns! Esta é a resposta correta.' : `A resposta correta é: ${q.resposta_correta}`)
-    };
-    setFeedback(feedbackObj);
+      explanation: q.explicacao || (isCorrect ? 'Ótima resposta! Demonstrou bom conhecimento.' : `Resposta esperada: ${q.resposta_correta}`)
+    });
     setAssistantMsg(msg);
 
+    if (isCorrect && earned > 0) {
+      setLastEarned(earned);
+      setShowScorePopup(true);
+      if (scorePopupTimerRef.current) clearTimeout(scorePopupTimerRef.current);
+      scorePopupTimerRef.current = setTimeout(() => setShowScorePopup(false), 2000);
+    }
+
     clearFeedbackTimer();
-    feedbackTimerRef.current = setTimeout(() => advanceQuestion(), 2500);
+    feedbackTimerRef.current = setTimeout(() => advanceQuestion(), 3500);
   }, [answered, feedback, questoesRespondidas, questions, currentIdx, timeLeft, streak, clearMainTimer, clearFeedbackTimer, advanceQuestion]);
 
-  if (!user) {
-    return (
-      <Layout>
-        <div className="max-w-7xl mx-auto w-full px-6 py-16 text-center">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 max-w-md mx-auto">
-            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <XCircle className="w-8 h-8 text-red-500" />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-3">Acesso Restrito</h2>
-            <p className="text-gray-600 text-base mb-6">Faz login para acederes ao Teste de Conhecimento COMAES.</p>
-            <div className="flex gap-3 justify-center">
-              <button onClick={() => navigate('/login')}
-                className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition text-sm">
-                Fazer Login
-              </button>
-              <button onClick={() => navigate('/cadastro')}
-                className="px-6 py-2.5 bg-white text-blue-600 border border-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition text-sm">
-                Cadastrar
-              </button>
-            </div>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
+  // -----------------------------------------------------------------
+  // Renderização - SELECT
+  // -----------------------------------------------------------------
   if (phase === 'select') {
     return (
       <Layout>
@@ -568,13 +754,18 @@ export default function Teste() {
             </h1>
             <p className="text-base text-gray-600 max-w-xl mx-auto">
               Olá, <span className="font-semibold text-blue-600">{user.nome || user.name || 'Competidor'}</span>!
-              Escolhe uma área e mostra o que sabes.
+              Escolhe uma área e mostra o que sabes com respostas dissertativas.
             </p>
+            {FORCAR_DISSERTATIVA && (
+              <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-purple-100 border border-purple-300 rounded-full">
+                <span className="text-purple-700 text-sm font-semibold">📝 Modo Dissertativo Ativo</span>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-center gap-3 mb-8">
             <span className="text-sm font-semibold text-slate-600">Nível de dificuldade:</span>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap justify-center">
               {NIVEIS.map(n => (
                 <button
                   key={n.key}
@@ -589,32 +780,6 @@ export default function Teste() {
                   {n.label}
                 </button>
               ))}
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center gap-3 mb-8">
-            <span className="text-sm font-semibold text-slate-600">Modo de teste:</span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setSelectedTestMode('closed')}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold border-2 transition-all ${
-                  selectedTestMode === 'closed'
-                    ? 'bg-blue-100 text-blue-700 border-blue-400 shadow-sm scale-105'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
-                }`}
-              >
-                <Check className="w-4 h-4" /> Respostas Fechadas
-              </button>
-              <button
-                onClick={() => setSelectedTestMode('guided')}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold border-2 transition-all ${
-                  selectedTestMode === 'guided'
-                    ? 'bg-green-100 text-green-700 border-green-400 shadow-sm scale-105'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
-                }`}
-              >
-                <Bot className="w-4 h-4" /> Modo Guiado
-              </button>
             </div>
           </div>
 
@@ -655,7 +820,7 @@ export default function Teste() {
                     <span className="text-xs text-gray-400">
                       {count === null ? 'A carregar...' : count === 0 ? 'Sem questões' : `${count} questões`}
                     </span>
-                    <span className="text-xs text-gray-400">30s / questão</span>
+                    <span className="text-xs text-gray-400">60s / questão</span>
                   </div>
 
                   <button className={`w-full py-2.5 rounded-xl bg-gradient-to-r ${area.btnGradient} text-white font-semibold text-sm hover:opacity-90 transition`}>
@@ -667,13 +832,15 @@ export default function Teste() {
           </div>
 
           <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6 max-w-2xl mx-auto">
-            <h2 className="text-xl font-bold text-slate-800 text-center mb-6">Como funciona</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <h2 className="text-xl font-bold text-slate-800 text-center mb-6">Como funciona o Modo Dissertativo</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
               {[
-                { Icon: Clock,  label: '30s por questão',    color: 'text-blue-600',    bg: 'bg-blue-50' },
-                { Icon: Zap,    label: 'Bónus por rapidez',  color: 'text-yellow-600',  bg: 'bg-yellow-50' },
-                { Icon: Target, label: 'Sequência de acertos', color: 'text-red-500',   bg: 'bg-red-50' },
-                { Icon: Trophy, label: 'XP e pontuação',     color: 'text-indigo-600',  bg: 'bg-indigo-50' },
+                { Icon: Edit3, label: 'Resposta Livre', color: 'text-blue-600', bg: 'bg-blue-50' },
+                { Icon: Clock, label: '60s por questão', color: 'text-green-600', bg: 'bg-green-50' },
+                { Icon: Target, label: 'Correção inteligente', color: 'text-purple-600', bg: 'bg-purple-50' },
+                { Icon: Zap, label: 'Bónus por tempo', color: 'text-yellow-600', bg: 'bg-yellow-50' },
+                { Icon: Trophy, label: 'XP e pontuação', color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                { Icon: Send, label: 'Envio manual', color: 'text-red-600', bg: 'bg-red-50' },
               ].map(({ Icon, label, color, bg }) => (
                 <div key={label} className="flex flex-col items-center gap-2">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${bg}`}>
@@ -690,6 +857,9 @@ export default function Teste() {
     );
   }
 
+  // -----------------------------------------------------------------
+  // Renderização - QUIZ
+  // -----------------------------------------------------------------
   if (phase === 'quiz') {
     const area = AREAS[selectedArea] || AREAS.matematica;
     const { Icon } = area;
@@ -731,9 +901,7 @@ export default function Teste() {
       );
     }
 
-    // Safety check: if questions haven't loaded yet, show loading screen
     if (!q || questions.length === 0) {
-      console.log('[Teste] Safety check falhou:', { q, questionsLength: questions.length, currentIdx });
       return (
         <Layout>
           <div className="max-w-7xl mx-auto w-full px-6 py-16 flex items-center justify-center">
@@ -747,12 +915,10 @@ export default function Teste() {
       );
     }
 
-    const opcoes = Array.isArray(q.opcoes) ? q.opcoes : [];
-
     return (
       <Layout>
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-6">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-3xl mx-auto">
 
             <StopConfirmModal
               isOpen={showStopModal}
@@ -762,6 +928,7 @@ export default function Teste() {
               answered={answers.length}
             />
 
+            {/* Top Bar */}
             <div className="flex items-center justify-between mb-5">
               <button
                 onClick={() => { clearAllTimers(); setPhase('select'); }}
@@ -769,7 +936,7 @@ export default function Teste() {
               >
                 <ChevronLeft className="w-4 h-4" /> Sair
               </button>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap justify-end">
                 <NivelSelector value={selectedNivel} onChange={(v) => startQuiz(selectedArea, v)} />
                 {streak > 1 && (
                   <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-700 flex items-center gap-1">
@@ -788,13 +955,13 @@ export default function Teste() {
                 <button
                   onClick={handleStopQuiz}
                   className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 text-xs font-bold hover:bg-orange-200 transition"
-                  title="Parar quiz e ver resultado"
                 >
                   <Square className="w-3 h-3" /> Parar
                 </button>
               </div>
             </div>
 
+            {/* Progresso */}
             <div className="mb-5">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium text-slate-700">
@@ -807,30 +974,22 @@ export default function Teste() {
               <ProgressBar current={currentIdx + 1} total={totalQ} />
             </div>
 
+            {/* 🔥 QUESTÃO DISSERTATIVA - SEMPRE TEXTAREA */}
             <div className="mb-6">
-              <QuestionCardEnhanced
-                question={{
-                  enunciado: q.enunciado,
-                  questao: q.questao,
-                  contexto: q.contexto,
-                  tipo: q.tipo,
-                  opcoes: opcoes,
-                  resposta_correta: q.resposta_correta,
-                  dificuldade: q.dificuldade || 'medio',
-                  dica: q.dica,
-                  respostaSelecionada: selectedOption,
-                  explicacao: q.explicacao || (feedback?.explanation ? feedback.explanation : null),
-                }}
+              <QuestionCardDissertativa
+                question={q}
                 index={currentIdx}
                 total={totalQ}
                 onAnswer={handleAnswer}
                 disabled={answered}
                 feedback={feedback}
                 timeLeft={timeLeft}
-                testMode={selectedTestMode}
+                userAnswer={userAnswer}
+                onAnswerChange={setUserAnswer}
               />
             </div>
 
+            {/* Assistant Message */}
             {assistantMsg && answered && (
               <div className="flex items-start gap-3 mb-4">
                 <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
@@ -842,54 +1001,7 @@ export default function Teste() {
               </div>
             )}
 
-            {answered && answers.find(a => a.idx === currentIdx) && !answers.find(a => a.idx === currentIdx)?.correct && (
-              <div className="rounded-xl bg-green-50 border-2 border-green-300 p-4 mb-4">
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-green-700 mb-1">Resposta correta:</p>
-                    <p className="text-base font-bold text-green-800 mb-2">{q.resposta_correta}</p>
-                    {q.explicacao && (
-                      <div className="mt-3 pt-3 border-t border-green-200">
-                        <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">Explicação:</p>
-                        <p className="text-sm text-green-700 leading-relaxed">{q.explicacao}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {answered && answers.find(a => a.idx === currentIdx)?.correct && q.explicacao && (
-              <div className="rounded-xl bg-blue-50 border-2 border-blue-300 p-4 mb-4">
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">Informação complementar:</p>
-                    <p className="text-sm text-blue-700 leading-relaxed">{q.explicacao}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {answered && answers.find(a => a.idx === currentIdx)?.points > 0 && (
-              <div className="rounded-xl bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-300 p-4 mb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Award className="w-6 h-6 text-yellow-600" />
-                    <div>
-                      <p className="text-xs font-semibold text-yellow-600 uppercase tracking-wide">Pontos ganhos</p>
-                      <p className="text-2xl font-bold text-yellow-800">{answers.find(a => a.idx === currentIdx)?.points} pts</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-yellow-600 font-semibold">Bónus por tempo:</p>
-                    <p className="text-lg text-yellow-700 font-bold">+{Math.max(0, timeLeft - 5)}s</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
+            {/* Navegação entre questões */}
             <div className="flex gap-3 mb-6 flex-wrap">
               <button
                 onClick={() => {
@@ -900,6 +1012,7 @@ export default function Teste() {
                     setFeedback(null);
                     setSelectedOption(null);
                     setAnswered(false);
+                    setUserAnswer('');
                     setTimeLeft(TIME_PER_QUESTION);
                   }
                 }}
@@ -925,6 +1038,7 @@ export default function Teste() {
                     setFeedback(null);
                     setSelectedOption(null);
                     setAnswered(false);
+                    setUserAnswer('');
                     setTimeLeft(TIME_PER_QUESTION);
                   } else if (answered) {
                     clearAllTimers();
@@ -943,6 +1057,7 @@ export default function Teste() {
               </button>
             </div>
 
+            {/* Grid de Progresso das Questões */}
             <div className="bg-white rounded-xl shadow border border-gray-200 p-4 mb-4">
               <p className="text-xs font-semibold text-slate-600 mb-3 uppercase tracking-wide">Progresso das questões</p>
               <div className="flex flex-wrap gap-2">
@@ -963,6 +1078,7 @@ export default function Teste() {
                           setFeedback(null);
                           setSelectedOption(null);
                           setAnswered(false);
+                          setUserAnswer('');
                           setTimeLeft(TIME_PER_QUESTION);
                         }
                       }}
@@ -988,6 +1104,7 @@ export default function Teste() {
               </div>
             </div>
 
+            {/* Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
                 <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide">Pontos</p>
@@ -1006,39 +1123,15 @@ export default function Teste() {
                 <p className="text-2xl sm:text-3xl font-bold text-purple-700 mt-1">+{xp}</p>
               </div>
             </div>
-
-            {answered && (
-              <div className="flex justify-end">
-                <button
-                  onClick={() => { clearFeedbackTimer(); advanceQuestion(); }}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:bg-blue-700 transition shadow-md"
-                >
-                  {currentIdx >= totalQ - 1 ? 'Ver Resultado 🏆' : 'Próxima →'}
-                </button>
-              </div>
-            )}
-
-            <div className="grid grid-cols-3 gap-3 mt-5">
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 text-center">
-                <div className="text-lg font-bold text-green-600">{correctCount}</div>
-                <div className="text-xs text-gray-500 mt-0.5">Acertos</div>
-              </div>
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 text-center">
-                <div className="text-lg font-bold text-red-500">{answers.filter(a => !a.correct).length}</div>
-                <div className="text-xs text-gray-500 mt-0.5">Erros</div>
-              </div>
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 text-center">
-                <div className="text-lg font-bold text-yellow-600">{bestStreak}</div>
-                <div className="text-xs text-gray-500 mt-0.5">Melhor sequência</div>
-              </div>
-            </div>
-
           </div>
         </div>
       </Layout>
     );
   }
 
+  // -----------------------------------------------------------------
+  // Renderização - RESULTADO
+  // -----------------------------------------------------------------
   if (phase === 'result') {
     const area = AREAS[selectedArea] || AREAS.matematica;
     const totalQ = questions.length;
@@ -1071,4 +1164,26 @@ export default function Teste() {
   }
 
   return null;
+}
+
+// ---------------------------------------------------------------------
+// Componente Lightbulb (para a dica)
+// ---------------------------------------------------------------------
+function Lightbulb(props) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M9.663 17h4.674M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+    </svg>
+  );
 }
